@@ -1,6 +1,6 @@
 # AWTRIX-LIGHT
 
-**Currently in early developer stage. Source code will be released as soon as I have implemented all my ideas**
+**Currently in early developer stage. Source code will be released as soon as the scaffold is ready I have implemented all my ideas**
 
 You can still try my current dev snapshot:  
 https://blueforcer.github.io/awtrix-light/  
