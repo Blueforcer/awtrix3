@@ -49,18 +49,13 @@ jobs:
         run: pio run
 
       - name: Copy firmware to output directory
-        run: cp .pio/build/esp32dev/firmware.bin ./flasher/firmware
+        run: cp .pio/build/esp32dev/firmware.bin ./docs/flasher/firmware
 
       - name: Create new manifest.json
-        run: cat flasher/firmware/manifest.json | jq '.version="${{ steps.version_number.outputs.firmware_version }}"' > flasher/firmware/new-manifest.json
+        run: cat docs/flasher/firmware/manifest.json | jq '.version="${{ steps.version_number.outputs.firmware_version }}"' > docs/flasher/firmware/new-manifest.json
       
       - name: Override previous manifest.json
-        run: mv flasher/firmware/new-manifest.json flasher/firmware/manifest.json
-
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          folder: flasher
+        run: mv docs/flasher/firmware/new-manifest.json docs/flasher/firmware/manifest.json
 
       - name: Upload firmware as artifact
         uses: actions/upload-artifact@v2
