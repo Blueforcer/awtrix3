@@ -1,5 +1,6 @@
 name: Compile
-
+permissions:
+  contents: write
 on:
   push:
     branches:
