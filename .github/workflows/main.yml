@@ -1,0 +1,62 @@
+name: Compile
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  compile_firmware:
+    name: Compile the firmware
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3
+        
+      # See PlatformIO documentation regarding Github Actions
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v2
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade platformio
+
+      - name: Install jo
+        run: sudo apt-get -y install jq
+
+      - name: Extract version number
+        id: version_number
+        run: |
+          echo "::set-output name=library_version::$(grep '*VERSION' src/Settings.cpp | cut -d'=' -f2 | sed -r 's/"(.*)";/\1/' | awk '{$1=$1};1')"
+
+      - name: Run PlatformIO
+        run: pio run
+
+      - name: Move firmware to output directory
+        run: mv .pio/build/nodemcu-32s/firmware.bin ./flasher/firmware
+
+      - name: Create new manifest.json
+        run: cat flasher/firmware/manifest.json | jq '.version="${{ steps.version_number.outputs.library_version }}"' > flasher/firmware/new-manifest.json
+      
+      - name: Override previous manifest.json
+        run: mv flasher/firmware/new-manifest.json flasher/firmware/manifest.json
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: flasher
