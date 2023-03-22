@@ -48,8 +48,8 @@ jobs:
       - name: Run PlatformIO
         run: pio run
 
-      - name: Move firmware to output directory
-        run: mv .pio/build/esp32dev/firmware.bin ./flasher/firmware
+      - name: Copy firmware to output directory
+        run: cp .pio/build/esp32dev/firmware.bin ./flasher/firmware
 
       - name: Create new manifest.json
         run: cat flasher/firmware/manifest.json | jq '.version="${{ steps.version_number.outputs.library_version }}"' > flasher/firmware/new-manifest.json
@@ -61,20 +61,9 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: flasher
-
-  release:
-    needs: compile_firmware
-    runs-on: ubuntu-latest
-    steps:
-    - name: Download Firmware Files
-      uses: actions/download-artifact@v2
-      with:
-        path: release
-    - name: Release Firmware
-      uses: ncipollo/release-action@v1
-      if: startsWith(github.ref, 'refs/tags/') 
-      with:
-        artifacts: release/*/*.bin
-        generateReleaseNotes: true
-        allowUpdates: true
-        token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Download build files
+        uses: actions/download-artifact@v3
+        with:
+          path: .pio/build/esp32dev/firmware.bin
+          name: awtrix_light.bin
