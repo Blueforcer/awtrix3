@@ -3,8 +3,9 @@
  *
  * Copyright (c) 2016 by Daniel Eichhorn
  * Copyright (c) 2016 by Fabrice Weinberg
- * Copyright (c) 2016 by Fabrice Weinberg
- * Highly modified 2023 for AWTRIX Light by Stephan Muehl (Blueforcer)
+ * Copyright (c) 2023 by Stephan Muehl (Blueforcer)
+ * Note: This old lib for SSD1306 displays has been extremly 
+ * modified for AWTRIX Light and has nothing to do with the original purposes. 
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +32,6 @@
 
 MatrixDisplayUi::MatrixDisplayUi(FastLED_NeoMatrix *matrix)
 {
-
   this->matrix = matrix;
 }
 
