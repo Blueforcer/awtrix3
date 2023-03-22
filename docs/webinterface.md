@@ -1,1 +1,1 @@
-:clock1: Your clock is accessible via http://awtrixlight.local/.
+# UNDER CONSTRUCTION
