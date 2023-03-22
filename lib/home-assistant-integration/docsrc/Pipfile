@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+exhale = "0.3.4"
+breathe = "4.34.0"
+sphinx = "5.0.2"
+lxml = "4.8.0"
+sphinx-press-theme = "0.8.0"
+sphinxcontrib-email = "0.3.5"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"

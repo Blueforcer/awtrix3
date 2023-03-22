@@ -1,0 +1,81 @@
+{
+  "name": "Melody Player",
+  "version": "2.4.0",
+  "authors": {
+    "name": "Fabiano Riccardi",
+    "email": "fabiano.riccardi@outlook.com"
+  },
+  "description": "This library provides an intuitive interface to play melodies on buzzers. The melodies can be stored in file systems (SPIFFS or LittleFS) or hardcoded in your sketch. Support RTTTL.",
+  "keywords": [
+    "buzzer",
+    "tune",
+    "melody",
+    "rtttl",
+    "piezo",
+    "arduino-library",
+    "sound"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fabianoriccardi/melody-player"
+  },
+  "licence": "LGPL-2.1-or-later",
+  "frameworks": [
+    "arduino"
+  ],
+  "platforms": [
+    "espressif8266",
+    "espressif32"
+  ],
+  "examples": [
+    {
+      "name": "1_simple_play",
+      "base": "examples/1_simple_play",
+      "files": [
+        "1_simple_play.ino"
+      ]
+    },
+    {
+      "name": "2_control_melody",
+      "base": "examples/2_control_melody",
+      "files": [
+        "2_control_melody.ino"
+      ]
+    },
+    {
+      "name": "3_load_melody_from_file",
+      "base": "examples/3_load_melody_from_file",
+      "files": [
+        "3_load_melody_from_file.ino"
+      ]
+    },
+    {
+      "name": "4_load_rtttl_melody",
+      "base": "examples/4_load_rtttl_melody",
+      "files": [
+        "4_load_rtttl_melody.ino"
+      ]
+    },
+    {
+      "name": "5_play_melodies_simultaneously",
+      "base": "examples/5_play_melodies_simultaneously",
+      "files": [
+        "5_play_melodies_simultaneously.ino"
+      ]
+    },
+    {
+      "name": "6_transfer_playing_melody",
+      "base": "examples/6_transfer_playing_melody",
+      "files": [
+        "6_transfer_playing_melody.ino"
+      ]
+    },
+    {
+      "name": "7_duplicate_playing_melody",
+      "base": "examples/7_duplicate_playing_melody",
+      "files": [
+        "7_duplicate_playing_melody.ino"
+      ]
+    }
+  ]
+}

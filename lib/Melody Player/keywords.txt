@@ -1,0 +1,20 @@
+Melody	KEYWORD1
+MelodyPlayer	KEYWORD1
+MelodyFactory	KEYWORD1
+
+play	KEYWORD2
+playAsync	KEYWORD2
+isPlaying	KEYWORD2
+stop	KEYWORD2
+pause	KEYWORD2
+transferMelodyTo	KEYWORD2
+duplicateMelodyTo	KEYWORD2
+
+getTitle	KEYWORK2
+getTimeUnit	KEYWORD2
+getLength	KEYWORD2
+getNote	KEYWORD2
+getAutomaticSilence	KEYWORD2
+isValid	KEYWORD2
+
+load	KEYWORD2

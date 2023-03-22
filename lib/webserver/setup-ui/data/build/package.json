@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "@gfx/zopfli": "^1.0.15",
+    "@node-minify/core": "^7.1.0",
+    "@node-minify/cssnano": "^7.1.0",
+    "@node-minify/csso": "^7.1.0",
+    "@node-minify/html-minifier": "^7.1.0",
+    "@node-minify/terser": "^7.1.0"
+  },
+  "name": "build",
+  "description": "If you want customize **/setup** webpage (headers, logo etc etc): * edit the source files as your needs (setup.htm, app.js, style.css) * open a terminal in *build* folder and run `npm i` to install all nodejs modules needed * run `node finalize.js` * overwrite the content of *setup_htm.h* in src folder",
+  "version": "1.0.0",
+  "main": "minify.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

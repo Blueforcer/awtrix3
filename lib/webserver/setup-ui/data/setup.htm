@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset=utf-8 />
+    <title>AWTRIX Light</title>
+    <meta content="width=device-width, initial-scale=1" name=viewport />
+    <link href=style.css rel=stylesheet type=text/css />
+</head>
+
+<body class=body>
+    <main id=main-box>
+        <header class="ctn header">
+            <div class=title>
+                <label for="logo-file" class="svg-button">
+                    <div id=svg-logo title='Click to upload your logo file'></div>
+                </label>
+                <h1 id=name-logo class=heading>AWTRIX Light</h1>
+                <h1 id=version class=heading></h1>
+            </div>
+            <div class=topnav id=top-nav>
+                <span id="nav-link">
+                    <a id=set-wifi class="a-link active" data-box="wifi-box">WiFi Setup</a>
+                </span>
+                <a id=about target=_blank rel=noopener href=./edit>Files</a>
+                <a id=about target=_blank rel=noopener href=./update>Update</a>
+                <a class="a-link icon" id=hum-btn>
+                    <div class=svg style=margin:-2px>
+                        <svg id=svg-menu fill=currentColor viewBox="0 0 20 18"></svg>
+                    </div>
+                </a>
+            </div>
+        </header>
+        <div id=wifi-box class="ctn opt-box">
+            <h2 class=heading-2>Connect to WiFi</h2>
+            <div id=wifi-table class=hide>
+                <table class=table>
+                    <tbody id=wifi-list></tbody>
+                </table>
+                <br>
+            </div>
+            <div class=wifi-connect>
+                <form class=form>
+                    <div class=tf-wrapper>
+                        <label for=ssid class=input-label>SSID</label>
+                        <input type=text placeholder="Enter your WiFI SSID name" id="ssid" />
+                    </div>
+                    <div class=tf-wrapper>
+                        <label for=password class=input-label>Password</label>
+                        <div class=show-hide-wrap id=show-hide-password>
+                            <a class="show-hide w--current" id=show-pass>
+                                <div class=svg><svg class=svg-e id=svg-eye viewBox="0 0 24 24"></svg></div>
+                            </a>
+                            <a class="show-hide" id=hide-pass>
+                                <div class=svg><svg class=svg-e id=svg-no-eye viewBox="0 0 24 24"></svg></div>
+                            </a>
+                        </div>
+                        <input type=password placeholder="Enter your WiFi password" id=password
+                            autocomplete=current-password data-ms-member="password" />
+                    </div>
+                </form>
+            </div>
+            <div class="btn-bar ">
+                <label class="toggle lbl-wifi">
+                    <hr>
+                    <span class=toggle-label>Store WiFi credentials</span>
+                    <input id=persistent type=checkbox class="t-check" checked>
+                    <div class=toggle-switch></div>
+                </label>
+                <a id=scan-wifi class="btn">
+                    <div class=svg><svg id=svg-scan fill=currentColor viewBox="0 0 24 24"></svg></div>
+                    <span>Scan WiFi networks</span>
+                </a>
+                <a id=connect-wifi class="btn">
+                    <div class=svg><svg id=svg-connect fill=currentColor viewBox="0 0 24 24"></svg></div>
+                    <span>Connect to <span id=ssid-name>SSID</span>
+                </a>
+            </div>
+        </div>
+        <div id=btn-box class="btn-bar hide">
+            <label class="toggle">
+                <hr>
+            </label>
+            <a id=restart class="btn">
+                <div class=svg><svg id=svg-restart fill=currentColor viewBox="0 0 24 24"></svg></div>
+                <span>Restart ESP</span>
+            </a>
+            <a id=save-params class="btn">
+                <div class=svg><svg id=svg-save fill=currentColor viewBox="0 0 24 24"></svg></div>
+                <span>Save configuration</span>
+            </a>
+        </div>
+    </main>
+    <div class="loader hide" id=loader>Loading...</div>
+    <details id=modal-message>
+        <summary></summary>
+        <div class=d-modal>
+            <a onclick=closeModalMessage()>
+                <div class=d-modal-close>
+                    <svg id=close-modal width=14 height=14 viewBox="0 0 14 14" fill=none></svg>
+                </div>
+            </a>
+            <div class=d-modal-title>
+                <h2 id=message-title></h2>
+            </div>
+            <div class=d-modal-content>
+                <p id=message-body></p>
+            </div>
+            <div class=btn-bar>
+                <a id=ok-modal class="btn hide" onclick=closeModalMessage(true)><span>OK</span></a>
+                <a id=close-modal class="btn" onclick=closeModalMessage(false)><span>Close</span></a>
+            </div>
+        </div>
+    </details>
+    <script src=app.js></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const versionElement = document.getElementById('version');
+            fetch('/version')
+                .then(response => response.text())
+                .then(version => {
+                    versionElement.textContent = version;
+                })
+                .catch(error => {
+                    console.error('Fehler beim Abrufen der Version:', error);
+                });
+        });
+    </script>
+</body>
+
+</html>

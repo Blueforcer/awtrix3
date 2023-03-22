@@ -1,0 +1,27 @@
+#######################################
+# Syntax Coloring Map
+#######################################
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+TJpg_Decoder	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+TJpgDec	KEYWORD2
+TJpg_Decoder	KEYWORD2
+
+drawJpg	KEYWORD2
+drawSdJpg	KEYWORD2
+drawFsJpg	KEYWORD2
+
+getJpgSize	KEYWORD2
+getSdJpgSize	KEYWORD2
+getFsJpgSize	KEYWORD2
+
+setJpgScale	KEYWORD2
+setCallback	KEYWORD2
+
+//tft_output	KEYWORD2
