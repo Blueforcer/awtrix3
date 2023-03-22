@@ -43,7 +43,7 @@ jobs:
       - name: Extract version number
         id: version_number
         run: |
-          echo "::set-output name=library_version::$(grep '*VERSION' src/Settings.cpp | cut -d'=' -f2 | sed -r 's/"(.*)";/\1/' | awk '{$1=$1};1')"
+          echo "::set-output name=firmware_version::$(grep '*VERSION' src/Settings.cpp | cut -d'=' -f2 | sed -r 's/"(.*)";/\1/' | awk '{$1=$1};1')"
 
       - name: Run PlatformIO
         run: pio run
@@ -52,7 +52,7 @@ jobs:
         run: cp .pio/build/esp32dev/firmware.bin ./flasher/firmware
 
       - name: Create new manifest.json
-        run: cat flasher/firmware/manifest.json | jq '.version="${{ steps.version_number.outputs.library_version }}"' > flasher/firmware/new-manifest.json
+        run: cat flasher/firmware/manifest.json | jq '.version="${{ steps.version_number.outputs.firmware_version }}"' > flasher/firmware/new-manifest.json
       
       - name: Override previous manifest.json
         run: mv flasher/firmware/new-manifest.json flasher/firmware/manifest.json
@@ -75,6 +75,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Extract version number
+        id: version_number
+        run: |
+          echo "::set-output name=firmware_version::$(grep '*VERSION' src/Settings.cpp | cut -d'=' -f2 | sed -r 's/"(.*)";/\1/' | awk '{$1=$1};1')"
+
       - name: Download firmware
         uses: actions/download-artifact@v2
         with:
@@ -87,8 +92,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.version_number.outputs.library_version }}
-          release_name: Release ${{ steps.version_number.outputs.library_version }}
+          tag_name: ${{ steps.version_number.outputs.firmware_version }}
+          release_name: Release ${{ steps.version_number.outputs.firmware_version }}
           draft: false
           prerelease: false
 
