@@ -1,5 +1,5 @@
 #include "ServerManager.h"
-#include "Settings.h"
+#include "Globals.h"
 #include <WebServer.h>
 #include <esp-fs-webserver.h>
 #include "icondownloader.h"
@@ -9,11 +9,6 @@
 #include <LittleFS.h>
 #include <WiFi.h>
 #include "DisplayManager.h"
-
-#include <Preferences.h>
-
-Preferences preferences;
-
 
 WebServer server(80);
 FSWebServer mws(LittleFS, server);

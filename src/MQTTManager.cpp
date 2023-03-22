@@ -1,5 +1,5 @@
 #include <MQTTManager.h>
-#include "Settings.h"
+#include "Globals.h"
 #include "DisplayManager.h"
 #include "ServerManager.h"
 #include <ArduinoHA.h>

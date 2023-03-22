@@ -1,7 +1,7 @@
 #include <MenuManager.h>
 #include <Arduino.h>
 #include <AudioManager.h>
-#include <Settings.h>
+#include <Globals.h>
 #include <ServerManager.h>
 #include <DisplayManager.h>
 

@@ -1,7 +1,7 @@
 #include <PeripheryManager.h>
 #include <melody_player.h>
 #include <melody_factory.h>
-#include "Settings.h"
+#include "Globals.h"
 #include "DisplayManager.h"
 #include "MQTTManager.h"
 #include <ArduinoJson.h>

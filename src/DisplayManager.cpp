@@ -3,7 +3,7 @@
 #include "MatrixDisplayUi.h"
 #include <TJpg_Decoder.h>
 #include "icons.h"
-#include "Settings.h"
+#include "Globals.h"
 #include <ArduinoJson.h>
 #include "PeripheryManager.h"
 #include "MQTTManager.h"

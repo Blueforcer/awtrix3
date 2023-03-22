@@ -6,7 +6,7 @@
 #include "icons.h"
 #include <FastLED_NeoMatrix.h>
 #include "MatrixDisplayUi.h"
-#include "Settings.h"
+#include "Globals.h"
 #include "Functions.h"
 #include "MenuManager.h"
 #include "PeripheryManager.h"

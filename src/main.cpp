@@ -36,7 +36,7 @@
 #include "PeripheryManager.h"
 #include "MQTTManager.h"
 #include "ServerManager.h"
-#include "Settings.h"
+#include "Globals.h"
 #include "AudioManager.h"
 
 TaskHandle_t taskHandle;
