@@ -339,7 +339,7 @@ void DisplayManager_::generateCustomPage(uint16_t id, String payload)
 
 void DisplayManager_::generateNotification(String payload)
 {
-    StaticJsonDocument<128> doc;
+    StaticJsonDocument<1024> doc;
     deserializeJson(doc, payload);
 
     notify.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_FRAME;
