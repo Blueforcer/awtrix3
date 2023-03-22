@@ -3,8 +3,9 @@ permissions:
   contents: write
 on:
   push:
-    branches:
-      - main
+    paths:
+      - 'src/**'
+      - 'lib/**'
 
 jobs:
   compile_firmware:
