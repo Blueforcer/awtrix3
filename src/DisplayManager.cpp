@@ -67,14 +67,18 @@ void DisplayManager_::MatrixState(bool on)
     setBrightness(BRIGHTNESS);
 }
 
-void DisplayManager_::disableAutoTransition()
+bool DisplayManager_::setAutoTransition(bool active)
 {
-    ui.disableAutoTransition();
-}
-
-void DisplayManager_::enableAutoTransition()
-{
-    ui.enableAutoTransition();
+    if (active && AUTO_TRANSITION)
+    {
+        ui.enablesetAutoTransition();
+        return true;
+    }
+    else
+    {
+        ui.disablesetAutoTransition();
+        return false;
+    }
 }
 
 void DisplayManager_::drawGIF(uint16_t x, uint16_t y, fs::File gifFile)
@@ -396,6 +400,8 @@ void DisplayManager_::loadApps()
     //     Apps.push_back(std::make_pair(5, WeatherFrame));
     nativeAppsCount = Apps.size();
     ui.setApps(Apps); // Add frames
+    if (AUTO_TRANSITION && nativeAppsCount == 1)
+        setAutoTransition(false);
     StartAppUpdater();
 }
 
@@ -406,6 +412,7 @@ void DisplayManager_::setup()
     gif.setMatrix(&matrix);
     ui.setAppAnimation(SLIDE_DOWN);
     ui.setOverlays(overlays, 4);
+    setAutoTransition(AUTO_TRANSITION);
     ui.init();
 }
 

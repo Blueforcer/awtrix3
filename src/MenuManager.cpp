@@ -19,36 +19,38 @@ enum MenuState
     StationSelection,
     PlayingStation,
     Reset,
-    Volume,
-    Brightness,
-    FPS,
-    Color
+    VolumeMenu,
+    BrightnessMenu,
+    FPSMenu,
+    ColorMenu,
+    SwitchMenu
 };
 
 const char *menuItems[] = {
     "BRIGHT",
     "FPS",
     "COLOR",
+    "SWITCH",
     "RESET"};
 
-byte menuItemCount = 4;
+byte menuItemCount = 5;
 
 MenuState currentState = MainMenu;
 
 uint16_t textColors[] = {
-0xFFFF, // White
-0xF800, // Red
-0xF812, // Dark orange
-0xF81F, // Yellow
-0x881F, // Dark green
-0x001F, // Blue
-0x04FF, // Light blue
-0x07FC, // Cyan
-0x07E2, // Seafoam green
-0xAFE0, // Light green
-0xFFE0, // Light yellow
-0xFD60, // Dark yellow
-0xFBC0}; // Pink
+    0xFFFF,  // White
+    0xF800,  // Red
+    0xF812,  // Dark orange
+    0xF81F,  // Yellow
+    0x881F,  // Dark green
+    0x001F,  // Blue
+    0x04FF,  // Light blue
+    0x07FC,  // Cyan
+    0x07E2,  // Seafoam green
+    0xAFE0,  // Light green
+    0xFFE0,  // Light yellow
+    0xFD60,  // Dark yellow
+    0xFBC0}; // Pink
 
 uint8_t currentColor;
 
@@ -67,7 +69,7 @@ String MenuManager_::menutext()
     {
         return (menuItems[menuIndex]);
     }
-    else if (currentState == Brightness)
+    else if (currentState == BrightnessMenu)
     {
         if (AUTO_BRIGHTNESS)
         {
@@ -78,11 +80,11 @@ String MenuManager_::menutext()
             return (String(BRIGHTNESS_PERCENT) + "%");
         }
     }
-    else if (currentState == FPS)
+    else if (currentState == FPSMenu)
     {
         return String(MATRIX_FPS) + " FPS";
     }
-    else if (currentState == Color)
+    else if (currentState == ColorMenu)
     {
         DisplayManager.setTextColor(textColors[currentColor]);
         String colorStr = String(textColors[currentColor], HEX);
@@ -91,6 +93,10 @@ String MenuManager_::menutext()
             colorStr = "0" + colorStr;
         }
         return colorStr;
+    }
+    else if (currentState == SwitchMenu)
+    {
+        return AUTO_TRANSITION ? "ON" : "OFF";
     }
     return "";
 }
@@ -111,7 +117,7 @@ void MenuManager_::rightButton()
     {
         AudioManager.nextStation();
     }
-    else if (currentState == Brightness)
+    else if (currentState == BrightnessMenu)
     {
         if (!AUTO_BRIGHTNESS)
         {
@@ -122,15 +128,19 @@ void MenuManager_::rightButton()
             DisplayManager.setBrightness(BRIGHTNESS);
         }
     }
-    else if (currentState == FPS)
+    else if (currentState == FPSMenu)
     {
         if (MATRIX_FPS < 30)
             ++MATRIX_FPS;
     }
-    else if (currentState == Color)
+    else if (currentState == ColorMenu)
     {
         int arraySize = sizeof(textColors) / sizeof(textColors[0]);
         currentColor = (currentColor + 1) % arraySize;
+    }
+    else if (currentState == SwitchMenu)
+    {
+        AUTO_TRANSITION = !AUTO_TRANSITION;
     }
 }
 
@@ -150,7 +160,7 @@ void MenuManager_::leftButton()
     {
         AudioManager.prevStation();
     }
-    else if (currentState == Brightness)
+    else if (currentState == BrightnessMenu)
     {
         if (!AUTO_BRIGHTNESS)
         {
@@ -161,15 +171,19 @@ void MenuManager_::leftButton()
             DisplayManager.setBrightness(BRIGHTNESS);
         }
     }
-    else if (currentState == FPS)
+    else if (currentState == FPSMenu)
     {
         if (MATRIX_FPS > 15)
             --MATRIX_FPS;
     }
-    else if (currentState == Color)
+    else if (currentState == ColorMenu)
     {
         int arraySize = sizeof(textColors) / sizeof(textColors[0]);
         currentColor = (currentColor - 1 + arraySize) % arraySize;
+    }
+    else if (currentState == SwitchMenu)
+    {
+        AUTO_TRANSITION = !AUTO_TRANSITION;
     }
 }
 
@@ -182,17 +196,21 @@ void MenuManager_::selectButton()
         if (menuIndex == 0) // BRIGHT
         {
             BRIGHTNESS_PERCENT = map(BRIGHTNESS, 0, 255, 0, 100);
-            currentState = Brightness;
+            currentState = BrightnessMenu;
         }
         else if (menuIndex == 1) // RESET
         {
-            currentState = FPS;
+            currentState = FPSMenu;
         }
         else if (menuIndex == 2) // COLOR
         {
-            currentState = Color;
+            currentState = ColorMenu;
         }
-        else if (menuIndex == 3) // FPS
+        else if (menuIndex == 3) // COLOR
+        {
+            currentState = SwitchMenu;
+        }
+        else if (menuIndex == 4) // FPS
         {
             ESP.restart();
         }
@@ -201,7 +219,7 @@ void MenuManager_::selectButton()
     {
         AudioManager.startRadioStation(AudioManager.getCurrentRadioStation());
     }
-    else if (currentState == Brightness)
+    else if (currentState == BrightnessMenu)
     {
         AUTO_BRIGHTNESS = !AUTO_BRIGHTNESS;
     }
@@ -211,17 +229,17 @@ void MenuManager_::selectButtonLong()
 {
     if (inMenu)
     {
-        if (currentState == Brightness)
+        if (currentState == BrightnessMenu)
         {
             BRIGHTNESS = map(BRIGHTNESS_PERCENT, 0, 100, 0, 255);
             saveSettings();
         }
-        else if (currentState == FPS)
+        else if (currentState == FPSMenu)
         {
             DisplayManager.setFPS(MATRIX_FPS);
             saveSettings();
         }
-        else if (currentState == Color)
+        else if (currentState == ColorMenu)
         {
             TEXTCOLOR_565 = textColors[currentColor];
             saveSettings();
@@ -230,7 +248,11 @@ void MenuManager_::selectButtonLong()
         {
             inMenu = false;
         }
-
+        else if (currentState == SwitchMenu)
+        {
+            DisplayManager.setAutoTransition(AUTO_TRANSITION);
+            saveSettings();
+        }
         currentState = MainMenu;
     }
     else

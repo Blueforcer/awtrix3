@@ -46,8 +46,7 @@ public:
     void generateNotification(String);
     void generateCustomPage(uint16_t, String);
     void printText(int16_t x, int16_t y, const char *text, bool centered);
-    void disableAutoTransition();
-    void enableAutoTransition();
+    bool setAutoTransition(bool active);
     void drawGIF(uint16_t x, uint16_t y, fs::File gifFile);
     void drawJPG(uint16_t x, uint16_t y, fs::File jpgFile);
 };

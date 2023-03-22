@@ -10,6 +10,7 @@ void loadSettings()
     BRIGHTNESS = Settings.getUChar("BRI", 120);
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", true);
     TEXTCOLOR_565 = Settings.getUInt("COL", 0xFFFF);
+    AUTO_TRANSITION = Settings.getBool("TRANS", true);
     Settings.end();
 }
 
@@ -19,6 +20,7 @@ void saveSettings()
     Settings.putUChar("FPS", MATRIX_FPS);
     Settings.putUChar("BRI", BRIGHTNESS);
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
+    Settings.putBool("TRANS", AUTO_TRANSITION);
     Settings.putUInt("COL", TEXTCOLOR_565);
     Settings.end();
 }
@@ -28,7 +30,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.30";
+const char *VERSION = "0.31";
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
@@ -71,6 +73,7 @@ uint8_t SNOOZE_TIME;
 String TIMER_SOUND;
 
 // Matrix States
+bool AUTO_TRANSITION = false;
 bool AUTO_BRIGHTNESS = true;
 bool UPPERCASE_LETTERS = true;
 bool AP_MODE;
@@ -78,4 +81,3 @@ bool MATRIX_OFF;
 bool TIMER_ACTIVE;
 bool ALARM_ACTIVE;
 uint16_t TEXTCOLOR_565 = 0xFFFF;
-

@@ -262,11 +262,11 @@ void ShowCustomFrame(uint8_t id, FastLED_NeoMatrix *matrix, MatrixDisplayUiState
     // Disable auto transition if text is repeating and too wide
     if ((cf->repeat > 0) && (getTextWidth(cf->text.c_str()) > availableWidth) && (state->frameState == FIXED))
     {
-        DisplayManager.disableAutoTransition();
+        DisplayManager.setAutoTransition(false);
     }
     else
     {
-        DisplayManager.enableAutoTransition();
+        DisplayManager.setAutoTransition(true);
     }
 
     // Check if text is wider than available display width and frame is not in transition
@@ -286,7 +286,7 @@ void ShowCustomFrame(uint8_t id, FastLED_NeoMatrix *matrix, MatrixDisplayUiState
             // Transition to next app if frame is repeating and repeat limit has been reached
             if ((cf->currentRepeat + 1 >= cf->repeat) && (cf->repeat > 0))
             {
-                DisplayManager.enableAutoTransition();
+                DisplayManager.setAutoTransition(true);
                 cf->currentRepeat = 0;
                 DisplayManager.nextApp();
                 return;

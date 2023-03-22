@@ -86,7 +86,7 @@ private:
   uint16_t ticksPerFrame = 151;     // ~ 5000ms at 30 FPS
   uint16_t ticksPerTransition = 15; // ~  500ms at 30 FPS
 
-  bool autoTransition = true;
+  bool setAutoTransition = true;
 
   AppCallback *AppFunctions;
 
@@ -129,18 +129,18 @@ public:
   /**
    * Enable automatic transition to next frame after the some time can be configured with `setTimePerApp` and `setTimePerTransition`.
    */
-  void enableAutoTransition();
+  void enablesetAutoTransition();
 
   /**
    * Disable automatic transition to next frame.
    */
-  void disableAutoTransition();
+  void disablesetAutoTransition();
 
   /**
    * Set the direction if the automatic transitioning
    */
-  void setAutoTransitionForwards();
-  void setAutoTransitionBackwards();
+  void setsetAutoTransitionForwards();
+  void setsetAutoTransitionBackwards();
 
   /**
    *  Set the approx. time a frame is displayed

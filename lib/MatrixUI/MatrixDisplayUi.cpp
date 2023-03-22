@@ -56,20 +56,20 @@ void MatrixDisplayUi::setTargetFPS(uint8_t fps)
 
 // -/------ Automatic controll ------\-
 
-void MatrixDisplayUi::enableAutoTransition()
+void MatrixDisplayUi::enablesetAutoTransition()
 {
-  this->autoTransition = true;
+  this->setAutoTransition = true;
 }
-void MatrixDisplayUi::disableAutoTransition()
+void MatrixDisplayUi::disablesetAutoTransition()
 {
-  this->autoTransition = false;
+  this->setAutoTransition = false;
 }
-void MatrixDisplayUi::setAutoTransitionForwards()
+void MatrixDisplayUi::setsetAutoTransitionForwards()
 {
   this->state.frameTransitionDirection = 1;
   this->lastTransitionDirection = 1;
 }
-void MatrixDisplayUi::setAutoTransitionBackwards()
+void MatrixDisplayUi::setsetAutoTransitionBackwards()
 {
   this->state.frameTransitionDirection = -1;
   this->lastTransitionDirection = -1;
@@ -173,7 +173,7 @@ int8_t MatrixDisplayUi::update()
   if (timeBudget <= 0)
   {
     // Implement frame skipping to ensure time budget is keept
-    if (this->autoTransition && this->state.lastUpdate != 0)
+    if (this->setAutoTransition && this->state.lastUpdate != 0)
       this->state.ticksSinceLastStateSwitch += ceil(-timeBudget / this->updateInterval);
 
     this->state.lastUpdate = frameStart;
@@ -205,7 +205,7 @@ void MatrixDisplayUi::tick()
     }
     if (this->state.ticksSinceLastStateSwitch >= this->ticksPerFrame)
     {
-      if (this->autoTransition)
+      if (this->setAutoTransition)
       {
 
         this->state.frameState = IN_TRANSITION;

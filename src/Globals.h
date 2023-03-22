@@ -52,7 +52,7 @@ extern String ALARM_SOUND;
 extern String TIMER_SOUND;
 extern uint16_t TEXTCOLOR_565;
 extern uint8_t SNOOZE_TIME;
-
+extern bool AUTO_TRANSITION;
 
 void loadSettings();
 void saveSettings();
