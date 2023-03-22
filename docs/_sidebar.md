@@ -13,3 +13,4 @@
   - [Alarm clock](alarm.md)
   - [Timer](timer.md)
   - [Icons](icons.md)
+  - [Sounds](sounds.md)
