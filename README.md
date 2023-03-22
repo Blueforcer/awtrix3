@@ -1,9 +1,7 @@
 # AWTRIX-LIGHT
 
-**Currently in early developer stage. Source code will be released as soon as the scaffold is ready I have implemented some more of my ideas**
-
-You can still try my current dev snapshot:  
-https://blueforcer.github.io/awtrix-light/  
+if you like my work please consider supporting the project.  
+  
 Join my discord channel with over 1400 Users  
 https://discord.gg/cyBCpdx  
   
