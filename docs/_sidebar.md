@@ -9,11 +9,7 @@
   - [Onscreen](onscreen.md)
 
 - Features
-
+  - [Custom Pages & Notifications](custom.md)
   - [Alarm clock](alarm.md)
-  - [Icons](icons.md)
-
-- MQTT
-
-  - [Custom Pages](custom.md)
   - [Timer](timer.md)
+  - [Icons](icons.md)
