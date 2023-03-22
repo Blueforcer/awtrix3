@@ -5,4 +5,4 @@
 
 
 [GitHub](https://github.com/Blueforcer/awtrix-light)
-[Getting Started](#quick-start)
+[Getting Started](quickstart.md)
