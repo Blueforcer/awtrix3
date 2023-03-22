@@ -48,7 +48,7 @@ jobs:
         run: pio run
 
       - name: Move firmware to output directory
-        run: mv .pio/build/nodemcu-32s/firmware.bin ./flasher/firmware
+        run: mv .pio/build/esp32dev/firmware.bin ./flasher/firmware
 
       - name: Create new manifest.json
         run: cat flasher/firmware/manifest.json | jq '.version="${{ steps.version_number.outputs.library_version }}"' > flasher/firmware/new-manifest.json
