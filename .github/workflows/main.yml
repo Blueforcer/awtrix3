@@ -43,7 +43,7 @@ jobs:
       - name: Extract version number
         id: version_number
         run: |
-          echo "::set-output name=firmware_version::$(grep '*VERSION' src/Settings.cpp | cut -d'=' -f2 | sed -r 's/"(.*)";/\1/' | awk '{$1=$1};1')"
+          echo "::set-output name=firmware_version::$(grep '*VERSION' src/Globals.cpp | cut -d'=' -f2 | sed -r 's/"(.*)";/\1/' | awk '{$1=$1};1')"
 
       - name: Run PlatformIO
         run: pio run
@@ -78,7 +78,7 @@ jobs:
       - name: Extract version number
         id: version_number
         run: |
-          echo "::set-output name=firmware_version::$(grep '*VERSION' src/Settings.cpp | cut -d'=' -f2 | sed -r 's/"(.*)";/\1/' | awk '{$1=$1};1')"
+          echo "::set-output name=firmware_version::$(grep '*VERSION' src/Globals.cpp | cut -d'=' -f2 | sed -r 's/"(.*)";/\1/' | awk '{$1=$1};1')"
 
       - name: Download firmware
         uses: actions/download-artifact@v2
