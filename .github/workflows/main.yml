@@ -61,7 +61,13 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: flasher
-          
+
+      - name: Upload firmware as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: firmware
+          path: .pio/build/esp32dev/firmware.bin
+
   create_release:
     needs: compile_firmware
     runs-on: ubuntu-latest
