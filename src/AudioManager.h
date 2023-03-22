@@ -2,12 +2,10 @@
 #define AudioManager_h
 
 #include <Arduino.h>
-#include <MqttManager.h>
 
 class AudioManager_
 {
 private:
-    // The pins the buttons are connected to
     AudioManager_() = default;
 
 public:
