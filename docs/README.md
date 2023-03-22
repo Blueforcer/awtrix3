@@ -1,7 +1,9 @@
 # AWTRIX-LIGHT
 
-If you like my work, please consider supporting the project.  
-
+If you like my work, please consider supporting the project. 
+https://github.com/sponsors/Blueforcer  
+https://paypal.me/blueforcer   
+  
 Awtrix Light is a custom firmware for the [Ulanzi Smart Pixel clock](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882).  
 That offers a simple and user-friendly interface, making it the perfect solution for non-techies who want to enjoy the benefits of the popular awtrix system.  
 
