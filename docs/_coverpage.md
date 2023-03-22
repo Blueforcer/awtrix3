@@ -5,4 +5,5 @@
 
 
 [GitHub](https://github.com/Blueforcer/awtrix-light)
+[Flasher](flasher.md)
 [Getting Started](quickstart.md)
