@@ -1,5 +1,5 @@
 
-## AWTRIX LIGHT
+# AWTRIX LIGHT
 
 > Awtrix Light is a custom firmware for the Ulanzi Smart Pixel clock. 
 

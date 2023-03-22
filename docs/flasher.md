@@ -1,2 +1,2 @@
 
-[filename](/ ':include :type=iframe')
+[filename](/flasher/index.html ':include :type=iframe')
