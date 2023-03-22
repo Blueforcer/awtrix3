@@ -28,7 +28,7 @@ MelodyPlayer player(BUZZER_PIN, LOW);
 LightDependentResistor photocell(LDR_PIN,
                                  10000,
                                  USED_PHOTOCELL,
-                                 10,  
+                                 10,
                                  10);
 
 int readIndex = 0;
@@ -127,8 +127,8 @@ void fistStart()
 {
 
     uint16_t ADCVALUE = analogRead(BATTERY_PIN);
-    Serial.println(ADCVALUE);
-    BATTERY_PERCENT = min((int)map(ADCVALUE, 2160, 2800, 0, 100), 100);
+
+    BATTERY_PERCENT = min((int)map(ADCVALUE, 510, 660, 0, 100), 100);
     sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
 
     uint16_t LDRVALUE = analogRead(LDR_PIN);
@@ -168,7 +168,9 @@ void PeripheryManager_::tick()
     {
         previousMillis_BatTempHum = currentMillis_BatTempHum;
         uint16_t ADCVALUE = analogRead(BATTERY_PIN);
-        BATTERY_PERCENT = min((int)map(ADCVALUE, 2160, 2800, 0, 100), 100);
+        Serial.println(ADCVALUE);
+        BATTERY_PERCENT = min((int)map(ADCVALUE, 510, 665, 0, 100), 100);
+        Serial.println(BATTERY_PERCENT);
         CURRENT_LUX = (roundf(photocell.getSmoothedLux() * 1000) / 1000);
         sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
         CURRENT_TEMP -= 9.0;
