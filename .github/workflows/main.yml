@@ -13,6 +13,8 @@ jobs:
     name: Compile the firmware
     runs-on: ubuntu-latest
     steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3
       - name: Cache pip
         uses: actions/cache@v2
         with:
@@ -100,3 +102,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ github.head_ref }}
+          
+      - name: Commit
+        id: commit   
+      - uses: stefanzweifel/git-auto-commit-action@v4
