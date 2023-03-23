@@ -250,7 +250,7 @@ void MenuManager_::selectButton()
         {
             currentState = AppTimeMenu;
         }
-        else if (menuIndex == 6) // Updater 
+        else if (menuIndex == 6) // Updater
         {
            FirmwareVersionCheck();
         }
