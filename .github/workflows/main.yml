@@ -3,6 +3,7 @@ permissions:
   contents: write
 on:
   push:
+    branches: [ main ]
     paths:
       - 'src/**'
       - 'lib/**'
@@ -75,6 +76,9 @@ jobs:
         id: version_number
         run: |
           echo "::set-output name=firmware_version::$(grep '*VERSION' src/Globals.cpp | cut -d'=' -f2 | sed -r 's/"(.*)";/\1/' | awk '{$1=$1};1')"
+
+      - name: Create Versionfile  
+        run: echo '${{ steps.version_number.outputs.firmware_version }}' > version
 
       - name: Download firmware
         uses: actions/download-artifact@v2
