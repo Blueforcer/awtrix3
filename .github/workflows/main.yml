@@ -53,7 +53,7 @@ jobs:
         run: pio run
 
       - name: Copy firmware to output directory
-        run: cp .pio/build/esp32dev/firmware.bin ./docs/flasher/firmware
+        run: cp .pio/build/esp32dev/firmware.bin docs/flasher/firmware
 
       - name: Create new manifest.json
         run: cat docs/flasher/firmware/manifest.json | jq '.version="${{ steps.version_number.outputs.firmware_version }}"' > docs/flasher/firmware/new-manifest.json
