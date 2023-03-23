@@ -32,5 +32,4 @@ public:
 };
 
 extern PeripheryManager_ &PeripheryManager;
-
 #endif
