@@ -206,7 +206,7 @@ void ServerManager_::loadSettings()
         SHOW_HUM = doc["Show humidity"];
         SHOW_BATTERY = doc["Show battery"];
         file.close();
-        DisplayManager.setSettings();
+        DisplayManager.applyAllSettings();
         Serial.println(F("Configuration loaded"));
         return;
     }

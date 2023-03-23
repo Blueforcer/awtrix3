@@ -289,12 +289,12 @@ void MenuManager_::selectButtonLong()
         }
         else if (currentState == TspeedMenu)
         {
-            DisplayManager.setSettings();
+            DisplayManager.applyAllSettings();
             saveSettings();
         }
         else if (currentState == AppTimeMenu)
         {
-            DisplayManager.setSettings();
+            DisplayManager.applyAllSettings();
             saveSettings();
         }
         currentState = MainMenu;

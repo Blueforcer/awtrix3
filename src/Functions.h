@@ -24,6 +24,9 @@ uint16_t hexToRgb565(String hexValue)
     uint8_t r = strtol(hexValue.substring(0, 2).c_str(), NULL, 16);
     uint8_t g = strtol(hexValue.substring(2, 4).c_str(), NULL, 16);
     uint8_t b = strtol(hexValue.substring(4, 6).c_str(), NULL, 16);
+    if ((errno == ERANGE) || (r > 255) || (g > 255) || (b > 255)) {
+        return 0xFFFF;
+    }
     uint16_t color = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
     return color;
 }

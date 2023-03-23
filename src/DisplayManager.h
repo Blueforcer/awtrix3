@@ -26,7 +26,7 @@ public:
     static DisplayManager_ &getInstance();
     void setup();
     void tick();
-    void setSettings();
+    void applyAllSettings();
     void rightButton();
     void dismissNotify();
     void HSVtext(int16_t, int16_t, const char *, bool);
@@ -48,6 +48,7 @@ public:
     void printText(int16_t x, int16_t y, const char *text, bool centered, bool ignoreUppercase);
     bool setAutoTransition(bool active);
     void switchToApp(String Payload);
+    void setNewSettings(String Payload);
     void drawGIF(uint16_t x, uint16_t y, fs::File gifFile);
     void drawJPG(uint16_t x, uint16_t y, fs::File jpgFile);
 };

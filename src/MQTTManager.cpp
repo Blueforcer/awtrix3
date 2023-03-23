@@ -132,9 +132,27 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         return;
     }
 
-     if (strTopic == MQTT_PREFIX + "/switch")
+    if (strTopic == MQTT_PREFIX + "/switch")
     {
         DisplayManager.switchToApp(strPayload);
+        return;
+    }
+
+    if (strTopic == MQTT_PREFIX + "/settings")
+    {
+        DisplayManager.setNewSettings(strPayload);
+        return;
+    }
+
+    if (strTopic == MQTT_PREFIX + "/nextapp")
+    {
+        DisplayManager.nextApp();
+        return;
+    }
+
+    if (strTopic == MQTT_PREFIX + "/previousapp")
+    {
+        DisplayManager.previousApp();
         return;
     }
 
@@ -161,6 +179,9 @@ void onMqttConnected()
     mqtt.subscribe((prefix + String("/timer")).c_str());
     mqtt.subscribe((prefix + String("/custom/#")).c_str());
     mqtt.subscribe((prefix + String("/switch")).c_str());
+    mqtt.subscribe((prefix + String("/settings")).c_str());
+    mqtt.subscribe((prefix + String("/previousapp")).c_str());
+    mqtt.subscribe((prefix + String("/nextapp")).c_str());
     Serial.println("MQTT Connected");
 }
 

@@ -92,11 +92,14 @@ void DisplayManager_::drawJPG(uint16_t x, uint16_t y, fs::File jpgFile)
     TJpgDec.drawFsJpg(x, y, jpgFile);
 }
 
-void DisplayManager_::setSettings()
+void DisplayManager_::applyAllSettings()
 {
     ui.setTargetFPS(MATRIX_FPS);
     ui.setTimePerApp(TIME_PER_APP);
     ui.setTimePerTransition(TIME_PER_TRANSITION);
+    setBrightness(BRIGHTNESS);
+    setTextColor(TEXTCOLOR_565);
+    setAutoTransition(AUTO_TRANSITION);
 }
 
 void DisplayManager_::resetTextColor()
@@ -492,4 +495,21 @@ void DisplayManager_::switchToApp(String Payload)
     int index = findAppIndexByName(name);
     if (index > -1)
         ui.transitionToApp(index);
+}
+
+void DisplayManager_::setNewSettings(String Payload)
+{
+    DynamicJsonDocument doc(512);
+    DeserializationError error = deserializeJson(doc, Payload);
+    if (error)
+        return;
+    TIME_PER_APP = doc.containsKey("apptime") ? doc["apptime"] : TIME_PER_APP;
+    TIME_PER_TRANSITION = doc.containsKey("transition") ? doc["transition"] : TIME_PER_TRANSITION;
+    TEXTCOLOR_565 = doc.containsKey("textcolor") ? hexToRgb565(doc["textcolor"]) : TEXTCOLOR_565;
+    MATRIX_FPS = doc.containsKey("fps") ? doc["fps"] : MATRIX_FPS;
+    BRIGHTNESS = doc.containsKey("brightness") ? doc["brightness"] : BRIGHTNESS;
+    AUTO_BRIGHTNESS = doc.containsKey("autobrightness") ? doc["autobrightness"] : AUTO_BRIGHTNESS;
+    AUTO_TRANSITION = doc.containsKey("autotransition") ? doc["autotransition"] : AUTO_TRANSITION;
+    applyAllSettings();
+    saveSettings();
 }
