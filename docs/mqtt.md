@@ -25,7 +25,9 @@ then `test` is the name.
 ## Change Settings  
 ##### Topic  
 `[PREFIX]/settings`   
-    
+  
+Each property is optional, you dont need to send all!  
+      
 ##### JSON Properties
 | Key         | Type    | Description                                                                 | Value Range                                |
 | ----------- | ------- | --------------------------------------------------------------------------- | ------------------------------------------ |
