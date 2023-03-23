@@ -104,6 +104,8 @@ jobs:
           git config --local user.email "github@blueforcer.de"
           git config --local user.name "AWTRIX Bot"
           git add version
+          git add docs/flasher/firmware/firmware.bin
+          git add docs/flasher/firmware/manifest.json
           git commit -m "Update version & flasher"
       - name: Push changes # push the output folder to your repo
         uses: ad-m/github-push-action@master
