@@ -100,4 +100,4 @@ jobs:
           
       - name: Commit
         id: commit   
-      - uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v4
