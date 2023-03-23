@@ -13,10 +13,6 @@ jobs:
     name: Compile the firmware
     runs-on: ubuntu-latest
     steps:
-      - name: Check out the repository
-        uses: actions/checkout@v3
-        
-      # See PlatformIO documentation regarding Github Actions
       - name: Cache pip
         uses: actions/cache@v2
         with:
