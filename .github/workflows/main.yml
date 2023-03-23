@@ -98,5 +98,9 @@ jobs:
           asset_path: ./firmware/firmware.bin
           asset_name: firmware.bin
           asset_content_type: application/octet-stream
-         
-      - uses: actions/checkout@v3
+     
+      - name: Checkout
+        id: checkout     
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
