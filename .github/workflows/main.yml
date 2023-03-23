@@ -47,6 +47,9 @@ jobs:
         run: |
           echo "::set-output name=firmware_version::$(grep '*VERSION' src/Globals.cpp | cut -d'=' -f2 | sed -r 's/"(.*)";/\1/' | awk '{$1=$1};1')"
 
+      - name: Create Versionfile  
+        run: echo '${{ steps.version_number.outputs.firmware_version }}' > version
+
       - name: Run PlatformIO
         run: pio run
 
@@ -65,20 +68,8 @@ jobs:
           name: firmware
           path: .pio/build/esp32dev/firmware.bin
 
-  create_release:
-    needs: compile_firmware
-    runs-on: ubuntu-latest
-    steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      - name: Extract version number
-        id: version_number
-        run: |
-          echo "::set-output name=firmware_version::$(grep '*VERSION' src/Globals.cpp | cut -d'=' -f2 | sed -r 's/"(.*)";/\1/' | awk '{$1=$1};1')"
-
-      - name: Create Versionfile  
-        run: echo '${{ steps.version_number.outputs.firmware_version }}' > version
 
       - name: Download firmware
         uses: actions/download-artifact@v2
