@@ -94,8 +94,6 @@ void ServerManager_::setup()
         mws.addCSS(custom_css);
         mws.addJavascript(custom_script);
         mws.addOptionBox("General");
-        mws.addOption("Duration per Page", TIME_PER_FRAME);
-        mws.addOption("Transistion duration", TIME_PER_TRANSITION);
         mws.addOption("Uppercase letters", UPPERCASE_LETTERS);
         mws.addOption("Show date", SHOW_DATE);
         mws.addOption("Show temperature", SHOW_TEMP);
@@ -193,8 +191,6 @@ void ServerManager_::loadSettings()
         MQTT_USER = doc["Username"].as<String>();
         MQTT_PASS = doc["Password"].as<String>();
         MQTT_PREFIX = doc["Prefix"].as<String>();
-        TIME_PER_FRAME = doc["Duration per Page"].as<int>();
-        TIME_PER_TRANSITION = doc["Transistion duration"].as<int>();
         NET_STATIC = doc["Static IP"];
         HA_DISCOVERY = doc["Homeassistant Discovery"];
         NET_IP = doc["Local IP"].as<String>();

@@ -164,7 +164,7 @@ public:
   /**
    * Add frame drawing functions
    */
-  void setApps(const std::vector<std::pair<uint16_t, AppCallback>> &appPairs);
+  void setApps(const std::vector<std::pair<String, AppCallback>> &appPairs);
 
   // Overlay
 

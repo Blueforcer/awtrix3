@@ -18,12 +18,13 @@ enum MenuState
     RadioMenu,
     StationSelection,
     PlayingStation,
-    Reset,
     VolumeMenu,
     BrightnessMenu,
     FPSMenu,
     ColorMenu,
-    SwitchMenu
+    SwitchMenu,
+    TspeedMenu,
+    AppTimeMenu
 };
 
 const char *menuItems[] = {
@@ -31,9 +32,10 @@ const char *menuItems[] = {
     "FPS",
     "COLOR",
     "SWITCH",
-    "RESET"};
+    "T-SPEED",
+    "APPTIME"};
 
-byte menuItemCount = 5;
+byte menuItemCount = 6;
 
 MenuState currentState = MainMenu;
 
@@ -98,6 +100,18 @@ String MenuManager_::menutext()
     {
         return AUTO_TRANSITION ? "ON" : "OFF";
     }
+    else if (currentState == TspeedMenu)
+    {
+        float seconds = (float)TIME_PER_TRANSITION / 1000.0;
+        return String(seconds, 1) + "s";
+        ;
+    }
+    else if (currentState == AppTimeMenu)
+    {
+        float seconds = (float)TIME_PER_APP / 1000.0;
+        return String(seconds, 0) + "s";
+        ;
+    }
     return "";
 }
 
@@ -142,6 +156,14 @@ void MenuManager_::rightButton()
     {
         AUTO_TRANSITION = !AUTO_TRANSITION;
     }
+    else if (currentState == TspeedMenu)
+    {
+        TIME_PER_TRANSITION = min(1200, TIME_PER_TRANSITION + 100);
+    }
+    else if (currentState == AppTimeMenu)
+    {
+        TIME_PER_APP = min(30000, TIME_PER_APP + 1000);
+    }
 }
 
 void MenuManager_::leftButton()
@@ -185,6 +207,14 @@ void MenuManager_::leftButton()
     {
         AUTO_TRANSITION = !AUTO_TRANSITION;
     }
+    else if (currentState == TspeedMenu)
+    {
+        TIME_PER_TRANSITION = max(200, TIME_PER_TRANSITION - 100);
+    }
+    else if (currentState == AppTimeMenu)
+    {
+        TIME_PER_APP = max(1000, TIME_PER_APP - 1000);
+    }
 }
 
 void MenuManager_::selectButton()
@@ -210,9 +240,13 @@ void MenuManager_::selectButton()
         {
             currentState = SwitchMenu;
         }
-        else if (menuIndex == 4) // FPS
+        else if (menuIndex == 4) // TSPEED
         {
-            ESP.restart();
+            currentState = TspeedMenu;
+        }
+        else if (menuIndex == 5) // AppTIme
+        {
+            currentState = AppTimeMenu;
         }
     }
     else if (currentState == StationSelection)
@@ -251,6 +285,16 @@ void MenuManager_::selectButtonLong()
         else if (currentState == SwitchMenu)
         {
             DisplayManager.setAutoTransition(AUTO_TRANSITION);
+            saveSettings();
+        }
+        else if (currentState == TspeedMenu)
+        {
+            DisplayManager.setSettings();
+            saveSettings();
+        }
+        else if (currentState == AppTimeMenu)
+        {
+            DisplayManager.setSettings();
             saveSettings();
         }
         currentState = MainMenu;

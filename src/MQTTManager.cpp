@@ -132,6 +132,12 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         return;
     }
 
+     if (strTopic == MQTT_PREFIX + "/switch")
+    {
+        DisplayManager.switchToApp(strPayload);
+        return;
+    }
+
     else if (strTopic.startsWith(MQTT_PREFIX + "/custom"))
     {
         String topic_str = topic;
@@ -140,8 +146,8 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         {
             topic_str = topic_str.substring(prefix.length());
         }
-        uint16_t id = topic_str.toInt();
-        DisplayManager.generateCustomPage(id, strPayload);
+
+        DisplayManager.generateCustomPage(topic_str, strPayload);
         return;
     }
 }
@@ -154,6 +160,7 @@ void onMqttConnected()
     mqtt.subscribe((prefix + String("/notify")).c_str());
     mqtt.subscribe((prefix + String("/timer")).c_str());
     mqtt.subscribe((prefix + String("/custom/#")).c_str());
+    mqtt.subscribe((prefix + String("/switch")).c_str());
     Serial.println("MQTT Connected");
 }
 

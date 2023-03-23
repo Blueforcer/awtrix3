@@ -28,7 +28,7 @@ extern String NET_GW;
 extern String NET_SN;
 extern String NET_PDNS;
 extern String NET_SDNS;
-extern int TIME_PER_FRAME;
+extern int TIME_PER_APP;
 extern uint8_t MATRIX_FPS;
 extern int TIME_PER_TRANSITION;
 extern String NTP_SERVER;

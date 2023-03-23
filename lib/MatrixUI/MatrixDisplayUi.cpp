@@ -4,8 +4,8 @@
  * Copyright (c) 2016 by Daniel Eichhorn
  * Copyright (c) 2016 by Fabrice Weinberg
  * Copyright (c) 2023 by Stephan Muehl (Blueforcer)
- * Note: This old lib for SSD1306 displays has been extremly 
- * modified for AWTRIX Light and has nothing to do with the original purposes. 
+ * Note: This old lib for SSD1306 displays has been extremly
+ * modified for AWTRIX Light and has nothing to do with the original purposes.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -89,7 +89,7 @@ void MatrixDisplayUi::setAppAnimation(AnimationDirection dir)
   this->frameAnimationDirection = dir;
 }
 
-void MatrixDisplayUi::setApps(const std::vector<std::pair<uint16_t, AppCallback>> &appPairs)
+void MatrixDisplayUi::setApps(const std::vector<std::pair<String, AppCallback>> &appPairs)
 {
   delete[] AppFunctions;
   AppCount = appPairs.size();
@@ -262,8 +262,9 @@ void MatrixDisplayUi::drawApp()
     y *= dir;
     x1 *= dir;
     y1 *= dir;
-    bool FirstFrame = progress < 0.1;
-    bool LastFrame = progress > 0.9;
+    Serial.println(progress);
+    bool FirstFrame = progress < 0.2;
+    bool LastFrame = progress > 0.8;
     this->matrix->drawRect(x, y, x1, y1, matrix->Color(0, 0, 0));
     (this->AppFunctions[this->state.currentFrame])(this->matrix, &this->state, x, y, FirstFrame, LastFrame);
     (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, x1, y1, FirstFrame, LastFrame);

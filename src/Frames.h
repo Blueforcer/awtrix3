@@ -20,6 +20,7 @@ Ticker downloader;
 
 tm timeInfo;
 uint16_t nativeAppsCount;
+uint16_t customPagesCount;
 
 int WEATHER_CODE;
 String WEATHER_TEMP;
@@ -27,8 +28,8 @@ String WEATHER_HUM;
 
 struct CustomFrame
 {
-    uint8_t id;
-    int16_t scrollposition = 34;
+    int16_t scrollposition = 0;
+    int16_t scrollDelay = 0;
     String text;
     uint16_t color;
     File icon;
@@ -44,13 +45,13 @@ struct CustomFrame
     bool iconWasPushed = false;
 };
 
-uint8_t currentCustomFrame;
-std::map<uint8_t, CustomFrame> customFrames;
+String currentCustomFrame;
+std::map<String, CustomFrame> customFrames;
 
 struct Notification
 {
-    uint8_t id;
     int16_t scrollposition = 34;
+    int16_t scrollDelay = 0;
     String text;
     uint16_t color;
     File icon;
@@ -68,9 +69,35 @@ struct Notification
 
 Notification notify;
 
-CustomFrame *getCustomFrameById(uint8_t id)
+std::vector<std::pair<String, AppCallback>> Apps;
+
+CustomFrame *getCustomFrameById(String name)
 {
-    return customFrames.count(id) ? &customFrames[id] : nullptr;
+    return customFrames.count(name) ? &customFrames[name] : nullptr;
+}
+
+String getFrameNameByFunction(AppCallback frameFunction)
+{
+    for (const auto &appPair : Apps)
+    {
+        if (appPair.second == frameFunction)
+        {
+            return appPair.first;
+        }
+    }
+
+    return ""; // Gibt einen leeren String zurück, wenn die Frame-Funktion nicht gefunden wurde
+}
+
+int findAppIndexByName(const String &name)
+{
+    auto it = std::find_if(Apps.begin(), Apps.end(), [&name](const std::pair<String, AppCallback> &appPair)
+                           { return appPair.first == name; });
+    if (it != Apps.end())
+    {
+        return std::distance(Apps.begin(), it);
+    }
+    return -1;
 }
 
 void TimeFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
@@ -181,7 +208,7 @@ void MenuFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
     if (!MenuManager.inMenu)
         return;
     matrix->fillScreen(0);
-    DisplayManager.printText(0, 6, MenuManager.menutext().c_str(), true);
+    DisplayManager.printText(0, 6, MenuManager.menutext().c_str(), true, true);
 }
 
 void AlarmFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
@@ -191,7 +218,7 @@ void AlarmFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
     {
         matrix->fillScreen(matrix->Color(255, 0, 0));
         CURRENT_APP = "Alarm";
-        uint16_t textWidth = getTextWidth("ALARM");
+        uint16_t textWidth = getTextWidth("ALARM",false);
         int16_t textX = ((32 - textWidth) / 2);
         matrix->setTextColor(0);
         matrix->setCursor(textX, 6);
@@ -211,7 +238,7 @@ void TimerFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         matrix->fillScreen(matrix->Color(0, 255, 0));
         CURRENT_APP = "Timer";
         String menuText = "TIMER";
-        uint16_t textWidth = getTextWidth(menuText.c_str());
+        uint16_t textWidth = getTextWidth(menuText.c_str(),false);
         int16_t textX = ((32 - textWidth) / 2);
         matrix->setTextColor(0);
         matrix->setCursor(textX, 6);
@@ -224,7 +251,7 @@ void TimerFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
     }
 }
 
-void ShowCustomFrame(uint8_t id, FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void ShowCustomFrame(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     // Abort if notify.flag is set
     if (notify.flag)
@@ -233,7 +260,7 @@ void ShowCustomFrame(uint8_t id, FastLED_NeoMatrix *matrix, MatrixDisplayUiState
     }
 
     // Get custom frame by ID
-    CustomFrame *cf = getCustomFrameById(id);
+    CustomFrame *cf = getCustomFrameById(name);
 
     // Abort if custom frame not found
     if (cf == nullptr)
@@ -241,26 +268,24 @@ void ShowCustomFrame(uint8_t id, FastLED_NeoMatrix *matrix, MatrixDisplayUiState
         return;
     }
 
-    // Initialize custom frame properties if first frame
+    // reset custom frame properties if last frame
     if (lastFrame)
     {
         cf->iconWasPushed = false;
-        cf->scrollposition = 34;
+        cf->scrollposition = 9;
         cf->iconPosition = 0;
+        cf->scrollDelay = 0;
     }
 
-    // Update current app and custom frame IDs
     CURRENT_APP = cf->name;
-    currentCustomFrame = id;
+    currentCustomFrame = name;
 
-    // Check if there is an icon
     bool hasIcon = cf->icon;
-
-    // Calculate available display width based on icon
     uint16_t availableWidth = (hasIcon) ? 24 : 32;
 
-    // Disable auto transition if text is repeating and too wide
-    if ((cf->repeat > 0) && (getTextWidth(cf->text.c_str()) > availableWidth) && (state->frameState == FIXED))
+    bool noScrolling = getTextWidth(cf->text.c_str(),false) <= availableWidth;
+
+    if ((cf->repeat > 0) && (getTextWidth(cf->text.c_str(),false) > availableWidth) && (state->frameState == FIXED))
     {
         DisplayManager.setAutoTransition(false);
     }
@@ -269,21 +294,16 @@ void ShowCustomFrame(uint8_t id, FastLED_NeoMatrix *matrix, MatrixDisplayUiState
         DisplayManager.setAutoTransition(true);
     }
 
-    // Check if text is wider than available display width and frame is not in transition
-    if (getTextWidth(cf->text.c_str()) > availableWidth && !(state->frameState == IN_TRANSITION))
+    if (getTextWidth(cf->text.c_str(),false) > availableWidth && !(state->frameState == IN_TRANSITION))
     {
-        // Reset scroll position when text has finished scrolling all the way to the left
-        if (cf->scrollposition <= -getTextWidth(cf->text.c_str()))
+        if (cf->scrollposition <= -getTextWidth(cf->text.c_str(),false))
         {
-            cf->scrollposition = 38;
-
-            // Set iconWasPushed to false if icon has been pushed
+            cf->scrollDelay = 0;
+            cf->scrollposition = 9;
             if (cf->iconWasPushed && cf->pushIcon == 2)
             {
                 cf->iconWasPushed = false;
             }
-
-            // Transition to next app if frame is repeating and repeat limit has been reached
             if ((cf->currentRepeat + 1 >= cf->repeat) && (cf->repeat > 0))
             {
                 DisplayManager.setAutoTransition(true);
@@ -296,24 +316,39 @@ void ShowCustomFrame(uint8_t id, FastLED_NeoMatrix *matrix, MatrixDisplayUiState
                 ++cf->currentRepeat;
             }
         }
-
-        // Update scroll position
-        --cf->scrollposition;
     }
 
-    // Calculate horizontal text alignment
-    int16_t textX = (hasIcon) ? ((24 - getTextWidth(cf->text.c_str())) / 2) + 9 : ((32 - getTextWidth(cf->text.c_str())) / 2);
-
-    // Set text color
+    if (!noScrolling)
+    {
+        if ((cf->scrollDelay > MATRIX_FPS * 1.2))
+        {
+            --cf->scrollposition;
+        }
+        else
+        {
+            ++cf->scrollDelay;
+            if (hasIcon)
+            {
+                if (cf->iconWasPushed && cf->pushIcon == 1)
+                {
+                    cf->scrollposition = 0;
+                }
+                else
+                {
+                    cf->scrollposition = 9;
+                }
+            }
+            else
+            {
+                cf->scrollposition = 0;
+            }
+        }
+    }
+    int16_t textX = (hasIcon) ? ((24 - getTextWidth(cf->text.c_str(),false)) / 2) + 9 : ((32 - getTextWidth(cf->text.c_str(),false)) / 2);
     matrix->setTextColor(cf->color);
-
-    // Check if text is scrolling or not
-    bool noScrolling = getTextWidth(cf->text.c_str()) <= availableWidth;
-
     if (noScrolling)
     {
         cf->repeat = -1; // Disable repeat if text is too short for scrolling
-
         // Display text with rainbow effect if enabled
         if (cf->rainbow)
         {
@@ -322,8 +357,7 @@ void ShowCustomFrame(uint8_t id, FastLED_NeoMatrix *matrix, MatrixDisplayUiState
         else
         {
             // Display text
-
-            DisplayManager.printText(x + textX, y + 6, cf->text.c_str(), false);
+            DisplayManager.printText(x + textX, y + 6, cf->text.c_str(), false, false);
         }
     }
     else
@@ -335,7 +369,7 @@ void ShowCustomFrame(uint8_t id, FastLED_NeoMatrix *matrix, MatrixDisplayUiState
         }
         else
         {
-            DisplayManager.printText(x + cf->scrollposition, 6 + y, cf->text.c_str(), false);
+            DisplayManager.printText(x + cf->scrollposition, 6 + y, cf->text.c_str(), false, false);
         }
     } // Display icon if present and not pushed
     if (hasIcon)
@@ -343,14 +377,14 @@ void ShowCustomFrame(uint8_t id, FastLED_NeoMatrix *matrix, MatrixDisplayUiState
         // Push icon if enabled and text is scrolling
         if (cf->pushIcon > 0 && !noScrolling)
         {
-            if (cf->iconPosition < 0 && cf->iconWasPushed == false && cf->scrollposition > 9)
+            if (cf->iconPosition < 0 && cf->iconWasPushed == false && cf->scrollposition > 8)
             {
                 ++cf->iconPosition;
             }
 
-            if (cf->scrollposition < 9 && !cf->iconWasPushed)
+            if (cf->scrollposition < 8 && !cf->iconWasPushed)
             {
-                cf->iconPosition = cf->scrollposition - 9;
+                cf->iconPosition = cf->scrollposition - 8;
 
                 if (cf->iconPosition <= -9)
                 {
@@ -376,10 +410,9 @@ void ShowCustomFrame(uint8_t id, FastLED_NeoMatrix *matrix, MatrixDisplayUiState
         // Draw vertical line if text is scrolling
         if (!noScrolling)
         {
-            matrix->drawLine(8 + x + notify.iconPosition, 0 + y, 8 + x + notify.iconPosition, 7 + y, 0);
+            // matrix->drawLine(8 + x + cf->iconPosition, 0 + y, 8 + x + cf->iconPosition, 7 + y, 0);
         }
     }
-
     // Reset text color
     DisplayManager.getInstance().resetTextColor();
 }
@@ -407,6 +440,7 @@ void NotifyFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         notify.scrollposition = 34;
         notify.iconWasPushed = false;
         notify.iconPosition = 0;
+        notify.scrollDelay = 0;
         return;
     }
 
@@ -417,30 +451,57 @@ void NotifyFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
     matrix->fillRect(0, 0, 32, 8, 0);
 
     // Calculate text and available width
-    uint16_t textWidth = getTextWidth(notify.text.c_str());
+    uint16_t textWidth = getTextWidth(notify.text.c_str(),false);
     uint16_t availableWidth = hasIcon ? 24 : 32;
+
+    // Check if text is scrolling
+    bool noScrolling = textWidth <= availableWidth;
 
     // Check if text needs to be scrolled
     if (textWidth > availableWidth && notify.scrollposition <= -textWidth)
     {
         // Reset scroll position and icon position if needed
-        notify.scrollposition = 38;
+        notify.scrollDelay = 0;
+        notify.scrollposition = 9;
 
         if (notify.pushIcon == 2)
         {
             notify.iconWasPushed = false;
-            // notify.iconPosition = 0;
         }
 
         if (notify.repeat > 0)
         {
             --notify.repeat;
+            if (notify.repeat == 0)
+                return;
         }
     }
-    else if (textWidth > availableWidth)
+
+    if (!noScrolling)
     {
-        // Update scroll position
-        --notify.scrollposition;
+        if ((notify.scrollDelay > MATRIX_FPS * 1.2))
+        {
+            --notify.scrollposition;
+        }
+        else
+        {
+            ++notify.scrollDelay;
+            if (hasIcon)
+            {
+                if (notify.iconWasPushed && notify.pushIcon == 1)
+                {
+                    notify.scrollposition = 0;
+                }
+                else
+                {
+                    notify.scrollposition = 9;
+                }
+            }
+            else
+            {
+                notify.scrollposition = 0;
+            }
+        }
     }
 
     // Calculate text X position based on icon presence
@@ -448,9 +509,6 @@ void NotifyFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
 
     // Set text color
     matrix->setTextColor(notify.color);
-
-    // Check if text is scrolling
-    bool noScrolling = textWidth <= availableWidth;
 
     if (noScrolling)
     {
@@ -465,7 +523,7 @@ void NotifyFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         else
         {
             // Display text in solid color
-            DisplayManager.printText(textX, 6, notify.text.c_str(), false);
+            DisplayManager.printText(textX, 6, notify.text.c_str(), false, false);
         }
     }
     else
@@ -478,7 +536,7 @@ void NotifyFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         else
         {
             // Display scrolling text in solid color
-            DisplayManager.printText(notify.scrollposition, 6, notify.text.c_str(), false);
+            DisplayManager.printText(notify.scrollposition, 6, notify.text.c_str(), false, false);
         }
     }
 
@@ -488,12 +546,12 @@ void NotifyFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         // Push icon if enabled and text is scrolling
         if (notify.pushIcon > 0 && !noScrolling)
         {
-            if (notify.iconPosition < 0 && notify.iconWasPushed == false && notify.scrollposition > 9)
+            if (notify.iconPosition < 0 && notify.iconWasPushed == false && notify.scrollposition > 8)
             {
                 ++notify.iconPosition;
             }
 
-            if (notify.scrollposition < 9 && !notify.iconWasPushed)
+            if (notify.scrollposition < 8 && !notify.iconWasPushed)
             {
                 notify.iconPosition = notify.scrollposition - 9;
 
@@ -519,7 +577,7 @@ void NotifyFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         // Display icon divider line if text is scrolling
         if (!noScrolling)
         {
-            matrix->drawLine(8 + notify.iconPosition, 0, 8 + notify.iconPosition, 7, 0);
+            // matrix->drawLine(8 + notify.iconPosition, 0, 8 + notify.iconPosition, 7, 0);
         }
     }
 
@@ -529,52 +587,62 @@ void NotifyFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
 
 void CFrame1(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
-    ShowCustomFrame(1, matrix, state, x, y, firstFrame, lastFrame);
+    String name = getFrameNameByFunction(CFrame1);
+    ShowCustomFrame(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
 void CFrame2(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
-    ShowCustomFrame(2, matrix, state, x, y, firstFrame, lastFrame);
+    String name = getFrameNameByFunction(CFrame2);
+    ShowCustomFrame(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
 void CFrame3(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
-    ShowCustomFrame(3, matrix, state, x, y, firstFrame, lastFrame);
+    String name = getFrameNameByFunction(CFrame3);
+    ShowCustomFrame(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
 void CFrame4(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
-    ShowCustomFrame(4, matrix, state, x, y, firstFrame, lastFrame);
+    String name = getFrameNameByFunction(CFrame4);
+    ShowCustomFrame(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
 void CFrame5(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
-    ShowCustomFrame(5, matrix, state, x, y, firstFrame, lastFrame);
+    String name = getFrameNameByFunction(CFrame5);
+    ShowCustomFrame(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
 void CFrame6(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
-    ShowCustomFrame(6, matrix, state, x, y, firstFrame, lastFrame);
+    String name = getFrameNameByFunction(CFrame6);
+    ShowCustomFrame(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
 void CFrame7(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
-    ShowCustomFrame(7, matrix, state, x, y, firstFrame, lastFrame);
+    String name = getFrameNameByFunction(CFrame7);
+    ShowCustomFrame(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
 void CFrame8(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
-    ShowCustomFrame(8, matrix, state, x, y, firstFrame, lastFrame);
+    String name = getFrameNameByFunction(CFrame8);
+    ShowCustomFrame(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
 void CFrame9(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
-    ShowCustomFrame(9, matrix, state, x, y, firstFrame, lastFrame);
+    String name = getFrameNameByFunction(CFrame9);
+    ShowCustomFrame(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
 void CFrame10(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
-    ShowCustomFrame(10, matrix, state, x, y, firstFrame, lastFrame);
+    String name = getFrameNameByFunction(CFrame10);
+    ShowCustomFrame(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
 const uint16_t *getWeatherIcon(int code)
@@ -599,7 +667,7 @@ void WeatherFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_
     DisplayManager.getInstance().resetTextColor();
     matrix->drawRGBBitmap(x, y, getWeatherIcon(WEATHER_CODE), 8, 8);
     String text = WEATHER_TEMP + "°" + WEATHER_HUM + "%";
-    uint16_t textWidth = getTextWidth(text.c_str());
+    uint16_t textWidth = getTextWidth(text.c_str(), false);
     int16_t textX = ((23 - textWidth) / 2);
     matrix->setCursor(textX + 11, 6 + y);
     matrix->print(utf8ascii(text));
@@ -647,6 +715,5 @@ void StartAppUpdater()
     // getWeatherData();
 }
 
-std::vector<std::pair<uint16_t, AppCallback>> Apps;
 OverlayCallback overlays[] = {MenuFrame, NotifyFrame, AlarmFrame, TimerFrame};
 #endif

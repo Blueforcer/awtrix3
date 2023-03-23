@@ -44,9 +44,10 @@ public:
     void setFPS(uint8_t);
     void MatrixState(bool);
     void generateNotification(String);
-    void generateCustomPage(uint16_t, String);
-    void printText(int16_t x, int16_t y, const char *text, bool centered);
+    void generateCustomPage(String, String);
+    void printText(int16_t x, int16_t y, const char *text, bool centered, bool ignoreUppercase);
     bool setAutoTransition(bool active);
+    void switchToApp(String Payload);
     void drawGIF(uint16_t x, uint16_t y, fs::File gifFile);
     void drawJPG(uint16_t x, uint16_t y, fs::File jpgFile);
 };

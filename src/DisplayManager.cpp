@@ -95,7 +95,7 @@ void DisplayManager_::drawJPG(uint16_t x, uint16_t y, fs::File jpgFile)
 void DisplayManager_::setSettings()
 {
     ui.setTargetFPS(MATRIX_FPS);
-    ui.setTimePerApp(TIME_PER_FRAME);
+    ui.setTimePerApp(TIME_PER_APP);
     ui.setTimePerTransition(TIME_PER_TRANSITION);
 }
 
@@ -128,11 +128,11 @@ bool jpg_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t *bitmap)
     return 0;
 }
 
-void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool centered)
+void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool centered, bool ignoreUppercase)
 {
     if (centered)
     {
-        uint16_t textWidth = getTextWidth(text);
+        uint16_t textWidth = getTextWidth(text, ignoreUppercase);
         int16_t textX = ((32 - textWidth) / 2);
         matrix.setCursor(textX, y);
     }
@@ -141,7 +141,7 @@ void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool cen
         matrix.setCursor(x, y);
     }
 
-    if (UPPERCASE_LETTERS)
+    if (UPPERCASE_LETTERS && !ignoreUppercase)
     {
         size_t length = strlen(text);
         char upperText[length + 1]; // +1 for the null terminator
@@ -184,64 +184,37 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear
         }
         char temp_str[2] = {'\0', '\0'};
         temp_str[0] = text[i];
-        xpos += getTextWidth(temp_str);
+        xpos += getTextWidth(temp_str, false);
     }
     hueOffset++;
     if (clear)
         matrix.show();
 }
 
-void pushCustomFrame(uint16_t id)
+void pushCustomFrame(String name)
 {
-    if (customFrames.count(id) == 0)
+
+    if (customFrames.count(name) == 0)
     {
-        uint16_t newID = nativeAppsCount + id;
-        switch (id)
+        ++customPagesCount;
+        void (*customFrames[10])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool) = {CFrame1, CFrame2, CFrame3, CFrame4, CFrame5, CFrame6, CFrame7, CFrame8, CFrame9, CFrame10};
+        if (customFrames[customPagesCount] != NULL)
         {
-        case 1:
-            Apps.push_back(std::make_pair(newID, CFrame1));
-            break;
-        case 2:
-            Apps.push_back(std::make_pair(newID, CFrame2));
-            break;
-        case 3:
-            Apps.push_back(std::make_pair(newID, CFrame3));
-            break;
-        case 4:
-            Apps.push_back(std::make_pair(newID, CFrame4));
-            break;
-        case 5:
-            Apps.push_back(std::make_pair(newID, CFrame5));
-            break;
-        case 6:
-            Apps.push_back(std::make_pair(newID, CFrame6));
-            break;
-        case 7:
-            Apps.push_back(std::make_pair(newID, CFrame7));
-            break;
-        case 8:
-            Apps.push_back(std::make_pair(newID, CFrame8));
-            break;
-        case 9:
-            Apps.push_back(std::make_pair(newID, CFrame9));
-            break;
-        case 10:
-            Apps.push_back(std::make_pair(newID, CFrame10));
-            break;
-        default:
-            return;
-            break;
+            Apps.push_back(std::make_pair(name, customFrames[customPagesCount]));
+            ui.setApps(Apps); // Add frames
         }
-        ui.setApps(Apps); // Add frames
+        else
+        {
+            ++customPagesCount;
+        }
     }
 }
 
-void removeCustomFrame(uint16_t id)
+void removeCustomFrame(const String &name)
 {
-    id += nativeAppsCount;
-    // Suchen Sie nach dem Element, das der ID entspricht
-    auto it = std::find_if(Apps.begin(), Apps.end(), [id](const std::pair<uint16_t, AppCallback> &appPair)
-                           { return appPair.first == id; });
+    // Suchen Sie nach dem Element, das dem Namen entspricht
+    auto it = std::find_if(Apps.begin(), Apps.end(), [&name](const std::pair<String, AppCallback> &appPair)
+                           { return appPair.first == name; });
 
     // Wenn das Element gefunden wurde, entfernen Sie es aus dem Vektor
     if (it != Apps.end())
@@ -251,13 +224,13 @@ void removeCustomFrame(uint16_t id)
     }
 }
 
-void DisplayManager_::generateCustomPage(uint16_t id, String payload)
+void DisplayManager_::generateCustomPage(String name, String payload)
 {
 
-    if (payload == "" && customFrames.count(id))
+    if (payload == "" && customFrames.count(name))
     {
-        customFrames.erase(customFrames.find(id));
-        removeCustomFrame(id);
+        customFrames.erase(customFrames.find(name));
+        removeCustomFrame(name);
         return;
     }
 
@@ -268,21 +241,6 @@ void DisplayManager_::generateCustomPage(uint16_t id, String payload)
 
     CustomFrame customFrame;
 
-    if (id == 0)
-    {
-        if (doc.containsKey("id"))
-        {
-            customFrame.id = doc["id"].as<uint8_t>();
-        }
-        else
-        {
-            return;
-        }
-    }
-
-    if (id > 10)
-        return;
-
     if (doc.containsKey("sound"))
     {
         customFrame.sound = ("/" + doc["sound"].as<String>() + ".txt");
@@ -292,27 +250,18 @@ void DisplayManager_::generateCustomPage(uint16_t id, String payload)
         customFrame.sound = "";
     }
 
-    if (doc.containsKey("name"))
-    {
-        customFrame.name = doc["name"].as<String>();
-    }
-    else
-    {
-        customFrame.name = "Custom " + String(id);
-    }
-
     customFrame.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
     customFrame.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
-    customFrame.id = id;
+    customFrame.name = name;
     customFrame.text = utf8ascii(doc["text"].as<String>());
 
     customFrame.color = doc.containsKey("color") ? doc["color"].is<String>() ? hexToRgb565(doc["color"]) : doc["color"].is<JsonArray>() ? hexToRgb565(doc["color"].as<String>())
                                                                                                                                         : TEXTCOLOR_565
                                                  : TEXTCOLOR_565;
 
-    if (currentCustomFrame != id)
+    if (currentCustomFrame != name)
     {
-        customFrame.scrollposition = 34;
+        customFrame.scrollposition = 9;
     }
 
     customFrame.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint8_t>() : -1;
@@ -333,8 +282,8 @@ void DisplayManager_::generateCustomPage(uint16_t id, String payload)
         }
     }
 
-    pushCustomFrame(id);
-    customFrames[id] = customFrame;
+    pushCustomFrame(name);
+    customFrames[name] = customFrame;
 }
 
 void DisplayManager_::generateNotification(String payload)
@@ -342,7 +291,7 @@ void DisplayManager_::generateNotification(String payload)
     StaticJsonDocument<1024> doc;
     deserializeJson(doc, payload);
 
-    notify.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_FRAME;
+    notify.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
     notify.text = utf8ascii(doc["text"].as<String>());
     notify.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint16_t>() : -1;
     notify.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
@@ -350,7 +299,7 @@ void DisplayManager_::generateNotification(String payload)
     notify.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
     notify.flag = true;
     notify.startime = millis();
-    notify.scrollposition = 34;
+    notify.scrollposition = 9;
     notify.iconWasPushed = false;
     notify.iconPosition = 0;
 
@@ -387,15 +336,15 @@ void DisplayManager_::generateNotification(String payload)
 void DisplayManager_::loadApps()
 {
     Apps.clear();
-    Apps.push_back(std::make_pair(0, TimeFrame));
+    Apps.push_back(std::make_pair("time", TimeFrame));
     if (SHOW_DATE)
-        Apps.push_back(std::make_pair(1, DateFrame));
+        Apps.push_back(std::make_pair("date", DateFrame));
     if (SHOW_TEMP)
-        Apps.push_back(std::make_pair(2, TempFrame));
+        Apps.push_back(std::make_pair("temp", TempFrame));
     if (SHOW_HUM)
-        Apps.push_back(std::make_pair(3, HumFrame));
+        Apps.push_back(std::make_pair("hum", HumFrame));
     if (SHOW_BATTERY)
-        Apps.push_back(std::make_pair(4, BatFrame));
+        Apps.push_back(std::make_pair("bat", BatFrame));
     // if (SHOW_WEATHER)
     //     Apps.push_back(std::make_pair(5, WeatherFrame));
     nativeAppsCount = Apps.size();
@@ -530,4 +479,17 @@ void DisplayManager_::gererateTimer(String Payload)
     time_t futureTime = mktime(&futureTimeinfo);
     int interval = difftime(futureTime, now) * 1000;
     TimerTicker.attach_ms(interval, timerCallback);
+}
+
+void DisplayManager_::switchToApp(String Payload)
+{
+    DynamicJsonDocument doc(512);
+    DeserializationError error = deserializeJson(doc, Payload);
+    if (error)
+        return;
+    String name = doc["name"].as<String>();
+    bool fast = doc["fast"] | false;
+    int index = findAppIndexByName(name);
+    if (index > -1)
+        ui.transitionToApp(index);
 }

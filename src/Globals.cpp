@@ -11,6 +11,8 @@ void loadSettings()
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", true);
     TEXTCOLOR_565 = Settings.getUInt("COL", 0xFFFF);
     AUTO_TRANSITION = Settings.getBool("TRANS", true);
+    TIME_PER_TRANSITION = Settings.getUInt("TSPEED", 500);
+    TIME_PER_APP = Settings.getUInt("ADUR", 5000);
     Settings.end();
 }
 
@@ -22,6 +24,8 @@ void saveSettings()
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
     Settings.putBool("TRANS", AUTO_TRANSITION);
     Settings.putUInt("COL", TEXTCOLOR_565);
+    Settings.putUInt("TSPEED", TIME_PER_TRANSITION);
+    Settings.putUInt("ADUR", TIME_PER_APP);
     Settings.end();
 }
 
@@ -30,7 +34,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.33";
+const char *VERSION = "0.35";
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
@@ -51,7 +55,7 @@ String NET_GW = "192.168.178.1";
 String NET_SN = "255.255.255.0";
 String NET_PDNS = "8.8.8.8";
 String NET_SDNS = "1.1.1.1";
-int TIME_PER_FRAME = 7000;
+int TIME_PER_APP = 7000;
 uint8_t MATRIX_FPS = 23;
 int TIME_PER_TRANSITION = 500;
 String NTP_SERVER = "de.pool.ntp.org";
