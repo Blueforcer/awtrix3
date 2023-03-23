@@ -1,7 +1,7 @@
 # AWTRIX-LIGHT
 
 Documentation:
-[blueforcer.github.io/awtrix-light/](blueforcer.github.io/awtrix-light/)
+[https://blueforcer.github.io/awtrix-light/](https://blueforcer.github.io/awtrix-light/)
 
 If you like my work, please consider supporting the project.  
 
