@@ -98,18 +98,5 @@ jobs:
           asset_path: ./firmware/firmware.bin
           asset_name: firmware.bin
           asset_content_type: application/octet-stream
-          
-      - name: Commit files # commit the output folder
-        run: |
-          git config --local user.email "github@blueforcer.de"
-          git config --local user.name "AWTRIX Bot"
-          git add version
-          git add docs/flasher/firmware/firmware.bin
-          git add docs/flasher/firmware/manifest.json
-          git commit -m "Update version & flasher"
-      - name: Push changes # push the output folder to your repo
-        uses: ad-m/github-push-action@master
-        with:
-          branch: main #ignore if your branch is master
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          force: true
+         
+      - uses: actions/checkout@v3
