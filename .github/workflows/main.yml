@@ -15,6 +15,7 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v3
+        
       - name: Cache pip
         uses: actions/cache@v2
         with:
@@ -96,12 +97,6 @@ jobs:
           asset_path: ./firmware/firmware.bin
           asset_name: firmware.bin
           asset_content_type: application/octet-stream
-     
-      - name: Checkout
-        id: checkout     
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.head_ref }}
           
       - name: Commit
         id: commit   
