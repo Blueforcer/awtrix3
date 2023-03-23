@@ -262,7 +262,6 @@ void MatrixDisplayUi::drawApp()
     y *= dir;
     x1 *= dir;
     y1 *= dir;
-    Serial.println(progress);
     bool FirstFrame = progress < 0.2;
     bool LastFrame = progress > 0.8;
     this->matrix->drawRect(x, y, x1, y1, matrix->Color(0, 0, 0));

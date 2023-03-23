@@ -4,6 +4,7 @@
 #include <Globals.h>
 #include <ServerManager.h>
 #include <DisplayManager.h>
+#include <updater.h>
 
 String menuText;
 int menuSelection;
@@ -33,9 +34,10 @@ const char *menuItems[] = {
     "COLOR",
     "SWITCH",
     "T-SPEED",
-    "APPTIME"};
+    "APPTIME",
+    "UPDATE"};
 
-byte menuItemCount = 6;
+byte menuItemCount = 7;
 
 MenuState currentState = MainMenu;
 
@@ -247,6 +249,10 @@ void MenuManager_::selectButton()
         else if (menuIndex == 5) // AppTIme
         {
             currentState = AppTimeMenu;
+        }
+        else if (menuIndex == 6) // AppTIme
+        {
+           FirmwareVersionCheck();
         }
     }
     else if (currentState == StationSelection)

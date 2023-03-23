@@ -25,6 +25,12 @@ To change the color, use the left and right buttons to navigate through the avai
 
 #### SWITCH
 This setting determines whether the pages should automatically switch after the specified time. To save your setting, press and hold the middle button for 2 seconds. This will exit the menu and store your setting.
+  
+#### T-SPEED  
+In this menu you can change the transisiton speed between apps.  
+  
+#### T_SPEED  
+In this menu, you can adjust the duration for which an app is displayed before switching to the next one.  
 
-#### REBOOT
-This will reboot your clock :-)
+#### UPDATE   
+Here you can check and download a new firmware if available.

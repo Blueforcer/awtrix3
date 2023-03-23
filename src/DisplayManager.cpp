@@ -390,6 +390,17 @@ void DisplayManager_::tick()
     }
 }
 
+void DisplayManager_::clear()
+{
+    matrix.clear();
+}
+
+void DisplayManager_::show()
+{
+    matrix.show();
+}
+
+
 void DisplayManager_::leftButton()
 {
     if (!MenuManager.inMenu)
@@ -512,4 +523,17 @@ void DisplayManager_::setNewSettings(String Payload)
     AUTO_TRANSITION = doc.containsKey("autotransition") ? doc["autotransition"] : AUTO_TRANSITION;
     applyAllSettings();
     saveSettings();
+}
+
+void DisplayManager_::drawProgressBar(int cur, int total)
+{
+    matrix.clear();
+    int progress = (cur * 100) / total;
+    char progressStr[5];
+    snprintf(progressStr, 5, "%d%%", progress); // Formatieren des Prozentzeichens
+    printText(0, 6, progressStr, true, false);
+    int leds_for_progress = (progress * MATRIX_WIDTH * MATRIX_HEIGHT) / 100;
+    matrix.drawFastHLine(0, 7, MATRIX_WIDTH, matrix.Color(100, 100, 100));
+    matrix.drawFastHLine(0, 7, leds_for_progress / MATRIX_HEIGHT, matrix.Color(0, 255, 0));
+    matrix.show();
 }

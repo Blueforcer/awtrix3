@@ -26,6 +26,8 @@ public:
     static DisplayManager_ &getInstance();
     void setup();
     void tick();
+    void clear();
+    void show();
     void applyAllSettings();
     void rightButton();
     void dismissNotify();
@@ -51,6 +53,7 @@ public:
     void setNewSettings(String Payload);
     void drawGIF(uint16_t x, uint16_t y, fs::File gifFile);
     void drawJPG(uint16_t x, uint16_t y, fs::File jpgFile);
+    void drawProgressBar(int cur, int total);
 };
 
 extern DisplayManager_ &DisplayManager;

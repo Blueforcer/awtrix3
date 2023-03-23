@@ -1,15 +1,15 @@
 
-/*    ___           ___                       ___                       ___     
-     /  /\         /__/\          ___        /  /\        ___          /__/|    
-    /  /::\       _\_ \:\        /  /\      /  /::\      /  /\        |  |:|    
-   /  /:/\:\     /__/\ \:\      /  /:/     /  /:/\:\    /  /:/        |  |:|    
-  /  /:/~/::\   _\_ \:\ \:\    /  /:/     /  /:/~/:/   /__/::\      __|__|:|    
+/*    ___           ___                       ___                       ___
+     /  /\         /__/\          ___        /  /\        ___          /__/|
+    /  /::\       _\_ \:\        /  /\      /  /::\      /  /\        |  |:|
+   /  /:/\:\     /__/\ \:\      /  /:/     /  /:/\:\    /  /:/        |  |:|
+  /  /:/~/::\   _\_ \:\ \:\    /  /:/     /  /:/~/:/   /__/::\      __|__|:|
  /__/:/ /:/\:\ /__/\ \:\ \:\  /  /::\    /__/:/ /:/___ \__\/\:\__  /__/::::\____
  \  \:\/:/__\/ \  \:\ \:\/:/ /__/:/\:\   \  \:\/:::::/    \  \:\/\    ~\~~\::::/
-  \  \::/       \  \:\ \::/  \__\/  \:\   \  \::/~~~~      \__\::/     |~~|:|~~ 
-   \  \:\        \  \:\/:/        \  \:\   \  \:\          /__/:/      |  |:|   
-    \  \:\        \  \::/          \__\/    \  \:\         \__\/       |  |:|   
-     \__\/         \__\/                     \__\/                     |__|/    
+  \  \::/       \  \:\ \::/  \__\/  \:\   \  \::/~~~~      \__\::/     |~~|:|~~
+   \  \:\        \  \:\/:/        \  \:\   \  \:\          /__/:/      |  |:|
+    \  \:\        \  \::/          \__\/    \  \:\         \__\/       |  |:|
+     \__\/         \__\/                     \__\/                     |__|/
 
  ***************************************************************************
  *                                                                         *
@@ -22,14 +22,13 @@
  *   4.0 International License.                                            *
  *                                                                         *
  *   More information:                                                     *
- *   https://github.com/Blueforcer/awtrix-light/blob/main/LICENSE.md       * 
+ *   https://github.com/Blueforcer/awtrix-light/blob/main/LICENSE.md       *
  *                                                                         *
  *   This firmware is distributed in the hope that it will be useful,      *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                  *
  *                                                                         *
  ***************************************************************************/
-
 
 #include <Arduino.h>
 #include "DisplayManager.h"
@@ -65,6 +64,8 @@ void setup()
   loadSettings();
   ServerManager.loadSettings();
   DisplayManager.setup();
+  DisplayManager.HSVtext(9, 6, VERSION, true);
+  delay(500);
   PeripheryManager.playBootSound();
   xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 1);
   ServerManager.setup();
