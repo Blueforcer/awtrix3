@@ -10,7 +10,6 @@
 
 void update_started()
 {
-  
 }
 
 void update_finished()
