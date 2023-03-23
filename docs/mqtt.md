@@ -13,7 +13,6 @@ Build-in app names are
 - `hum`
 - `bat`
 
-For custompages you need to call the name you set in the topic:
-if 
-`[PREFIX]/custom/test` is your topic, 
-then `test` is the name
+For custompages you need to call the name you set in the topic:  
+If `[PREFIX]/custom/test` is your topic, 
+then `test` is the name.
