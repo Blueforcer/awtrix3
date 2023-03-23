@@ -1,7 +1,7 @@
 # Custom Pages & Notifications
 
 With AWTRIX Light, you can create custom pages or notifications to display your own text and icons.
-Simply send a JSON object to the topic "awtrixlight/custom/[page]" where [page] is a number from 1-10.
+Simply send a JSON object to the topic "awtrixlight/custom/[page]" where [page] is a the name of your page (without spaces).
 
 ## JSON Properties
 

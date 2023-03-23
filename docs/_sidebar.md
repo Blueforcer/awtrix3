@@ -14,3 +14,6 @@
   - [Timer](timer.md)
   - [Icons](icons.md)
   - [Sounds](sounds.md)
+
+- MQTT
+  - [Commands](mqtt.md)
