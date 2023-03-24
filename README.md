@@ -36,7 +36,7 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
 - Pre-installed pages like time, date, temperature, humidity and battery
 - Easy to use icon system
 - Powerful MQTT commands
-- RTTTL melodie player
+- RTTTL melody player
 - Integrated filebrowser 
 
 # Getting Started
