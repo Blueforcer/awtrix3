@@ -17,6 +17,7 @@
     
 
 ![GIF-230324_161917](https://user-images.githubusercontent.com/31169771/227567565-3780ee83-1158-4371-9390-fd03a7873496.gif)
+</div>
 
 AWTRIX Light is an open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882).
 
