@@ -1,9 +1,18 @@
 # MQTT Commands
 
+### Dismiss notification  
+Dismiss a notification wich was set to "hold"=true  
+##### Topic  
+`[PREFIX]/notify/dismiss`   
+##### Payload  
+empty payload  
+  
 ### Switch apps
 ##### Topic 
 `[PREFIX]/nextapp`   
 `[PREFIX]/previousapp` 
+##### Payload   
+empty payload  
 
 ### Switch to specific app  
 ##### Topic 
