@@ -11,8 +11,10 @@
 
 # AWTRIX LIGHT
 
-![GitHub all releases](https://img.shields.io/github/downloads/blueforcer/awtrix-light/total)
-
+![GitHub all releases](https://img.shields.io/github/downloads/blueforcer/awtrix-light/total?style=flat-square)
+![GitHub Sponsors](https://img.shields.io/github/sponsors/blueforcer?style=flat-square)
+![Discord](https://img.shields.io/discord/546407049148366859?label=Discord&style=flat-square)
+    
 Documentation:
 [https://blueforcer.github.io/awtrix-light/](https://blueforcer.github.io/awtrix-light/)
 
