@@ -8,7 +8,6 @@
 #include "PeripheryManager.h"
 #include "MQTTManager.h"
 #include "GifPlayer.h"
-#include "AudioManager.h"
 #include <Ticker.h>
 #include "Functions.h"
 #include "ServerManager.h"
@@ -155,11 +154,11 @@ void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool cen
         }
 
         upperText[length] = '\0'; // Null terminator
-        matrix.print(upperText);
+        matrix.print(utf8ascii(upperText));
     }
     else
     {
-        matrix.print(text);
+        matrix.print(utf8ascii(text));
     }
 }
 
@@ -400,7 +399,6 @@ void DisplayManager_::show()
     matrix.show();
 }
 
-
 void DisplayManager_::leftButton()
 {
     if (!MenuManager.inMenu)
@@ -536,4 +534,24 @@ void DisplayManager_::drawProgressBar(int cur, int total)
     matrix.drawFastHLine(0, 7, MATRIX_WIDTH, matrix.Color(100, 100, 100));
     matrix.drawFastHLine(0, 7, leds_for_progress / MATRIX_HEIGHT, matrix.Color(0, 255, 0));
     matrix.show();
+}
+
+void DisplayManager_::drawMenuIndicator(int cur, int total)
+{
+    int menuItemWidth = 2;
+    int totalWidth = total * menuItemWidth + (total - 2);
+    int leftMargin = (MATRIX_WIDTH - totalWidth) / 2;
+    int pixelSpacing = 1;
+    for (int i = 0; i < total; i++)
+    {
+        int x = leftMargin + i * (menuItemWidth + pixelSpacing);
+        if (i == cur)
+        {
+            matrix.drawLine(x, 7, x + menuItemWidth - 1, 7, matrix.Color(255, 0, 0));
+        }
+        else
+        {
+            matrix.drawLine(x, 7, x + menuItemWidth - 1, 7, matrix.Color(100, 100, 100));
+        }
+    }
 }

@@ -36,7 +36,6 @@
 #include "MQTTManager.h"
 #include "ServerManager.h"
 #include "Globals.h"
-#include "AudioManager.h"
 
 TaskHandle_t taskHandle;
 volatile bool StopTask = false;
@@ -73,7 +72,6 @@ void setup()
   if (ServerManager.isConnected)
   {
     MQTTManager.setup();
-    AudioManager.setup();
     DisplayManager.loadApps();
   }
   else
@@ -92,7 +90,6 @@ void loop()
   DisplayManager.tick();
   if (ServerManager.isConnected)
   {
-    AudioManager.tick();
     PeripheryManager.tick();
     MQTTManager.tick();
   }

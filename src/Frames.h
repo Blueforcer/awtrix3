@@ -106,28 +106,19 @@ void TimeFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x
         return;
     CURRENT_APP = "Time";
     DisplayManager.getInstance().resetTextColor();
-    time_t now1 = time(nullptr);
+    time_t now = time(nullptr);
     struct tm *timeInfo;
-    timeInfo = localtime(&now1);
-    char t[14];
-    if (SHOW_SECONDS)
-    {
-        sprintf_P(t, PSTR("%02d:%02d:%02d"), timeInfo->tm_hour, timeInfo->tm_min, timeInfo->tm_sec);
-        matrix->setCursor(2 + x, 6 + y);
-    }
-    else
-    {
-        sprintf_P(t, PSTR("%02d:%02d"), timeInfo->tm_hour, timeInfo->tm_min);
-        matrix->setCursor(7 + x, 6 + y);
-    }
-
-    matrix->println(t);
+    timeInfo = localtime(&now);
+    char t[20];
+    strftime(t, sizeof(t), TIME_FORMAT.c_str(), localtime(&now));
+    DisplayManager.printText(0 + x, 6 + y, t, true, true);
 
     if (!SHOW_WEEKDAY)
         return;
+    int dayOffset = START_ON_MONDAY ? 0 : 1;
     for (int i = 0; i <= 6; i++)
     {
-        if (i == (timeInfo->tm_wday + 6) % 7)
+        if (i == (timeInfo->tm_wday + 6 + dayOffset) % 7)
         {
             matrix->drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, matrix->Color(200, 200, 200));
         }
@@ -144,18 +135,18 @@ void DateFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x
         return;
     CURRENT_APP = "Date";
     DisplayManager.getInstance().resetTextColor();
-    time_t now1 = time(nullptr);
+    time_t now = time(nullptr);
     struct tm *timeInfo;
-    timeInfo = localtime(&now1);
-    char d[11];
-    sprintf_P(d, PSTR("%02d.%02d.%02d"), timeInfo->tm_mday, timeInfo->tm_mon + 1, timeInfo->tm_year % 100);
-    matrix->setCursor(2 + x, 6 + y);
-    matrix->println(d);
+    timeInfo = localtime(&now);
+    char d[20];
+    strftime(d, sizeof(d), DATE_FORMAT.c_str(), localtime(&now));
+    DisplayManager.printText(0 + x, 6 + y, d, true, true);
     if (!SHOW_WEEKDAY)
         return;
+    int dayOffset = START_ON_MONDAY ? 0 : 1;
     for (int i = 0; i <= 6; i++)
     {
-        if (i == (timeInfo->tm_wday + 6) % 7)
+        if (i == (timeInfo->tm_wday + 6 + dayOffset) % 7)
         {
             matrix->drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, matrix->Color(200, 200, 200));
         }
@@ -173,9 +164,18 @@ void TempFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x
     CURRENT_APP = "Temperature";
     DisplayManager.getInstance().resetTextColor();
     matrix->drawRGBBitmap(x, y, get_icon(234), 8, 8);
-    matrix->setCursor(14 + x, 6 + y);
-    matrix->print((int)CURRENT_TEMP); // Ausgabe der Temperatur
-    matrix->print(utf8ascii("°"));
+    matrix->setCursor(12 + x, 6 + y);
+    if (IS_CELSIUS)
+    {
+        matrix->print((int)CURRENT_TEMP); 
+        matrix->print(utf8ascii("°C"));
+    }
+    else
+    {
+        int tempF = (CURRENT_TEMP * 9 / 5) + 32;
+        matrix->print(tempF);
+        matrix->print(utf8ascii("°F"));
+    }
 }
 
 void HumFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
@@ -218,7 +218,7 @@ void AlarmFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
     {
         matrix->fillScreen(matrix->Color(255, 0, 0));
         CURRENT_APP = "Alarm";
-        uint16_t textWidth = getTextWidth("ALARM",false);
+        uint16_t textWidth = getTextWidth("ALARM", false);
         int16_t textX = ((32 - textWidth) / 2);
         matrix->setTextColor(0);
         matrix->setCursor(textX, 6);
@@ -238,7 +238,7 @@ void TimerFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         matrix->fillScreen(matrix->Color(0, 255, 0));
         CURRENT_APP = "Timer";
         String menuText = "TIMER";
-        uint16_t textWidth = getTextWidth(menuText.c_str(),false);
+        uint16_t textWidth = getTextWidth(menuText.c_str(), false);
         int16_t textX = ((32 - textWidth) / 2);
         matrix->setTextColor(0);
         matrix->setCursor(textX, 6);
@@ -283,9 +283,9 @@ void ShowCustomFrame(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiStat
     bool hasIcon = cf->icon;
     uint16_t availableWidth = (hasIcon) ? 24 : 32;
 
-    bool noScrolling = getTextWidth(cf->text.c_str(),false) <= availableWidth;
+    bool noScrolling = getTextWidth(cf->text.c_str(), false) <= availableWidth;
 
-    if ((cf->repeat > 0) && (getTextWidth(cf->text.c_str(),false) > availableWidth) && (state->frameState == FIXED))
+    if ((cf->repeat > 0) && (getTextWidth(cf->text.c_str(), false) > availableWidth) && (state->frameState == FIXED))
     {
         DisplayManager.setAutoTransition(false);
     }
@@ -294,9 +294,9 @@ void ShowCustomFrame(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiStat
         DisplayManager.setAutoTransition(true);
     }
 
-    if (getTextWidth(cf->text.c_str(),false) > availableWidth && !(state->frameState == IN_TRANSITION))
+    if (getTextWidth(cf->text.c_str(), false) > availableWidth && !(state->frameState == IN_TRANSITION))
     {
-        if (cf->scrollposition <= -getTextWidth(cf->text.c_str(),false))
+        if (cf->scrollposition <= -getTextWidth(cf->text.c_str(), false))
         {
             cf->scrollDelay = 0;
             cf->scrollposition = 9;
@@ -344,7 +344,7 @@ void ShowCustomFrame(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiStat
             }
         }
     }
-    int16_t textX = (hasIcon) ? ((24 - getTextWidth(cf->text.c_str(),false)) / 2) + 9 : ((32 - getTextWidth(cf->text.c_str(),false)) / 2);
+    int16_t textX = (hasIcon) ? ((24 - getTextWidth(cf->text.c_str(), false)) / 2) + 9 : ((32 - getTextWidth(cf->text.c_str(), false)) / 2);
     matrix->setTextColor(cf->color);
     if (noScrolling)
     {
@@ -451,7 +451,7 @@ void NotifyFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
     matrix->fillRect(0, 0, 32, 8, 0);
 
     // Calculate text and available width
-    uint16_t textWidth = getTextWidth(notify.text.c_str(),false);
+    uint16_t textWidth = getTextWidth(notify.text.c_str(), false);
     uint16_t availableWidth = hasIcon ? 24 : 32;
 
     // Check if text is scrolling

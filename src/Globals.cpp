@@ -13,6 +13,10 @@ void loadSettings()
     AUTO_TRANSITION = Settings.getBool("TRANS", true);
     TIME_PER_TRANSITION = Settings.getUInt("TSPEED", 500);
     TIME_PER_APP = Settings.getUInt("ADUR", 5000);
+    TIME_FORMAT = Settings.getString("TFORMAT", "%H:%M:%S");
+    DATE_FORMAT = Settings.getString("DFORMAT", "%d.%m.%y");
+    START_ON_MONDAY = Settings.getBool("SOM", true);
+    IS_CELSIUS = Settings.getBool("CEL", true);
     Settings.end();
 }
 
@@ -26,6 +30,10 @@ void saveSettings()
     Settings.putUInt("COL", TEXTCOLOR_565);
     Settings.putUInt("TSPEED", TIME_PER_TRANSITION);
     Settings.putUInt("ADUR", TIME_PER_APP);
+    Settings.putString("TFORMAT", TIME_FORMAT);
+    Settings.putString("DFORMAT", DATE_FORMAT);
+    Settings.putBool("SOM", START_ON_MONDAY);
+    Settings.putBool("CEL", IS_CELSIUS);
     Settings.end();
 }
 
@@ -34,7 +42,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.37";
+const char *VERSION = "0.38";
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
@@ -65,11 +73,16 @@ bool HA_DISCOVERY = false;
 // Periphery
 String CURRENT_APP;
 float CURRENT_TEMP;
+bool IS_CELSIUS;
 float CURRENT_HUM;
 float CURRENT_LUX;
 uint8_t BRIGHTNESS = 120;
 uint8_t BRIGHTNESS_PERCENT;
 uint8_t BATTERY_PERCENT;
+
+String TIME_FORMAT = "%H:%M:%S";
+String DATE_FORMAT = "%d.%m.%y";
+bool START_ON_MONDAY;
 
 String ALARM_SOUND;
 uint8_t SNOOZE_TIME;

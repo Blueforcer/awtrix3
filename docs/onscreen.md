@@ -31,6 +31,18 @@ In this menu you can change the transisiton speed between apps.
   
 #### T_SPEED  
 In this menu, you can adjust the duration for which an app is displayed before switching to the next one.  
-
+  
+#### TIME  
+In this menu, you can change the time format. To change the format, use the left and right buttons to navigate through the available options. When you have found the format you want, press and hold the middle button for 2 seconds to save your setting. This will exit the menu and store your selected format.  
+  
+#### DATE  
+In this menu, you can change the date format. To change the format, use the left and right buttons to navigate through the available options. When you have found the format you want, press and hold the middle button for 2 seconds to save your setting. This will exit the menu and store your selected format.  
+  
+#### WEEKDAY  
+In this menu, you can change the start of your week. To change the start from Monday to Sunday, use the left and right buttons. Press and hold the middle button for 2 seconds to save your setting. This will exit the menu and store your selected start of the week.  
+  
+#### TEMP  
+In this menu, you can change the temperature from °C to °F. Use the left and right buttons to change the system. Press and hold the middle button for 2 seconds to save your setting.   
+  
 #### UPDATE   
 Here you can check and download a new firmware if available.

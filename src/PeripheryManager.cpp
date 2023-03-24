@@ -162,7 +162,7 @@ void PeripheryManager_::tick()
     button_right.read();
     button_select.read();
 
-    // Auslesen von Batterie-, Temperatur- und Luftfeuchtigkeitswerten alle 10 Sekunden
+
     unsigned long currentMillis_BatTempHum = millis();
     if (currentMillis_BatTempHum - previousMillis_BatTempHum >= interval_BatTempHum)
     {
@@ -174,11 +174,13 @@ void PeripheryManager_::tick()
         CURRENT_TEMP -= 9.0;
         checkAlarms();
         MQTTManager.sendStats();
-        uint32_t freeHeap = esp_get_free_heap_size(); // Freien Heap-Speicher in Bytes erhalten
-        float freeHeapKB = freeHeap / 1024.0;         // Freien Heap-Speicher in Kilobytes umrechnen
+        uint32_t freeHeap = esp_get_free_heap_size(); 
+        float freeHeapKB = freeHeap / 1024.0;   
+        Serial.print(ESP.getFreeHeap() / 1024);
+        Serial.println(" KB");
     }
 
-    // Auslesen des LDR-Werts alle 500 ms
+
     unsigned long currentMillis_LDR = millis();
     if (currentMillis_LDR - previousMillis_LDR >= interval_LDR && AUTO_BRIGHTNESS)
     {

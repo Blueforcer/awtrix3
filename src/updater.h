@@ -14,7 +14,7 @@ void update_started()
 
 void update_finished()
 {
-    Serial.println("CALLBACK:  HTTP update process finished");
+
 }
 
 void update_progress(int cur, int total)
@@ -29,7 +29,7 @@ void update_error(int err)
     DisplayManager.show();
 }
 
-void firmwareUpdate(void)
+void updateFirmware()
 {
     WiFiClientSecure client;
     client.setCACert(rootCACertificate);
@@ -55,7 +55,9 @@ void firmwareUpdate(void)
         break;
     }
 }
-int FirmwareVersionCheck(void)
+
+
+bool FirmwareVersionCheck()
 {
 
     DisplayManager.clear();
@@ -73,8 +75,6 @@ int FirmwareVersionCheck(void)
     if (client)
     {
         client->setCACert(rootCACertificate);
-
-        // Add a scoping block for HTTPClient https to make sure it is destroyed before WiFiClientSecure *client is
         HTTPClient https;
 
         if (https.begin(*client, fwurl))
@@ -115,7 +115,6 @@ int FirmwareVersionCheck(void)
             Serial.println(payload);
             Serial.println("New firmware detected");
             DisplayManager.printText(0, 6, payload.c_str(), true, true);
-            firmwareUpdate();
             return 1;
         }
     }

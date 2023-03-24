@@ -43,6 +43,7 @@ extern uint8_t BATTERY_PERCENT;
 extern uint8_t BRIGHTNESS;
 extern uint8_t BRIGHTNESS_PERCENT;
 extern String TEXTCOLOR;
+extern String TIME_FORMAT;
 extern bool AUTO_BRIGHTNESS;
 extern bool AP_MODE;
 extern bool ALARM_ACTIVE;
@@ -53,6 +54,10 @@ extern String TIMER_SOUND;
 extern uint16_t TEXTCOLOR_565;
 extern uint8_t SNOOZE_TIME;
 extern bool AUTO_TRANSITION;
+extern String TIME_FORMAT;
+extern String DATE_FORMAT;
+extern bool START_ON_MONDAY;
+extern bool IS_CELSIUS;
 
 void loadSettings();
 void saveSettings();

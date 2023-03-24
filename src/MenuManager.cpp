@@ -1,6 +1,5 @@
 #include <MenuManager.h>
 #include <Arduino.h>
-#include <AudioManager.h>
 #include <Globals.h>
 #include <ServerManager.h>
 #include <DisplayManager.h>
@@ -9,39 +8,66 @@
 String menuText;
 int menuSelection;
 
-int8_t menuIndex = 0;
 int8_t stationIndex = 0;
 bool isPlayingRadio = false;
 
 enum MenuState
 {
     MainMenu,
-    RadioMenu,
-    StationSelection,
-    PlayingStation,
-    VolumeMenu,
     BrightnessMenu,
     FPSMenu,
     ColorMenu,
     SwitchMenu,
     TspeedMenu,
-    AppTimeMenu
+    AppTimeMenu,
+    TimeFormatMenu,
+    DateFormatMenu,
+    WeekdayMenu,
+    TempMenu
 };
 
-const char *menuItems[] = {
+const char *menuItems[] PROGMEM = {
     "BRIGHT",
     "FPS",
     "COLOR",
     "SWITCH",
     "T-SPEED",
     "APPTIME",
+    "TIME",
+    "DATE",
+    "WEEKDAY",
+    "TEMP",
     "UPDATE"};
 
-byte menuItemCount = 7;
+int8_t menuIndex = 0;
+uint8_t menuItemCount = 11;
+
+const char *timeFormat[] PROGMEM = {
+    "%H:%M:%S",
+    "%l:%M:%S",
+    "%H:%M",
+    "%l:%M",
+    "%l:%M %p"};
+int8_t timeFormatIndex;
+uint8_t timeFormatCount = 5;
+
+const char *dateFormat[] PROGMEM = {
+    "%d.%m.%y", // 01.04.22
+    "%d.%m",    // 01.04
+    "%y-%m-%d", // 22-04-01
+    "%m-%d",    // 04-01
+    "%m/%d/%y", // 04/01/22
+    "%m/%d",    // 04/01
+    "%d/%m/%y", // 01/04/22
+    "%d/%m",    // 01/04
+    "%m-%d-%y", // 04-01-22
+};
+int8_t dateFormatIndex;
+uint8_t dateFormatCount = 9;
 
 MenuState currentState = MainMenu;
 
-uint16_t textColors[] = {
+uint16_t textColors[] PROGMEM = {
     0xFFFF,  // White
     0xF800,  // Red
     0xF812,  // Dark orange
@@ -71,6 +97,7 @@ String MenuManager_::menutext()
 {
     if (currentState == MainMenu)
     {
+        DisplayManager.drawMenuIndicator(menuIndex, menuItemCount);
         return (menuItems[menuIndex]);
     }
     else if (currentState == BrightnessMenu)
@@ -106,13 +133,33 @@ String MenuManager_::menutext()
     {
         float seconds = (float)TIME_PER_TRANSITION / 1000.0;
         return String(seconds, 1) + "s";
-        ;
     }
     else if (currentState == AppTimeMenu)
     {
         float seconds = (float)TIME_PER_APP / 1000.0;
         return String(seconds, 0) + "s";
-        ;
+    }
+    else if (currentState == TimeFormatMenu)
+    {
+        time_t now = time(nullptr);
+        char t[20];
+        strftime(t, sizeof(t), timeFormat[timeFormatIndex], localtime(&now));
+        return t;
+    }
+    else if (currentState == DateFormatMenu)
+    {
+        time_t now = time(nullptr);
+        char t[20];
+        strftime(t, sizeof(t), dateFormat[dateFormatIndex], localtime(&now));
+        return t;
+    }
+    else if (currentState == WeekdayMenu)
+    {
+        return START_ON_MONDAY ? "MON" : "SUN";
+    }
+    else if (currentState == TempMenu)
+    {
+        return IS_CELSIUS ? "°C" : "°F";
     }
     return "";
 }
@@ -128,10 +175,6 @@ void MenuManager_::rightButton()
         {
             menuIndex = 0; // Wrap around to the first menu item
         }
-    }
-    else if (currentState == RadioMenu || currentState == StationSelection)
-    {
-        AudioManager.nextStation();
     }
     else if (currentState == BrightnessMenu)
     {
@@ -166,6 +209,30 @@ void MenuManager_::rightButton()
     {
         TIME_PER_APP = min(30000, TIME_PER_APP + 1000);
     }
+    else if (currentState == TimeFormatMenu)
+    {
+        timeFormatIndex++;
+        if (timeFormatIndex > timeFormatCount - 1)
+        {
+            timeFormatIndex = 0; // Wrap around to the first menu item
+        }
+    }
+    else if (currentState == DateFormatMenu)
+    {
+        dateFormatIndex++;
+        if (dateFormatIndex > dateFormatCount - 1)
+        {
+            dateFormatIndex = 0; // Wrap around to the first menu item
+        }
+    }
+    else if (currentState == WeekdayMenu)
+    {
+        START_ON_MONDAY = !START_ON_MONDAY;
+    }
+    else if (currentState == TempMenu)
+    {
+        IS_CELSIUS = !IS_CELSIUS;
+    }
 }
 
 void MenuManager_::leftButton()
@@ -179,10 +246,6 @@ void MenuManager_::leftButton()
         {
             menuIndex = menuItemCount - 1; // Wrap around to the last menu item
         }
-    }
-    else if (currentState == RadioMenu || currentState == StationSelection)
-    {
-        AudioManager.prevStation();
     }
     else if (currentState == BrightnessMenu)
     {
@@ -217,6 +280,30 @@ void MenuManager_::leftButton()
     {
         TIME_PER_APP = max(1000, TIME_PER_APP - 1000);
     }
+    else if (currentState == TimeFormatMenu)
+    {
+        timeFormatIndex--;
+        if (timeFormatIndex < 0)
+        {
+            timeFormatIndex = timeFormatCount - 1;
+        }
+    }
+    else if (currentState == DateFormatMenu)
+    {
+        dateFormatIndex--;
+        if (dateFormatIndex < 0)
+        {
+            dateFormatIndex = dateFormatCount - 1;
+        }
+    }
+    else if (currentState == WeekdayMenu)
+    {
+        START_ON_MONDAY = !START_ON_MONDAY;
+    }
+    else if (currentState == TempMenu)
+    {
+        IS_CELSIUS = !IS_CELSIUS;
+    }
 }
 
 void MenuManager_::selectButton()
@@ -250,18 +337,36 @@ void MenuManager_::selectButton()
         {
             currentState = AppTimeMenu;
         }
-        else if (menuIndex == 6) // Updater 
+        else if (menuIndex == 6) // Time
         {
-           FirmwareVersionCheck();
+            currentState = TimeFormatMenu;
         }
-    }
-    else if (currentState == StationSelection)
-    {
-        AudioManager.startRadioStation(AudioManager.getCurrentRadioStation());
+        else if (menuIndex == 7) // date
+        {
+            currentState = DateFormatMenu;
+        }
+        else if (menuIndex == 8) // weekday
+        {
+            currentState = WeekdayMenu;
+        }
+        else if (menuIndex == 9) // temp
+        {
+            currentState = TempMenu;
+        }
+        else if (menuIndex == 10) // Updater
+        {
+            if (FirmwareVersionCheck())
+                updateFirmware();
+        }
     }
     else if (currentState == BrightnessMenu)
     {
         AUTO_BRIGHTNESS = !AUTO_BRIGHTNESS;
+        if (!AUTO_BRIGHTNESS)
+        {
+            BRIGHTNESS = map(BRIGHTNESS_PERCENT, 0, 100, 0, 255);
+            DisplayManager.setBrightness(BRIGHTNESS);
+        }
     }
 }
 
@@ -301,6 +406,24 @@ void MenuManager_::selectButtonLong()
         else if (currentState == AppTimeMenu)
         {
             DisplayManager.applyAllSettings();
+            saveSettings();
+        }
+        else if (currentState == TimeFormatMenu)
+        {
+            TIME_FORMAT = timeFormat[timeFormatIndex];
+            saveSettings();
+        }
+        else if (currentState == DateFormatMenu)
+        {
+            DATE_FORMAT = dateFormat[dateFormatIndex];
+            saveSettings();
+        }
+        else if (currentState == WeekdayMenu)
+        {
+            saveSettings();
+        }
+        else if (currentState == TempMenu)
+        {
             saveSettings();
         }
         currentState = MainMenu;
