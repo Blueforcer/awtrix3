@@ -1,5 +1,5 @@
-#ifndef SETTINGS_H
-#define SETTINGS_H
+#ifndef GLOBALS_H
+#define GLOBALS_H
 #include <Arduino.h>
 
 extern const char *VERSION;

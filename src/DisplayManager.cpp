@@ -178,11 +178,11 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear
         matrix.setCursor(xpos + x, y);
         if (UPPERCASE_LETTERS)
         {
-            matrix.print((char)toupper(text[i]));
+            matrix.print(utf8ascii((char)toupper(text[i])));
         }
         else
         {
-            matrix.print(&text[i]);
+            matrix.print(utf8ascii(&text[i]));
         }
         char temp_str[2] = {'\0', '\0'};
         temp_str[0] = text[i];
@@ -255,7 +255,7 @@ void DisplayManager_::generateCustomPage(String name, String payload)
     customFrame.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
     customFrame.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
     customFrame.name = name;
-    customFrame.text = utf8ascii(doc["text"].as<String>());
+    customFrame.text = doc["text"].as<String>();
 
     customFrame.color = doc.containsKey("color") ? doc["color"].is<String>() ? hexToRgb565(doc["color"]) : doc["color"].is<JsonArray>() ? hexToRgb565(doc["color"].as<String>())
                                                                                                                                         : TEXTCOLOR_565
@@ -294,7 +294,7 @@ void DisplayManager_::generateNotification(String payload)
     deserializeJson(doc, payload);
 
     notify.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
-    notify.text = utf8ascii(doc["text"].as<String>());
+    notify.text = doc["text"].as<String>();
     notify.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint16_t>() : -1;
     notify.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
     notify.hold = doc.containsKey("hold") ? doc["hold"].as<bool>() : false;
