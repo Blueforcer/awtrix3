@@ -5,7 +5,7 @@ Documentation:
 
 If you like my work, please consider supporting the project.  
 
-Awtrix Light is a custom firmware  for the [Ulanzi Smart Pixel clock](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882).
+Awtrix Light is a custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882).
 A standalone device that offers a simple and user-friendly interface, making it the perfect solution for non-techies who want to enjoy the benefits of the popular awtrix system.  
 
 It is ready to use straight out of the box, with time, date, temperature, and humidity pages pre-installed. You don't need to do anything other than turning it on to start using these features.    
