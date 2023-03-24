@@ -1,4 +1,18 @@
-# AWTRIX-LIGHT
+<!-- markdownlint-configure-file {
+  "MD013": {
+    "code_blocks": false,
+    "tables": false
+  },
+  "MD033": false,
+  "MD041": false
+} -->
+
+<div align="center">
+
+# AWTRIX LIGHT
+
+[![crates.io][crates.io-badge]][crates.io]
+[![Downloads][downloads-badge]][releases]
 
 Documentation:
 [https://blueforcer.github.io/awtrix-light/](https://blueforcer.github.io/awtrix-light/)
