@@ -11,7 +11,7 @@ Navigate through the items with the left and right buttons.
 | COLOR | Allows selection of one of 13 different colors for text. Hex values displayed. Use left and right buttons to navigate options. Press and hold middle button to save setting. |
 | SWITCH | Determines if pages should automatically switch. Press and hold middle button to save setting. |
 | T-SPEED | Adjusts transition speed between apps. |
-| T_SPEED | Adjusts duration of app display before switching to next. |
+| APPTIME | Adjusts duration of app display before switching to next. |
 | TIME | Allows selection of time format. Use left and right buttons to navigate options. Press and hold middle button to save setting. |
 | DATE | Allows selection of date format. Use left and right buttons to navigate options. Press and hold middle button to save setting. |
 | WEEKDAY | Allows selection of start of week. Use left and right buttons to navigate options. Press and hold middle button to save setting. |
