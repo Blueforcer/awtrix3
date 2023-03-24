@@ -11,8 +11,7 @@
 
 # AWTRIX LIGHT
 
-[[![crates.io][crates.io-badge]][crates.io]
-[![Downloads][downloads-badge]][releases]](https://img.shields.io/github/downloads/blueforcer/awtrix-light/total)
+![GitHub all releases](https://img.shields.io/github/downloads/blueforcer/awtrix-light/total)
 
 Documentation:
 [https://blueforcer.github.io/awtrix-light/](https://blueforcer.github.io/awtrix-light/)
