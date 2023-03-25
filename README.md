@@ -40,6 +40,7 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
 - Powerful MQTT commands
 - RTTTL melody player
 - Integrated filebrowser 
+- No telemetry
 
 # Getting Started
 
