@@ -35,6 +35,7 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
 - Homeassistant discovery
 - Onscreen menu where you can change your settings directly on the device
 - Pre-installed pages like time, date, temperature, humidity and battery
+- Add custom pages without recompiling.
 - Easy to use icon system
 - Powerful MQTT commands
 - RTTTL melody player
