@@ -154,11 +154,11 @@ void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool cen
         }
 
         upperText[length] = '\0'; // Null terminator
-        matrix.print(utf8ascii(upperText));
+        matrix.print(upperText);
     }
     else
     {
-        matrix.print(utf8ascii(text));
+        matrix.print(text);
     }
 }
 
@@ -178,11 +178,11 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear
         matrix.setCursor(xpos + x, y);
         if (UPPERCASE_LETTERS)
         {
-            matrix.print(utf8ascii((char)toupper(text[i])));
+            matrix.print((char)toupper(text[i]));
         }
         else
         {
-            matrix.print(utf8ascii(&text[i]));
+            matrix.print(&text[i]);
         }
         char temp_str[2] = {'\0', '\0'};
         temp_str[0] = text[i];
@@ -193,22 +193,27 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear
         matrix.show();
 }
 
-void pushCustomFrame(String name)
+void pushCustomFrame(String name, int position)
 {
-
     if (customFrames.count(name) == 0)
     {
         ++customPagesCount;
         void (*customFrames[10])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool) = {CFrame1, CFrame2, CFrame3, CFrame4, CFrame5, CFrame6, CFrame7, CFrame8, CFrame9, CFrame10};
-        if (customFrames[customPagesCount] != NULL)
+
+        if (position < 0) // Insert at the end of the vector
         {
             Apps.push_back(std::make_pair(name, customFrames[customPagesCount]));
-            ui.setApps(Apps); // Add frames
         }
-        else
+        else if (position < Apps.size()) // Insert at a specific position
         {
-            ++customPagesCount;
+            Apps.insert(Apps.begin() + position, std::make_pair(name, customFrames[customPagesCount]));
         }
+        else // Invalid position, Insert at the end of the vector
+        {
+            Apps.push_back(std::make_pair(name, customFrames[customPagesCount]));
+        }
+
+        ui.setApps(Apps); // Add frames
     }
 }
 
@@ -255,7 +260,7 @@ void DisplayManager_::generateCustomPage(String name, String payload)
     customFrame.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
     customFrame.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
     customFrame.name = name;
-    customFrame.text = doc["text"].as<String>();
+    customFrame.text = utf8ascii(doc["text"].as<String>());
 
     customFrame.color = doc.containsKey("color") ? doc["color"].is<String>() ? hexToRgb565(doc["color"]) : doc["color"].is<JsonArray>() ? hexToRgb565(doc["color"].as<String>())
                                                                                                                                         : TEXTCOLOR_565
@@ -284,7 +289,9 @@ void DisplayManager_::generateCustomPage(String name, String payload)
         }
     }
 
-    pushCustomFrame(name);
+    int pos = doc.containsKey("pos") ? doc["pos"].as<uint8_t>() : -1;
+
+    pushCustomFrame(name, pos - 1);
     customFrames[name] = customFrame;
 }
 
@@ -294,7 +301,7 @@ void DisplayManager_::generateNotification(String payload)
     deserializeJson(doc, payload);
 
     notify.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
-    notify.text = doc["text"].as<String>();
+    notify.text = utf8ascii(doc["text"].as<String>());
     notify.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint16_t>() : -1;
     notify.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
     notify.hold = doc.containsKey("hold") ? doc["hold"].as<bool>() : false;

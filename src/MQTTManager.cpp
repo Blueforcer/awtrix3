@@ -189,14 +189,15 @@ void connect()
 {
     mqtt.onMessage(onMqttMessage);
     mqtt.onConnected(onMqttConnected);
+
     if (MQTT_USER == "" || MQTT_PASS == "")
     {
-        Serial.println("Connecting to MQTT");
+        Serial.println("Connecting to MQTT w/o login");
         mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, nullptr, nullptr, MQTT_PREFIX.c_str());
     }
     else
     {
-        Serial.println("Connecting to MQTT");
+        Serial.println("Connecting to MQTT with login");
         mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, MQTT_USER.c_str(), MQTT_PASS.c_str(), MQTT_PREFIX.c_str());
     }
 }

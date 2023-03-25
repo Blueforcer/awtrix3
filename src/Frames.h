@@ -167,7 +167,7 @@ void TempFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x
     matrix->setCursor(12 + x, 6 + y);
     if (IS_CELSIUS)
     {
-        matrix->print((int)CURRENT_TEMP); 
+        matrix->print((int)CURRENT_TEMP);
         matrix->print(utf8ascii("°C"));
     }
     else
@@ -208,7 +208,7 @@ void MenuFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
     if (!MenuManager.inMenu)
         return;
     matrix->fillScreen(0);
-    DisplayManager.printText(0, 6, MenuManager.menutext().c_str(), true, true);
+    DisplayManager.printText(0, 6, utf8ascii(MenuManager.menutext()).c_str(), true, true);
 }
 
 void AlarmFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
