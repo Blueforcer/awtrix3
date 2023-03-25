@@ -39,7 +39,8 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
 - Easy to use icon system
 - Powerful MQTT commands
 - RTTTL melody player
-- Integrated filebrowser 
+- Integrated filebrowser
+- No cloud 
 - No telemetry
 
 # Getting Started
