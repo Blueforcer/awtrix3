@@ -162,30 +162,25 @@ void PeripheryManager_::tick()
     button_right.read();
     button_select.read();
 
-
     unsigned long currentMillis_BatTempHum = millis();
     if (currentMillis_BatTempHum - previousMillis_BatTempHum >= interval_BatTempHum)
     {
         previousMillis_BatTempHum = currentMillis_BatTempHum;
         uint16_t ADCVALUE = analogRead(BATTERY_PIN);
         BATTERY_PERCENT = min((int)map(ADCVALUE, 510, 665, 0, 100), 100);
-        CURRENT_LUX = (roundf(photocell.getSmoothedLux() * 1000) / 1000);
+        BATTERY_RAW = ADCVALUE;
         sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
         CURRENT_TEMP -= 9.0;
         checkAlarms();
         MQTTManager.sendStats();
-        uint32_t freeHeap = esp_get_free_heap_size(); 
-        float freeHeapKB = freeHeap / 1024.0;   
-        Serial.print(ESP.getFreeHeap() / 1024);
-        Serial.println(" KB");
     }
 
-
     unsigned long currentMillis_LDR = millis();
-    if (currentMillis_LDR - previousMillis_LDR >= interval_LDR && AUTO_BRIGHTNESS)
+    if (currentMillis_LDR - previousMillis_LDR >= interval_LDR)
     {
         previousMillis_LDR = currentMillis_LDR;
         TotalLDRReadings[sampleIndex] = analogRead(LDR_PIN);
+
         sampleIndex = (sampleIndex + 1) % LDRReadings;
         sampleSum = 0.0;
         for (int i = 0; i < LDRReadings; i++)
@@ -193,11 +188,15 @@ void PeripheryManager_::tick()
             sampleSum += TotalLDRReadings[i];
         }
         sampleAverage = sampleSum / (float)LDRReadings;
-
-        brightnessPercent = sampleAverage / 4095.0 * 100.0;
-        int brightness = map(brightnessPercent, 0, 100, 10, 120);
-        BRIGHTNESS = map(brightnessPercent, 0, 100, 0, 255);
-        DisplayManager.setBrightness(brightness);
+        LDR_RAW = sampleAverage;
+        CURRENT_LUX = (roundf(photocell.getSmoothedLux() * 1000) / 1000);
+        if (AUTO_BRIGHTNESS)
+        {
+            brightnessPercent = sampleAverage / 4095.0 * 100.0;
+            BRIGHTNESS = map(brightnessPercent, 0, 100, 0, 255);
+            int brightness = map(brightnessPercent, 0, 100, 10, 120);
+            DisplayManager.setBrightness(brightness);
+        }
     }
 }
 

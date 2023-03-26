@@ -54,7 +54,7 @@ public:
     void drawGIF(uint16_t x, uint16_t y, fs::File gifFile);
     void drawJPG(uint16_t x, uint16_t y, fs::File jpgFile);
     void drawProgressBar(int cur, int total);
-    void drawMenuIndicator(int cur, int total);
+    void drawMenuIndicator(int cur, int total, uint16_t color);
     void drawBMP(int16_t x, int16_t y, const uint16_t bitmap[], int16_t w, int16_t h);
 };
 

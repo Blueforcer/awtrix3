@@ -361,7 +361,14 @@ void DisplayManager_::loadNativeApps()
         {
             if (show)
             {
-                Apps.insert(Apps.begin() + position, std::make_pair(name, callback));
+                if (position >= Apps.size())
+                {
+                    Apps.push_back(std::make_pair(name, callback));
+                }
+                else
+                {
+                    Apps.insert(Apps.begin() + position, std::make_pair(name, callback));
+                }
             }
         }
     };
@@ -568,7 +575,7 @@ void DisplayManager_::drawProgressBar(int cur, int total)
     matrix.show();
 }
 
-void DisplayManager_::drawMenuIndicator(int cur, int total)
+void DisplayManager_::drawMenuIndicator(int cur, int total, uint16_t color)
 {
     int menuItemWidth = 1;
     int totalWidth = total * menuItemWidth + (total - 1);
@@ -579,7 +586,7 @@ void DisplayManager_::drawMenuIndicator(int cur, int total)
         int x = leftMargin + i * (menuItemWidth + pixelSpacing);
         if (i == cur)
         {
-            matrix.drawLine(x, 7, x + menuItemWidth - 1, 7, matrix.Color(255, 0, 0));
+            matrix.drawLine(x, 7, x + menuItemWidth - 1, 7, color);
         }
         else
         {

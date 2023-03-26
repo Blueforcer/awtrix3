@@ -49,10 +49,13 @@ const char *timeFormat[] PROGMEM = {
     "%H:%M:%S",
     "%l:%M:%S",
     "%H:%M",
+    "%H %M",
     "%l:%M",
-    "%l:%M %p"};
+    "%l %M",
+    "%l:%M %p",
+    "%l %M %p"};
 int8_t timeFormatIndex;
-uint8_t timeFormatCount = 5;
+uint8_t timeFormatCount = 8;
 
 const char *dateFormat[] PROGMEM = {
     "%d.%m.%y", // 01.04.22
@@ -110,16 +113,18 @@ String MenuManager_::menutext()
 {
     time_t now = time(nullptr);
     char t[20];
+    char display[20];
     switch (currentState)
     {
     case MainMenu:
-        DisplayManager.drawMenuIndicator(menuIndex, menuItemCount);
+        DisplayManager.drawMenuIndicator(menuIndex, menuItemCount, 0xF800);
         return menuItems[menuIndex];
     case BrightnessMenu:
         return AUTO_BRIGHTNESS ? "AUTO" : String(BRIGHTNESS_PERCENT) + "%";
     case FPSMenu:
         return String(MATRIX_FPS) + " FPS";
     case ColorMenu:
+        DisplayManager.drawMenuIndicator(currentColor, sizeof(textColors) / sizeof(textColors[0]), 0xFBC0);
         DisplayManager.setTextColor(textColors[currentColor]);
         return "0x" + String(textColors[currentColor], HEX);
     case SwitchMenu:
@@ -129,9 +134,29 @@ String MenuManager_::menutext()
     case AppTimeMenu:
         return String(TIME_PER_APP / 1000.0, 0) + "s";
     case TimeFormatMenu:
-        strftime(t, sizeof(t), timeFormat[timeFormatIndex], localtime(&now));
-        return t;
+        DisplayManager.drawMenuIndicator(timeFormatIndex, timeFormatCount, 0xFBC0);
+        if (timeFormat[timeFormatIndex][2] == ' ')
+        {
+            strcpy(display, timeFormat[timeFormatIndex]);
+            if (now % 2)
+            {
+                display[2] = ' ';
+            }
+            else
+            {
+                display[2] = ':';
+            }
+            strftime(t, sizeof(t), display, localtime(&now));
+            return t;
+        }
+        else
+        {
+            strftime(t, sizeof(t), timeFormat[timeFormatIndex], localtime(&now));
+            return t;
+        }
+
     case DateFormatMenu:
+        DisplayManager.drawMenuIndicator(dateFormatIndex, dateFormatCount, 0xFBC0);
         strftime(t, sizeof(t), dateFormat[dateFormatIndex], localtime(&now));
         return t;
     case WeekdayMenu:
@@ -139,6 +164,7 @@ String MenuManager_::menutext()
     case TempMenu:
         return IS_CELSIUS ? "°C" : "°F";
     case Appmenu:
+        DisplayManager.drawMenuIndicator(appsIndex, appsCount, 0xFBC0);
         switch (appsIndex)
         {
         case 0:

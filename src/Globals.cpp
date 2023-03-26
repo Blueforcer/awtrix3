@@ -91,7 +91,8 @@ float CURRENT_LUX;
 uint8_t BRIGHTNESS = 120;
 uint8_t BRIGHTNESS_PERCENT;
 uint8_t BATTERY_PERCENT;
-
+uint16_t BATTERY_RAW;
+uint16_t LDR_RAW;
 String TIME_FORMAT = "%H:%M:%S";
 String DATE_FORMAT = "%d.%m.%y";
 bool START_ON_MONDAY;

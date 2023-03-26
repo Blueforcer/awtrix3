@@ -4,6 +4,7 @@
 #include "ServerManager.h"
 #include <ArduinoHA.h>
 #include <WiFi.h>
+#include <ArduinoJson.h>
 
 WiFiClient espClient;
 uint8_t lastBrightness;
@@ -306,20 +307,39 @@ void MQTTManager_::sendStats()
     if (HA_DISCOVERY)
     {
         char buffer[5];
-        snprintf(buffer, 5, "%d", BATTERY_PERCENT); // Formatieren von BATTERY_PERCENT als Integer
-        battery.setValue(buffer);                   // Senden von BATTERY_PERCENT als const char*
+        snprintf(buffer, 5, "%d", BATTERY_PERCENT);
+        battery.setValue(buffer);
 
-        snprintf(buffer, 5, "%.0f", CURRENT_TEMP); // Formatieren von CURRENT_TEMP als Float ohne Nachkommastellen
-        temperature.setValue(buffer);              // Senden von CURRENT_TEMP als const char*
+        snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
+        temperature.setValue(buffer);
 
-        snprintf(buffer, 5, "%.0f", CURRENT_HUM); // Formatieren von CURRENT_HUM als Float ohne Nachkommastellen
-        humidity.setValue(buffer);                // Senden von CURRENT_HUM als const char*
+        snprintf(buffer, 5, "%.0f", CURRENT_HUM);
+        humidity.setValue(buffer);
 
-        snprintf(buffer, 5, "%.0f", CURRENT_LUX); // Formatieren von CURRENT_LUX als Double ohne Nachkommastellen
-        illuminance.setValue(buffer);             // Senden von CURRENT_LUX als const char*
+        snprintf(buffer, 5, "%.0f", CURRENT_LUX);
+        illuminance.setValue(buffer);
 
         BriMode.setState(AUTO_BRIGHTNESS, true);
         Matrix.setBRIGHTNESS(BRIGHTNESS);
         Matrix.setState(!MATRIX_OFF, false);
     }
+
+    StaticJsonDocument<200> doc;
+    char buffer[5];
+    doc["bat"] = BATTERY_PERCENT;
+    doc["batraw"] = BATTERY_RAW;
+    snprintf(buffer, 5, "%.0f", CURRENT_LUX);
+    doc["lux"] = buffer;
+    doc["ldrraw"] = LDR_RAW;
+    doc["bri"] = BRIGHTNESS;
+    snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
+    doc["temp"] = buffer;
+    snprintf(buffer, 5, "%.0f", CURRENT_HUM);
+    doc["hum"] = buffer;
+    String jsonString;
+    serializeJson(doc, jsonString);
+    char topic[50];
+    strcpy(topic, MQTT_PREFIX.c_str());
+    strcat(topic, "/stats");
+    mqtt.publish(topic, jsonString.c_str());
 }

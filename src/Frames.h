@@ -109,8 +109,27 @@ void TimeFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x
     time_t now = time(nullptr);
     struct tm *timeInfo;
     timeInfo = localtime(&now);
+    const char *timeformat = TIME_FORMAT.c_str();
     char t[20];
-    strftime(t, sizeof(t), TIME_FORMAT.c_str(), localtime(&now));
+    char t2[20];
+    if (timeformat[2] == ' ')
+    {
+        strcpy(t2, timeformat);
+        if (now % 2)
+        {
+            t2[2] = ' ';
+        }
+        else
+        {
+            t2[2] = ':';
+        }
+        strftime(t, sizeof(t), t2, localtime(&now));
+    }
+    else
+    {
+        strftime(t, sizeof(t), timeformat, localtime(&now));
+    }
+
     DisplayManager.printText(0 + x, 6 + y, t, true, false);
 
     if (!SHOW_WEEKDAY)
@@ -184,7 +203,7 @@ void HumFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x,
         return;
     CURRENT_APP = "Humidity";
     DisplayManager.getInstance().resetTextColor();
-    matrix->drawRGBBitmap(x, y + 1, get_icon(2075), 8,8);
+    matrix->drawRGBBitmap(x, y + 1, get_icon(2075), 8, 8);
     matrix->setCursor(14 + x, 6 + y);
     int humidity = CURRENT_HUM; // Temperatur ohne Nachkommastellen
     matrix->print(humidity);    // Ausgabe der Temperatur
