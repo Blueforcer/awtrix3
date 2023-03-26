@@ -110,6 +110,23 @@ void TimeFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x
     struct tm *timeInfo;
     timeInfo = localtime(&now);
     char t[20];
+    if (now % 2) {
+        if (TIME_FORMAT == "%H:%M") {
+            TIME_FORMAT = "%H %M";
+        } else if (TIME_FORMAT == "%l:%M") {
+            TIME_FORMAT = "%l %M";
+        } else if (TIME_FORMAT == "%l:%M %p") {
+            TIME_FORMAT = "%l %M %p";
+        }
+    } else {
+        if (TIME_FORMAT == "%H %M") {
+            TIME_FORMAT = "%H:%M";
+        } else if (TIME_FORMAT == "%l %M") {
+            TIME_FORMAT = "%l:%M";
+        } else if (TIME_FORMAT == "%l %M %p") {
+            TIME_FORMAT = "%l:%M %p";
+        }
+    }
     strftime(t, sizeof(t), TIME_FORMAT.c_str(), localtime(&now));
     DisplayManager.printText(0 + x, 6 + y, t, true, false);
 
