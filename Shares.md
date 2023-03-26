@@ -15,10 +15,7 @@ https://github.com/marcmerlin/FastLED_NeoMatrix
 https://github.com/marcmerlin/FastLED_NeoMatrix/blob/master/COPYING  
 **pubsubclient**  
 https://github.com/knolleary/pubsubclient  
-https://github.com/knolleary/pubsubclient/blob/master/LICENSE.txt  
-**ESP32-audioI2S**  
-https://github.com/schreibfaul1/ESP32-audioI2S  
-https://github.com/schreibfaul1/ESP32-audioI2S/blob/master/  
+https://github.com/knolleary/pubsubclient/blob/master/LICENSE.txt   
 **GifPLayer (Highly customized by me)**  
 https://github.com/pixelmatix/aurora  
 https://github.com/pixelmatix/aurora/blob/master/LICENSE.txt  
