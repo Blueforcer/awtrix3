@@ -129,6 +129,23 @@ String MenuManager_::menutext()
     case AppTimeMenu:
         return String(TIME_PER_APP / 1000.0, 0) + "s";
     case TimeFormatMenu:
+        if (now % 2) {
+            if (timeFormat[timeFormatIndex] == "%H:%M") {
+                timeFormat[timeFormatIndex] = "%H %M";
+            } else if (timeFormat[timeFormatIndex] == "%l:%M") {
+                timeFormat[timeFormatIndex] = "%l %M";
+            } else if (timeFormat[timeFormatIndex] == "%l:%M %p") {
+                timeFormat[timeFormatIndex] = "%l %M %p";
+            }
+        } else {
+            if (timeFormat[timeFormatIndex] == "%H %M") {
+                timeFormat[timeFormatIndex] = "%H:%M";
+            } else if (timeFormat[timeFormatIndex] == "%l %M") {
+                timeFormat[timeFormatIndex] = "%l:%M";
+            } else if (timeFormat[timeFormatIndex] == "%l %M %p") {
+                timeFormat[timeFormatIndex] = "%l:%M %p";
+            }
+        }
         strftime(t, sizeof(t), timeFormat[timeFormatIndex], localtime(&now));
         return t;
     case DateFormatMenu:
