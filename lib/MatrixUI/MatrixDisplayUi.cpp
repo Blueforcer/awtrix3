@@ -185,38 +185,42 @@ int8_t MatrixDisplayUi::update()
 void MatrixDisplayUi::tick()
 {
   this->state.ticksSinceLastStateSwitch++;
-  switch (this->state.frameState)
-  {
-  case IN_TRANSITION:
-    if (this->state.ticksSinceLastStateSwitch >= this->ticksPerTransition)
-    {
-      this->state.frameState = FIXED;
-      this->state.currentFrame = getnextAppNumber();
-      this->state.ticksSinceLastStateSwitch = 0;
-      this->nextAppNumber = -1;
-    }
-    break;
-  case FIXED:
-    // Revert manuelControll
-    if (this->state.manuelControll)
-    {
-      this->state.frameTransitionDirection = this->lastTransitionDirection;
-      this->state.manuelControll = false;
-    }
-    if (this->state.ticksSinceLastStateSwitch >= this->ticksPerFrame)
-    {
-      if (this->setAutoTransition)
-      {
 
-        this->state.frameState = IN_TRANSITION;
+  if (this->AppCount > 0)
+  {
+    switch (this->state.frameState)
+    {
+    case IN_TRANSITION:
+      if (this->state.ticksSinceLastStateSwitch >= this->ticksPerTransition)
+      {
+        this->state.frameState = FIXED;
+        this->state.currentFrame = getnextAppNumber();
+        this->state.ticksSinceLastStateSwitch = 0;
+        this->nextAppNumber = -1;
       }
-      this->state.ticksSinceLastStateSwitch = 0;
+      break;
+    case FIXED:
+      // Revert manuelControll
+      if (this->state.manuelControll)
+      {
+        this->state.frameTransitionDirection = this->lastTransitionDirection;
+        this->state.manuelControll = false;
+      }
+      if (this->state.ticksSinceLastStateSwitch >= this->ticksPerFrame)
+      {
+        if (this->setAutoTransition)
+        {
+          this->state.frameState = IN_TRANSITION;
+        }
+        this->state.ticksSinceLastStateSwitch = 0;
+      }
+      break;
     }
-    break;
   }
 
   this->matrix->clear();
-  this->drawApp();
+  if (this->AppCount > 0)
+    this->drawApp();
   this->drawOverlays();
   this->matrix->show();
 }

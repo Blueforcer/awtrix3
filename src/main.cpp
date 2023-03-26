@@ -72,7 +72,7 @@ void setup()
   if (ServerManager.isConnected)
   {
     MQTTManager.setup();
-    DisplayManager.loadApps();
+    DisplayManager.loadNativeApps();
   }
   else
   {

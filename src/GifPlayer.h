@@ -15,10 +15,10 @@ private:
   long lastFrameTime;
   bool firstFrameDone;
   int newframeDelay;
-  int lastFrame[8 * 8]; 
-  bool lastFrameDrawn = false; 
+  int lastFrame[8 * 8];
+  bool lastFrameDrawn = false;
   unsigned long nextFrameTime = 0;
-#define GIFHDRTAGNORM "GIF87a" 
+#define GIFHDRTAGNORM "GIF87a"
 #define GIFHDRTAGNORM1 "GIF89a"
 #define GIFHDRSIZE 6
   FastLED_NeoMatrix *mtx;
@@ -528,6 +528,7 @@ public:
       }
     }
     needNewFrame = false;
+    lastFrameTime =  millis();
   }
 
 public:
@@ -595,15 +596,12 @@ public:
     if (!file)
       return 0;
 
-    unsigned long now = millis();
-
-    if (now - lastFrameTime < newframeDelay)
+    if (millis() - lastFrameTime < newframeDelay)
     {
       redrawLastFrame();
       return 0;
     }
 
-    lastFrameTime = now;
     lastFrameDrawn = false;
 
     offsetX = x;
@@ -614,8 +612,9 @@ public:
       byte b = readByte();
       if (b == 0x2c)
       {
-        unsigned int fdelay = parseTableBasedImage();
-        return fdelay;
+        Serial.println("Parse");
+        parseTableBasedImage();
+        return 0;
       }
       else if (b == 0x21)
       {
@@ -641,12 +640,12 @@ public:
       else
       {
         done = true;
-        backUpStream(1);
         file.seek(0);
+        Serial.println("Finished");
         parseGifHeader();
         parseLogicalScreenDescriptor();
         parseGlobalColorTable();
-        drawFrame(offsetX, offsetY);
+        drawFrame(offsetX,offsetY);
         return ERROR_FINISHED;
       }
     }

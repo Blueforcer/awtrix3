@@ -91,6 +91,11 @@ void DisplayManager_::drawJPG(uint16_t x, uint16_t y, fs::File jpgFile)
     TJpgDec.drawFsJpg(x, y, jpgFile);
 }
 
+void DisplayManager_::drawBMP(int16_t x, int16_t y, const uint16_t bitmap[], int16_t w, int16_t h)
+{
+    matrix.drawRGBBitmap(y, x, bitmap, w, h);
+}
+
 void DisplayManager_::applyAllSettings()
 {
     ui.setTargetFPS(MATRIX_FPS);
@@ -219,21 +224,18 @@ void pushCustomFrame(String name, int position)
 
 void removeCustomFrame(const String &name)
 {
-    // Suchen Sie nach dem Element, das dem Namen entspricht
     auto it = std::find_if(Apps.begin(), Apps.end(), [&name](const std::pair<String, AppCallback> &appPair)
                            { return appPair.first == name; });
 
-    // Wenn das Element gefunden wurde, entfernen Sie es aus dem Vektor
     if (it != Apps.end())
     {
         Apps.erase(it);
-        ui.setApps(Apps); // Aktualisieren Sie die Frames
+        ui.setApps(Apps);
     }
 }
 
 void DisplayManager_::generateCustomPage(String name, String payload)
 {
-
     if (payload == "" && customFrames.count(name))
     {
         customFrames.erase(customFrames.find(name));
@@ -261,7 +263,6 @@ void DisplayManager_::generateCustomPage(String name, String payload)
     customFrame.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
     customFrame.name = name;
     customFrame.text = utf8ascii(doc["text"].as<String>());
-
     customFrame.color = doc.containsKey("color") ? doc["color"].is<String>() ? hexToRgb565(doc["color"]) : doc["color"].is<JsonArray>() ? hexToRgb565(doc["color"].as<String>())
                                                                                                                                         : TEXTCOLOR_565
                                                  : TEXTCOLOR_565;
@@ -342,25 +343,49 @@ void DisplayManager_::generateNotification(String payload)
     }
 }
 
-void DisplayManager_::loadApps()
+void DisplayManager_::loadNativeApps()
 {
-    Apps.clear();
-    Apps.push_back(std::make_pair("time", TimeFrame));
-    if (SHOW_DATE)
-        Apps.push_back(std::make_pair("date", DateFrame));
-    if (SHOW_TEMP)
-        Apps.push_back(std::make_pair("temp", TempFrame));
-    if (SHOW_HUM)
-        Apps.push_back(std::make_pair("hum", HumFrame));
-    if (SHOW_BATTERY)
-        Apps.push_back(std::make_pair("bat", BatFrame));
-    // if (SHOW_WEATHER)
-    //     Apps.push_back(std::make_pair(5, WeatherFrame));
-    nativeAppsCount = Apps.size();
-    ui.setApps(Apps); // Add frames
-    if (AUTO_TRANSITION && nativeAppsCount == 1)
+    // Define a helper function to check and update an app
+    auto updateApp = [&](const String &name, AppCallback callback, bool show, size_t position)
+    {
+        auto it = std::find_if(Apps.begin(), Apps.end(), [&](const std::pair<String, AppCallback> &app)
+                               { return app.first == name; });
+        if (it != Apps.end())
+        {
+            if (!show)
+            {
+                Apps.erase(it);
+            }
+        }
+        else
+        {
+            if (show)
+            {
+                Apps.insert(Apps.begin() + position, std::make_pair(name, callback));
+            }
+        }
+    };
+
+    // Update the "time" app at position 0
+    updateApp("time", TimeFrame, SHOW_TIME, 0);
+
+    // Update the "date" app at position 1
+    updateApp("date", DateFrame, SHOW_DATE, 1);
+
+    // Update the "temp" app at position 2
+    updateApp("temp", TempFrame, SHOW_TEMP, 2);
+
+    // Update the "hum" app at position 3
+    updateApp("hum", HumFrame, SHOW_HUM, 3);
+
+    // Update the "bat" app at position 4
+    updateApp("bat", BatFrame, SHOW_BAT, 4);
+
+    ui.setApps(Apps);
+    if (AUTO_TRANSITION && Apps.size() == 1)
+    {
         setAutoTransition(false);
-    StartAppUpdater();
+    }
 }
 
 void DisplayManager_::setup()
@@ -545,8 +570,8 @@ void DisplayManager_::drawProgressBar(int cur, int total)
 
 void DisplayManager_::drawMenuIndicator(int cur, int total)
 {
-    int menuItemWidth = 2;
-    int totalWidth = total * menuItemWidth + (total - 2);
+    int menuItemWidth = 1;
+    int totalWidth = total * menuItemWidth + (total - 1);
     int leftMargin = (MATRIX_WIDTH - totalWidth) / 2;
     int pixelSpacing = 1;
     for (int i = 0; i < total; i++)

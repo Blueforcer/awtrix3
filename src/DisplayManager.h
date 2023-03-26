@@ -32,7 +32,7 @@ public:
     void rightButton();
     void dismissNotify();
     void HSVtext(int16_t, int16_t, const char *, bool);
-    void loadApps();
+    void loadNativeApps();
     void nextApp();
     void previousApp();
     void leftButton();
@@ -55,6 +55,7 @@ public:
     void drawJPG(uint16_t x, uint16_t y, fs::File jpgFile);
     void drawProgressBar(int cur, int total);
     void drawMenuIndicator(int cur, int total);
+    void drawBMP(int16_t x, int16_t y, const uint16_t bitmap[], int16_t w, int16_t h);
 };
 
 extern DisplayManager_ &DisplayManager;

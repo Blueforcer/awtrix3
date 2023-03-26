@@ -17,6 +17,11 @@ void loadSettings()
     DATE_FORMAT = Settings.getString("DFORMAT", "%d.%m.%y");
     START_ON_MONDAY = Settings.getBool("SOM", true);
     IS_CELSIUS = Settings.getBool("CEL", true);
+    SHOW_TIME = Settings.getBool("TIM", true);
+    SHOW_DATE = Settings.getBool("DAT", true);
+    SHOW_TEMP = Settings.getBool("TEMP", true);
+    SHOW_HUM = Settings.getBool("HUM", true);
+    SHOW_BAT = Settings.getBool("BAT", true);
     Settings.end();
 }
 
@@ -34,6 +39,12 @@ void saveSettings()
     Settings.putString("DFORMAT", DATE_FORMAT);
     Settings.putBool("SOM", START_ON_MONDAY);
     Settings.putBool("CEL", IS_CELSIUS);
+
+    Settings.putBool("TIM", SHOW_TIME);
+    Settings.putBool("DAT", SHOW_DATE);
+    Settings.putBool("TEMP", SHOW_TEMP);
+    Settings.putBool("HUM", SHOW_HUM);
+    Settings.putBool("BAT", SHOW_BAT);
     Settings.end();
 }
 
@@ -42,7 +53,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.39";
+const char *VERSION = "0.40";
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
@@ -51,9 +62,10 @@ String MQTT_PREFIX = "AwtrixLight";
 String CITY = "Berlin,de";
 bool IO_BROKER = false;
 bool NET_STATIC = false;
+bool SHOW_TIME = true;
 bool SHOW_DATE = true;
 bool SHOW_WEATHER = true;
-bool SHOW_BATTERY = true;
+bool SHOW_BAT = true;
 bool SHOW_TEMP = true;
 bool SHOW_HUM = true;
 bool SHOW_SECONDS = true;

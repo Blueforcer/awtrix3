@@ -111,7 +111,7 @@ void TimeFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x
     timeInfo = localtime(&now);
     char t[20];
     strftime(t, sizeof(t), TIME_FORMAT.c_str(), localtime(&now));
-    DisplayManager.printText(0 + x, 6 + y, t, true, true);
+    DisplayManager.printText(0 + x, 6 + y, t, true, false);
 
     if (!SHOW_WEEKDAY)
         return;
@@ -184,7 +184,7 @@ void HumFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x,
         return;
     CURRENT_APP = "Humidity";
     DisplayManager.getInstance().resetTextColor();
-    matrix->drawRGBBitmap(x, y + 1, get_icon(2075), 8, 8);
+    matrix->drawRGBBitmap(x, y + 1, get_icon(2075), 8,8);
     matrix->setCursor(14 + x, 6 + y);
     int humidity = CURRENT_HUM; // Temperatur ohne Nachkommastellen
     matrix->print(humidity);    // Ausgabe der Temperatur
@@ -214,7 +214,6 @@ void MenuFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
 void AlarmFrame(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
 {
     if (ALARM_ACTIVE)
-
     {
         matrix->fillScreen(matrix->Color(255, 0, 0));
         CURRENT_APP = "Alarm";

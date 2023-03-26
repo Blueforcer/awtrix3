@@ -4,6 +4,7 @@
 #include <ServerManager.h>
 #include <DisplayManager.h>
 #include <updater.h>
+#include <icons.h>
 
 String menuText;
 int menuSelection;
@@ -23,7 +24,8 @@ enum MenuState
     TimeFormatMenu,
     DateFormatMenu,
     WeekdayMenu,
-    TempMenu
+    TempMenu,
+    Appmenu,
 };
 
 const char *menuItems[] PROGMEM = {
@@ -37,10 +39,11 @@ const char *menuItems[] PROGMEM = {
     "DATE",
     "WEEKDAY",
     "TEMP",
+    "APPS",
     "UPDATE"};
 
 int8_t menuIndex = 0;
-uint8_t menuItemCount = 11;
+uint8_t menuItemCount = 12;
 
 const char *timeFormat[] PROGMEM = {
     "%H:%M:%S",
@@ -64,6 +67,16 @@ const char *dateFormat[] PROGMEM = {
 };
 int8_t dateFormatIndex;
 uint8_t dateFormatCount = 9;
+
+const char *appsItems[][2] PROGMEM = {
+    {"13", "time"},
+    {"1158", "date"},
+    {"234", "temp"},
+    {"2075", "hum"},
+    {"1486", "bat"}};
+
+int8_t appsIndex;
+uint8_t appsCount = 5;
 
 MenuState currentState = MainMenu;
 
@@ -95,71 +108,60 @@ MenuManager_ &MenuManager = MenuManager.getInstance();
 
 String MenuManager_::menutext()
 {
-    if (currentState == MainMenu)
+    time_t now = time(nullptr);
+    char t[20];
+    switch (currentState)
     {
+    case MainMenu:
         DisplayManager.drawMenuIndicator(menuIndex, menuItemCount);
-        return (menuItems[menuIndex]);
-    }
-    else if (currentState == BrightnessMenu)
-    {
-        if (AUTO_BRIGHTNESS)
-        {
-            return ("AUTO");
-        }
-        else
-        {
-            return (String(BRIGHTNESS_PERCENT) + "%");
-        }
-    }
-    else if (currentState == FPSMenu)
-    {
+        return menuItems[menuIndex];
+    case BrightnessMenu:
+        return AUTO_BRIGHTNESS ? "AUTO" : String(BRIGHTNESS_PERCENT) + "%";
+    case FPSMenu:
         return String(MATRIX_FPS) + " FPS";
-    }
-    else if (currentState == ColorMenu)
-    {
+    case ColorMenu:
         DisplayManager.setTextColor(textColors[currentColor]);
-        String colorStr = String(textColors[currentColor], HEX);
-        while (colorStr.length() < 4)
-        {
-            colorStr = "0" + colorStr;
-        }
-        return colorStr;
-    }
-    else if (currentState == SwitchMenu)
-    {
+        return "0x" + String(textColors[currentColor], HEX);
+    case SwitchMenu:
         return AUTO_TRANSITION ? "ON" : "OFF";
-    }
-    else if (currentState == TspeedMenu)
-    {
-        float seconds = (float)TIME_PER_TRANSITION / 1000.0;
-        return String(seconds, 1) + "s";
-    }
-    else if (currentState == AppTimeMenu)
-    {
-        float seconds = (float)TIME_PER_APP / 1000.0;
-        return String(seconds, 0) + "s";
-    }
-    else if (currentState == TimeFormatMenu)
-    {
-        time_t now = time(nullptr);
-        char t[20];
+    case TspeedMenu:
+        return String(TIME_PER_TRANSITION / 1000.0, 1) + "s";
+    case AppTimeMenu:
+        return String(TIME_PER_APP / 1000.0, 0) + "s";
+    case TimeFormatMenu:
         strftime(t, sizeof(t), timeFormat[timeFormatIndex], localtime(&now));
         return t;
-    }
-    else if (currentState == DateFormatMenu)
-    {
-        time_t now = time(nullptr);
-        char t[20];
+    case DateFormatMenu:
         strftime(t, sizeof(t), dateFormat[dateFormatIndex], localtime(&now));
         return t;
-    }
-    else if (currentState == WeekdayMenu)
-    {
+    case WeekdayMenu:
         return START_ON_MONDAY ? "MON" : "SUN";
-    }
-    else if (currentState == TempMenu)
-    {
+    case TempMenu:
         return IS_CELSIUS ? "°C" : "°F";
+    case Appmenu:
+        switch (appsIndex)
+        {
+        case 0:
+            DisplayManager.drawBMP(0, 0, get_icon(13), 8, 8);
+            return SHOW_TIME ? "ON" : "OFF";
+        case 1:
+            DisplayManager.drawBMP(0, 0, get_icon(1158), 8, 8);
+            return SHOW_DATE ? "ON" : "OFF";
+        case 2:
+            DisplayManager.drawBMP(0, 0, get_icon(234), 8, 8);
+            return SHOW_TEMP ? "ON" : "OFF";
+        case 3:
+            DisplayManager.drawBMP(0, 0, get_icon(2075), 8, 8);
+            return SHOW_HUM ? "ON" : "OFF";
+        case 4:
+            DisplayManager.drawBMP(0, 0, get_icon(1486), 8, 8);
+            return SHOW_BAT ? "ON" : "OFF";
+        default:
+            break;
+        }
+        break;
+    default:
+        break;
     }
     return "";
 }
@@ -168,205 +170,199 @@ void MenuManager_::rightButton()
 {
     if (!inMenu)
         return;
-    if (currentState == MainMenu)
+    switch (currentState)
     {
-        menuIndex++;
-        if (menuIndex > menuItemCount - 1)
-        {
-            menuIndex = 0; // Wrap around to the first menu item
-        }
-    }
-    else if (currentState == BrightnessMenu)
-    {
+    case MainMenu:
+        menuIndex = (menuIndex + 1) % menuItemCount;
+        break;
+    case BrightnessMenu:
         if (!AUTO_BRIGHTNESS)
         {
-            ++BRIGHTNESS_PERCENT;
-            if (BRIGHTNESS_PERCENT > 100)
-                BRIGHTNESS_PERCENT = 1;
+            BRIGHTNESS_PERCENT = (BRIGHTNESS_PERCENT % 100) + 1;
             BRIGHTNESS = map(BRIGHTNESS_PERCENT, 0, 100, 0, 255);
             DisplayManager.setBrightness(BRIGHTNESS);
         }
-    }
-    else if (currentState == FPSMenu)
-    {
+        break;
+    case FPSMenu:
         if (MATRIX_FPS < 30)
             ++MATRIX_FPS;
-    }
-    else if (currentState == ColorMenu)
-    {
-        int arraySize = sizeof(textColors) / sizeof(textColors[0]);
-        currentColor = (currentColor + 1) % arraySize;
-    }
-    else if (currentState == SwitchMenu)
-    {
+        break;
+    case ColorMenu:
+        currentColor = (currentColor + 1) % (sizeof(textColors) / sizeof(textColors[0]));
+        break;
+    case SwitchMenu:
         AUTO_TRANSITION = !AUTO_TRANSITION;
-    }
-    else if (currentState == TspeedMenu)
-    {
+        break;
+    case TspeedMenu:
         TIME_PER_TRANSITION = min(1200, TIME_PER_TRANSITION + 100);
-    }
-    else if (currentState == AppTimeMenu)
-    {
+        break;
+    case AppTimeMenu:
         TIME_PER_APP = min(30000, TIME_PER_APP + 1000);
-    }
-    else if (currentState == TimeFormatMenu)
-    {
-        timeFormatIndex++;
-        if (timeFormatIndex > timeFormatCount - 1)
-        {
-            timeFormatIndex = 0; // Wrap around to the first menu item
-        }
-    }
-    else if (currentState == DateFormatMenu)
-    {
-        dateFormatIndex++;
-        if (dateFormatIndex > dateFormatCount - 1)
-        {
-            dateFormatIndex = 0; // Wrap around to the first menu item
-        }
-    }
-    else if (currentState == WeekdayMenu)
-    {
+        break;
+    case TimeFormatMenu:
+        timeFormatIndex = (timeFormatIndex + 1) % timeFormatCount;
+        break;
+    case DateFormatMenu:
+        dateFormatIndex = (dateFormatIndex + 1) % dateFormatCount;
+        break;
+    case Appmenu:
+        appsIndex = (appsIndex + 1) % appsCount;
+        break;
+    case WeekdayMenu:
         START_ON_MONDAY = !START_ON_MONDAY;
-    }
-    else if (currentState == TempMenu)
-    {
+        break;
+    case TempMenu:
         IS_CELSIUS = !IS_CELSIUS;
+        break;
+    default:
+        break;
     }
 }
 
 void MenuManager_::leftButton()
 {
     if (!inMenu)
+    {
         return;
-    if (currentState == MainMenu)
-    {
-        menuIndex--;
-        if (menuIndex < 0)
-        {
-            menuIndex = menuItemCount - 1; // Wrap around to the last menu item
-        }
     }
-    else if (currentState == BrightnessMenu)
+    switch (currentState)
     {
+    case MainMenu:
+        menuIndex = (menuIndex == 0) ? menuItemCount - 1 : menuIndex - 1;
+        break;
+    case BrightnessMenu:
         if (!AUTO_BRIGHTNESS)
         {
-            --BRIGHTNESS_PERCENT;
-            if (BRIGHTNESS_PERCENT < 1)
-                BRIGHTNESS_PERCENT = 100;
+            BRIGHTNESS_PERCENT = (BRIGHTNESS_PERCENT == 1) ? 100 : BRIGHTNESS_PERCENT - 1;
             BRIGHTNESS = map(BRIGHTNESS_PERCENT, 0, 100, 0, 255);
             DisplayManager.setBrightness(BRIGHTNESS);
         }
-    }
-    else if (currentState == FPSMenu)
-    {
+        break;
+    case FPSMenu:
         if (MATRIX_FPS > 15)
-            --MATRIX_FPS;
-    }
-    else if (currentState == ColorMenu)
-    {
-        int arraySize = sizeof(textColors) / sizeof(textColors[0]);
-        currentColor = (currentColor - 1 + arraySize) % arraySize;
-    }
-    else if (currentState == SwitchMenu)
-    {
+        {
+            MATRIX_FPS--;
+        }
+        break;
+    case ColorMenu:
+        currentColor = (currentColor + sizeof(textColors) / sizeof(textColors[0]) - 1) % (sizeof(textColors) / sizeof(textColors[0]));
+        break;
+    case SwitchMenu:
         AUTO_TRANSITION = !AUTO_TRANSITION;
-    }
-    else if (currentState == TspeedMenu)
-    {
+        break;
+    case TspeedMenu:
         TIME_PER_TRANSITION = max(200, TIME_PER_TRANSITION - 100);
-    }
-    else if (currentState == AppTimeMenu)
-    {
+        break;
+    case AppTimeMenu:
         TIME_PER_APP = max(1000, TIME_PER_APP - 1000);
-    }
-    else if (currentState == TimeFormatMenu)
-    {
-        timeFormatIndex--;
-        if (timeFormatIndex < 0)
-        {
-            timeFormatIndex = timeFormatCount - 1;
-        }
-    }
-    else if (currentState == DateFormatMenu)
-    {
-        dateFormatIndex--;
-        if (dateFormatIndex < 0)
-        {
-            dateFormatIndex = dateFormatCount - 1;
-        }
-    }
-    else if (currentState == WeekdayMenu)
-    {
+        break;
+    case TimeFormatMenu:
+        timeFormatIndex = (timeFormatIndex == 0) ? timeFormatCount - 1 : timeFormatIndex - 1;
+        break;
+    case DateFormatMenu:
+        dateFormatIndex = (dateFormatIndex == 0) ? dateFormatCount - 1 : dateFormatIndex - 1;
+        break;
+    case Appmenu:
+        appsIndex = (appsIndex == 0) ? appsCount - 1 : appsIndex - 1;
+        break;
+    case WeekdayMenu:
         START_ON_MONDAY = !START_ON_MONDAY;
-    }
-    else if (currentState == TempMenu)
-    {
+        break;
+    case TempMenu:
         IS_CELSIUS = !IS_CELSIUS;
+        break;
+    default:
+        break;
     }
 }
 
 void MenuManager_::selectButton()
 {
     if (!inMenu)
-        return;
-    if (currentState == MainMenu)
     {
-        if (menuIndex == 0) // BRIGHT
+        return;
+    }
+    switch (currentState)
+    {
+    case MainMenu:
+        switch (menuIndex)
         {
+        case 0:
             BRIGHTNESS_PERCENT = map(BRIGHTNESS, 0, 255, 0, 100);
             currentState = BrightnessMenu;
-        }
-        else if (menuIndex == 1) // RESET
-        {
+            break;
+        case 1:
             currentState = FPSMenu;
-        }
-        else if (menuIndex == 2) // COLOR
-        {
+            break;
+        case 2:
             currentState = ColorMenu;
-        }
-        else if (menuIndex == 3) // COLOR
-        {
+            break;
+        case 3:
             currentState = SwitchMenu;
-        }
-        else if (menuIndex == 4) // TSPEED
-        {
+            break;
+        case 4:
             currentState = TspeedMenu;
-        }
-        else if (menuIndex == 5) // AppTIme
-        {
+            break;
+        case 5:
             currentState = AppTimeMenu;
-        }
-        else if (menuIndex == 6) // Time
-        {
+            break;
+        case 6:
             currentState = TimeFormatMenu;
-        }
-        else if (menuIndex == 7) // date
-        {
+            break;
+        case 7:
             currentState = DateFormatMenu;
-        }
-        else if (menuIndex == 8) // weekday
-        {
+            break;
+        case 8:
             currentState = WeekdayMenu;
-        }
-        else if (menuIndex == 9) // temp
-        {
+            break;
+        case 9:
             currentState = TempMenu;
-        }
-        else if (menuIndex == 10) // Updater
-        {
+            break;
+        case 10:
+            currentState = Appmenu;
+            break;
+        case 11:
             if (FirmwareVersionCheck())
+            {
                 updateFirmware();
+            }
+            break;
+        default:
+            break;
         }
-    }
-    else if (currentState == BrightnessMenu)
-    {
+        break;
+    case BrightnessMenu:
         AUTO_BRIGHTNESS = !AUTO_BRIGHTNESS;
         if (!AUTO_BRIGHTNESS)
         {
             BRIGHTNESS = map(BRIGHTNESS_PERCENT, 0, 100, 0, 255);
             DisplayManager.setBrightness(BRIGHTNESS);
         }
+        break;
+    case Appmenu:
+        switch (appsIndex)
+        {
+        case 0:
+            SHOW_TIME = !SHOW_TIME;
+            break;
+        case 1:
+            SHOW_DATE = !SHOW_DATE;
+            break;
+        case 2:
+            SHOW_TEMP = !SHOW_TEMP;
+            break;
+        case 3:
+            SHOW_HUM = !SHOW_HUM;
+            break;
+        case 4:
+            SHOW_BAT = !SHOW_BAT;
+            break;
+        default:
+            break;
+        }
+        break;
+    default:
+        break;
     }
 }
 
@@ -374,57 +370,47 @@ void MenuManager_::selectButtonLong()
 {
     if (inMenu)
     {
-        if (currentState == BrightnessMenu)
+        switch (currentState)
         {
+        case BrightnessMenu:
             BRIGHTNESS = map(BRIGHTNESS_PERCENT, 0, 100, 0, 255);
             saveSettings();
-        }
-        else if (currentState == FPSMenu)
-        {
+            break;
+        case FPSMenu:
             DisplayManager.setFPS(MATRIX_FPS);
             saveSettings();
-        }
-        else if (currentState == ColorMenu)
-        {
+            break;
+        case ColorMenu:
             TEXTCOLOR_565 = textColors[currentColor];
             saveSettings();
-        }
-        else if (currentState == MainMenu)
-        {
+            break;
+        case MainMenu:
             inMenu = false;
-        }
-        else if (currentState == SwitchMenu)
-        {
+            break;
+        case SwitchMenu:
             DisplayManager.setAutoTransition(AUTO_TRANSITION);
             saveSettings();
-        }
-        else if (currentState == TspeedMenu)
-        {
+            break;
+        case TspeedMenu:
+        case AppTimeMenu:
             DisplayManager.applyAllSettings();
             saveSettings();
-        }
-        else if (currentState == AppTimeMenu)
-        {
-            DisplayManager.applyAllSettings();
-            saveSettings();
-        }
-        else if (currentState == TimeFormatMenu)
-        {
+            break;
+        case TimeFormatMenu:
             TIME_FORMAT = timeFormat[timeFormatIndex];
             saveSettings();
-        }
-        else if (currentState == DateFormatMenu)
-        {
-            DATE_FORMAT = dateFormat[dateFormatIndex];
+            break;
+        case DateFormatMenu:
+        case WeekdayMenu:
+        case TempMenu:
             saveSettings();
-        }
-        else if (currentState == WeekdayMenu)
-        {
+            break;
+        case Appmenu:
+            DisplayManager.loadNativeApps();
             saveSettings();
-        }
-        else if (currentState == TempMenu)
-        {
-            saveSettings();
+            break;
+        default:
+            break;
         }
         currentState = MainMenu;
     }

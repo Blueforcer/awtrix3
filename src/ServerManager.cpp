@@ -84,8 +84,6 @@ void ServerManager_::setup()
         mws.addOption("Prefix", MQTT_PREFIX);
         mws.addOption("Homeassistant Discovery", HA_DISCOVERY);
         mws.addOptionBox("Time");
-        mws.addOption("Show seconds", SHOW_SECONDS);
-        mws.addOption("Show weekday", SHOW_WEEKDAY);
         mws.addOption("NTP Server", NTP_SERVER);
         mws.addOption("Timezone", NTP_TZ);
         mws.addHTML("<p>Find your timezone at <a href='https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv' target='_blank' rel='noopener noreferrer'>posix_tz_db</a>.</p>", "tz_link");
@@ -95,10 +93,6 @@ void ServerManager_::setup()
         mws.addJavascript(custom_script);
         mws.addOptionBox("General");
         mws.addOption("Uppercase letters", UPPERCASE_LETTERS);
-        mws.addOption("Show date", SHOW_DATE);
-        mws.addOption("Show temperature", SHOW_TEMP);
-        mws.addOption("Show humidity", SHOW_HUM);
-        mws.addOption("Show battery", SHOW_BATTERY);
         mws.addHandler("/save", HTTP_GET, saveHandler);
     }
 
@@ -199,12 +193,6 @@ void ServerManager_::loadSettings()
         NET_PDNS = doc["Primary DNS"].as<String>();
         NET_SDNS = doc["Secondary DNS"].as<String>();
         UPPERCASE_LETTERS = doc["Uppercase letters"];
-        SHOW_SECONDS = doc["Show seconds"];
-        SHOW_WEEKDAY = doc["Show weekday"];
-        SHOW_DATE = doc["Show date"];
-        SHOW_TEMP = doc["Show temperature"];
-        SHOW_HUM = doc["Show humidity"];
-        SHOW_BATTERY = doc["Show battery"];
         file.close();
         DisplayManager.applyAllSettings();
         Serial.println(F("Configuration loaded"));

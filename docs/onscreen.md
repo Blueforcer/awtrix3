@@ -17,5 +17,6 @@ Hold down the middle button for 2s to exit the current menu and to save your set
 | `DATE` | Allows selection of date format. |
 | `WEEKDAY` | Allows selection of start of week. |
 | `TEMP` | Allows selection of temperature system (°C or °F).  |
+| `APPS` | Allows to enable or disable internal apps  |
 | `UPDATE` | Check and download new firmware if available. |
 
