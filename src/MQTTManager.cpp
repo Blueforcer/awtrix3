@@ -23,6 +23,9 @@ HASensor battery("battery");
 HASensor temperature("temperature");
 HASensor humidity("huminity");
 HASensor illuminance("illuminance");
+HASensor leftButton("myButtonB");
+HASensor rightButton("myButtonC");
+HASensor validateButton("myButtonA");
 
 // The getter for the instantiated singleton instance
 MQTTManager_ &MQTTManager_::getInstance()
@@ -267,6 +270,16 @@ void MQTTManager_::setup()
         illuminance.setIcon("mdi:sun-wireless");
         illuminance.setName("Illuminance");
         illuminance.setUnitOfMeasurement("lx");
+
+        validateButton.setIcon("mdi-check-circle");
+        validateButton.setName("Validate button");
+
+        rightButton.setIcon("mdi:arrow-right-bold");
+        rightButton.setName("Right button");
+
+        leftButton.setIcon("mdi:arrow-left-bold");
+        leftButton.setName("Left button");
+
     }
     else
     {
@@ -318,8 +331,25 @@ void MQTTManager_::sendStats()
         snprintf(buffer, 5, "%.0f", CURRENT_LUX); // Formatieren von CURRENT_LUX als Double ohne Nachkommastellen
         illuminance.setValue(buffer);             // Senden von CURRENT_LUX als const char*
 
+        leftButton.setValue("none");
+        rightButton.setValue("none");
+        validateButton.setValue("none");
+
         BriMode.setState(AUTO_BRIGHTNESS, true);
         Matrix.setBRIGHTNESS(BRIGHTNESS);
         Matrix.setState(!MATRIX_OFF, false);
+    }
+}
+
+void MQTTManager_::clickButton(String button,String action)
+{
+     if (HA_DISCOVERY)
+    {
+        if (strcmp(button.c_str(), "leftButton") == 0)
+            leftButton.setValue(action.c_str());
+        else if (strcmp(button.c_str(), "rightButton") == 0)
+            rightButton.setValue(action.c_str());
+        else
+             validateButton.setValue(action.c_str());    
     }
 }

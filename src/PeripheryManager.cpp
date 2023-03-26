@@ -61,24 +61,48 @@ void left_button_pressed()
 {
     DisplayManager.leftButton();
     MenuManager.leftButton();
+    MQTTManager.getInstance().clickButton("leftButton","click");
+}
+
+void left_button_pressed_long()
+{
+    MQTTManager.getInstance().clickButton("leftButton","long_click");
+}
+
+void left_button_tripple()
+{
+    MQTTManager.getInstance().clickButton("leftButton","double_click");
 }
 
 void right_button_pressed()
 {
     DisplayManager.rightButton();
     MenuManager.rightButton();
+    MQTTManager.getInstance().clickButton("rightButton","click");
+}
+
+void right_button_pressed_long()
+{
+    MQTTManager.getInstance().clickButton("rightButton","long_click");
+}
+
+void right_button_tripple()
+{
+    MQTTManager.getInstance().clickButton("rightButton","double_click");
 }
 
 void select_button_pressed()
 {
     DisplayManager.selectButton();
     MenuManager.selectButton();
+    MQTTManager.getInstance().clickButton("selectButton","click");
 }
 
 void select_button_pressed_long()
 {
     DisplayManager.selectButtonLong();
     MenuManager.selectButtonLong();
+    MQTTManager.getInstance().clickButton("selectButton","long_click");
 }
 
 void select_button_tripple()
@@ -91,6 +115,7 @@ void select_button_tripple()
     {
         DisplayManager.MatrixState(false);
     }
+    MQTTManager.getInstance().clickButton("selectButton","double_click");
 }
 
 void PeripheryManager_::playBootSound()
@@ -146,7 +171,11 @@ void PeripheryManager_::setup()
     button_right.begin();
     button_select.begin();
     button_left.onPressed(left_button_pressed);
+    button_left.onPressedFor(1000, left_button_pressed_long);
+    button_left.onSequence(2, 300, left_button_tripple);
     button_right.onPressed(right_button_pressed);
+    button_right.onPressedFor(1000, right_button_pressed_long);
+    button_right.onSequence(2, 300, right_button_tripple);
     button_select.onPressed(select_button_pressed);
     button_select.onPressedFor(1000, select_button_pressed_long);
     button_select.onSequence(2, 300, select_button_tripple);
