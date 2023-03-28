@@ -94,7 +94,7 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@master
         with:
-          args: '${{ steps.create_release.outputs.upload_url }}'
+          args: 'https://github.com/Blueforcer/awtrix-light/releases/tag/${{ steps.version_number.outputs.firmware_version }}'
 
 
       - name: Commit
