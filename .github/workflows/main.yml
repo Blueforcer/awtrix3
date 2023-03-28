@@ -67,12 +67,6 @@ jobs:
           name: firmware
           path: .pio/build/ulanzi/firmware.bin
 
-      - name: Download firmware
-        uses: actions/download-artifact@v2
-        with:
-          name: firmware
-          path: firmware
-
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -91,10 +85,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./firmware/firmware.bin
+          asset_path: .pio/build/ulanzi/firmware.bin
           asset_name: firmware.bin
           asset_content_type: application/octet-stream
-          
+
+      - name: Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        uses: Ilshidur/action-discord@master
+        with:
+          args: '${{ steps.create_release.outputs.upload_url }}'
+
+
       - name: Commit
         id: commit   
         uses: stefanzweifel/git-auto-commit-action@v4
