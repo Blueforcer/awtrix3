@@ -1,7 +1,17 @@
 #include "Globals.h"
 #include "Preferences.h"
+#include <WiFi.h>
 
 Preferences Settings;
+
+char *getID()
+{
+    uint8_t mac[6];
+    WiFi.macAddress(mac);
+    char *macStr = new char[24];
+    snprintf(macStr, 24, "awtrix_%02x%02x%02x", mac[3], mac[4], mac[5]);
+    return macStr;
+}
 
 void loadSettings()
 {
@@ -23,6 +33,8 @@ void loadSettings()
     SHOW_HUM = Settings.getBool("HUM", true);
     SHOW_BAT = Settings.getBool("BAT", true);
     Settings.end();
+    uniqueID = getID();
+    MQTT_PREFIX = String(uniqueID);
 }
 
 void saveSettings()
@@ -39,7 +51,6 @@ void saveSettings()
     Settings.putString("DFORMAT", DATE_FORMAT);
     Settings.putBool("SOM", START_ON_MONDAY);
     Settings.putBool("CEL", IS_CELSIUS);
-
     Settings.putBool("TIM", SHOW_TIME);
     Settings.putBool("DAT", SHOW_DATE);
     Settings.putBool("TEMP", SHOW_TEMP);
@@ -48,17 +59,18 @@ void saveSettings()
     Settings.end();
 }
 
+const char *uniqueID;
 IPAddress local_IP;
 IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.41";
+const char *VERSION = "0.42";
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
 String MQTT_PASS;
-String MQTT_PREFIX = "AwtrixLight";
+String MQTT_PREFIX;
 String CITY = "Berlin,de";
 bool IO_BROKER = false;
 bool NET_STATIC = false;

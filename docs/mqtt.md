@@ -29,7 +29,7 @@ Built-in app names are:
 - `hum`
 - `bat`
 
-For custom pages, use the name you set in the topic. For example, if `[PREFIX]/custom/test` is your topic, then `test` is the name.
+For custom apps, use the name you set in the topic. For example, if `[PREFIX]/custom/test` is your topic, then `test` is the name.
 
 ## Change Settings  
 Change various settings related to the app display.

@@ -1,6 +1,6 @@
-# Custom Pages & Notifications
+# Custom Apps & Notifications
 
-With AWTRIX Light, you can create custom pages or notifications to display your own text and icons.
+With AWTRIX Light, you can create custom apps or notifications to display your own text and icons.
 Simply send a JSON object to the topic "awtrixlight/custom/[page]" where [page] is a the name of your page (without spaces).
 
 ## JSON Properties
@@ -19,6 +19,7 @@ The JSON object has the following properties:
 | `hold` | boolean | Set it to true, to hold your notification on top until you press the middle button or dismiss it via HomeAssistant. This key only belongs to notification. | false |
 | `sound` | string | The filename of your RTTTL ringtone file (without extension). | |
 | `pushIcon` | number | 0 = Icon doesn't move. 1 = Icon moves with text and will not appear again. 2 = Icon moves with text but appears again when the text starts to scroll again. | 0 |
+| `bar` | array of integers | draws a bargraph. Without icon maximum 16 values, with icon 11 values |  |
 
 
 All keys are optional, so you can send just the properties you want to use.

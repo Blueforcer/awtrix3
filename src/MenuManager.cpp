@@ -135,26 +135,20 @@ String MenuManager_::menutext()
         return String(TIME_PER_APP / 1000.0, 0) + "s";
     case TimeFormatMenu:
         DisplayManager.drawMenuIndicator(timeFormatIndex, timeFormatCount, 0xFBC0);
+
+        char display[9];
         if (timeFormat[timeFormatIndex][2] == ' ')
         {
-            strcpy(display, timeFormat[timeFormatIndex]);
-            if (now % 2)
-            {
-                display[2] = ' ';
-            }
-            else
-            {
-                display[2] = ':';
-            }
-            strftime(t, sizeof(t), display, localtime(&now));
-            return t;
+            snprintf(display, sizeof(display), "%s", timeFormat[timeFormatIndex]);
+            display[2] = now % 2 ? ' ' : ':';
         }
         else
         {
-            strftime(t, sizeof(t), timeFormat[timeFormatIndex], localtime(&now));
-            return t;
+            snprintf(display, sizeof(display), "%s", timeFormat[timeFormatIndex]);
         }
 
+        strftime(t, sizeof(t), display, localtime(&now));
+        return t;
     case DateFormatMenu:
         DisplayManager.drawMenuIndicator(dateFormatIndex, dateFormatCount, 0xFBC0);
         strftime(t, sizeof(t), dateFormat[dateFormatIndex], localtime(&now));
@@ -427,6 +421,8 @@ void MenuManager_::selectButtonLong()
             saveSettings();
             break;
         case DateFormatMenu:
+            DATE_FORMAT = dateFormat[dateFormatIndex];
+            saveSettings();
         case WeekdayMenu:
         case TempMenu:
             saveSettings();

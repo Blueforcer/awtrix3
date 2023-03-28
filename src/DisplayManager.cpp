@@ -12,12 +12,17 @@
 #include "Functions.h"
 #include "ServerManager.h"
 #include "MenuManager.h"
-#include "Frames.h"
+#include "Apps.h"
 
 Ticker AlarmTicker;
 Ticker TimerTicker;
 
+#ifdef ULANZI
 #define MATRIX_PIN 32
+#else
+#define MATRIX_PIN D2
+#endif
+
 #define MATRIX_WIDTH 32
 #define MATRIX_HEIGHT 8
 
@@ -68,6 +73,11 @@ void DisplayManager_::MatrixState(bool on)
 
 bool DisplayManager_::setAutoTransition(bool active)
 {
+    if (ui.AppCount < 2)
+    {
+        ui.disablesetAutoTransition();
+        return false;
+    }
     if (active && AUTO_TRANSITION)
     {
         ui.enablesetAutoTransition();
@@ -198,31 +208,31 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear
         matrix.show();
 }
 
-void pushCustomFrame(String name, int position)
+void pushCustomApp(String name, int position)
 {
-    if (customFrames.count(name) == 0)
+    if (customApps.count(name) == 0)
     {
         ++customPagesCount;
-        void (*customFrames[10])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool) = {CFrame1, CFrame2, CFrame3, CFrame4, CFrame5, CFrame6, CFrame7, CFrame8, CFrame9, CFrame10};
+        void (*customApps[10])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10};
 
         if (position < 0) // Insert at the end of the vector
         {
-            Apps.push_back(std::make_pair(name, customFrames[customPagesCount]));
+            Apps.push_back(std::make_pair(name, customApps[customPagesCount]));
         }
         else if (position < Apps.size()) // Insert at a specific position
         {
-            Apps.insert(Apps.begin() + position, std::make_pair(name, customFrames[customPagesCount]));
+            Apps.insert(Apps.begin() + position, std::make_pair(name, customApps[customPagesCount]));
         }
         else // Invalid position, Insert at the end of the vector
         {
-            Apps.push_back(std::make_pair(name, customFrames[customPagesCount]));
+            Apps.push_back(std::make_pair(name, customApps[customPagesCount]));
         }
 
-        ui.setApps(Apps); // Add frames
+        ui.setApps(Apps); // Add Apps
     }
 }
 
-void removeCustomFrame(const String &name)
+void removeCustomApp(const String &name)
 {
     auto it = std::find_if(Apps.begin(), Apps.end(), [&name](const std::pair<String, AppCallback> &appPair)
                            { return appPair.first == name; });
@@ -236,10 +246,10 @@ void removeCustomFrame(const String &name)
 
 void DisplayManager_::generateCustomPage(String name, String payload)
 {
-    if (payload == "" && customFrames.count(name))
+    if (payload == "" && customApps.count(name))
     {
-        customFrames.erase(customFrames.find(name));
-        removeCustomFrame(name);
+        customApps.erase(customApps.find(name));
+        removeCustomApp(name);
         return;
     }
 
@@ -248,31 +258,52 @@ void DisplayManager_::generateCustomPage(String name, String payload)
     if (error)
         return;
 
-    CustomFrame customFrame;
+    CustomApp customApp;
 
     if (doc.containsKey("sound"))
     {
-        customFrame.sound = ("/" + doc["sound"].as<String>() + ".txt");
+        customApp.sound = ("/" + doc["sound"].as<String>() + ".txt");
     }
     else
     {
-        customFrame.sound = "";
+        customApp.sound = "";
     }
 
-    customFrame.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
-    customFrame.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
-    customFrame.name = name;
-    customFrame.text = utf8ascii(doc["text"].as<String>());
-    customFrame.color = doc.containsKey("color") ? doc["color"].is<String>() ? hexToRgb565(doc["color"]) : doc["color"].is<JsonArray>() ? hexToRgb565(doc["color"].as<String>())
-                                                                                                                                        : TEXTCOLOR_565
-                                                 : TEXTCOLOR_565;
-
-    if (currentCustomFrame != name)
+    if (doc.containsKey("bar"))
     {
-        customFrame.scrollposition = 9;
+        JsonArray barData = doc["bar"];
+        int i = 0;
+        for (JsonVariant v : barData)
+        {
+            if (i >= 16)
+            {
+                break;
+            }
+            customApp.barData[i] = v.as<int>();
+            i++;
+        }
+        customApp.barSize = i;
+    }
+    else
+    {
+        customApp.barSize = 0;
     }
 
-    customFrame.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint8_t>() : -1;
+    int pos = doc.containsKey("pos") ? doc["pos"].as<uint8_t>() : -1;
+    customApp.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
+    customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
+    customApp.name = name;
+    customApp.text = utf8ascii(doc["text"].as<String>());
+    customApp.color = doc.containsKey("color") ? doc["color"].is<String>() ? hexToRgb565(doc["color"]) : doc["color"].is<JsonArray>() ? hexToRgb565(doc["color"].as<String>())
+                                                                                                                                      : TEXTCOLOR_565
+                                               : TEXTCOLOR_565;
+
+    if (currentCustomApp != name)
+    {
+        customApp.scrollposition = 9;
+    }
+
+    customApp.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint8_t>() : -1;
 
     if (doc.containsKey("icon"))
     {
@@ -280,20 +311,28 @@ void DisplayManager_::generateCustomPage(String name, String payload)
 
         if (LittleFS.exists("/ICONS/" + iconFileName + ".jpg"))
         {
-            customFrame.isGif = false;
-            customFrame.icon = LittleFS.open("/ICONS/" + iconFileName + ".jpg");
+            customApp.isGif = false;
+            customApp.icon = LittleFS.open("/ICONS/" + iconFileName + ".jpg");
         }
         else if (LittleFS.exists("/ICONS/" + iconFileName + ".gif"))
         {
-            customFrame.isGif = true;
-            customFrame.icon = LittleFS.open("/ICONS/" + iconFileName + ".gif");
+            customApp.isGif = true;
+            customApp.icon = LittleFS.open("/ICONS/" + iconFileName + ".gif");
+        }
+        else
+        {
+            fs::File nullPointer;
+            customApp.icon = nullPointer;
         }
     }
+    else
+    {
+        fs::File nullPointer;
+        customApp.icon = nullPointer;
+    }
 
-    int pos = doc.containsKey("pos") ? doc["pos"].as<uint8_t>() : -1;
-
-    pushCustomFrame(name, pos - 1);
-    customFrames[name] = customFrame;
+    pushCustomApp(name, pos - 1);
+    customApps[name] = customApp;
 }
 
 void DisplayManager_::generateNotification(String payload)
@@ -318,6 +357,26 @@ void DisplayManager_::generateNotification(String payload)
         PeripheryManager.playFromFile("/MELODIES/" + doc["sound"].as<String>() + ".txt");
     }
 
+    if (doc.containsKey("bar"))
+    {
+        JsonArray barData = doc["bar"];
+        int i = 0;
+        for (JsonVariant v : barData)
+        {
+            if (i >= 16)
+            {
+                break;
+            }
+            notify.barData[i] = v.as<int>();
+            i++;
+        }
+        notify.barSize = i;
+    }
+    else
+    {
+        notify.barSize = 0;
+    }
+
     notify.color = doc.containsKey("color") ? doc["color"].is<String>() ? hexToRgb565(doc["color"]) : doc["color"].is<JsonArray>() ? hexToRgb565(doc["color"].as<String>())
                                                                                                                                    : TEXTCOLOR_565
                                             : TEXTCOLOR_565;
@@ -329,17 +388,24 @@ void DisplayManager_::generateNotification(String payload)
         {
             notify.isGif = false;
             notify.icon = LittleFS.open("/ICONS/" + iconFileName + ".jpg");
+            return;
         }
         else if (LittleFS.exists("/ICONS/" + iconFileName + ".gif"))
         {
             notify.isGif = true;
             notify.icon = LittleFS.open("/ICONS/" + iconFileName + ".gif");
+            return;
+        }
+        else
+        {
+            fs::File nullPointer;
+            notify.icon = nullPointer;
         }
     }
     else
     {
-        File f;
-        notify.icon = f;
+        fs::File nullPointer;
+        notify.icon = nullPointer;
     }
 }
 
@@ -374,25 +440,23 @@ void DisplayManager_::loadNativeApps()
     };
 
     // Update the "time" app at position 0
-    updateApp("time", TimeFrame, SHOW_TIME, 0);
+    updateApp("time", TimeApp, SHOW_TIME, 0);
 
     // Update the "date" app at position 1
-    updateApp("date", DateFrame, SHOW_DATE, 1);
+    updateApp("date", DateApp, SHOW_DATE, 1);
 
     // Update the "temp" app at position 2
-    updateApp("temp", TempFrame, SHOW_TEMP, 2);
+    updateApp("temp", TempApp, SHOW_TEMP, 2);
 
     // Update the "hum" app at position 3
-    updateApp("hum", HumFrame, SHOW_HUM, 3);
+    updateApp("hum", HumApp, SHOW_HUM, 3);
 
     // Update the "bat" app at position 4
-    updateApp("bat", BatFrame, SHOW_BAT, 4);
+    updateApp("bat", BatApp, SHOW_BAT, 4);
 
     ui.setApps(Apps);
-    if (AUTO_TRANSITION && Apps.size() == 1)
-    {
-        setAutoTransition(false);
-    }
+
+    setAutoTransition(true);
 }
 
 void DisplayManager_::setup()
@@ -415,12 +479,12 @@ void DisplayManager_::tick()
     else
     {
         ui.update();
-        if (ui.getUiState()->frameState == IN_TRANSITION && !appIsSwitching)
+        if (ui.getUiState()->appState == IN_TRANSITION && !appIsSwitching)
         {
             appIsSwitching = true;
             MQTTManager.setCurrentApp(CURRENT_APP);
         }
-        else if (ui.getUiState()->frameState == FIXED && appIsSwitching)
+        else if (ui.getUiState()->appState == FIXED && appIsSwitching)
         {
             appIsSwitching = false;
             MQTTManager.setCurrentApp(CURRENT_APP);
@@ -592,5 +656,51 @@ void DisplayManager_::drawMenuIndicator(int cur, int total, uint16_t color)
         {
             matrix.drawLine(x, 7, x + menuItemWidth - 1, 7, matrix.Color(100, 100, 100));
         }
+    }
+}
+
+void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint16_t color)
+{
+    int maximum = 0;
+    int newData[dataSize];
+
+    // Finde das Maximum in der Datenliste
+    for (int i = 0; i < dataSize; i++)
+    {
+        int d = data[i];
+        if (d > maximum)
+        {
+            maximum = d;
+        }
+    }
+
+    // Berechne neue Datenwerte zwischen 0 und 8 basierend auf dem Maximum
+    for (int i = 0; i < dataSize; i++)
+    {
+        int d = data[i];
+        newData[i] = map(d, 0, maximum, 0, 8);
+    }
+
+    // Berechne die Breite der Balken basierend auf der Anzahl der Daten und der Breite der Matrix
+    int barWidth;
+    if (withIcon)
+    {
+        barWidth = ((32 - 9) / (dataSize)-1);
+    }
+    else
+    {
+        barWidth = (32 / (dataSize)-1);
+    }
+
+    // Berechne die Startposition des Graphen basierend auf dem Icon-Parameter
+    int startX = withIcon ? 9 : 0;
+
+    // Zeichne die Balken auf die Matrix
+    for (int i = 0; i < dataSize; i++)
+    {
+        int x1 = x + startX + (barWidth + 1) * i;
+        int barHeight = newData[i];
+        int y1 = min(8 - barHeight, 7);
+        matrix.fillRect(x1, y1 + y, barWidth, barHeight, color);
     }
 }

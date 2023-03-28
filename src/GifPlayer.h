@@ -528,7 +528,7 @@ public:
       }
     }
     needNewFrame = false;
-    lastFrameTime =  millis();
+    lastFrameTime = millis();
   }
 
 public:
@@ -612,7 +612,6 @@ public:
       byte b = readByte();
       if (b == 0x2c)
       {
-        Serial.println("Parse");
         parseTableBasedImage();
         return 0;
       }
@@ -641,11 +640,10 @@ public:
       {
         done = true;
         file.seek(0);
-        Serial.println("Finished");
         parseGifHeader();
         parseLogicalScreenDescriptor();
         parseGlobalColorTable();
-        drawFrame(offsetX,offsetY);
+        drawFrame(offsetX, offsetY);
         return ERROR_FINISHED;
       }
     }

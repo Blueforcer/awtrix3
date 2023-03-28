@@ -10,12 +10,25 @@
 #include <MenuManager.h>
 
 #define SOUND_OFF false
-#define BATTERY_PIN 34
-#define BUZZER_PIN 15
-#define LDR_PIN 35
-#define BUTTON_UP_PIN 26
-#define BUTTON_DOWN_PIN 14
-#define BUTTON_SELECT_PIN 27
+
+#ifdef ULANZI
+// Pinouts für das ULANZI-Environment
+    #define BATTERY_PIN 34
+    #define BUZZER_PIN 15
+    #define LDR_PIN 35
+    #define BUTTON_UP_PIN 26
+    #define BUTTON_DOWN_PIN 14
+    #define BUTTON_SELECT_PIN 27
+#else
+// Pinouts für das WEMOS_D1_MINI32-Environment
+    #define BATTERY_PIN -1
+    #define BUZZER_PIN -1
+    #define LDR_PIN A0
+    #define BUTTON_UP_PIN D0
+    #define BUTTON_DOWN_PIN D4
+    #define BUTTON_SELECT_PIN D8
+#endif
+
 
 Adafruit_SHT31 sht31;
 EasyButton button_left(BUTTON_UP_PIN);
@@ -45,7 +58,7 @@ float sampleSum = 0.0;
 float sampleAverage = 0.0;
 float brightnessPercent = 0.0;
 
-unsigned long startTime;
+
 
 // The getter for the instantiated singleton instance
 PeripheryManager_ &PeripheryManager_::getInstance()
@@ -100,7 +113,6 @@ void PeripheryManager_::playBootSound()
     const int nNotes = 6;
     String notes[nNotes] = {"E5", "C5", "G4", "E4", "G4", "C5"};
     const int timeUnit = 150;
-    // create a melody
     Melody melody = MelodyFactory.load("Nice Melody", timeUnit, notes, nNotes);
     player.playAsync(melody);
 }
@@ -128,7 +140,7 @@ void fistStart()
 
     uint16_t ADCVALUE = analogRead(BATTERY_PIN);
 
-    BATTERY_PERCENT = min((int)map(ADCVALUE, 510, 660, 0, 100), 100);
+    BATTERY_PERCENT = min((int)map(ADCVALUE, 490, 660, 0, 100), 100);
     sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
 
     uint16_t LDRVALUE = analogRead(LDR_PIN);
@@ -167,7 +179,7 @@ void PeripheryManager_::tick()
     {
         previousMillis_BatTempHum = currentMillis_BatTempHum;
         uint16_t ADCVALUE = analogRead(BATTERY_PIN);
-        BATTERY_PERCENT = min((int)map(ADCVALUE, 510, 665, 0, 100), 100);
+        BATTERY_PERCENT = min((int)map(ADCVALUE, 475, 665, 0, 100), 100);
         BATTERY_RAW = ADCVALUE;
         sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
         CURRENT_TEMP -= 9.0;
@@ -200,16 +212,7 @@ void PeripheryManager_::tick()
     }
 }
 
-void readUptime()
-{
-    unsigned long currentTime = millis();
-    unsigned long elapsedTime = currentTime - startTime;
-    int hours = (elapsedTime / 1000) / 3600;
-    int minutes = ((elapsedTime / 1000) % 3600) / 60;
-    int seconds = (elapsedTime / 1000) % 60;
-    char timeString[10];
-    sprintf(timeString, "%02d:%02d:%02d", hours, minutes, seconds);
-}
+
 
 const int MIN_ALARM_INTERVAL = 60; // 1 Minute
 time_t lastAlarmTime = 0;

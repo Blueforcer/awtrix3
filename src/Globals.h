@@ -2,6 +2,7 @@
 #define GLOBALS_H
 #include <Arduino.h>
 
+extern const char *uniqueID;
 extern const char *VERSION;
 extern IPAddress local_IP;
 extern IPAddress gateway;

@@ -6,24 +6,32 @@
 #include <WiFi.h>
 #include <ArduinoJson.h>
 
+unsigned long startTime;
+
 WiFiClient espClient;
 uint8_t lastBrightness;
 HADevice device;
-HAMqtt mqtt(espClient, device, 15);
+HAMqtt mqtt(espClient, device, 18);
 
 unsigned long reconnectTimer = 0;
 const unsigned long reconnectInterval = 30000; // 30 Sekunden
 
-HALight Matrix("bri", HALight::BrightnessFeature | HALight::RGBFeature);
-HASelect BriMode("BriMode");
-HAButton dismiss("myButtonA");
-HAButton nextApp("myButtonB");
-HAButton prevApp("myButtonC");
-HASensor curApp("curApp");
-HASensor battery("battery");
-HASensor temperature("temperature");
-HASensor humidity("huminity");
-HASensor illuminance("illuminance");
+HALight *Matrix = nullptr;
+HASelect *BriMode = nullptr;
+HAButton *dismiss = nullptr;
+HAButton *nextApp = nullptr;
+HAButton *prevApp = nullptr;
+
+HASensor *curApp = nullptr;
+HASensor *battery = nullptr;
+HASensor *temperature = nullptr;
+HASensor *humidity = nullptr;
+HASensor *illuminance = nullptr;
+HASensor *uptime = nullptr;
+HASensor *strength = nullptr;
+
+HASensor *version = nullptr;
+HASensor *ram = nullptr;
 
 // The getter for the instantiated singleton instance
 MQTTManager_ &MQTTManager_::getInstance()
@@ -37,15 +45,15 @@ MQTTManager_ &MQTTManager = MQTTManager.getInstance();
 
 void onButtonCommand(HAButton *sender)
 {
-    if (sender == &dismiss)
+    if (sender == dismiss)
     {
         DisplayManager.dismissNotify();
     }
-    else if (sender == &nextApp)
+    else if (sender == nextApp)
     {
         DisplayManager.nextApp();
     }
-    else if (sender == &prevApp)
+    else if (sender == prevApp)
     {
         DisplayManager.previousApp();
     }
@@ -66,7 +74,7 @@ void onSelectCommand(int8_t index, HASelect *sender)
         AUTO_BRIGHTNESS = true;
         return;
     }
-    Matrix.setBrightness(BRIGHTNESS);
+    Matrix->setBrightness(BRIGHTNESS);
     saveSettings();
     sender->setState(index); // report the selected option back to the HA panel
 }
@@ -203,71 +211,128 @@ void connect()
     }
 }
 
+char matID[40], briID[40];
+char btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], batID[40], ramID[40], upID[40], sigID[40];
+
 void MQTTManager_::setup()
 {
-    byte mac[6];
-    WiFi.macAddress(mac);
-
+    startTime = millis();
     if (HA_DISCOVERY)
     {
         Serial.println("Starting Homeassistant discorvery");
 
+        uint8_t mac[6];
+        WiFi.macAddress(mac);
+        char *macStr = new char[18 + 1];
+        snprintf(macStr, 24, "%02x%02x%02x", mac[3], mac[4], mac[5]);
         device.setUniqueId(mac, sizeof(mac));
-        device.setName(MQTT_PREFIX.c_str());
+        device.setName(uniqueID);
         device.setSoftwareVersion(VERSION);
         device.setManufacturer("Blueforcer");
         device.setModel("AWTRIX Light");
         device.setAvailability(true);
-        Matrix.setIcon("mdi:lightbulb");
-        Matrix.setName("Matrix");
-        Matrix.onStateCommand(onStateCommand);
-        Matrix.onBrightnessCommand(onBrightnessCommand);
-        Matrix.onRGBColorCommand(onRGBColorCommand);
-        Matrix.setCurrentState(true);
-        Matrix.setBRIGHTNESS(BRIGHTNESS);
+
+        String uniqueIDWithSuffix;
+
+        sprintf(matID, "%s_mat", macStr);
+        Matrix = new HALight(matID, HALight::BrightnessFeature | HALight::RGBFeature);
+
+        Matrix->setIcon("mdi:lightbulb");
+        Matrix->setName("Matrix");
+        Matrix->onStateCommand(onStateCommand);
+        Matrix->onBrightnessCommand(onBrightnessCommand);
+        Matrix->onRGBColorCommand(onRGBColorCommand);
+        Matrix->setCurrentState(true);
+        Matrix->setBRIGHTNESS(BRIGHTNESS);
 
         HALight::RGBColor color;
         color.red = (TEXTCOLOR_565 >> 11) << 3;
         color.green = ((TEXTCOLOR_565 >> 5) & 0x3F) << 2;
         color.blue = (TEXTCOLOR_565 & 0x1F) << 3;
-        Matrix.setCurrentRGBColor(color);
-        Matrix.setState(true, true);
+        Matrix->setCurrentRGBColor(color);
+        Matrix->setState(true, true);
 
-        BriMode.setOptions("Manual;Auto"); // use semicolons as separator of options
-        BriMode.onCommand(onSelectCommand);
-        BriMode.setIcon("mdi:brightness-auto"); // optional
-        BriMode.setName("Brightness mode");     // optional
-        BriMode.setState(AUTO_BRIGHTNESS, true);
+        sprintf(briID, "%s_bri", macStr);
+        BriMode = new HASelect(briID);
+        BriMode->setOptions("Manual;Auto"); // use semicolons as separator of options
+        BriMode->onCommand(onSelectCommand);
+        BriMode->setIcon("mdi:brightness-auto"); // optional
+        BriMode->setName("Brightness mode");     // optional
+        BriMode->setState(AUTO_BRIGHTNESS, true);
 
-        dismiss.setIcon("mdi:bell-off");
-        dismiss.setName("Dismiss notification");
-        nextApp.setIcon("mdi:arrow-right-bold");
-        nextApp.setName("Next app");
-        prevApp.setIcon("mdi:arrow-left-bold");
-        prevApp.setName("Previous app");
+        sprintf(btnAID, "%s_btna", macStr);
+        dismiss = new HAButton(btnAID);
+        dismiss->setIcon("mdi:bell-off");
+        dismiss->setName("Dismiss notification");
 
-        dismiss.onCommand(onButtonCommand);
-        nextApp.onCommand(onButtonCommand);
-        prevApp.onCommand(onButtonCommand);
+        sprintf(btnBID, "%s_btnb", macStr);
+        nextApp = new HAButton(btnBID);
+        nextApp->setIcon("mdi:arrow-right-bold");
+        nextApp->setName("Next app");
 
-        curApp.setIcon("mdi:apps");
-        curApp.setName("Current app");
+        sprintf(btnCID, "%s_btnc", macStr);
+        prevApp = new HAButton(btnCID);
+        prevApp->setIcon("mdi:arrow-left-bold");
+        prevApp->setName("Previous app");
 
-        temperature.setIcon("mdi:thermometer");
-        temperature.setName("Temperature");
-        temperature.setUnitOfMeasurement("°C");
+        dismiss->onCommand(onButtonCommand);
+        nextApp->onCommand(onButtonCommand);
+        prevApp->onCommand(onButtonCommand);
 
-        humidity.setIcon("mdi:water-percent");
-        humidity.setName("humidity");
-        humidity.setUnitOfMeasurement("%");
+        sprintf(appID, "%s_app", macStr);
+        curApp = new HASensor(appID);
+        curApp->setIcon("mdi:apps");
+        curApp->setName("Current app");
 
-        battery.setIcon("mdi:battery-90");
-        battery.setName("Battery");
-        battery.setUnitOfMeasurement("%");
+        sprintf(tempID, "%s_temp", macStr);
+        temperature = new HASensor(tempID);
+        temperature->setIcon("mdi:thermometer");
+        temperature->setName("Temperature");
+        temperature->setDeviceClass("temperature");
+        temperature->setUnitOfMeasurement("°C");
 
-        illuminance.setIcon("mdi:sun-wireless");
-        illuminance.setName("Illuminance");
-        illuminance.setUnitOfMeasurement("lx");
+        sprintf(humID, "%s_hum", macStr);
+        humidity = new HASensor(humID);
+        humidity->setIcon("mdi:water-percent");
+        humidity->setName("humidity");
+        humidity->setDeviceClass("humidity");
+        humidity->setUnitOfMeasurement("%");
+
+        sprintf(batID, "%s_bat", macStr);
+        battery = new HASensor(batID);
+        battery->setIcon("mdi:battery-90");
+        battery->setName("Battery");
+        battery->setDeviceClass("battery");
+        battery->setUnitOfMeasurement("%");
+
+        sprintf(luxID, "%s_lux", macStr);
+        illuminance = new HASensor(luxID);
+        illuminance->setIcon("mdi:sun-wireless");
+        illuminance->setName("Illuminance");
+        illuminance->setDeviceClass("illuminance");
+        illuminance->setUnitOfMeasurement("lx");
+
+        sprintf(verID, "%s_ver", macStr);
+        version = new HASensor(verID);
+        version->setName("Version");
+
+        sprintf(sigID, "%s_sig", macStr);
+        strength = new HASensor(sigID);
+        strength->setName("WiFi strength");
+        strength->setDeviceClass("signal_strength");
+        strength->setUnitOfMeasurement("dB");
+
+        sprintf(upID, "%s_up", macStr);
+        uptime = new HASensor(upID);
+        uptime->setName("Uptime");
+        uptime->setDeviceClass("duration");
+
+        sprintf(ramID, "%s_ram", macStr);
+        ram = new HASensor(ramID);
+        ram->setDeviceClass("data_size");
+        ram->setIcon("mdi:application-cog");
+        ram->setName("Free ram");
+        ram->setUnitOfMeasurement("B");
     }
     else
     {
@@ -299,7 +364,23 @@ void MQTTManager_::publish(const char *topic, const char *payload)
 void MQTTManager_::setCurrentApp(String value)
 {
     if (HA_DISCOVERY)
-        curApp.setValue(value.c_str());
+        curApp->setValue(value.c_str());
+}
+
+const char *readUptime()
+{
+    static char uptime[25]; // Make the array static to keep it from being destroyed when the function returns
+    unsigned long currentTime = millis();
+    unsigned long elapsedTime = currentTime - startTime;
+    unsigned long uptimeSeconds = elapsedTime / 1000;
+    unsigned long uptimeMinutes = uptimeSeconds / 60;
+    unsigned long uptimeHours = uptimeMinutes / 60;
+    unsigned long uptimeDays = uptimeHours / 24;
+    unsigned long hours = uptimeHours % 24;
+    unsigned long minutes = uptimeMinutes % 60;
+    unsigned long seconds = uptimeSeconds % 60;
+    sprintf(uptime, "P%dDT%dH%dM%dS", uptimeDays, hours, minutes, seconds);
+    return uptime;
 }
 
 void MQTTManager_::sendStats()
@@ -308,20 +389,32 @@ void MQTTManager_::sendStats()
     {
         char buffer[5];
         snprintf(buffer, 5, "%d", BATTERY_PERCENT);
-        battery.setValue(buffer);
+        battery->setValue(buffer);
 
         snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
-        temperature.setValue(buffer);
+        temperature->setValue(buffer);
 
         snprintf(buffer, 5, "%.0f", CURRENT_HUM);
-        humidity.setValue(buffer);
+        humidity->setValue(buffer);
 
         snprintf(buffer, 5, "%.0f", CURRENT_LUX);
-        illuminance.setValue(buffer);
+        illuminance->setValue(buffer);
 
-        BriMode.setState(AUTO_BRIGHTNESS, true);
-        Matrix.setBRIGHTNESS(BRIGHTNESS);
-        Matrix.setState(!MATRIX_OFF, false);
+        BriMode->setState(AUTO_BRIGHTNESS, true);
+        Matrix->setBRIGHTNESS(BRIGHTNESS);
+        Matrix->setState(!MATRIX_OFF, false);
+
+        int8_t rssiValue = WiFi.RSSI();
+        char rssiString[4];
+        snprintf(rssiString, sizeof(rssiString), "%d", rssiValue);
+        strength->setValue(rssiString);
+
+        char rambuffer[10];
+        int freeHeapBytes = ESP.getFreeHeap();
+        itoa(freeHeapBytes, rambuffer, 10);
+        ram->setValue(rambuffer);
+        uptime->setValue(readUptime());
+        version->setValue(VERSION);
     }
 
     StaticJsonDocument<200> doc;
@@ -336,6 +429,8 @@ void MQTTManager_::sendStats()
     doc["temp"] = buffer;
     snprintf(buffer, 5, "%.0f", CURRENT_HUM);
     doc["hum"] = buffer;
+    doc["uptime"] = readUptime();
+    doc["wifi"] = WiFi.RSSI();
     String jsonString;
     serializeJson(doc, jsonString);
     char topic[50];

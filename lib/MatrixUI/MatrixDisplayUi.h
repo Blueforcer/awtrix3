@@ -46,7 +46,7 @@ enum AnimationDirection
   SLIDE_RIGHT
 };
 
-enum FrameState
+enum AppState
 {
   IN_TRANSITION,
   FIXED
@@ -58,11 +58,11 @@ struct MatrixDisplayUiState
   u_int64_t lastUpdate = 0;
   uint16_t ticksSinceLastStateSwitch = 0;
 
-  FrameState frameState = FIXED;
-  uint8_t currentFrame = 0;
+  AppState appState = FIXED;
+  uint8_t currentApp = 0;
 
   // Normal = 1, Inverse = -1;
-  int8_t frameTransitionDirection = 1;
+  int8_t appTransitionDirection = 1;
 
   bool manuelControll = false;
 
@@ -70,7 +70,7 @@ struct MatrixDisplayUiState
   void *userData = NULL;
 };
 
-typedef void (*AppCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame);
+typedef void (*AppCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp);
 typedef void (*OverlayCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state);
 
 class MatrixDisplayUi
@@ -78,21 +78,19 @@ class MatrixDisplayUi
 private:
   FastLED_NeoMatrix *matrix;
 
-  // Values for the Frames
-  AnimationDirection frameAnimationDirection = SLIDE_RIGHT;
+  // Values for the Apps
+  AnimationDirection appAnimationDirection = SLIDE_RIGHT;
 
   int8_t lastTransitionDirection = 1;
 
-  uint16_t ticksPerFrame = 151;     // ~ 5000ms at 30 FPS
+  uint16_t ticksPerApp = 151;       // ~ 5000ms at 30 FPS
   uint16_t ticksPerTransition = 15; // ~  500ms at 30 FPS
 
   bool setAutoTransition = true;
 
   AppCallback *AppFunctions;
 
-  uint8_t AppCount = 0;
-
-  // Internally used to transition to a specific frame
+  // Internally used to transition to a specific app
   int8_t nextAppNumber = -1;
 
   // Values for Overlays
@@ -115,6 +113,7 @@ private:
 public:
   MatrixDisplayUi(FastLED_NeoMatrix *matrix);
 
+  uint8_t AppCount = 0;
   /**
    * Initialise the display
    */
@@ -127,12 +126,12 @@ public:
 
   // Automatic Controll
   /**
-   * Enable automatic transition to next frame after the some time can be configured with `setTimePerApp` and `setTimePerTransition`.
+   * Enable automatic transition to next app after the some time can be configured with `setTimePerApp` and `setTimePerTransition`.
    */
   void enablesetAutoTransition();
 
   /**
-   * Disable automatic transition to next frame.
+   * Disable automatic transition to next app.
    */
   void disablesetAutoTransition();
 
@@ -143,7 +142,7 @@ public:
   void setsetAutoTransitionBackwards();
 
   /**
-   *  Set the approx. time a frame is displayed
+   *  Set the approx. time a app is displayed
    */
   void setTimePerApp(uint16_t time);
 
@@ -154,22 +153,22 @@ public:
 
   // Customize indicator position and style
 
-  // Frame settings
+  // App settings
 
   /**
-   * Configure what animation is used to transition from one frame to another
+   * Configure what animation is used to transition from one app to another
    */
   void setAppAnimation(AnimationDirection dir);
 
   /**
-   * Add frame drawing functions
+   * Add app drawing functions
    */
   void setApps(const std::vector<std::pair<String, AppCallback>> &appPairs);
 
   // Overlay
 
   /**
-   * Add overlays drawing functions that are draw independent of the Frames
+   * Add overlays drawing functions that are draw independent of the Apps
    */
   void setOverlays(OverlayCallback *overlayFunctions, uint8_t overlayCount);
 
@@ -178,15 +177,15 @@ public:
   void previousApp();
 
   /**
-   * Switch without transition to frame `frame`.
+   * Switch without transition to app `app`.
    */
-  void switchToApp(uint8_t frame);
+  void switchToApp(uint8_t app);
 
   /**
-   * Transition to frame `frame`, when the `frame` number is bigger than the current
-   * frame the forward animation will be used, otherwise the backwards animation is used.
+   * Transition to app `app`, when the `app` number is bigger than the current
+   * app the forward animation will be used, otherwise the backwards animation is used.
    */
-  void transitionToApp(uint8_t frame);
+  void transitionToApp(uint8_t app);
 
   // State Info
   MatrixDisplayUiState *getUiState();

@@ -63,7 +63,7 @@ void ServerManager_::setup()
     {
         WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS);
     }
-    IPAddress myIP = mws.startWiFi(150000, "AWTRIX LIGHT", "12345678");
+    IPAddress myIP = mws.startWiFi(150000, uniqueID, "12345678");
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
     Serial.println(myIP.toString());
 
@@ -99,7 +99,7 @@ void ServerManager_::setup()
     mws.addHandler("/version", HTTP_GET, versionHandler);
     mws.begin();
 
-    if (!MDNS.begin(MQTT_PREFIX.c_str()))
+    if (!MDNS.begin(uniqueID))
     {
         Serial.println("Error starting mDNS");
         return;
