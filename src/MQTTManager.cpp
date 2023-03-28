@@ -294,7 +294,7 @@ void MQTTManager_::setup()
         sprintf(humID, "%s_hum", macStr);
         humidity = new HASensor(humID);
         humidity->setIcon("mdi:water-percent");
-        humidity->setName("humidity");
+        humidity->setName("Humidity");
         humidity->setDeviceClass("humidity");
         humidity->setUnitOfMeasurement("%");
 
