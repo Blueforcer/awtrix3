@@ -23,8 +23,8 @@ AWTRIX Light is an open‑source custom firmware for the [Ulanzi Smart Pixel clo
 
 It is ready to use straight out of the box, with time, date, temperature, and humidity pages pre-installed. You don't need to do anything other than turning it on to start using these features.    
 
-However, for those with more advanced skills, the customization options available with custom pages and mqtt commands allows you to take Awtrix Light to its full potential.
-Just send all your custompages from your smarthome via MQTT and update it in realtime.
+However, for those with more advanced skills, the customization options available with customapps and mqtt commands allows you to take Awtrix Light to its full potential.
+Just send all your customapps from your smarthome via MQTT and update it in realtime.
 The powerful icon system bring your ideas to life and enjoy a hassle-free experience   
 
 Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 and Awtrix Light and experience the difference today! 
@@ -34,7 +34,7 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
 - Homeassistant discovery
 - Onscreen menu where you can change your settings directly on the device
 - Pre-installed pages like time, date, temperature, humidity and battery
-- Add custom pages without recompiling.
+- Add customapps without recompiling.
 - Easy to use icon system
 - Powerful MQTT commands
 - RTTTL melody player
