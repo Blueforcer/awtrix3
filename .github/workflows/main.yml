@@ -50,10 +50,10 @@ jobs:
         run: echo '${{ steps.version_number.outputs.firmware_version }}' > version
 
       - name: Run PlatformIO
-        run: pio run
+        run: pio run --environment ulanzi
 
       - name: Copy firmware to output directory
-        run: cp .pio/build/esp32dev/firmware.bin docs/flasher/firmware
+        run: cp .pio/build/ulanzi/firmware.bin docs/flasher/firmware
 
       - name: Create new manifest.json
         run: cat docs/flasher/firmware/manifest.json | jq '.version="${{ steps.version_number.outputs.firmware_version }}"' > docs/flasher/firmware/new-manifest.json
@@ -65,10 +65,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: firmware
-          path: .pio/build/esp32dev/firmware.bin
-
-      - name: Checkout repository
-        uses: actions/checkout@v3
+          path: .pio/build/ulanzi/firmware.bin
 
       - name: Download firmware
         uses: actions/download-artifact@v2
