@@ -15,6 +15,7 @@ public:
     void publish(const char *topic, const char *payload);
     void setCurrentApp(String value);
     void sendStats();
+    void sendButton(byte btn, bool state);
 };
 
 extern MQTTManager_ &MQTTManager;

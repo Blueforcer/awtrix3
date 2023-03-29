@@ -5,6 +5,7 @@
 #include <ArduinoHA.h>
 #include <WiFi.h>
 #include <ArduinoJson.h>
+#include "Dictionary.h"
 
 unsigned long startTime;
 
@@ -29,9 +30,11 @@ HASensor *humidity = nullptr;
 HASensor *illuminance = nullptr;
 HASensor *uptime = nullptr;
 HASensor *strength = nullptr;
-
 HASensor *version = nullptr;
 HASensor *ram = nullptr;
+HABinarySensor *btnleft = nullptr;
+HABinarySensor *btnmid = nullptr;
+HABinarySensor *btnright = nullptr;
 
 // The getter for the instantiated singleton instance
 MQTTManager_ &MQTTManager_::getInstance()
@@ -212,14 +215,14 @@ void connect()
 }
 
 char matID[40], briID[40];
-char btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], batID[40], ramID[40], upID[40], sigID[40];
+char btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], batID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40];
 
 void MQTTManager_::setup()
 {
     startTime = millis();
     if (HA_DISCOVERY)
     {
-        Serial.println("Starting Homeassistant discorvery");
+        Serial.println(F("Starting Homeassistant discorvery"));
 
         uint8_t mac[6];
         WiFi.macAddress(mac);
@@ -228,17 +231,17 @@ void MQTTManager_::setup()
         device.setUniqueId(mac, sizeof(mac));
         device.setName(uniqueID);
         device.setSoftwareVersion(VERSION);
-        device.setManufacturer("Blueforcer");
-        device.setModel("AWTRIX Light");
+        device.setManufacturer(HAmanufacturer);
+        device.setModel(HAmodel);
         device.setAvailability(true);
 
         String uniqueIDWithSuffix;
 
-        sprintf(matID, "%s_mat", macStr);
+        sprintf(matID, HAmatID, macStr);
         Matrix = new HALight(matID, HALight::BrightnessFeature | HALight::RGBFeature);
 
-        Matrix->setIcon("mdi:lightbulb");
-        Matrix->setName("Matrix");
+        Matrix->setIcon(HAmatIcon);
+        Matrix->setName(HAmatName);
         Matrix->onStateCommand(onStateCommand);
         Matrix->onBrightnessCommand(onBrightnessCommand);
         Matrix->onRGBColorCommand(onRGBColorCommand);
@@ -252,87 +255,99 @@ void MQTTManager_::setup()
         Matrix->setCurrentRGBColor(color);
         Matrix->setState(true, true);
 
-        sprintf(briID, "%s_bri", macStr);
+        sprintf(briID, HAbriID, macStr);
         BriMode = new HASelect(briID);
-        BriMode->setOptions("Manual;Auto"); // use semicolons as separator of options
+        BriMode->setOptions(HAbriOptions); // use semicolons as separator of options
         BriMode->onCommand(onSelectCommand);
-        BriMode->setIcon("mdi:brightness-auto"); // optional
-        BriMode->setName("Brightness mode");     // optional
+        BriMode->setIcon(HAbriIcon); // optional
+        BriMode->setName(HAbriName); // optional
         BriMode->setState(AUTO_BRIGHTNESS, true);
 
-        sprintf(btnAID, "%s_btna", macStr);
+        sprintf(btnAID, HAbtnaID, macStr);
         dismiss = new HAButton(btnAID);
-        dismiss->setIcon("mdi:bell-off");
-        dismiss->setName("Dismiss notification");
+        dismiss->setIcon(HAbtnaIcon);
+        dismiss->setName(HAbtnaName);
 
-        sprintf(btnBID, "%s_btnb", macStr);
+        sprintf(btnBID, HAbtnbID, macStr);
         nextApp = new HAButton(btnBID);
-        nextApp->setIcon("mdi:arrow-right-bold");
-        nextApp->setName("Next app");
+        nextApp->setIcon(HAbtnbIcon);
+        nextApp->setName(HAbtnbName);
 
-        sprintf(btnCID, "%s_btnc", macStr);
+        sprintf(btnCID, HAbtncID, macStr);
         prevApp = new HAButton(btnCID);
-        prevApp->setIcon("mdi:arrow-left-bold");
-        prevApp->setName("Previous app");
+        prevApp->setIcon(HAbtncIcon);
+        prevApp->setName(HAbtncName);
 
         dismiss->onCommand(onButtonCommand);
         nextApp->onCommand(onButtonCommand);
         prevApp->onCommand(onButtonCommand);
 
-        sprintf(appID, "%s_app", macStr);
+        sprintf(appID, HAappID, macStr);
         curApp = new HASensor(appID);
-        curApp->setIcon("mdi:apps");
-        curApp->setName("Current app");
+        curApp->setIcon(HAappIcon);
+        curApp->setName(HAappName);
 
-        sprintf(tempID, "%s_temp", macStr);
+        sprintf(tempID, HAtempID, macStr);
         temperature = new HASensor(tempID);
-        temperature->setIcon("mdi:thermometer");
-        temperature->setName("Temperature");
-        temperature->setDeviceClass("temperature");
-        temperature->setUnitOfMeasurement("°C");
+        temperature->setIcon(HAtempIcon);
+        temperature->setName(HAtempName);
+        temperature->setDeviceClass(HAtempClass);
+        temperature->setUnitOfMeasurement(HAtempUnit);
 
-        sprintf(humID, "%s_hum", macStr);
+        sprintf(humID, HAhumID, macStr);
         humidity = new HASensor(humID);
-        humidity->setIcon("mdi:water-percent");
-        humidity->setName("Humidity");
-        humidity->setDeviceClass("humidity");
-        humidity->setUnitOfMeasurement("%");
+        humidity->setIcon(HAhumIcon);
+        humidity->setName(HAhumName);
+        humidity->setDeviceClass(HAhumClass);
+        humidity->setUnitOfMeasurement(HAhumUnit);
 
-        sprintf(batID, "%s_bat", macStr);
+        sprintf(batID, HAbatID, macStr);
         battery = new HASensor(batID);
-        battery->setIcon("mdi:battery-90");
-        battery->setName("Battery");
-        battery->setDeviceClass("battery");
-        battery->setUnitOfMeasurement("%");
+        battery->setIcon(HAbatIcon);
+        battery->setName(HAbatName);
+        battery->setDeviceClass(HAbatClass);
+        battery->setUnitOfMeasurement(HAbatUnit);
 
-        sprintf(luxID, "%s_lux", macStr);
+        sprintf(luxID, HAluxID, macStr);
         illuminance = new HASensor(luxID);
-        illuminance->setIcon("mdi:sun-wireless");
-        illuminance->setName("Illuminance");
-        illuminance->setDeviceClass("illuminance");
-        illuminance->setUnitOfMeasurement("lx");
+        illuminance->setIcon(HAluxIcon);
+        illuminance->setName(HAluxName);
+        illuminance->setDeviceClass(HAluxClass);
+        illuminance->setUnitOfMeasurement(HAluxUnit);
 
-        sprintf(verID, "%s_ver", macStr);
+        sprintf(verID, HAverID, macStr);
         version = new HASensor(verID);
-        version->setName("Version");
+        version->setName(HAverName);
 
-        sprintf(sigID, "%s_sig", macStr);
+        sprintf(sigID, HAsigID, macStr);
         strength = new HASensor(sigID);
-        strength->setName("WiFi strength");
-        strength->setDeviceClass("signal_strength");
-        strength->setUnitOfMeasurement("dB");
+        strength->setName(HAsigName);
+        strength->setDeviceClass(HAsigClass);
+        strength->setUnitOfMeasurement(HAsigUnit);
 
-        sprintf(upID, "%s_up", macStr);
+        sprintf(upID, HAupID, macStr);
         uptime = new HASensor(upID);
-        uptime->setName("Uptime");
-        uptime->setDeviceClass("duration");
+        uptime->setName(HAupName);
+        uptime->setDeviceClass(HAupClass);
 
-        sprintf(ramID, "%s_ram", macStr);
+        sprintf(btnLID, HAbtnLID, macStr);
+        btnleft = new HABinarySensor(btnLID);
+        btnleft->setName(HAbtnLName);
+
+        sprintf(btnMID, HAbtnMID, macStr);
+        btnmid = new HABinarySensor(btnMID);
+        btnmid->setName(HAbtnMName);
+
+        sprintf(btnRID, HAbtnRID, macStr);
+        btnright = new HABinarySensor(btnRID);
+        btnright->setName(HAbtnRName);
+
+        sprintf(ramID, HAramRID, macStr);
         ram = new HASensor(ramID);
-        ram->setDeviceClass("data_size");
-        ram->setIcon("mdi:application-cog");
-        ram->setName("Free ram");
-        ram->setUnitOfMeasurement("B");
+        ram->setDeviceClass(HAramClass);
+        ram->setIcon(HAramIcon);
+        ram->setName(HAramName);
+        ram->setUnitOfMeasurement(HAramUnit);
     }
     else
     {
@@ -419,22 +434,55 @@ void MQTTManager_::sendStats()
 
     StaticJsonDocument<200> doc;
     char buffer[5];
-    doc["bat"] = BATTERY_PERCENT;
-    doc["batraw"] = BATTERY_RAW;
+    doc[BatKey] = BATTERY_PERCENT;
+    doc[BatRawKey] = BATTERY_RAW;
     snprintf(buffer, 5, "%.0f", CURRENT_LUX);
-    doc["lux"] = buffer;
-    doc["ldrraw"] = LDR_RAW;
-    doc["bri"] = BRIGHTNESS;
+    doc[LuxKey] = buffer;
+    doc[LDRRawKey] = LDR_RAW;
+    doc[BrightnessKey] = BRIGHTNESS;
     snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
-    doc["temp"] = buffer;
+    doc[TempKey] = buffer;
     snprintf(buffer, 5, "%.0f", CURRENT_HUM);
-    doc["hum"] = buffer;
-    doc["uptime"] = readUptime();
-    doc["wifi"] = WiFi.RSSI();
+    doc[HumKey] = buffer;
+    doc[UpTimeKey] = readUptime();
+    doc[SignalStrengthKey] = WiFi.RSSI();
     String jsonString;
     serializeJson(doc, jsonString);
-    char topic[50];
-    strcpy(topic, MQTT_PREFIX.c_str());
-    strcat(topic, "/stats");
-    mqtt.publish(topic, jsonString.c_str());
+    publish(StatsTopic, jsonString.c_str());
+}
+
+void MQTTManager_::sendButton(byte btn, bool state)
+{
+    static bool btn0State, btn1State, btn2State;
+
+    switch (btn)
+    {
+    case 0:
+        if (btn0State != state)
+        {
+            btnleft->setState(state, false);
+            btn0State = state;
+            publish(ButtonLeftTopic, state ? State1 : State0);
+        }
+        break;
+    case 1:
+        if (btn1State != state)
+        {
+            btnmid->setState(state, false);
+            btn1State = state;
+            publish(ButtonSelectTopic, state ? State1 : State0);
+        }
+
+        break;
+    case 2:
+        if (btn2State != state)
+        {
+            btnright->setState(state, false);
+            btn2State = state;
+            publish(ButtonRightTopic, state ? State1 : State0);
+        }
+        break;
+    default:
+        break;
+    }
 }

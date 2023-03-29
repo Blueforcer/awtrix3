@@ -9,26 +9,25 @@
 #include <LightDependentResistor.h>
 #include <MenuManager.h>
 
-#define SOUND_OFF false
+#define SOUND_OFF true
 
 #ifdef ULANZI
 // Pinouts für das ULANZI-Environment
-    #define BATTERY_PIN 34
-    #define BUZZER_PIN 15
-    #define LDR_PIN 35
-    #define BUTTON_UP_PIN 26
-    #define BUTTON_DOWN_PIN 14
-    #define BUTTON_SELECT_PIN 27
+#define BATTERY_PIN 34
+#define BUZZER_PIN 15
+#define LDR_PIN 35
+#define BUTTON_UP_PIN 26
+#define BUTTON_DOWN_PIN 14
+#define BUTTON_SELECT_PIN 27
 #else
 // Pinouts für das WEMOS_D1_MINI32-Environment
-    #define BATTERY_PIN -1
-    #define BUZZER_PIN -1
-    #define LDR_PIN A0
-    #define BUTTON_UP_PIN D0
-    #define BUTTON_DOWN_PIN D4
-    #define BUTTON_SELECT_PIN D8
+#define BATTERY_PIN -1
+#define BUZZER_PIN -1
+#define LDR_PIN A0
+#define BUTTON_UP_PIN D0
+#define BUTTON_DOWN_PIN D4
+#define BUTTON_SELECT_PIN D8
 #endif
-
 
 Adafruit_SHT31 sht31;
 EasyButton button_left(BUTTON_UP_PIN);
@@ -57,8 +56,6 @@ int TotalLDRReadings[LDRReadings];
 float sampleSum = 0.0;
 float sampleAverage = 0.0;
 float brightnessPercent = 0.0;
-
-
 
 // The getter for the instantiated singleton instance
 PeripheryManager_ &PeripheryManager_::getInstance()
@@ -140,7 +137,7 @@ void fistStart()
 
     uint16_t ADCVALUE = analogRead(BATTERY_PIN);
 
-    BATTERY_PERCENT = min((int)map(ADCVALUE, 490, 660, 0, 100), 100);
+    BATTERY_PERCENT = min((int)map(ADCVALUE, 490, 690, 0, 100), 100);
     sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
 
     uint16_t LDRVALUE = analogRead(LDR_PIN);
@@ -170,9 +167,10 @@ void PeripheryManager_::setup()
 
 void PeripheryManager_::tick()
 {
-    button_left.read();
-    button_right.read();
-    button_select.read();
+
+    MQTTManager.sendButton(0, button_left.read());
+    MQTTManager.sendButton(1, button_select.read());
+    MQTTManager.sendButton(2, button_right.read());
 
     unsigned long currentMillis_BatTempHum = millis();
     if (currentMillis_BatTempHum - previousMillis_BatTempHum >= interval_BatTempHum)
@@ -211,8 +209,6 @@ void PeripheryManager_::tick()
         }
     }
 }
-
-
 
 const int MIN_ALARM_INTERVAL = 60; // 1 Minute
 time_t lastAlarmTime = 0;

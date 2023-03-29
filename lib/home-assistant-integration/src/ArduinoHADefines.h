@@ -4,7 +4,7 @@
  //#define ARDUINOHA_DEBUG
 
 // These macros allow to exclude some parts of the library to save more resources.
- #define EX_ARDUINOHA_BINARY_SENSOR
+ //#define EX_ARDUINOHA_BINARY_SENSOR
  //#define EX_ARDUINOHA_BUTTON
  #define EX_ARDUINOHA_CAMERA
  #define EX_ARDUINOHA_COVER
