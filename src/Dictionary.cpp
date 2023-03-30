@@ -65,6 +65,10 @@ const char HAluxUnit[] PROGMEM = {"lx"};
 const char HAverID[] PROGMEM = {"%s_ver"};
 const char HAverName[] PROGMEM = {"Version"};
 
+const char HAtransID[] PROGMEM = {"%s_tra"};
+const char HAtransName[] PROGMEM = {"Transition"};
+const char HAtransIcon[] PROGMEM = {"mdi:swap-vertical"};
+
 const char HAsigID[] PROGMEM = {"%s_sig"};
 const char HAsigIcon[] PROGMEM = {"mdi:sun-wireless"};
 const char HAsigName[] PROGMEM = {"WiFi strength"};
@@ -84,7 +88,7 @@ const char HAbtnMName[] PROGMEM = {"Button select"};
 const char HAbtnRID[] PROGMEM = {"%s_btnR"};
 const char HAbtnRName[] PROGMEM = {"Button right"};
 
-const char HAramRID[] PROGMEM = {"%s_btnR"};
+const char HAramRID[] PROGMEM = {"%s_ram"};
 const char HAramIcon[] PROGMEM = {"mdi:application-cog"};
 const char HAramName[] PROGMEM = {"Free ram"};
 const char HAramClass[] PROGMEM = {"data_size"};

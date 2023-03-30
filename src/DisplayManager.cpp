@@ -73,6 +73,7 @@ void DisplayManager_::MatrixState(bool on)
 
 bool DisplayManager_::setAutoTransition(bool active)
 {
+
     if (ui.AppCount < 2)
     {
         ui.disablesetAutoTransition();
@@ -315,7 +316,6 @@ void DisplayManager_::generateCustomPage(String name, String payload)
         String iconFileName = String(doc["icon"].as<String>());
         if (customApp.icon && String(customApp.icon.name()).startsWith(iconFileName))
         {
-            
         }
         else
         {

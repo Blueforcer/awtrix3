@@ -236,18 +236,6 @@ void MatrixDisplayUi::drawApp()
     int16_t x, y, x1, y1;
     switch (this->appAnimationDirection)
     {
-    case SLIDE_LEFT:
-      x = -32 * progress;
-      y = 0;
-      x1 = x + 32;
-      y1 = 0;
-      break;
-    case SLIDE_RIGHT:
-      x = 32 * progress;
-      y = 0;
-      x1 = x - 32;
-      y1 = 0;
-      break;
     case SLIDE_UP:
       x = 0;
       y = -8 * progress;

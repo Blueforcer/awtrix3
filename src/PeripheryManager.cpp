@@ -225,7 +225,7 @@ void PeripheryManager_::checkAlarms()
     DeserializationError error = deserializeJson(doc, file);
     if (error)
     {
-        Serial.println("Failed to read Alarm file");
+        Serial.println(F("Failed to read Alarm file"));
         return;
     }
     JsonArray alarms = doc["alarms"];

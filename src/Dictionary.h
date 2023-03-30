@@ -75,6 +75,10 @@ extern const char HAupID[];
 extern const char HAupName[];
 extern const char HAupClass[];
 
+extern const char HAtransID[];
+extern const char HAtransName[];
+extern const char HAtransIcon[];
+
 extern const char HAbtnLID[];
 extern const char HAbtnLName[];
 

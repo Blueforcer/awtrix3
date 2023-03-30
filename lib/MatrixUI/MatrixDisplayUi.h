@@ -41,9 +41,7 @@
 enum AnimationDirection
 {
   SLIDE_UP,
-  SLIDE_DOWN,
-  SLIDE_LEFT,
-  SLIDE_RIGHT
+  SLIDE_DOWN
 };
 
 enum AppState
@@ -79,7 +77,7 @@ private:
   FastLED_NeoMatrix *matrix;
 
   // Values for the Apps
-  AnimationDirection appAnimationDirection = SLIDE_RIGHT;
+  AnimationDirection appAnimationDirection = SLIDE_DOWN;
 
   int8_t lastTransitionDirection = 1;
 

@@ -12,7 +12,7 @@ unsigned long startTime;
 WiFiClient espClient;
 uint8_t lastBrightness;
 HADevice device;
-HAMqtt mqtt(espClient, device, 18);
+HAMqtt mqtt(espClient, device, 19);
 
 unsigned long reconnectTimer = 0;
 const unsigned long reconnectInterval = 30000; // 30 Sekunden
@@ -22,7 +22,7 @@ HASelect *BriMode = nullptr;
 HAButton *dismiss = nullptr;
 HAButton *nextApp = nullptr;
 HAButton *prevApp = nullptr;
-
+HASwitch *transition = nullptr;
 HASensor *curApp = nullptr;
 HASensor *battery = nullptr;
 HASensor *temperature = nullptr;
@@ -60,6 +60,14 @@ void onButtonCommand(HAButton *sender)
     {
         DisplayManager.previousApp();
     }
+}
+
+void onSwitchCommand(bool state, HASwitch *sender)
+{
+    AUTO_TRANSITION = state;
+    DisplayManager.setAutoTransition(state);
+    saveSettings();
+    sender->setState(state);
 }
 
 void onSelectCommand(int8_t index, HASelect *sender)
@@ -215,7 +223,7 @@ void connect()
 }
 
 char matID[40], briID[40];
-char btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], batID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40];
+char btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], batID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40];
 
 void MQTTManager_::setup()
 {
@@ -268,6 +276,17 @@ void MQTTManager_::setup()
         dismiss->setIcon(HAbtnaIcon);
         dismiss->setName(HAbtnaName);
 
+        sprintf(transID, HAtransID, macStr);
+        transition = new HASwitch(transID);
+        transition->setIcon(HAtransIcon);
+        transition->setName(HAtransName);
+        transition->onCommand(onSwitchCommand);
+
+        sprintf(appID, HAappID, macStr);
+        curApp = new HASensor(appID);
+        curApp->setIcon(HAappIcon);
+        curApp->setName(HAappName);
+
         sprintf(btnBID, HAbtnbID, macStr);
         nextApp = new HAButton(btnBID);
         nextApp->setIcon(HAbtnbIcon);
@@ -281,11 +300,6 @@ void MQTTManager_::setup()
         dismiss->onCommand(onButtonCommand);
         nextApp->onCommand(onButtonCommand);
         prevApp->onCommand(onButtonCommand);
-
-        sprintf(appID, HAappID, macStr);
-        curApp = new HASensor(appID);
-        curApp->setIcon(HAappIcon);
-        curApp->setName(HAappName);
 
         sprintf(tempID, HAtempID, macStr);
         temperature = new HASensor(tempID);
@@ -430,6 +444,10 @@ void MQTTManager_::sendStats()
         ram->setValue(rambuffer);
         uptime->setValue(readUptime());
         version->setValue(VERSION);
+        transition->setState(AUTO_TRANSITION, false);
+    }
+    else
+    {
     }
 
     StaticJsonDocument<200> doc;
