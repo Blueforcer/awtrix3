@@ -478,7 +478,8 @@ void MQTTManager_::sendButton(byte btn, bool state)
     case 0:
         if (btn0State != state)
         {
-            btnleft->setState(state, false);
+            if (HA_DISCOVERY)
+                btnleft->setState(state, false);
             btn0State = state;
             publish(ButtonLeftTopic, state ? State1 : State0);
         }
@@ -486,7 +487,8 @@ void MQTTManager_::sendButton(byte btn, bool state)
     case 1:
         if (btn1State != state)
         {
-            btnmid->setState(state, false);
+            if (HA_DISCOVERY)
+                btnmid->setState(state, false);
             btn1State = state;
             publish(ButtonSelectTopic, state ? State1 : State0);
         }
@@ -495,7 +497,8 @@ void MQTTManager_::sendButton(byte btn, bool state)
     case 2:
         if (btn2State != state)
         {
-            btnright->setState(state, false);
+            if (HA_DISCOVERY)
+                btnright->setState(state, false);
             btn2State = state;
             publish(ButtonRightTopic, state ? State1 : State0);
         }
