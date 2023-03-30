@@ -128,21 +128,22 @@ void onBrightnessCommand(uint8_t brightness, HALight *sender)
 void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
 {
     String strTopic = String(topic);
-    String strPayload = String((const char *)payload).substring(0, length);
-
+    char *payloadCopy = new char[length + 1];
+    memcpy(payloadCopy, payload, length);
+    payloadCopy[length] = '\0';
     if (strTopic == MQTT_PREFIX + "/notify")
     {
         if (payload[0] != '{' || payload[length - 1] != '}')
         {
             return;
         }
-        DisplayManager.generateNotification(strPayload);
+        DisplayManager.generateNotification(payloadCopy);
         return;
     }
 
     if (strTopic == MQTT_PREFIX + "/timer")
     {
-        DisplayManager.gererateTimer(strPayload);
+        DisplayManager.gererateTimer(payloadCopy);
         return;
     }
 
@@ -152,15 +153,21 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         return;
     }
 
+    if (strTopic == MQTT_PREFIX + "/apps")
+    {
+        DisplayManager.updateAppVector(payloadCopy);
+        return;
+    }
+
     if (strTopic == MQTT_PREFIX + "/switch")
     {
-        DisplayManager.switchToApp(strPayload);
+        DisplayManager.switchToApp(payloadCopy);
         return;
     }
 
     if (strTopic == MQTT_PREFIX + "/settings")
     {
-        DisplayManager.setNewSettings(strPayload);
+        DisplayManager.setNewSettings(payloadCopy);
         return;
     }
 
@@ -185,26 +192,34 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
             topic_str = topic_str.substring(prefix.length());
         }
 
-        DisplayManager.generateCustomPage(topic_str, strPayload);
+        DisplayManager.generateCustomPage(topic_str, payloadCopy);
         return;
     }
+    delete[] payloadCopy;
 }
 
 void onMqttConnected()
 {
     String prefix = MQTT_PREFIX;
-    mqtt.subscribe((prefix + String("/brightness")).c_str());
-    mqtt.subscribe((prefix + String("/notify/dismiss")).c_str());
-    mqtt.subscribe((prefix + String("/notify")).c_str());
-    mqtt.subscribe((prefix + String("/timer")).c_str());
-    mqtt.subscribe((prefix + String("/custom/#")).c_str());
-    mqtt.subscribe((prefix + String("/switch")).c_str());
-    mqtt.subscribe((prefix + String("/settings")).c_str());
-    mqtt.subscribe((prefix + String("/previousapp")).c_str());
-    mqtt.subscribe((prefix + String("/nextapp")).c_str());
-    Serial.println("MQTT Connected");
+    const char* topics[] PROGMEM = {
+        "/brightness",
+        "/notify/dismiss",
+        "/notify",
+        "/timer",
+        "/custom/#",
+        "/switch",
+        "/settings",
+        "/previousapp",
+        "/nextapp",
+        "/nextapp",
+        "/apps"
+    };
+    for (const char* topic : topics) {
+        String fullTopic = prefix + topic;
+        mqtt.subscribe(fullTopic.c_str());
+    }
+    Serial.println(F("MQTT Connected"));
 }
-
 void connect()
 {
     mqtt.onMessage(onMqttMessage);
@@ -212,12 +227,12 @@ void connect()
 
     if (MQTT_USER == "" || MQTT_PASS == "")
     {
-        Serial.println("Connecting to MQTT w/o login");
+        Serial.println(F("Connecting to MQTT w/o login"));
         mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, nullptr, nullptr, MQTT_PREFIX.c_str());
     }
     else
     {
-        Serial.println("Connecting to MQTT with login");
+        Serial.println(F("Connecting to MQTT with login"));
         mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, MQTT_USER.c_str(), MQTT_PASS.c_str(), MQTT_PREFIX.c_str());
     }
 }
@@ -365,7 +380,7 @@ void MQTTManager_::setup()
     }
     else
     {
-        Serial.println("Homeassistant discovery disabled");
+        Serial.println(F("Homeassistant discovery disabled"));
         mqtt.disableHA();
     }
     connect();

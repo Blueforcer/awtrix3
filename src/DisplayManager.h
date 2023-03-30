@@ -45,18 +45,19 @@ public:
     void setTextColor(uint16_t color);
     void setFPS(uint8_t);
     void MatrixState(bool);
-    void generateNotification(String);
-    void generateCustomPage(String, String);
+    void generateNotification(const char *json);
+    void generateCustomPage(String, const char *json);
     void printText(int16_t x, int16_t y, const char *text, bool centered, bool ignoreUppercase);
     bool setAutoTransition(bool active);
-    void switchToApp(String Payload);
-    void setNewSettings(String Payload);
+    void switchToApp(const char *json);
+    void setNewSettings(const char *json);
     void drawGIF(uint16_t x, uint16_t y, fs::File gifFile);
     void drawJPG(uint16_t x, uint16_t y, fs::File jpgFile);
     void drawProgressBar(int cur, int total);
     void drawMenuIndicator(int cur, int total, uint16_t color);
     void drawBMP(int16_t x, int16_t y, const uint16_t bitmap[], int16_t w, int16_t h);
-    void drawBarChart(int16_t x, int16_t y,const int data[], byte dataSize, bool withIcon, uint16_t color);
+    void drawBarChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint16_t color);
+    void updateAppVector(const char *json);
 };
 
 extern DisplayManager_ &DisplayManager;

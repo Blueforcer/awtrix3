@@ -9,7 +9,7 @@ The JSON object has the following properties:
 
 | Key | Type | Description | Default |
 | --- | ---- | ----------- | ------- |
-| `pos` | number | defines the position of your custompage in the loop, starting at 1 for the first position. This will only apply with your first push. You cant change the position afterwards. For that you need to delete it and add it again. | At the end of the loop |
+| `pos` | number | defines the position of your custompage in the loop, starting at 0 for the first position. This will only apply with your first push. You cant change the position afterwards with [this function](mqtt?id=addremove-and-rearange-apps) |
 | `text` | string | The text to display on the page. | |
 | `icon` | string | The icon ID or filename (without extension) to display on the page. | |
 | `repeat` | number | Sets how many times the text should be scrolled through the matrix before the display ends. | 1 |

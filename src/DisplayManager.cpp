@@ -245,9 +245,9 @@ void removeCustomApp(const String &name)
     }
 }
 
-void DisplayManager_::generateCustomPage(String name, String payload)
+void DisplayManager_::generateCustomPage(String name, const char *json)
 {
-    if (payload == "" && customApps.count(name))
+    if (json == "" && customApps.count(name))
     {
         customApps.erase(customApps.find(name));
         removeCustomApp(name);
@@ -255,7 +255,7 @@ void DisplayManager_::generateCustomPage(String name, String payload)
     }
 
     DynamicJsonDocument doc(1024);
-    DeserializationError error = deserializeJson(doc, payload);
+    DeserializationError error = deserializeJson(doc, json);
     if (error)
         return;
 
@@ -300,9 +300,30 @@ void DisplayManager_::generateCustomPage(String name, String payload)
     customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
     customApp.name = name;
     customApp.text = utf8ascii(doc["text"].as<String>());
-    customApp.color = doc.containsKey("color") ? doc["color"].is<String>() ? hexToRgb565(doc["color"]) : doc["color"].is<JsonArray>() ? hexToRgb565(doc["color"].as<String>())
-                                                                                                                                      : TEXTCOLOR_565
-                                               : TEXTCOLOR_565;
+
+    if (doc.containsKey("color"))
+    {
+        auto color = doc["color"];
+        if (color.is<String>())
+        {
+            customApp.color = hexToRgb565(color.as<String>());
+        }
+        else if (color.is<JsonArray>() && color.size() == 3)
+        {
+            uint8_t r = color[0];
+            uint8_t g = color[1];
+            uint8_t b = color[2];
+            customApp.color = (r << 11) | (g << 5) | b;
+        }
+        else
+        {
+            customApp.color = TEXTCOLOR_565;
+        }
+    }
+    else
+    {
+        customApp.color = TEXTCOLOR_565;
+    }
 
     if (currentCustomApp != name)
     {
@@ -346,10 +367,10 @@ void DisplayManager_::generateCustomPage(String name, String payload)
     customApps[name] = customApp;
 }
 
-void DisplayManager_::generateNotification(String payload)
+void DisplayManager_::generateNotification(const char *json)
 {
     StaticJsonDocument<1024> doc;
-    deserializeJson(doc, payload);
+    deserializeJson(doc, json);
 
     notify.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
     notify.text = utf8ascii(doc["text"].as<String>());
@@ -388,9 +409,29 @@ void DisplayManager_::generateNotification(String payload)
         notify.barSize = 0;
     }
 
-    notify.color = doc.containsKey("color") ? doc["color"].is<String>() ? hexToRgb565(doc["color"]) : doc["color"].is<JsonArray>() ? hexToRgb565(doc["color"].as<String>())
-                                                                                                                                   : TEXTCOLOR_565
-                                            : TEXTCOLOR_565;
+    if (doc.containsKey("color"))
+    {
+        auto color = doc["color"];
+        if (color.is<String>())
+        {
+            notify.color = hexToRgb565(color.as<String>());
+        }
+        else if (color.is<JsonArray>() && color.size() == 3)
+        {
+            uint8_t r = color[0];
+            uint8_t g = color[1];
+            uint8_t b = color[2];
+            notify.color = (r << 11) | (g << 5) | b;
+        }
+        else
+        {
+            notify.color = TEXTCOLOR_565;
+        }
+    }
+    else
+    {
+        notify.color = TEXTCOLOR_565;
+    }
 
     if (doc.containsKey("icon"))
     {
@@ -607,10 +648,10 @@ void DisplayManager_::gererateTimer(String Payload)
     TimerTicker.attach_ms(interval, timerCallback);
 }
 
-void DisplayManager_::switchToApp(String Payload)
+void DisplayManager_::switchToApp(const char *json)
 {
     DynamicJsonDocument doc(512);
-    DeserializationError error = deserializeJson(doc, Payload);
+    DeserializationError error = deserializeJson(doc, json);
     if (error)
         return;
     String name = doc["name"].as<String>();
@@ -620,10 +661,10 @@ void DisplayManager_::switchToApp(String Payload)
         ui.transitionToApp(index);
 }
 
-void DisplayManager_::setNewSettings(String Payload)
+void DisplayManager_::setNewSettings(const char *json)
 {
     DynamicJsonDocument doc(512);
-    DeserializationError error = deserializeJson(doc, Payload);
+    DeserializationError error = deserializeJson(doc, json);
     if (error)
         return;
     TIME_PER_APP = doc.containsKey("apptime") ? doc["apptime"] : TIME_PER_APP;
@@ -714,4 +755,124 @@ void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte 
         int y1 = min(8 - barHeight, 7);
         matrix.fillRect(x1, y1 + y, barWidth, barHeight, color);
     }
+}
+
+void DisplayManager_::updateAppVector(const char *json)
+{
+    // Parse the JSON input
+    DynamicJsonDocument doc(1024);
+    auto error = deserializeJson(doc, json);
+    if (error)
+    {
+        // If parsing fails, print an error message and return
+        Serial.print("Failed to parse JSON: ");
+        Serial.println(error.c_str());
+        return;
+    }
+
+    // Create new vectors to store updated apps
+    std::vector<std::pair<String, AppCallback>> newApps;
+    std::vector<String> activeApps;
+
+    // Loop through all apps in the JSON input
+    for (const auto &app : doc.as<JsonArray>())
+    {
+        // Get the app name, active status, and position (if specified)
+        String name = app["name"].as<String>();
+        bool show = true;
+        int position = -1;
+
+         if (app.containsKey("show"))
+        {
+            show = app["show"].as<bool>();
+        }
+        if (app.containsKey("pos"))
+        {
+            position = app["pos"].as<int>();
+        }
+
+        // Find the corresponding AppCallback function based on the app name
+        AppCallback callback;
+        if (name == "time")
+        {
+            callback = TimeApp;
+            SHOW_TIME = show;
+        }
+        else if (name == "date")
+        {
+            callback = DateApp;
+            SHOW_DATE = show;
+        }
+        else if (name == "temp")
+        {
+            callback = TempApp;
+            SHOW_TEMP = show;
+        }
+        else if (name == "hum")
+        {
+            callback = HumApp;
+            SHOW_HUM = show;
+        }
+        else if (name == "bat")
+        {
+            callback = BatApp;
+            SHOW_BAT = show;
+        }
+        else
+        {
+            // If the app is not one of the built-in apps, check if it's already in the vector
+            int appIndex = findAppIndexByName(name);
+            if (appIndex >= 0)
+            {
+                // The app is in the vector, so we can move it to a new position or remove it
+                auto it = Apps.begin() + appIndex;
+                if (show)
+                {
+                    if (position >= 0 && static_cast<size_t>(position) < newApps.size())
+                    {
+                        Apps.erase(it);
+                        newApps.insert(newApps.begin() + position, std::make_pair(name, it->second));
+                    }
+                }
+                else
+                {
+                    // If the app is being removed, also remove it from the customApps map
+                    if (customApps.count(name))
+                    {
+                        customApps.erase(customApps.find(name));
+                        removeCustomApp(name);
+                    }
+                }
+            }
+            continue;
+        }
+        if (show)
+        {
+            // Add the app to the new vector
+            if (position >= 0 && static_cast<size_t>(position) < newApps.size())
+            {
+                newApps.insert(newApps.begin() + position, std::make_pair(name, callback));
+            }
+            else
+            {
+                newApps.emplace_back(name, callback);
+            }
+        }
+
+        activeApps.push_back(name);
+    }
+
+    // Loop through all apps currently in the vector
+    for (const auto &app : Apps)
+    {
+        // If the app is not in the updated activeApps vector, add it to the newApps vector
+        if (std::find(activeApps.begin(), activeApps.end(), app.first) == activeApps.end())
+        {
+            newApps.push_back(app);
+        }
+    }
+
+    // Update the apps vector, set it in the UI, and save settings
+    Apps = std::move(newApps);
+    ui.setApps(Apps);
 }
