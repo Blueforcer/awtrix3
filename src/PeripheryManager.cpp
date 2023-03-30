@@ -9,7 +9,7 @@
 #include <LightDependentResistor.h>
 #include <MenuManager.h>
 
-#define SOUND_OFF true
+#define SOUND_OFF false
 
 #ifdef ULANZI
 // Pinouts für das ULANZI-Environment
