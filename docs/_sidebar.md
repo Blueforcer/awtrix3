@@ -9,6 +9,7 @@
   - [Onscreen](onscreen.md)
 
 - Features
+  - [Apps](apps.md)
   - [Custom Pages & Notifications](custom.md)
   - [Alarm clock](alarm.md)
   - [Timer](timer.md)
