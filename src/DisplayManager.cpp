@@ -73,6 +73,7 @@ void DisplayManager_::MatrixState(bool on)
 
 bool DisplayManager_::setAutoTransition(bool active)
 {
+
     if (ui.AppCount < 2)
     {
         ui.disablesetAutoTransition();
@@ -260,6 +261,11 @@ void DisplayManager_::generateCustomPage(String name, String payload)
 
     CustomApp customApp;
 
+    if (customApps.find(name) != customApps.end())
+    {
+        customApp = customApps[name];
+    }
+
     if (doc.containsKey("sound"))
     {
         customApp.sound = ("/" + doc["sound"].as<String>() + ".txt");
@@ -308,21 +314,26 @@ void DisplayManager_::generateCustomPage(String name, String payload)
     if (doc.containsKey("icon"))
     {
         String iconFileName = String(doc["icon"].as<String>());
-
-        if (LittleFS.exists("/ICONS/" + iconFileName + ".jpg"))
+        if (customApp.icon && String(customApp.icon.name()).startsWith(iconFileName))
         {
-            customApp.isGif = false;
-            customApp.icon = LittleFS.open("/ICONS/" + iconFileName + ".jpg");
-        }
-        else if (LittleFS.exists("/ICONS/" + iconFileName + ".gif"))
-        {
-            customApp.isGif = true;
-            customApp.icon = LittleFS.open("/ICONS/" + iconFileName + ".gif");
         }
         else
         {
-            fs::File nullPointer;
-            customApp.icon = nullPointer;
+            if (LittleFS.exists("/ICONS/" + iconFileName + ".jpg"))
+            {
+                customApp.isGif = false;
+                customApp.icon = LittleFS.open("/ICONS/" + iconFileName + ".jpg");
+            }
+            else if (LittleFS.exists("/ICONS/" + iconFileName + ".gif"))
+            {
+                customApp.isGif = true;
+                customApp.icon = LittleFS.open("/ICONS/" + iconFileName + ".gif");
+            }
+            else
+            {
+                fs::File nullPointer;
+                customApp.icon = nullPointer;
+            }
         }
     }
     else

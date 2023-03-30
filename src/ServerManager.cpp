@@ -63,7 +63,7 @@ void ServerManager_::setup()
     {
         WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS);
     }
-    IPAddress myIP = mws.startWiFi(150000, uniqueID, "12345678");
+    IPAddress myIP = mws.startWiFi(10000, uniqueID, "12345678");
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
     Serial.println(myIP.toString());
 
@@ -117,7 +117,7 @@ void ServerManager_::tick()
 
 uint16_t stringToColor(const String &str)
 {
-    // Aufteilen des Strings in seine Bestandteile
+
     int comma1 = str.indexOf(',');
     int comma2 = str.lastIndexOf(',');
     if (comma1 < 0 || comma2 < 0 || comma2 == comma1)
@@ -129,36 +129,33 @@ uint16_t stringToColor(const String &str)
     String gStr = str.substring(comma1 + 1, comma2);
     String bStr = str.substring(comma2 + 1);
 
-    // Konvertieren der Werte von Strings zu Zahlen
+
     int r = rStr.toInt();
     int g = gStr.toInt();
     int b = bStr.toInt();
 
-    // Sicherheitsabfrage: Werte müssen zwischen 0 und 255 liegen
+
     if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
     {
         return 0xFFFF;
     }
 
-    // Konvertieren der Werte zu 5-6-5 Bitformat
     uint16_t color = ((r >> 3) << 11) | ((g >> 2) & 0x3F) << 5 | (b >> 3);
     return color;
 }
 
 String colorToString(uint16_t color)
 {
-    // Konvertieren der Farbwerte von 5-6-5 Bitformat zu 8 Bit
+
     uint8_t r = (color >> 11) << 3;
     uint8_t g = ((color >> 5) & 0x3F) << 2;
     uint8_t b = (color & 0x1F) << 3;
 
-    // Sicherheitsabfrage: Werte müssen zwischen 0 und 255 liegen
     if (r > 255 || g > 255 || b > 255)
     {
         return "#FFFFFF";
     }
 
-    // Konvertieren der Farbwerte zu Strings und Zusammenführen
     String rStr = String(r);
     String gStr = String(g);
     String bStr = String(b);
@@ -202,4 +199,3 @@ void ServerManager_::loadSettings()
         Serial.println(F("Configuration file not exist"));
     return;
 }
-
