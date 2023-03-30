@@ -875,4 +875,5 @@ void DisplayManager_::updateAppVector(const char *json)
     // Update the apps vector, set it in the UI, and save settings
     Apps = std::move(newApps);
     ui.setApps(Apps);
+    saveSettings();
 }
