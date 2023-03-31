@@ -29,6 +29,7 @@ public:
     void playFromFile(String file);
     bool isPlaying();
     void stopSound();
+    const char *readUptime();
 };
 
 extern PeripheryManager_ &PeripheryManager;

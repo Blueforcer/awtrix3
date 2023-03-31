@@ -1,6 +1,8 @@
 #include "Globals.h"
 #include "Preferences.h"
 #include <WiFi.h>
+#include <ArduinoJson.h>
+#include <LittleFS.h>
 
 Preferences Settings;
 
@@ -13,8 +15,48 @@ char *getID()
     return macStr;
 }
 
+void startLittleFS()
+{
+    if (LittleFS.begin())
+    {
+        LittleFS.mkdir("/MELODIES");
+        LittleFS.mkdir("/ICONS");
+    }
+    else
+    {
+        Serial.println("ERROR on mounting LittleFS. It will be formmatted!");
+        LittleFS.format();
+        ESP.restart();
+    }
+}
+
+void loadDevSettings()
+{
+    Serial.println("laodSettings");
+    File file = LittleFS.open("/dev.json", "r");
+    if (!file)
+    {
+        return;
+    }
+    DynamicJsonDocument doc(128);
+    DeserializationError error = deserializeJson(doc, file);
+    if (error)
+    {
+        Serial.println(F("Failed to read dev settings"));
+        return;
+    }
+
+    if (doc.containsKey("bootsound"))
+    {
+        BOOT_SOUND = doc["bootsound"].as<String>();
+    }
+
+    file.close();
+}
+
 void loadSettings()
 {
+    startLittleFS();
     Settings.begin("awtrix", false);
     MATRIX_FPS = Settings.getUChar("FPS", 23);
     BRIGHTNESS = Settings.getUChar("BRI", 120);
@@ -32,9 +74,11 @@ void loadSettings()
     SHOW_TEMP = Settings.getBool("TEMP", true);
     SHOW_HUM = Settings.getBool("HUM", true);
     SHOW_BAT = Settings.getBool("BAT", true);
+    SOUND_ACTIVE = Settings.getBool("SOUND", true);
     Settings.end();
     uniqueID = getID();
     MQTT_PREFIX = String(uniqueID);
+    loadDevSettings();
 }
 
 void saveSettings()
@@ -56,6 +100,7 @@ void saveSettings()
     Settings.putBool("TEMP", SHOW_TEMP);
     Settings.putBool("HUM", SHOW_HUM);
     Settings.putBool("BAT", SHOW_BAT);
+    Settings.putBool("SOUND", SOUND_ACTIVE);
     Settings.end();
 }
 
@@ -123,3 +168,5 @@ bool MATRIX_OFF;
 bool TIMER_ACTIVE;
 bool ALARM_ACTIVE;
 uint16_t TEXTCOLOR_565 = 0xFFFF;
+bool SOUND_ACTIVE;
+String BOOT_SOUND = "";

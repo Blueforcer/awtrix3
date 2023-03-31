@@ -620,6 +620,9 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
     DisplayManager.getInstance().resetTextColor();
 }
 
+
+//Unattractive to have a function for every customapp wich does the same, but currently still no other option found TODO
+
 void CApp1(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
 {
     String name = getAppNameByFunction(CApp1);
@@ -677,6 +680,66 @@ void CApp9(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, in
 void CApp10(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
 {
     String name = getAppNameByFunction(CApp10);
+    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+}
+
+void CApp11(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+{
+    String name = getAppNameByFunction(CApp11);
+    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+}
+
+void CApp12(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+{
+    String name = getAppNameByFunction(CApp12);
+    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+}
+
+void CApp13(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+{
+    String name = getAppNameByFunction(CApp13);
+    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+}
+
+void CApp14(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+{
+    String name = getAppNameByFunction(CApp14);
+    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+}
+
+void CApp15(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+{
+    String name = getAppNameByFunction(CApp15);
+    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+}
+
+void CApp16(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+{
+    String name = getAppNameByFunction(CApp16);
+    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+}
+
+void CApp17(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+{
+    String name = getAppNameByFunction(CApp17);
+    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+}
+
+void CApp18(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+{
+    String name = getAppNameByFunction(CApp18);
+    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+}
+
+void CApp19(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+{
+    String name = getAppNameByFunction(CApp19);
+    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+}
+
+void CApp20(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+{
+    String name = getAppNameByFunction(CApp20);
     ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
 }
 

@@ -13,22 +13,6 @@
 WebServer server(80);
 FSWebServer mws(LittleFS, server);
 bool FSOPEN;
-void startLittleFS()
-{
-
-    if (LittleFS.begin())
-    {
-        LittleFS.mkdir("/MELODIES");
-        LittleFS.mkdir("/ICONS");
-        FSOPEN = true;
-    }
-    else
-    {
-        Serial.println("ERROR on mounting LittleFS. It will be formmatted!");
-        LittleFS.format();
-        ESP.restart();
-    }
-}
 
 // The getter for the instantiated singleton instance
 ServerManager_ &ServerManager_::getInstance()
@@ -49,14 +33,90 @@ void versionHandler()
 void saveHandler()
 {
     WebServerClass *webRequest = mws.getRequest();
-    Serial.println("Save");
     ServerManager.getInstance().loadSettings();
     webRequest->send(200);
 }
 
+void handlePostRequest()
+{
+    WebServerClass *webRequest = mws.getRequest();
+    String url = webRequest->uri();
+    url.replace("/api", "");
+    if (webRequest->method() == HTTP_POST)
+    {
+        String body = webRequest->arg("plain");
+        const char *bodyPtr = body.c_str();
+        webRequest->send(200);
+        if (url == "/notify")
+        {
+            if (body[0] != '{' || body[strlen(bodyPtr) - 1] != '}')
+            {
+                webRequest->send(400, "text/plain", "Invalid payload format");
+                return;
+            }
+            DisplayManager.generateNotification(bodyPtr);
+        }
+
+        else if (url == "/timer")
+        {
+            DisplayManager.gererateTimer(bodyPtr);
+        }
+
+        else if (url == "/notify/dismiss")
+        {
+            DisplayManager.dismissNotify();
+        }
+
+        else if (url == "/apps")
+        {
+            DisplayManager.updateAppVector(bodyPtr);
+        }
+
+        else if (url == "/switch")
+        {
+            DisplayManager.switchToApp(bodyPtr);
+        }
+
+        else if (url == "/settings")
+        {
+            DisplayManager.setNewSettings(bodyPtr);
+        }
+
+        else if (url == "/nextapp")
+        {
+            DisplayManager.nextApp();
+        }
+
+        else if (url == "/previousapp")
+        {
+            DisplayManager.previousApp();
+        }
+
+        else if (url.startsWith("/custom"))
+        {
+            String topic_str = url.substring(MQTT_PREFIX.length() + 7);
+            DisplayManager.generateCustomPage(topic_str, bodyPtr);
+        }
+        else
+        {
+            webRequest->send(400);
+        }
+    }
+    else if (webRequest->method() == HTTP_GET)
+    {
+        if (url == "/stats")
+        {
+            webRequest->sendContent(DisplayManager.getStat());
+        }
+        else
+        {
+            webRequest->send(400);
+        }
+    }
+}
+
 void ServerManager_::setup()
 {
-
     if (!local_IP.fromString(NET_IP) || !gateway.fromString(NET_GW) || !subnet.fromString(NET_SN) || !primaryDNS.fromString(NET_PDNS) || !secondaryDNS.fromString(NET_SDNS))
         NET_STATIC = false;
     if (NET_STATIC)
@@ -69,6 +129,7 @@ void ServerManager_::setup()
 
     if (isConnected)
     {
+        mws.onNotFound(handlePostRequest);
         mws.addOptionBox("Network");
         mws.addOption("Static IP", NET_STATIC);
         mws.addOption("Local IP", NET_IP);
@@ -96,7 +157,6 @@ void ServerManager_::setup()
         mws.addHandler("/save", HTTP_GET, saveHandler);
     }
 
-    mws.addHandler("/version", HTTP_GET, versionHandler);
     mws.begin();
 
     if (!MDNS.begin(uniqueID))
@@ -129,11 +189,9 @@ uint16_t stringToColor(const String &str)
     String gStr = str.substring(comma1 + 1, comma2);
     String bStr = str.substring(comma2 + 1);
 
-
     int r = rStr.toInt();
     int g = gStr.toInt();
     int b = bStr.toInt();
-
 
     if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
     {
@@ -164,9 +222,6 @@ String colorToString(uint16_t color)
 
 void ServerManager_::loadSettings()
 {
-    if (!FSOPEN)
-        startLittleFS();
-
     if (LittleFS.exists("/config.json"))
     {
         File file = LittleFS.open("/config.json", "r");

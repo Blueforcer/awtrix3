@@ -13,6 +13,7 @@
 #include "ServerManager.h"
 #include "MenuManager.h"
 #include "Apps.h"
+#include "Dictionary.h"
 
 Ticker AlarmTicker;
 Ticker TimerTicker;
@@ -214,7 +215,7 @@ void pushCustomApp(String name, int position)
     if (customApps.count(name) == 0)
     {
         ++customPagesCount;
-        void (*customApps[10])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10};
+        void (*customApps[20])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};
 
         if (position < 0) // Insert at the end of the vector
         {
@@ -230,6 +231,7 @@ void pushCustomApp(String name, int position)
         }
 
         ui.setApps(Apps); // Add Apps
+        DisplayManager.getInstance().setAutoTransition(true);
     }
 }
 
@@ -714,4 +716,146 @@ void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte 
         int y1 = min(8 - barHeight, 7);
         matrix.fillRect(x1, y1 + y, barWidth, barHeight, color);
     }
+}
+
+void DisplayManager_::updateAppVector(const char *json)
+{
+    // Parse the JSON input
+    DynamicJsonDocument doc(1024);
+    auto error = deserializeJson(doc, json);
+    if (error)
+    {
+        // If parsing fails, print an error message and return
+        Serial.print("Failed to parse JSON: ");
+        Serial.println(error.c_str());
+        return;
+    }
+
+    // Create new vectors to store updated apps
+    std::vector<std::pair<String, AppCallback>> newApps;
+    std::vector<String> activeApps;
+
+    // Loop through all apps in the JSON input
+    for (const auto &app : doc.as<JsonArray>())
+    {
+        // Get the app name, active status, and position (if specified)
+        String name = app["name"].as<String>();
+        bool show = true;
+        int position = -1;
+
+        if (app.containsKey("show"))
+        {
+            show = app["show"].as<bool>();
+        }
+        if (app.containsKey("pos"))
+        {
+            position = app["pos"].as<int>();
+        }
+
+        // Find the corresponding AppCallback function based on the app name
+        AppCallback callback;
+        if (name == "time")
+        {
+            callback = TimeApp;
+            SHOW_TIME = show;
+        }
+        else if (name == "date")
+        {
+            callback = DateApp;
+            SHOW_DATE = show;
+        }
+        else if (name == "temp")
+        {
+            callback = TempApp;
+            SHOW_TEMP = show;
+        }
+        else if (name == "hum")
+        {
+            callback = HumApp;
+            SHOW_HUM = show;
+        }
+        else if (name == "bat")
+        {
+            callback = BatApp;
+            SHOW_BAT = show;
+        }
+        else
+        {
+            // If the app is not one of the built-in apps, check if it's already in the vector
+            int appIndex = findAppIndexByName(name);
+            if (appIndex >= 0)
+            {
+                // The app is in the vector, so we can move it to a new position or remove it
+                auto it = Apps.begin() + appIndex;
+                if (show)
+                {
+                    if (position >= 0 && static_cast<size_t>(position) < newApps.size())
+                    {
+                        Apps.erase(it);
+                        newApps.insert(newApps.begin() + position, std::make_pair(name, it->second));
+                    }
+                }
+                else
+                {
+                    // If the app is being removed, also remove it from the customApps map
+                    if (customApps.count(name))
+                    {
+                        customApps.erase(customApps.find(name));
+                        removeCustomApp(name);
+                    }
+                }
+            }
+            continue;
+        }
+        if (show)
+        {
+            // Add the app to the new vector
+            if (position >= 0 && static_cast<size_t>(position) < newApps.size())
+            {
+                newApps.insert(newApps.begin() + position, std::make_pair(name, callback));
+            }
+            else
+            {
+                newApps.emplace_back(name, callback);
+            }
+        }
+
+        activeApps.push_back(name);
+    }
+
+    // Loop through all apps currently in the vector
+    for (const auto &app : Apps)
+    {
+        // If the app is not in the updated activeApps vector, add it to the newApps vector
+        if (std::find(activeApps.begin(), activeApps.end(), app.first) == activeApps.end())
+        {
+            newApps.push_back(app);
+        }
+    }
+
+    // Update the apps vector, set it in the UI, and save settings
+    Apps = std::move(newApps);
+    ui.setApps(Apps);
+    saveSettings();
+}
+
+String DisplayManager_::getStat()
+{
+    StaticJsonDocument<200> doc;
+    char buffer[5];
+    doc[BatKey] = BATTERY_PERCENT;
+    doc[BatRawKey] = BATTERY_RAW;
+    snprintf(buffer, 5, "%.0f", CURRENT_LUX);
+    doc[LuxKey] = buffer;
+    doc[LDRRawKey] = LDR_RAW;
+    doc[BrightnessKey] = BRIGHTNESS;
+    snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
+    doc[TempKey] = buffer;
+    snprintf(buffer, 5, "%.0f", CURRENT_HUM);
+    doc[HumKey] = buffer;
+    doc[UpTimeKey] = PeripheryManager.readUptime();
+    doc[SignalStrengthKey] = WiFi.RSSI();
+    String jsonString;
+    serializeJson(doc, jsonString);
+    return jsonString;
 }

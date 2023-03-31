@@ -26,6 +26,7 @@ enum MenuState
     WeekdayMenu,
     TempMenu,
     Appmenu,
+    SoundMenu
 };
 
 const char *menuItems[] PROGMEM = {
@@ -40,10 +41,11 @@ const char *menuItems[] PROGMEM = {
     "WEEKDAY",
     "TEMP",
     "APPS",
+    "SOUND",
     "UPDATE"};
 
 int8_t menuIndex = 0;
-uint8_t menuItemCount = 12;
+uint8_t menuItemCount = 13;
 
 const char *timeFormat[] PROGMEM = {
     "%H:%M:%S",
@@ -70,13 +72,6 @@ const char *dateFormat[] PROGMEM = {
 };
 int8_t dateFormatIndex;
 uint8_t dateFormatCount = 9;
-
-const char *appsItems[][2] PROGMEM = {
-    {"13", "time"},
-    {"1158", "date"},
-    {"234", "temp"},
-    {"2075", "hum"},
-    {"1486", "bat"}};
 
 int8_t appsIndex;
 uint8_t appsCount = 5;
@@ -129,6 +124,8 @@ String MenuManager_::menutext()
         return "0x" + String(textColors[currentColor], HEX);
     case SwitchMenu:
         return AUTO_TRANSITION ? "ON" : "OFF";
+    case SoundMenu:
+        return SOUND_ACTIVE ? "ON" : "OFF";
     case TspeedMenu:
         return String(TIME_PER_TRANSITION / 1000.0, 1) + "s";
     case AppTimeMenu:
@@ -231,6 +228,9 @@ void MenuManager_::rightButton()
     case WeekdayMenu:
         START_ON_MONDAY = !START_ON_MONDAY;
         break;
+    case SoundMenu:
+        SOUND_ACTIVE = !SOUND_ACTIVE;
+        break;
     case TempMenu:
         IS_CELSIUS = !IS_CELSIUS;
         break;
@@ -291,6 +291,9 @@ void MenuManager_::leftButton()
     case TempMenu:
         IS_CELSIUS = !IS_CELSIUS;
         break;
+    case SoundMenu:
+        SOUND_ACTIVE = !SOUND_ACTIVE;
+        break;
     default:
         break;
     }
@@ -342,6 +345,9 @@ void MenuManager_::selectButton()
             currentState = Appmenu;
             break;
         case 11:
+            currentState = SoundMenu;
+            break;
+        case 12:
             if (FirmwareVersionCheck())
             {
                 updateFirmware();
@@ -424,6 +430,7 @@ void MenuManager_::selectButtonLong()
             DATE_FORMAT = dateFormat[dateFormatIndex];
             saveSettings();
         case WeekdayMenu:
+        case SoundMenu:
         case TempMenu:
             saveSettings();
             break;

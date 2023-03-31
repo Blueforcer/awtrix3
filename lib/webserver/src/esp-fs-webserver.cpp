@@ -29,6 +29,11 @@ void FSWebServer::addHandler(const Uri &uri, WebServerClass::THandlerFunction ha
     webserver->on(uri, HTTP_ANY, handler);
 }
 
+void FSWebServer::onNotFound(WebServerClass::THandlerFunction handler)
+{
+    webserver->onNotFound(handler);
+}
+
 // List all files saved in the selected filesystem
 bool FSWebServer::checkDir(char *dirname, uint8_t levels)
 {
@@ -80,7 +85,7 @@ bool FSWebServer::begin(const char *path)
     webserver->on("/edit", HTTP_PUT, std::bind(&FSWebServer::handleFileCreate, this));
     webserver->on("/edit", HTTP_DELETE, std::bind(&FSWebServer::handleFileDelete, this));
 #endif
-    webserver->onNotFound(std::bind(&FSWebServer::handleRequest, this));
+    //webserver->onNotFound(std::bind(&FSWebServer::handleRequest, this));
     webserver->on("/favicon.ico", HTTP_GET, std::bind(&FSWebServer::replyOK, this));
     webserver->on("/", HTTP_GET, std::bind(&FSWebServer::handleIndex, this));
 #ifdef INCLUDE_SETUP_HTM
@@ -153,7 +158,6 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
 #elif defined(ESP32)
     wifi_config_t conf;
     esp_wifi_get_config(WIFI_IF_STA, &conf);
-
     _ssid = reinterpret_cast<const char *>(conf.sta.ssid);
     _pass = reinterpret_cast<const char *>(conf.sta.password);
 #endif

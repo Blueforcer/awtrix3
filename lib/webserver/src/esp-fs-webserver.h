@@ -86,6 +86,7 @@ public:
     void addHandler(const Uri &uri, HTTPMethod method, WebServerClass::THandlerFunction fn);
 
     void addHandler(const Uri &uri, WebServerClass::THandlerFunction handler);
+    void onNotFound(WebServerClass::THandlerFunction handler);
 
     void setCaptiveWebage(const char *url);
 

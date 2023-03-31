@@ -9,8 +9,6 @@
 #include <LightDependentResistor.h>
 #include <MenuManager.h>
 
-#define SOUND_OFF true
-
 #ifdef ULANZI
 // Pinouts für das ULANZI-Environment
 #define BATTERY_PIN 34
@@ -50,6 +48,7 @@ unsigned long previousMillis_LDR = 0;
 const unsigned long interval_BatTempHum = 10000;
 const unsigned long interval_LDR = 100;
 int total = 0;
+unsigned long startTime;
 
 const int LDRReadings = 10;
 int TotalLDRReadings[LDRReadings];
@@ -105,13 +104,21 @@ void select_button_tripple()
 
 void PeripheryManager_::playBootSound()
 {
-    if (SOUND_OFF)
+    if (!SOUND_ACTIVE)
         return;
-    const int nNotes = 6;
-    String notes[nNotes] = {"E5", "C5", "G4", "E4", "G4", "C5"};
-    const int timeUnit = 150;
-    Melody melody = MelodyFactory.load("Nice Melody", timeUnit, notes, nNotes);
-    player.playAsync(melody);
+    if (BOOT_SOUND == "")
+    {
+        const int nNotes = 6;
+        String notes[nNotes] = {"E5", "C5", "G4", "E4", "G4", "C5"};
+        const int timeUnit = 150;
+        Melody melody = MelodyFactory.load("Bootsound", timeUnit, notes, nNotes);
+        player.playAsync(melody);
+    }
+    else
+
+    {
+        playFromFile("/MELODIES/" + BOOT_SOUND + ".txt");
+    }
 }
 
 void PeripheryManager_::stopSound()
@@ -121,7 +128,7 @@ void PeripheryManager_::stopSound()
 
 void PeripheryManager_::playFromFile(String file)
 {
-    if (SOUND_OFF)
+    if (!SOUND_ACTIVE)
         return;
     Melody melody = MelodyFactory.loadRtttlFile(file);
     player.playAsync(melody);
@@ -148,6 +155,7 @@ void fistStart()
 
 void PeripheryManager_::setup()
 {
+    startTime = millis();
     pinMode(LDR_PIN, INPUT);
     pinMode(BUZZER_PIN, OUTPUT);
     digitalWrite(BUZZER_PIN, LOW);
@@ -273,4 +281,21 @@ void PeripheryManager_::checkAlarms()
             }
         }
     }
+}
+
+
+const char *PeripheryManager_::readUptime()
+{
+    static char uptime[25]; // Make the array static to keep it from being destroyed when the function returns
+    unsigned long currentTime = millis();
+    unsigned long elapsedTime = currentTime - startTime;
+    unsigned long uptimeSeconds = elapsedTime / 1000;
+    unsigned long uptimeMinutes = uptimeSeconds / 60;
+    unsigned long uptimeHours = uptimeMinutes / 60;
+    unsigned long uptimeDays = uptimeHours / 24;
+    unsigned long hours = uptimeHours % 24;
+    unsigned long minutes = uptimeMinutes % 60;
+    unsigned long seconds = uptimeSeconds % 60;
+    sprintf(uptime, "P%dDT%dH%dM%dS", uptimeDays, hours, minutes, seconds);
+    return uptime;
 }
