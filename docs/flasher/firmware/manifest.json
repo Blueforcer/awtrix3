@@ -1,6 +1,6 @@
 {
   "name": "AWTRIX Light",
-  "version": "0.42",
+  "version": "0.43",
   "home_assistant_domain": "AwtrixLight",
   "funding_url": "https://blueforcer.de",
   "new_install_prompt_erase": true,

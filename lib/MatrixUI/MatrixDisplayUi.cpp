@@ -93,14 +93,11 @@ void MatrixDisplayUi::setApps(const std::vector<std::pair<String, AppCallback>> 
 {
   delete[] AppFunctions;
   AppCount = appPairs.size();
-  Serial.println(AppCount);
   AppFunctions = new AppCallback[AppCount];
-
   for (size_t i = 0; i < AppCount; ++i)
   {
     AppFunctions[i] = appPairs[i].second;
   }
-
   this->resetState();
 }
 

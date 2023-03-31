@@ -3,15 +3,21 @@
 
 #include <Arduino.h>
 #include <EasyButton.h>
+#ifdef ULANZI
 #include "Adafruit_SHT31.h"
+#else
+#include "Adafruit_BME280.h"
+#endif
 
 class PeripheryManager_
 {
 private:
     PeripheryManager_() = default;
     void checkAlarms();
+#ifdef ULANZI
     const int BatReadings = 10;
     uint16_t TotalBatReadings[10];
+#endif
     int readIndex = 0;
     uint16_t total = 0;
     uint16_t average = 0;

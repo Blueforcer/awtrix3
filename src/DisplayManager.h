@@ -11,8 +11,10 @@ private:
 
     DisplayManager_() = default;
 
+#ifdef ULANZI
     const int BatReadings = 10;
     uint16_t TotalBatReadings[10];
+#endif
     int readIndex = 0;
     uint16_t total = 0;
     uint16_t average = 0;
@@ -45,12 +47,12 @@ public:
     void setTextColor(uint16_t color);
     void setFPS(uint8_t);
     void MatrixState(bool);
-    void generateNotification(String);
-    void generateCustomPage(String, String);
+    void generateNotification(const char *json);
+    void generateCustomPage(String, const char *json);
     void printText(int16_t x, int16_t y, const char *text, bool centered, bool ignoreUppercase);
     bool setAutoTransition(bool active);
-    void switchToApp(String Payload);
-    void setNewSettings(String Payload);
+    void switchToApp(const char *json);
+    void setNewSettings(const char *json);
     void drawGIF(uint16_t x, uint16_t y, fs::File gifFile);
     void drawJPG(uint16_t x, uint16_t y, fs::File jpgFile);
     void drawProgressBar(int cur, int total);

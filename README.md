@@ -33,8 +33,8 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
 - Easy to setup
 - Homeassistant discovery
 - Onscreen menu where you can change your settings directly on the device
-- Pre-installed pages like time, date, temperature, humidity and battery
-- Add customapps without recompiling.
+- Pre-installed Apps like time, date, temperature, humidity and battery
+- Add customapps without recompiling straight from your Smarthome.
 - Easy to use icon system
 - Powerful MQTT commands
 - RTTTL melody player
@@ -49,5 +49,5 @@ Starting is easy as 1-2-3
 
 
 # Community  
-Join the discord channel with over 1400 Users  
+Join the discord channel with over 1500 Users  
 https://discord.gg/cyBCpdx  

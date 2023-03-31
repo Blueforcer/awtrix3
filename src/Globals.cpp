@@ -73,7 +73,9 @@ void loadSettings()
     SHOW_DATE = Settings.getBool("DAT", true);
     SHOW_TEMP = Settings.getBool("TEMP", true);
     SHOW_HUM = Settings.getBool("HUM", true);
+#ifdef ULANZI
     SHOW_BAT = Settings.getBool("BAT", true);
+#endif
     SOUND_ACTIVE = Settings.getBool("SOUND", true);
     Settings.end();
     uniqueID = getID();
@@ -99,7 +101,10 @@ void saveSettings()
     Settings.putBool("DAT", SHOW_DATE);
     Settings.putBool("TEMP", SHOW_TEMP);
     Settings.putBool("HUM", SHOW_HUM);
+#ifdef ULANZI
     Settings.putBool("BAT", SHOW_BAT);
+#endif
+=======
     Settings.putBool("SOUND", SOUND_ACTIVE);
     Settings.end();
 }
@@ -110,7 +115,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.43";
+const char *VERSION = "0.45";
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
@@ -122,7 +127,9 @@ bool NET_STATIC = false;
 bool SHOW_TIME = true;
 bool SHOW_DATE = true;
 bool SHOW_WEATHER = true;
+#ifdef ULANZI
 bool SHOW_BAT = true;
+#endif
 bool SHOW_TEMP = true;
 bool SHOW_HUM = true;
 bool SHOW_SECONDS = true;
@@ -147,8 +154,10 @@ float CURRENT_HUM;
 float CURRENT_LUX;
 uint8_t BRIGHTNESS = 120;
 uint8_t BRIGHTNESS_PERCENT;
+#ifdef ULANZI
 uint8_t BATTERY_PERCENT;
 uint16_t BATTERY_RAW;
+#endif
 uint16_t LDR_RAW;
 String TIME_FORMAT = "%H:%M:%S";
 String DATE_FORMAT = "%d.%m.%y";

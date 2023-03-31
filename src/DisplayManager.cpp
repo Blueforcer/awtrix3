@@ -247,9 +247,9 @@ void removeCustomApp(const String &name)
     }
 }
 
-void DisplayManager_::generateCustomPage(String name, String payload)
+void DisplayManager_::generateCustomPage(String name, const char *json)
 {
-    if (payload == "" && customApps.count(name))
+    if (json == "" && customApps.count(name))
     {
         customApps.erase(customApps.find(name));
         removeCustomApp(name);
@@ -257,7 +257,7 @@ void DisplayManager_::generateCustomPage(String name, String payload)
     }
 
     DynamicJsonDocument doc(1024);
-    DeserializationError error = deserializeJson(doc, payload);
+    DeserializationError error = deserializeJson(doc, json);
     if (error)
         return;
 
@@ -302,9 +302,30 @@ void DisplayManager_::generateCustomPage(String name, String payload)
     customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
     customApp.name = name;
     customApp.text = utf8ascii(doc["text"].as<String>());
-    customApp.color = doc.containsKey("color") ? doc["color"].is<String>() ? hexToRgb565(doc["color"]) : doc["color"].is<JsonArray>() ? hexToRgb565(doc["color"].as<String>())
-                                                                                                                                      : TEXTCOLOR_565
-                                               : TEXTCOLOR_565;
+
+    if (doc.containsKey("color"))
+    {
+        auto color = doc["color"];
+        if (color.is<String>())
+        {
+            customApp.color = hexToRgb565(color.as<String>());
+        }
+        else if (color.is<JsonArray>() && color.size() == 3)
+        {
+            uint8_t r = color[0];
+            uint8_t g = color[1];
+            uint8_t b = color[2];
+            customApp.color = (r << 11) | (g << 5) | b;
+        }
+        else
+        {
+            customApp.color = TEXTCOLOR_565;
+        }
+    }
+    else
+    {
+        customApp.color = TEXTCOLOR_565;
+    }
 
     if (currentCustomApp != name)
     {
@@ -348,10 +369,10 @@ void DisplayManager_::generateCustomPage(String name, String payload)
     customApps[name] = customApp;
 }
 
-void DisplayManager_::generateNotification(String payload)
+void DisplayManager_::generateNotification(const char *json)
 {
     StaticJsonDocument<1024> doc;
-    deserializeJson(doc, payload);
+    deserializeJson(doc, json);
 
     notify.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
     notify.text = utf8ascii(doc["text"].as<String>());
@@ -390,9 +411,29 @@ void DisplayManager_::generateNotification(String payload)
         notify.barSize = 0;
     }
 
-    notify.color = doc.containsKey("color") ? doc["color"].is<String>() ? hexToRgb565(doc["color"]) : doc["color"].is<JsonArray>() ? hexToRgb565(doc["color"].as<String>())
-                                                                                                                                   : TEXTCOLOR_565
-                                            : TEXTCOLOR_565;
+    if (doc.containsKey("color"))
+    {
+        auto color = doc["color"];
+        if (color.is<String>())
+        {
+            notify.color = hexToRgb565(color.as<String>());
+        }
+        else if (color.is<JsonArray>() && color.size() == 3)
+        {
+            uint8_t r = color[0];
+            uint8_t g = color[1];
+            uint8_t b = color[2];
+            notify.color = (r << 11) | (g << 5) | b;
+        }
+        else
+        {
+            notify.color = TEXTCOLOR_565;
+        }
+    }
+    else
+    {
+        notify.color = TEXTCOLOR_565;
+    }
 
     if (doc.containsKey("icon"))
     {
@@ -464,8 +505,10 @@ void DisplayManager_::loadNativeApps()
     // Update the "hum" app at position 3
     updateApp("hum", HumApp, SHOW_HUM, 3);
 
+#ifdef ULANZI
     // Update the "bat" app at position 4
     updateApp("bat", BatApp, SHOW_BAT, 4);
+#endif
 
     ui.setApps(Apps);
 
@@ -609,10 +652,10 @@ void DisplayManager_::gererateTimer(String Payload)
     TimerTicker.attach_ms(interval, timerCallback);
 }
 
-void DisplayManager_::switchToApp(String Payload)
+void DisplayManager_::switchToApp(const char *json)
 {
     DynamicJsonDocument doc(512);
-    DeserializationError error = deserializeJson(doc, Payload);
+    DeserializationError error = deserializeJson(doc, json);
     if (error)
         return;
     String name = doc["name"].as<String>();
@@ -622,10 +665,10 @@ void DisplayManager_::switchToApp(String Payload)
         ui.transitionToApp(index);
 }
 
-void DisplayManager_::setNewSettings(String Payload)
+void DisplayManager_::setNewSettings(const char *json)
 {
     DynamicJsonDocument doc(512);
-    DeserializationError error = deserializeJson(doc, Payload);
+    DeserializationError error = deserializeJson(doc, json);
     if (error)
         return;
     TIME_PER_APP = doc.containsKey("apptime") ? doc["apptime"] : TIME_PER_APP;
@@ -744,6 +787,7 @@ void DisplayManager_::updateAppVector(const char *json)
         int position = -1;
 
         if (app.containsKey("show"))
+
         {
             show = app["show"].as<bool>();
         }
@@ -774,11 +818,17 @@ void DisplayManager_::updateAppVector(const char *json)
             callback = HumApp;
             SHOW_HUM = show;
         }
+
+#ifdef ULANZI
+
         else if (name == "bat")
         {
             callback = BatApp;
             SHOW_BAT = show;
         }
+
+#endif
+
         else
         {
             // If the app is not one of the built-in apps, check if it's already in the vector
@@ -859,3 +909,4 @@ String DisplayManager_::getStat()
     serializeJson(doc, jsonString);
     return jsonString;
 }
+

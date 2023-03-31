@@ -23,7 +23,9 @@ HAButton *nextApp = nullptr;
 HAButton *prevApp = nullptr;
 HASwitch *transition = nullptr;
 HASensor *curApp = nullptr;
+#ifdef ULANZI
 HASensor *battery = nullptr;
+#endif
 HASensor *temperature = nullptr;
 HASensor *humidity = nullptr;
 HASensor *illuminance = nullptr;
@@ -127,21 +129,22 @@ void onBrightnessCommand(uint8_t brightness, HALight *sender)
 void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
 {
     String strTopic = String(topic);
-    String strPayload = String((const char *)payload).substring(0, length);
-
+    char *payloadCopy = new char[length + 1];
+    memcpy(payloadCopy, payload, length);
+    payloadCopy[length] = '\0';
     if (strTopic == MQTT_PREFIX + "/notify")
     {
         if (payload[0] != '{' || payload[length - 1] != '}')
         {
             return;
         }
-        DisplayManager.generateNotification(strPayload);
+        DisplayManager.generateNotification(payloadCopy);
         return;
     }
 
     if (strTopic == MQTT_PREFIX + "/timer")
     {
-        DisplayManager.gererateTimer(strPayload);
+        DisplayManager.gererateTimer(payloadCopy);
         return;
     }
 
@@ -151,15 +154,21 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         return;
     }
 
+    if (strTopic == MQTT_PREFIX + "/apps")
+    {
+        DisplayManager.updateAppVector(payloadCopy);
+        return;
+    }
+
     if (strTopic == MQTT_PREFIX + "/switch")
     {
-        DisplayManager.switchToApp(strPayload);
+        DisplayManager.switchToApp(payloadCopy);
         return;
     }
 
     if (strTopic == MQTT_PREFIX + "/settings")
     {
-        DisplayManager.setNewSettings(strPayload);
+        DisplayManager.setNewSettings(payloadCopy);
         return;
     }
 
@@ -184,9 +193,10 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
             topic_str = topic_str.substring(prefix.length());
         }
 
-        DisplayManager.generateCustomPage(topic_str, strPayload);
+        DisplayManager.generateCustomPage(topic_str, payloadCopy);
         return;
     }
+    delete[] payloadCopy;
 }
 
 void onMqttConnected()
@@ -203,15 +213,15 @@ void onMqttConnected()
         "/previousapp",
         "/nextapp",
         "/nextapp",
-        "/apps"};
+        "/apps"
+    };
+
     for (const char *topic : topics)
-    {
         String fullTopic = prefix + topic;
         mqtt.subscribe(fullTopic.c_str());
     }
     Serial.println(F("MQTT Connected"));
 }
-
 void connect()
 {
     mqtt.onMessage(onMqttMessage);
@@ -219,18 +229,21 @@ void connect()
 
     if (MQTT_USER == "" || MQTT_PASS == "")
     {
-        Serial.println("Connecting to MQTT w/o login");
+        Serial.println(F("Connecting to MQTT w/o login"));
         mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, nullptr, nullptr, MQTT_PREFIX.c_str());
     }
     else
     {
-        Serial.println("Connecting to MQTT with login");
+        Serial.println(F("Connecting to MQTT with login"));
         mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, MQTT_USER.c_str(), MQTT_PASS.c_str(), MQTT_PREFIX.c_str());
     }
 }
 
 char matID[40], briID[40];
-char btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], batID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40];
+char btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40];
+#ifdef ULANZI
+char batID[40];
+#endif
 
 void MQTTManager_::setup()
 {
@@ -325,12 +338,14 @@ void MQTTManager_::setup()
         humidity->setDeviceClass(HAhumClass);
         humidity->setUnitOfMeasurement(HAhumUnit);
 
+#ifdef ULANZI
         sprintf(batID, HAbatID, macStr);
         battery = new HASensor(batID);
         battery->setIcon(HAbatIcon);
         battery->setName(HAbatName);
         battery->setDeviceClass(HAbatClass);
         battery->setUnitOfMeasurement(HAbatUnit);
+#endif
 
         sprintf(luxID, HAluxID, macStr);
         illuminance = new HASensor(luxID);
@@ -375,7 +390,7 @@ void MQTTManager_::setup()
     }
     else
     {
-        Serial.println("Homeassistant discovery disabled");
+        Serial.println(F("Homeassistant discovery disabled"));
         mqtt.disableHA();
     }
     connect();
@@ -411,8 +426,10 @@ void MQTTManager_::sendStats()
     if (HA_DISCOVERY)
     {
         char buffer[5];
+#ifdef ULANZI
         snprintf(buffer, 5, "%d", BATTERY_PERCENT);
         battery->setValue(buffer);
+#endif
 
         snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
         temperature->setValue(buffer);
@@ -456,7 +473,8 @@ void MQTTManager_::sendButton(byte btn, bool state)
     case 0:
         if (btn0State != state)
         {
-            btnleft->setState(state, false);
+            if (HA_DISCOVERY)
+                btnleft->setState(state, false);
             btn0State = state;
             publish(ButtonLeftTopic, state ? State1 : State0);
         }
@@ -464,7 +482,8 @@ void MQTTManager_::sendButton(byte btn, bool state)
     case 1:
         if (btn1State != state)
         {
-            btnmid->setState(state, false);
+            if (HA_DISCOVERY)
+                btnmid->setState(state, false);
             btn1State = state;
             publish(ButtonSelectTopic, state ? State1 : State0);
         }
@@ -473,7 +492,8 @@ void MQTTManager_::sendButton(byte btn, bool state)
     case 2:
         if (btn2State != state)
         {
-            btnright->setState(state, false);
+            if (HA_DISCOVERY)
+                btnright->setState(state, false);
             btn2State = state;
             publish(ButtonRightTopic, state ? State1 : State0);
         }

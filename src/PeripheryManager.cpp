@@ -19,7 +19,6 @@
 #define BUTTON_SELECT_PIN 27
 #else
 // Pinouts für das WEMOS_D1_MINI32-Environment
-#define BATTERY_PIN -1
 #define BUZZER_PIN -1
 #define LDR_PIN A0
 #define BUTTON_UP_PIN D0
@@ -27,7 +26,11 @@
 #define BUTTON_SELECT_PIN D8
 #endif
 
+#ifdef ULANZI
 Adafruit_SHT31 sht31;
+#else
+Adafruit_BME280 bme280;
+#endif
 EasyButton button_left(BUTTON_UP_PIN);
 EasyButton button_right(BUTTON_DOWN_PIN);
 EasyButton button_select(BUTTON_SELECT_PIN);
@@ -141,11 +144,16 @@ bool PeripheryManager_::isPlaying()
 
 void fistStart()
 {
-
+#ifdef ULANZI
     uint16_t ADCVALUE = analogRead(BATTERY_PIN);
-
     BATTERY_PERCENT = min((int)map(ADCVALUE, 490, 690, 0, 100), 100);
+    BATTERY_RAW = ADCVALUE;
     sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
+    CURRENT_TEMP -= 9.0;
+#else
+    CURRENT_TEMP = bme280.readTemperature();
+    CURRENT_HUM = 0;
+#endif
 
     uint16_t LDRVALUE = analogRead(LDR_PIN);
     brightnessPercent = LDRVALUE / 4095.0 * 100.0;
@@ -168,7 +176,11 @@ void PeripheryManager_::setup()
     button_select.onPressedFor(1000, select_button_pressed_long);
     button_select.onSequence(2, 300, select_button_tripple);
     Wire.begin(21, 22);
+#ifdef ULANZI
     sht31.begin(0x44);
+#else
+    bme280.begin();
+#endif
     photocell.setPhotocellPositionOnGround(false);
     fistStart();
 }
@@ -184,11 +196,16 @@ void PeripheryManager_::tick()
     if (currentMillis_BatTempHum - previousMillis_BatTempHum >= interval_BatTempHum)
     {
         previousMillis_BatTempHum = currentMillis_BatTempHum;
+#ifdef ULANZI
         uint16_t ADCVALUE = analogRead(BATTERY_PIN);
         BATTERY_PERCENT = min((int)map(ADCVALUE, 475, 665, 0, 100), 100);
         BATTERY_RAW = ADCVALUE;
         sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
         CURRENT_TEMP -= 9.0;
+#else
+        CURRENT_TEMP = bme280.readTemperature();
+        CURRENT_HUM = bme280.readHumidity();
+#endif
         checkAlarms();
         MQTTManager.sendStats();
     }

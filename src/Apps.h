@@ -214,6 +214,7 @@ void HumApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     matrix->print("%");
 }
 
+#ifdef ULANZI
 void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
 {
     if (notify.flag)
@@ -225,6 +226,7 @@ void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     matrix->print(BATTERY_PERCENT); // Ausgabe des Ladezustands
     matrix->print("%");
 }
+#endif
 
 void MenuApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
 {
