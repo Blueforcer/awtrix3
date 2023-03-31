@@ -213,15 +213,16 @@ void onMqttConnected()
         "/previousapp",
         "/nextapp",
         "/nextapp",
-        "/apps"
-    };
-
+        "/apps"};
     for (const char *topic : topics)
+    {
         String fullTopic = prefix + topic;
         mqtt.subscribe(fullTopic.c_str());
     }
     Serial.println(F("MQTT Connected"));
 }
+
+
 void connect()
 {
     mqtt.onMessage(onMqttMessage);
@@ -264,7 +265,6 @@ void MQTTManager_::setup()
         device.setAvailability(true);
         device.enableSharedAvailability();
         device.enableLastWill();
-        
 
         String uniqueIDWithSuffix;
 

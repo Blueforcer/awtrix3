@@ -104,7 +104,6 @@ void saveSettings()
 #ifdef ULANZI
     Settings.putBool("BAT", SHOW_BAT);
 #endif
-=======
     Settings.putBool("SOUND", SOUND_ACTIVE);
     Settings.end();
 }
