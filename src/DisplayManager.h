@@ -60,6 +60,7 @@ public:
     void drawBMP(int16_t x, int16_t y, const uint16_t bitmap[], int16_t w, int16_t h);
     void drawBarChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint16_t color);
     void updateAppVector(const char *json);
+    String getStat();
 };
 
 extern DisplayManager_ &DisplayManager;

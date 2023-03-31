@@ -13,6 +13,7 @@
 #include "ServerManager.h"
 #include "MenuManager.h"
 #include "Apps.h"
+#include "Dictionary.h"
 
 Ticker AlarmTicker;
 Ticker TimerTicker;
@@ -214,7 +215,7 @@ void pushCustomApp(String name, int position)
     if (customApps.count(name) == 0)
     {
         ++customPagesCount;
-        void (*customApps[10])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10};
+        void (*customApps[20])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};
 
         if (position < 0) // Insert at the end of the vector
         {
@@ -230,6 +231,7 @@ void pushCustomApp(String name, int position)
         }
 
         ui.setApps(Apps); // Add Apps
+        DisplayManager.getInstance().setAutoTransition(true);
     }
 }
 
@@ -784,7 +786,8 @@ void DisplayManager_::updateAppVector(const char *json)
         bool show = true;
         int position = -1;
 
-         if (app.containsKey("show"))
+        if (app.containsKey("show"))
+
         {
             show = app["show"].as<bool>();
         }
@@ -815,13 +818,17 @@ void DisplayManager_::updateAppVector(const char *json)
             callback = HumApp;
             SHOW_HUM = show;
         }
+
 #ifdef ULANZI
+
         else if (name == "bat")
         {
             callback = BatApp;
             SHOW_BAT = show;
         }
+
 #endif
+
         else
         {
             // If the app is not one of the built-in apps, check if it's already in the vector
@@ -881,3 +888,25 @@ void DisplayManager_::updateAppVector(const char *json)
     ui.setApps(Apps);
     saveSettings();
 }
+
+String DisplayManager_::getStat()
+{
+    StaticJsonDocument<200> doc;
+    char buffer[5];
+    doc[BatKey] = BATTERY_PERCENT;
+    doc[BatRawKey] = BATTERY_RAW;
+    snprintf(buffer, 5, "%.0f", CURRENT_LUX);
+    doc[LuxKey] = buffer;
+    doc[LDRRawKey] = LDR_RAW;
+    doc[BrightnessKey] = BRIGHTNESS;
+    snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
+    doc[TempKey] = buffer;
+    snprintf(buffer, 5, "%.0f", CURRENT_HUM);
+    doc[HumKey] = buffer;
+    doc[UpTimeKey] = PeripheryManager.readUptime();
+    doc[SignalStrengthKey] = WiFi.RSSI();
+    String jsonString;
+    serializeJson(doc, jsonString);
+    return jsonString;
+}
+

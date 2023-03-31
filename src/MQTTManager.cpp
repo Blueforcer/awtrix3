@@ -6,8 +6,7 @@
 #include <WiFi.h>
 #include <ArduinoJson.h>
 #include "Dictionary.h"
-
-unsigned long startTime;
+#include "PeripheryManager.h"
 
 WiFiClient espClient;
 uint8_t lastBrightness;
@@ -203,7 +202,7 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
 void onMqttConnected()
 {
     String prefix = MQTT_PREFIX;
-    const char* topics[] PROGMEM = {
+    const char *topics[] PROGMEM = {
         "/brightness",
         "/notify/dismiss",
         "/notify",
@@ -216,7 +215,8 @@ void onMqttConnected()
         "/nextapp",
         "/apps"
     };
-    for (const char* topic : topics) {
+
+    for (const char *topic : topics)
         String fullTopic = prefix + topic;
         mqtt.subscribe(fullTopic.c_str());
     }
@@ -247,7 +247,7 @@ char batID[40];
 
 void MQTTManager_::setup()
 {
-    startTime = millis();
+
     if (HA_DISCOVERY)
     {
         Serial.println(F("Starting Homeassistant discorvery"));
@@ -262,6 +262,9 @@ void MQTTManager_::setup()
         device.setManufacturer(HAmanufacturer);
         device.setModel(HAmodel);
         device.setAvailability(true);
+        device.enableSharedAvailability();
+        device.enableLastWill();
+        
 
         String uniqueIDWithSuffix;
 
@@ -418,22 +421,6 @@ void MQTTManager_::setCurrentApp(String value)
         curApp->setValue(value.c_str());
 }
 
-const char *readUptime()
-{
-    static char uptime[25]; // Make the array static to keep it from being destroyed when the function returns
-    unsigned long currentTime = millis();
-    unsigned long elapsedTime = currentTime - startTime;
-    unsigned long uptimeSeconds = elapsedTime / 1000;
-    unsigned long uptimeMinutes = uptimeSeconds / 60;
-    unsigned long uptimeHours = uptimeMinutes / 60;
-    unsigned long uptimeDays = uptimeHours / 24;
-    unsigned long hours = uptimeHours % 24;
-    unsigned long minutes = uptimeMinutes % 60;
-    unsigned long seconds = uptimeSeconds % 60;
-    sprintf(uptime, "P%dDT%dH%dM%dS", uptimeDays, hours, minutes, seconds);
-    return uptime;
-}
-
 void MQTTManager_::sendStats()
 {
     if (HA_DISCOVERY)
@@ -466,7 +453,7 @@ void MQTTManager_::sendStats()
         int freeHeapBytes = ESP.getFreeHeap();
         itoa(freeHeapBytes, rambuffer, 10);
         ram->setValue(rambuffer);
-        uptime->setValue(readUptime());
+        uptime->setValue(PeripheryManager.readUptime());
         version->setValue(VERSION);
         transition->setState(AUTO_TRANSITION, false);
     }
@@ -474,25 +461,7 @@ void MQTTManager_::sendStats()
     {
     }
 
-    StaticJsonDocument<200> doc;
-    char buffer[5];
-#ifdef ULANZI
-    doc[BatKey] = BATTERY_PERCENT;
-    doc[BatRawKey] = BATTERY_RAW;
-#endif
-    snprintf(buffer, 5, "%.0f", CURRENT_LUX);
-    doc[LuxKey] = buffer;
-    doc[LDRRawKey] = LDR_RAW;
-    doc[BrightnessKey] = BRIGHTNESS;
-    snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
-    doc[TempKey] = buffer;
-    snprintf(buffer, 5, "%.0f", CURRENT_HUM);
-    doc[HumKey] = buffer;
-    doc[UpTimeKey] = readUptime();
-    doc[SignalStrengthKey] = WiFi.RSSI();
-    String jsonString;
-    serializeJson(doc, jsonString);
-    publish(StatsTopic, jsonString.c_str());
+    publish(StatsTopic, DisplayManager.getStat().c_str());
 }
 
 void MQTTManager_::sendButton(byte btn, bool state)
