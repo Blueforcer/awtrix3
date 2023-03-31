@@ -11,8 +11,10 @@ private:
 
     DisplayManager_() = default;
 
+#ifdef ULANZI
     const int BatReadings = 10;
     uint16_t TotalBatReadings[10];
+#endif
     int readIndex = 0;
     uint16_t total = 0;
     uint16_t average = 0;

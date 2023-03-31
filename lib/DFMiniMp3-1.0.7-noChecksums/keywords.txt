@@ -1,0 +1,79 @@
+#######################################
+# Syntax Coloring Map for DFMiniMp3
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+DFMiniMp3	KEYWORD1
+DfMp3_PlaybackMode	KEYWORD1
+DfMp3_Eq	KEYWORD1
+DfMp3_PlaySource	KEYWORD1
+DfMp3_PlaySources	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin	KEYWORD2
+loop	KEYWORD2
+getPlaySources	KEYWORD2
+playGlobalTrack	KEYWORD2
+playMp3FolderTrack	KEYWORD2
+playFolderTrack	KEYWORD2
+playFolderTrack16	KEYWORD2
+playRandomTrackFromAll	KEYWORD2
+nextTrack	KEYWORD2
+prevTrack	KEYWORD2
+getCurrentTrack	KEYWORD2
+setVolume	KEYWORD2
+getVolume	KEYWORD2
+increaseVolume	KEYWORD2
+decreaseVolume	KEYWORD2
+loopGlobalTrack	KEYWORD2
+loopFolder	KEYWORD2
+getPlaybackMode	KEYWORD2
+setRepeatPlayAllInRoot	KEYWORD2
+setRepeatPlayCurrentTrack	KEYWORD2
+setEq	KEYWORD2
+getEq	KEYWORD2
+setPlaybackSource	KEYWORD2
+sleep	KEYWORD2
+reset	KEYWORD2
+start	KEYWORD2
+pause	KEYWORD2
+stop	KEYWORD2	
+getStatus	KEYWORD2
+getFolderTrackCount	KEYWORD2
+getTotalTrackCount	KEYWORD2
+getTotalFolderCount	KEYWORD2
+playAdvertisement	KEYWORD2
+stopAdvertisement	KEYWORD2
+enableDac	KEYWORD2
+disableDac	KEYWORD2
+isOnline	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+DfMp3_PlaybackMode_Repeat	LITERAL1
+DfMp3_PlaybackMode_FolderRepeat	LITERAL1
+DfMp3_PlaybackMode_SingleRepeat	LITERAL1
+DfMp3_PlaybackMode_Random	LITERAL1
+DfMp3_Eq_Normal	LITERAL1
+DfMp3_Eq_Pop	LITERAL1
+DfMp3_Eq_Rock	LITERAL1
+DfMp3_Eq_Jazz	LITERAL1
+DfMp3_Eq_Classic	LITERAL1
+DfMp3_Eq_Bass	LITERAL1
+DfMp3_PlaySource_Usb	LITERAL1
+DfMp3_PlaySource_Sd	LITERAL1
+DfMp3_PlaySource_Aux	LITERAL1
+DfMp3_PlaySource_Sleep	LITERAL1
+DfMp3_PlaySource_Flash	LITERAL1
+DfMp3_PlaySources_Usb	LITERAL1
+DfMp3_PlaySources_Sd	LITERAL1
+DfMp3_PlaySources_Pc	LITERAL1
+DfMp3_PlaySources_Flash	LITERAL1

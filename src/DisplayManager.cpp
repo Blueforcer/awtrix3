@@ -503,8 +503,10 @@ void DisplayManager_::loadNativeApps()
     // Update the "hum" app at position 3
     updateApp("hum", HumApp, SHOW_HUM, 3);
 
+#ifdef ULANZI
     // Update the "bat" app at position 4
     updateApp("bat", BatApp, SHOW_BAT, 4);
+#endif
 
     ui.setApps(Apps);
 
@@ -813,11 +815,13 @@ void DisplayManager_::updateAppVector(const char *json)
             callback = HumApp;
             SHOW_HUM = show;
         }
+#ifdef ULANZI
         else if (name == "bat")
         {
             callback = BatApp;
             SHOW_BAT = show;
         }
+#endif
         else
         {
             // If the app is not one of the built-in apps, check if it's already in the vector

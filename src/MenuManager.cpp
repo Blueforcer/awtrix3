@@ -75,8 +75,13 @@ const char *appsItems[][2] PROGMEM = {
     {"13", "time"},
     {"1158", "date"},
     {"234", "temp"},
+#ifdef ULANZI  
     {"2075", "hum"},
     {"1486", "bat"}};
+#else 
+    {"2075", "hum"}};
+#endif
+
 
 int8_t appsIndex;
 uint8_t appsCount = 5;
@@ -173,9 +178,11 @@ String MenuManager_::menutext()
         case 3:
             DisplayManager.drawBMP(0, 0, get_icon(2075), 8, 8);
             return SHOW_HUM ? "ON" : "OFF";
+#ifdef ULANZI
         case 4:
             DisplayManager.drawBMP(0, 0, get_icon(1486), 8, 8);
             return SHOW_BAT ? "ON" : "OFF";
+#endif
         default:
             break;
         }
@@ -374,9 +381,11 @@ void MenuManager_::selectButton()
         case 3:
             SHOW_HUM = !SHOW_HUM;
             break;
+#ifdef ULANZI
         case 4:
             SHOW_BAT = !SHOW_BAT;
             break;
+#endif
         default:
             break;
         }

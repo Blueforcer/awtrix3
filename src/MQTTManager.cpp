@@ -24,7 +24,9 @@ HAButton *nextApp = nullptr;
 HAButton *prevApp = nullptr;
 HASwitch *transition = nullptr;
 HASensor *curApp = nullptr;
+#ifdef ULANZI
 HASensor *battery = nullptr;
+#endif
 HASensor *temperature = nullptr;
 HASensor *humidity = nullptr;
 HASensor *illuminance = nullptr;
@@ -238,7 +240,10 @@ void connect()
 }
 
 char matID[40], briID[40];
-char btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], batID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40];
+char btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40];
+#ifdef ULANZI
+char batID[40];
+#endif
 
 void MQTTManager_::setup()
 {
@@ -330,12 +335,14 @@ void MQTTManager_::setup()
         humidity->setDeviceClass(HAhumClass);
         humidity->setUnitOfMeasurement(HAhumUnit);
 
+#ifdef ULANZI
         sprintf(batID, HAbatID, macStr);
         battery = new HASensor(batID);
         battery->setIcon(HAbatIcon);
         battery->setName(HAbatName);
         battery->setDeviceClass(HAbatClass);
         battery->setUnitOfMeasurement(HAbatUnit);
+#endif
 
         sprintf(luxID, HAluxID, macStr);
         illuminance = new HASensor(luxID);
@@ -432,8 +439,10 @@ void MQTTManager_::sendStats()
     if (HA_DISCOVERY)
     {
         char buffer[5];
+#ifdef ULANZI
         snprintf(buffer, 5, "%d", BATTERY_PERCENT);
         battery->setValue(buffer);
+#endif
 
         snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
         temperature->setValue(buffer);
@@ -467,8 +476,10 @@ void MQTTManager_::sendStats()
 
     StaticJsonDocument<200> doc;
     char buffer[5];
+#ifdef ULANZI
     doc[BatKey] = BATTERY_PERCENT;
     doc[BatRawKey] = BATTERY_RAW;
+#endif
     snprintf(buffer, 5, "%.0f", CURRENT_LUX);
     doc[LuxKey] = buffer;
     doc[LDRRawKey] = LDR_RAW;
