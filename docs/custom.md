@@ -14,7 +14,7 @@ The JSON object has the following properties:
 | `icon` | string | The icon ID or filename (without extension) to display on the page. | |
 | `repeat` | number | Sets how many times the text should be scrolled through the matrix before the display ends. | 1 |
 | `rainbow` | boolean | Fades each letter in the text differently through the entire RGB spectrum. | false |
-| `duration` | number | Sets how long the page should be displayed. | 5 |
+| `duration` | number | Sets how long the notification should be displayed. | 5 |
 | `color` | string | A color hex string for the text color, or an array of R,G,B values | "#FFFFFF" or [255,255,0] |
 | `hold` | boolean | Set it to true, to hold your notification on top until you press the middle button or dismiss it via HomeAssistant. This key only belongs to notification. | false |
 | `sound` | string | The filename of your RTTTL ringtone file (without extension). | |
