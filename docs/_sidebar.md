@@ -14,6 +14,7 @@
   - [Timer](timer.md)
   - [Icons](icons.md)
   - [Sounds](sounds.md)
+  - [Hidden features](dev.md)
 
 - API
   - [MQTT/HTTP](api.md)

@@ -51,6 +51,11 @@ void loadDevSettings()
         BOOT_SOUND = doc["bootsound"].as<String>();
     }
 
+    if (doc.containsKey("bootsound"))
+    {
+        UPPERCASE_LETTERS = doc["uppercase"].as<bool>();
+    }
+
     file.close();
 }
 

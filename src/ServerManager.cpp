@@ -37,83 +37,6 @@ void saveHandler()
     webRequest->send(200);
 }
 
-void handleAPIRequest()
-{
-    WebServerClass *webRequest = mws.getRequest();
-    String url = webRequest->uri();
-    url.replace("/api", "");
-    if (webRequest->method() == HTTP_POST)
-    {
-        String body = webRequest->arg("plain");
-        const char *bodyPtr = body.c_str();
-        webRequest->send(200);
-        if (url == "/notify")
-        {
-            if (body[0] != '{' || body[strlen(bodyPtr) - 1] != '}')
-            {
-                webRequest->send(400, "text/plain", "Invalid payload format");
-                return;
-            }
-            DisplayManager.generateNotification(bodyPtr);
-        }
-
-        else if (url == "/timer")
-        {
-            DisplayManager.gererateTimer(bodyPtr);
-        }
-
-        else if (url == "/notify/dismiss")
-        {
-            DisplayManager.dismissNotify();
-        }
-
-        else if (url == "/apps")
-        {
-            DisplayManager.updateAppVector(bodyPtr);
-        }
-
-        else if (url == "/switch")
-        {
-            DisplayManager.switchToApp(bodyPtr);
-        }
-
-        else if (url == "/settings")
-        {
-            DisplayManager.setNewSettings(bodyPtr);
-        }
-
-        else if (url == "/nextapp")
-        {
-            DisplayManager.nextApp();
-        }
-
-        else if (url == "/previousapp")
-        {
-            DisplayManager.previousApp();
-        }
-
-        else if (url.startsWith("/custom"))
-        {
-            String topic_str = url.substring(MQTT_PREFIX.length() + 7);
-            DisplayManager.generateCustomPage(topic_str, bodyPtr);
-        }
-        else
-        {
-            webRequest->send(400);
-        }
-    }
-    else if (webRequest->method() == HTTP_GET)
-    {
-        if (url == "/stats")
-        {
-            webRequest->sendContent(DisplayManager.getStat());
-        }
-        else
-        {
-            webRequest->send(400);
-        }
-    }
-}
 
 void ServerManager_::setup()
 {
@@ -153,8 +76,6 @@ void ServerManager_::setup()
         mws.addHTML(custom_html, "icon_html");
         mws.addCSS(custom_css);
         mws.addJavascript(custom_script);
-        mws.addOptionBox("General");
-        mws.addOption("Uppercase letters", UPPERCASE_LETTERS);
         mws.addHandler("/save", HTTP_POST, saveHandler);
         mws.addHandler("/api/notify", HTTP_POST, []()
                        {DisplayManager.generateNotification(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
@@ -266,7 +187,6 @@ void ServerManager_::loadSettings()
         NET_SN = doc["Subnet"].as<String>();
         NET_PDNS = doc["Primary DNS"].as<String>();
         NET_SDNS = doc["Secondary DNS"].as<String>();
-        UPPERCASE_LETTERS = doc["Uppercase letters"];
         file.close();
         DisplayManager.applyAllSettings();
         Serial.println(F("Configuration loaded"));
