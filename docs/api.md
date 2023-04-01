@@ -43,7 +43,8 @@ Built-in app names are:
 - `hum`
 - `bat`
 
-For custom apps, use the name you set in the topic or http request header. In MQTT for example, if `[PREFIX]/custom/test` is your topic, then `test` is the name.
+For custom apps, use the name you set in the topic or http request header.  
+In MQTT for example, if `[PREFIX]/custom/test` is your topic, then `test` is the name.
 
 ## Add/remove and rearange apps 
 
