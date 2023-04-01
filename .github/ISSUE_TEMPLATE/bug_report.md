@@ -17,7 +17,7 @@ Add a description of the bug. Detail the expected behaviour in contrast with the
 
 - Devices involved:
   - Model: Ulanzi Awtrix Smart Pixel Clock 2882 (TC001)
-  - AWTRIX-LIGHT version: [ eg. v0.0.45 ]
+  - AWTRIX-LIGHT version: [ eg. v0.45 ]
 
 ## To Reproduce
 Steps to reproduce the behavior:
