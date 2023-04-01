@@ -1,38 +1,39 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: ''
-labels: ''
+title: "[BUG]"
+labels: bug
 assignees: ''
-
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+<!-- Make sure to read the README before opening an issue. [https://xaviml.github.io/controllerx/faq](https://blueforcer.github.io/awtrix-light/#/README) -->
 
-**To Reproduce**
+# Bug report
+
+## Describe the bug
+Add a description of the bug. Detail the expected behaviour in contrast with the behaviour you're observing.
+
+## Additional information
+
+- Devices involved:
+  - Model: Ulanzi Awtrix Smart Pixel Clock 2882 (TC001)
+  - AWTRIX-LIGHT version: [ eg. v0.0.45 ]
+
+## To Reproduce
 Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
 
-**Expected behavior**
+
+## Expected behavior
 A clear and concise description of what you expected to happen.
 
-**Screenshots**
+## Screenshots
 If applicable, add screenshots to help explain your problem.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+## Logs
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+```text
+(optional) Add relevant logs which could help tackle the problem.
+```
 
-**Additional context**
+## Additional context
 Add any other context about the problem here.
