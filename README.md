@@ -20,7 +20,10 @@
 ![GIF-230324_161917](https://user-images.githubusercontent.com/31169771/227567565-3780ee83-1158-4371-9390-fd03a7873496.gif)
 </div>
 
-AWTRIX Light is an open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882) which lives on your smarthome.
+AWTRIX Light is an open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882)  
+It meant to be a companion for your smarthome like HomeAssistant, IOBroker, NodeRed and so on.    
+Even if you don't have a Smarthome system, but would like to experiment with NodeRed or N8N, you are still welcome to join us.  
+There are many users who are willing to help you!  
 
 It is ready to use straight out of the box, with time, date, temperature, and humidity pages pre-installed. You don't need to do anything other than turning it on to start using these features.    
 
