@@ -54,7 +54,15 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
 Starting is easy as 1-2-3
 [with the documentation](https://blueforcer.github.io/awtrix-light/)
 
+# Contributors 
+<a href="https://github.com/Blueforcer/awtrix-light/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Blueforcer/awtrix-light" />
+</a>
 
 # Community  
 Join the discord channel with over 1500 Users  
 https://discord.gg/cyBCpdx  
+
+# Support  
+If you like my work, please consider supporting the project.  
+https://github.com/sponsors/Blueforcer  
