@@ -44,11 +44,10 @@ const char *menuItems[] PROGMEM = {
     "TEMP",
     "APPS",
     "SOUND",
-    "VOLUME",
     "UPDATE"};
 
 int8_t menuIndex = 0;
-uint8_t menuItemCount = 14;
+uint8_t menuItemCount = 13;
 
 const char *timeFormat[] PROGMEM = {
     "%H:%M:%S",
@@ -374,8 +373,9 @@ void MenuManager_::selectButton()
         case 12:
 #ifdef AWTRIX_UPGRADE
             currentState = VolumeMenu;
+              break;
 #endif
-            break;
+          
         case 13:
             if (FirmwareVersionCheck())
             {

@@ -514,6 +514,7 @@ void DisplayManager_::loadNativeApps()
 
 void DisplayManager_::setup()
 {
+    
     TJpgDec.setCallback(jpg_output);
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
     gif.setMatrix(&matrix);

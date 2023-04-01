@@ -61,15 +61,10 @@ void setup()
   delay(500);
   Serial.begin(9600);
   loadSettings();
-  Serial.println("1");
   ServerManager.loadSettings();
-  Serial.println("2");
   DisplayManager.setup();
-  Serial.println("3");
   DisplayManager.HSVtext(9, 6, VERSION, true);
-  Serial.println("4");
   delay(500);
-  Serial.println("5");
   PeripheryManager.playBootSound();
   xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 1);
   ServerManager.setup();
@@ -78,13 +73,20 @@ void setup()
   {
     MQTTManager.setup();
     DisplayManager.loadNativeApps();
+    StopTask = true;
+    float x = 4;
+    while (x >= -85)
+    {
+      DisplayManager.HSVtext(x, 6, ("AWTRIX   " + ServerManager.myIP.toString()).c_str(), true);
+      x -= 0.18;
+    }
   }
   else
   {
     AP_MODE = true;
+    StopTask = true;
   }
 
-  StopTask = true;
   delay(200);
   DisplayManager.clearMatrix();
 }

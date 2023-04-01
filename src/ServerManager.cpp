@@ -123,13 +123,14 @@ void ServerManager_::setup()
     {
         WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS);
     }
-    IPAddress myIP = mws.startWiFi(10000, uniqueID, "12345678");
+    myIP = mws.startWiFi(10000, uniqueID, "12345678");
+
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
     Serial.println(myIP.toString());
 
     if (isConnected)
     {
-
+      
         mws.addOptionBox("Network");
         mws.addOption("Static IP", NET_STATIC);
         mws.addOption("Local IP", NET_IP);
