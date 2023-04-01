@@ -71,6 +71,7 @@ extern String BOOT_SOUND;
 extern uint8_t VOLUME;
 extern uint8_t VOLUME_PERCENT;
 extern int MATRIX_LAYOUT;
+extern bool UPDATE_AVAILABLE;
 void loadSettings();
 void saveSettings();
 #endif // Globals_H

@@ -7,6 +7,7 @@
 #include <ArduinoJson.h>
 #include "Dictionary.h"
 #include "PeripheryManager.h"
+#include "Updater.h"
 
 WiFiClient espClient;
 uint8_t lastBrightness;
@@ -36,6 +37,8 @@ HASensor *ram = nullptr;
 HABinarySensor *btnleft = nullptr;
 HABinarySensor *btnmid = nullptr;
 HABinarySensor *btnright = nullptr;
+HABinarySensor *update = nullptr;
+HAButton *doUpdate = nullptr;
 
 // The getter for the instantiated singleton instance
 MQTTManager_ &MQTTManager_::getInstance()
@@ -60,6 +63,11 @@ void onButtonCommand(HAButton *sender)
     else if (sender == prevApp)
     {
         DisplayManager.previousApp();
+    }
+    else if (sender == doUpdate)
+    {
+        if (UPDATE_AVAILABLE)
+            Updater.updateFirmware();
     }
 }
 
@@ -183,6 +191,12 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         DisplayManager.previousApp();
         return;
     }
+    if (strTopic == MQTT_PREFIX + "/doupdate")
+    {
+        if (UPDATE_AVAILABLE)
+            Updater.updateFirmware();
+        return;
+    }
 
     else if (strTopic.startsWith(MQTT_PREFIX + "/custom"))
     {
@@ -212,6 +226,7 @@ void onMqttConnected()
         "/settings",
         "/previousapp",
         "/nextapp",
+        "/doupdate",
         "/nextapp",
         "/apps"};
     for (const char *topic : topics)
@@ -221,7 +236,6 @@ void onMqttConnected()
     }
     Serial.println(F("MQTT Connected"));
 }
-
 
 void connect()
 {
@@ -241,7 +255,7 @@ void connect()
 }
 
 char matID[40], briID[40];
-char btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40];
+char btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], updateID[40], doUpdateID[40];
 #ifdef ULANZI
 char batID[40];
 #endif
@@ -298,6 +312,12 @@ void MQTTManager_::setup()
         dismiss = new HAButton(btnAID);
         dismiss->setIcon(HAbtnaIcon);
         dismiss->setName(HAbtnaName);
+
+        sprintf(doUpdateID, HAdoUpID, macStr);
+        doUpdate = new HAButton(doUpdateID);
+        doUpdate->setIcon(HAdoUpIcon);
+        doUpdate->setName(HAdoUpName);
+        doUpdate->onCommand(onButtonCommand);
 
         sprintf(transID, HAtransID, macStr);
         transition = new HASwitch(transID);
@@ -372,6 +392,12 @@ void MQTTManager_::setup()
         sprintf(btnLID, HAbtnLID, macStr);
         btnleft = new HABinarySensor(btnLID);
         btnleft->setName(HAbtnLName);
+
+        sprintf(updateID, HAupdateID, macStr);
+        update = new HABinarySensor(updateID);
+        update->setIcon(HAupdateIcon);
+        update->setName(HAupdateName);
+        update->setDeviceClass(HAupdateClass);
 
         sprintf(btnMID, HAbtnMID, macStr);
         btnmid = new HABinarySensor(btnMID);
@@ -456,6 +482,8 @@ void MQTTManager_::sendStats()
         uptime->setValue(PeripheryManager.readUptime());
         version->setValue(VERSION);
         transition->setState(AUTO_TRANSITION, false);
+
+        update->setState(UPDATE_AVAILABLE, false);
     }
     else
     {

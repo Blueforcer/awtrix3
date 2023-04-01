@@ -36,6 +36,7 @@
 #include "MQTTManager.h"
 #include "ServerManager.h"
 #include "Globals.h"
+#include "Updater.h"
 
 TaskHandle_t taskHandle;
 volatile bool StopTask = false;
@@ -58,7 +59,7 @@ void BootAnimation(void *parameter)
 void setup()
 {
   PeripheryManager.setup();
-  delay(500);
+  delay(1000);
   Serial.begin(9600);
   loadSettings();
   ServerManager.loadSettings();
@@ -73,6 +74,8 @@ void setup()
   {
     MQTTManager.setup();
     DisplayManager.loadNativeApps();
+    Updater.setup();
+    Updater.checkUpdate(false);
     StopTask = true;
     float x = 4;
     while (x >= -85)
@@ -80,6 +83,7 @@ void setup()
       DisplayManager.HSVtext(x, 6, ("AWTRIX   " + ServerManager.myIP.toString()).c_str(), true);
       x -= 0.18;
     }
+
   }
   else
   {
@@ -98,7 +102,6 @@ void loop()
   PeripheryManager.tick();
   if (ServerManager.isConnected)
   {
-
     MQTTManager.tick();
   }
 }

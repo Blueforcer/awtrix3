@@ -9,6 +9,7 @@
 #include <LittleFS.h>
 #include <WiFi.h>
 #include "DisplayManager.h"
+#include "Updater.h"
 
 WebServer server(80);
 FSWebServer mws(LittleFS, server);
@@ -37,7 +38,6 @@ void saveHandler()
     webRequest->send(200);
 }
 
-
 void ServerManager_::setup()
 {
     if (!local_IP.fromString(NET_IP) || !gateway.fromString(NET_GW) || !subnet.fromString(NET_SN) || !primaryDNS.fromString(NET_PDNS) || !secondaryDNS.fromString(NET_SDNS))
@@ -53,7 +53,7 @@ void ServerManager_::setup()
 
     if (isConnected)
     {
-      
+
         mws.addOptionBox("Network");
         mws.addOption("Static IP", NET_STATIC);
         mws.addOption("Local IP", NET_IP);
@@ -97,6 +97,9 @@ void ServerManager_::setup()
                        {  DisplayManager.generateCustomPage(mws.webserver->arg("name"),mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/stats", HTTP_GET, []()
                        { mws.webserver->sendContent(DisplayManager.getStat()); });
+        mws.addHandler("/api/doupdate", HTTP_POST, []()
+                       {  if (UPDATE_AVAILABLE)
+            Updater.updateFirmware(); mws.webserver->send(200,"OK"); });
         Serial.println("Webserver loaded");
     }
     mws.addHandler("/version", HTTP_GET, versionHandler);

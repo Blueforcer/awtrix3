@@ -6,6 +6,7 @@
 #include <PeripheryManager.h>
 #include <updater.h>
 #include <icons.h>
+#include <Updater.h>
 
 String menuText;
 int menuSelection;
@@ -377,9 +378,9 @@ void MenuManager_::selectButton()
 #endif
           
         case 13:
-            if (FirmwareVersionCheck())
+            if (Updater.checkUpdate(true))
             {
-                updateFirmware();
+                Updater.updateFirmware();
             }
             break;
         default:
