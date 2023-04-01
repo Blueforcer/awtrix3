@@ -4,9 +4,11 @@
 #include <Arduino.h>
 #include <EasyButton.h>
 #ifdef ULANZI
-#include "Adafruit_SHT31.h"
+    #include "Adafruit_SHT31.h"
 #else
-#include "Adafruit_BME280.h"
+    #include "Adafruit_BME280.h"
+    #include "SoftwareSerial.h"
+    #include <DFMiniMp3.h>
 #endif
 
 class PeripheryManager_
@@ -35,6 +37,7 @@ public:
     void playFromFile(String file);
     bool isPlaying();
     void stopSound();
+    void setVolume(uint8_t);
     const char *readUptime();
 };
 

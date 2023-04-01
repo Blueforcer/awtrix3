@@ -24,14 +24,15 @@ void FSWebServer::addHandler(const Uri &uri, HTTPMethod method, WebServerClass::
     webserver->on(uri, method, fn);
 }
 
+
+void FSWebServer::onNotFound(WebServerClass::THandlerFunction fn)
+{
+    webserver->onNotFound(fn);
+}
+
 void FSWebServer::addHandler(const Uri &uri, WebServerClass::THandlerFunction handler)
 {
     webserver->on(uri, HTTP_ANY, handler);
-}
-
-void FSWebServer::onNotFound(WebServerClass::THandlerFunction handler)
-{
-    webserver->onNotFound(handler);
 }
 
 // List all files saved in the selected filesystem
@@ -85,7 +86,7 @@ bool FSWebServer::begin(const char *path)
     webserver->on("/edit", HTTP_PUT, std::bind(&FSWebServer::handleFileCreate, this));
     webserver->on("/edit", HTTP_DELETE, std::bind(&FSWebServer::handleFileDelete, this));
 #endif
-    //webserver->onNotFound(std::bind(&FSWebServer::handleRequest, this));
+    webserver->onNotFound(std::bind(&FSWebServer::handleRequest, this));
     webserver->on("/favicon.ico", HTTP_GET, std::bind(&FSWebServer::replyOK, this));
     webserver->on("/", HTTP_GET, std::bind(&FSWebServer::handleIndex, this));
 #ifdef INCLUDE_SETUP_HTM
@@ -158,6 +159,7 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
 #elif defined(ESP32)
     wifi_config_t conf;
     esp_wifi_get_config(WIFI_IF_STA, &conf);
+
     _ssid = reinterpret_cast<const char *>(conf.sta.ssid);
     _pass = reinterpret_cast<const char *>(conf.sta.password);
 #endif
@@ -167,6 +169,7 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
         WiFi.begin(_ssid, _pass);
         Serial.print(F("Connecting to "));
         Serial.println(_ssid);
+
         uint32_t startTime = millis();
         while (WiFi.status() != WL_CONNECTED)
         {
@@ -174,6 +177,8 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
             Serial.print(".");
             if (WiFi.status() == WL_CONNECTED)
             {
+                WiFi.setAutoReconnect(true);
+                WiFi.persistent(true);
                 ip = WiFi.localIP();
                 return ip;
             }

@@ -61,10 +61,15 @@ void setup()
   delay(500);
   Serial.begin(9600);
   loadSettings();
+  Serial.println("1");
   ServerManager.loadSettings();
+  Serial.println("2");
   DisplayManager.setup();
+  Serial.println("3");
   DisplayManager.HSVtext(9, 6, VERSION, true);
+  Serial.println("4");
   delay(500);
+  Serial.println("5");
   PeripheryManager.playBootSound();
   xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 1);
   ServerManager.setup();
@@ -88,9 +93,10 @@ void loop()
 {
   ServerManager.tick();
   DisplayManager.tick();
+  PeripheryManager.tick();
   if (ServerManager.isConnected)
   {
-    PeripheryManager.tick();
+
     MQTTManager.tick();
   }
 }

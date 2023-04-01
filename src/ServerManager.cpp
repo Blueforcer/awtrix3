@@ -37,7 +37,7 @@ void saveHandler()
     webRequest->send(200);
 }
 
-void handlePostRequest()
+void handleAPIRequest()
 {
     WebServerClass *webRequest = mws.getRequest();
     String url = webRequest->uri();
@@ -129,7 +129,7 @@ void ServerManager_::setup()
 
     if (isConnected)
     {
-        mws.onNotFound(handlePostRequest);
+
         mws.addOptionBox("Network");
         mws.addOption("Static IP", NET_STATIC);
         mws.addOption("Local IP", NET_IP);
@@ -154,9 +154,30 @@ void ServerManager_::setup()
         mws.addJavascript(custom_script);
         mws.addOptionBox("General");
         mws.addOption("Uppercase letters", UPPERCASE_LETTERS);
-        mws.addHandler("/save", HTTP_GET, saveHandler);
+        mws.addHandler("/save", HTTP_POST, saveHandler);
+        mws.addHandler("/api/notify", HTTP_POST, []()
+                       {DisplayManager.generateNotification(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/nextapp", HTTP_POST, []()
+                       {DisplayManager.nextApp(); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/previousapp", HTTP_POST, []()
+                       {DisplayManager.previousApp(); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/timer", HTTP_POST, []()
+                       { DisplayManager.gererateTimer(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/notify/dismiss", HTTP_POST, []()
+                       { DisplayManager.dismissNotify(); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/apps", HTTP_POST, []()
+                       {  DisplayManager.updateAppVector(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/switch", HTTP_POST, []()
+                       {  DisplayManager.switchToApp(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/settings", HTTP_POST, []()
+                       {  DisplayManager.setNewSettings(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/custom", HTTP_POST, []()
+                       {  DisplayManager.generateCustomPage(mws.webserver->arg("name"),mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/stats", HTTP_GET, []()
+                       { mws.webserver->sendContent(DisplayManager.getStat()); });
+        Serial.println("Webserver loaded");
     }
-
+    mws.addHandler("/version", HTTP_GET, versionHandler);
     mws.begin();
 
     if (!MDNS.begin(uniqueID))

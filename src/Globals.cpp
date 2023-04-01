@@ -73,6 +73,7 @@ void loadSettings()
     SHOW_DATE = Settings.getBool("DAT", true);
     SHOW_TEMP = Settings.getBool("TEMP", true);
     SHOW_HUM = Settings.getBool("HUM", true);
+    MATRIX_LAYOUT = Settings.getUInt("MAT", 0);
 #ifdef ULANZI
     SHOW_BAT = Settings.getBool("BAT", true);
 #endif
@@ -101,6 +102,7 @@ void saveSettings()
     Settings.putBool("DAT", SHOW_DATE);
     Settings.putBool("TEMP", SHOW_TEMP);
     Settings.putBool("HUM", SHOW_HUM);
+    Settings.putUInt("MAT", MATRIX_LAYOUT);
 #ifdef ULANZI
     Settings.putBool("BAT", SHOW_BAT);
 #endif
@@ -178,3 +180,6 @@ bool ALARM_ACTIVE;
 uint16_t TEXTCOLOR_565 = 0xFFFF;
 bool SOUND_ACTIVE;
 String BOOT_SOUND = "";
+uint8_t VOLUME;
+uint8_t VOLUME_PERCENT;
+int MATRIX_LAYOUT;

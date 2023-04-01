@@ -27,8 +27,6 @@ Ticker TimerTicker;
 #define MATRIX_WIDTH 32
 #define MATRIX_HEIGHT 8
 
-bool appIsSwitching;
-
 GifPlayer gif;
 
 CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
@@ -240,17 +238,15 @@ void removeCustomApp(const String &name)
     auto it = std::find_if(Apps.begin(), Apps.end(), [&name](const std::pair<String, AppCallback> &appPair)
                            { return appPair.first == name; });
 
-    if (it != Apps.end())
-    {
-        Apps.erase(it);
-        ui.setApps(Apps);
-    }
+    Apps.erase(it);
+    ui.setApps(Apps);
 }
 
 void DisplayManager_::generateCustomPage(String name, const char *json)
 {
-    if (json == "" && customApps.count(name))
+    if (strcmp(json, "") == 0 && customApps.count(name))
     {
+        Serial.println("delete");
         customApps.erase(customApps.find(name));
         removeCustomApp(name);
         return;
@@ -297,6 +293,7 @@ void DisplayManager_::generateCustomPage(String name, const char *json)
         customApp.barSize = 0;
     }
 
+    customApp.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : -1;
     int pos = doc.containsKey("pos") ? doc["pos"].as<uint8_t>() : -1;
     customApp.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
     customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
@@ -534,17 +531,17 @@ void DisplayManager_::tick()
     }
     else
     {
-        ui.update();
         if (ui.getUiState()->appState == IN_TRANSITION && !appIsSwitching)
         {
             appIsSwitching = true;
-            MQTTManager.setCurrentApp(CURRENT_APP);
         }
         else if (ui.getUiState()->appState == FIXED && appIsSwitching)
         {
             appIsSwitching = false;
             MQTTManager.setCurrentApp(CURRENT_APP);
+            setAppTime(TIME_PER_APP);
         }
+        ui.update();
     }
 }
 
@@ -910,3 +907,7 @@ String DisplayManager_::getStat()
     return jsonString;
 }
 
+void DisplayManager_::setAppTime(uint16_t duration)
+{
+    ui.setTimePerApp(duration);
+}

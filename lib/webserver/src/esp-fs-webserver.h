@@ -5,7 +5,7 @@
 #include <memory>
 #include <typeinfo>
 #include <base64.h>
-//#include <FS.h>
+// #include <FS.h>
 #include <LittleFS.h>
 
 #define INCLUDE_EDIT_HTM
@@ -82,11 +82,11 @@ public:
     bool begin(const char *path = nullptr);
 
     void run();
-
+    void onNotFound(WebServerClass::THandlerFunction fn);
+    
     void addHandler(const Uri &uri, HTTPMethod method, WebServerClass::THandlerFunction fn);
 
     void addHandler(const Uri &uri, WebServerClass::THandlerFunction handler);
-    void onNotFound(WebServerClass::THandlerFunction handler);
 
     void setCaptiveWebage(const char *url);
 
@@ -256,13 +256,12 @@ public:
         return true;
     }
 
-
     template <typename T>
     bool saveOptionValue(const char *label, T val)
     {
         // Öffne die Datei im Lesemodus, um den Inhalt des Dokuments beizubehalten
         File file = m_filesystem->open("/config.json", "r");
-        DynamicJsonDocument doc(file.size()* 1.33);
+        DynamicJsonDocument doc(file.size() * 1.33);
 
         if (file)
         {

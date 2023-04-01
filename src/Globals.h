@@ -68,6 +68,9 @@ extern bool START_ON_MONDAY;
 extern bool IS_CELSIUS;
 extern bool SOUND_ACTIVE;
 extern String BOOT_SOUND;
+extern uint8_t VOLUME;
+extern uint8_t VOLUME_PERCENT;
+extern int MATRIX_LAYOUT;
 void loadSettings();
 void saveSettings();
 #endif // Globals_H

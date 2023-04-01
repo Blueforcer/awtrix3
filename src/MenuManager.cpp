@@ -3,6 +3,7 @@
 #include <Globals.h>
 #include <ServerManager.h>
 #include <DisplayManager.h>
+#include <PeripheryManager.h>
 #include <updater.h>
 #include <icons.h>
 
@@ -26,7 +27,8 @@ enum MenuState
     WeekdayMenu,
     TempMenu,
     Appmenu,
-    SoundMenu
+    SoundMenu,
+    VolumeMenu
 };
 
 const char *menuItems[] PROGMEM = {
@@ -42,10 +44,11 @@ const char *menuItems[] PROGMEM = {
     "TEMP",
     "APPS",
     "SOUND",
+    "VOLUME",
     "UPDATE"};
 
 int8_t menuIndex = 0;
-uint8_t menuItemCount = 13;
+uint8_t menuItemCount = 14;
 
 const char *timeFormat[] PROGMEM = {
     "%H:%M:%S",
@@ -77,10 +80,10 @@ const char *appsItems[][2] PROGMEM = {
     {"13", "time"},
     {"1158", "date"},
     {"234", "temp"},
-#ifdef ULANZI  
+#ifdef ULANZI
     {"2075", "hum"},
     {"1486", "bat"}};
-#else 
+#else
     {"2075", "hum"}};
 #endif
 
@@ -247,6 +250,10 @@ void MenuManager_::rightButton()
     case TempMenu:
         IS_CELSIUS = !IS_CELSIUS;
         break;
+    case VolumeMenu:
+        VOLUME_PERCENT = (VOLUME_PERCENT % 100) + 1;
+        VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
+        PeripheryManager.setVolume(VOLUME);
     default:
         break;
     }
@@ -307,6 +314,10 @@ void MenuManager_::leftButton()
     case SoundMenu:
         SOUND_ACTIVE = !SOUND_ACTIVE;
         break;
+    case VolumeMenu:
+        VOLUME_PERCENT = (VOLUME_PERCENT % 100) + 1;
+        VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
+        PeripheryManager.setVolume(VOLUME);
     default:
         break;
     }
@@ -361,6 +372,11 @@ void MenuManager_::selectButton()
             currentState = SoundMenu;
             break;
         case 12:
+#ifdef AWTRIX_UPGRADE
+            currentState = VolumeMenu;
+#endif
+            break;
+        case 13:
             if (FirmwareVersionCheck())
             {
                 updateFirmware();
@@ -436,6 +452,12 @@ void MenuManager_::selectButtonLong()
         case AppTimeMenu:
             DisplayManager.applyAllSettings();
             saveSettings();
+            break;
+        case VolumeMenu:
+#ifdef AWTRIX_UPGRADE
+            VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
+            saveSettings();
+#endif
             break;
         case TimeFormatMenu:
             TIME_FORMAT = timeFormat[timeFormatIndex];

@@ -26,6 +26,7 @@ private:
 
 public:
     static DisplayManager_ &getInstance();
+    bool appIsSwitching;
     void setup();
     void tick();
     void clear();
@@ -48,7 +49,7 @@ public:
     void setFPS(uint8_t);
     void MatrixState(bool);
     void generateNotification(const char *json);
-    void generateCustomPage(String, const char *json);
+    void generateCustomPage(String name, const char *json);
     void printText(int16_t x, int16_t y, const char *text, bool centered, bool ignoreUppercase);
     bool setAutoTransition(bool active);
     void switchToApp(const char *json);
@@ -60,6 +61,8 @@ public:
     void drawBMP(int16_t x, int16_t y, const uint16_t bitmap[], int16_t w, int16_t h);
     void drawBarChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint16_t color);
     void updateAppVector(const char *json);
+    void setMatrixLayout(int layout);
+    void setAppTime(uint16_t duration);
     String getStat();
 };
 
