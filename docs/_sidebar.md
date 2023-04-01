@@ -11,7 +11,6 @@
 - Features
   - [Apps](apps.md)
   - [Alarm clock](alarm.md)
-  - [Timer](timer.md)
   - [Icons](icons.md)
   - [Sounds](sounds.md)
   - [Hidden features](dev.md)

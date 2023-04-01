@@ -9,7 +9,7 @@
 #include <LittleFS.h>
 #include <WiFi.h>
 #include "DisplayManager.h"
-#include "Updater.h"
+#include "UpdateManager.h"
 
 WebServer server(80);
 FSWebServer mws(LittleFS, server);
@@ -99,7 +99,7 @@ void ServerManager_::setup()
                        { mws.webserver->sendContent(DisplayManager.getStat()); });
         mws.addHandler("/api/doupdate", HTTP_POST, []()
                        {  if (UPDATE_AVAILABLE)
-            Updater.updateFirmware(); mws.webserver->send(200,"OK"); });
+            UpdateManager.updateFirmware(); mws.webserver->send(200,"OK"); });
         Serial.println("Webserver loaded");
     }
     mws.addHandler("/version", HTTP_GET, versionHandler);

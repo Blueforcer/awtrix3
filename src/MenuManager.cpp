@@ -4,9 +4,9 @@
 #include <ServerManager.h>
 #include <DisplayManager.h>
 #include <PeripheryManager.h>
-#include <updater.h>
+//#include <update.h>
 #include <icons.h>
-#include <Updater.h>
+#include <UpdateManager.h>
 
 String menuText;
 int menuSelection;
@@ -378,9 +378,9 @@ void MenuManager_::selectButton()
 #endif
           
         case 13:
-            if (Updater.checkUpdate(true))
+            if (UpdateManager.checkUpdate(true))
             {
-                Updater.updateFirmware();
+                UpdateManager.updateFirmware();
             }
             break;
         default:

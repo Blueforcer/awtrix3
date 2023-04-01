@@ -7,7 +7,7 @@
 #include <ArduinoJson.h>
 #include "Dictionary.h"
 #include "PeripheryManager.h"
-#include "Updater.h"
+#include "UpdateManager.h"
 
 WiFiClient espClient;
 uint8_t lastBrightness;
@@ -67,7 +67,7 @@ void onButtonCommand(HAButton *sender)
     else if (sender == doUpdate)
     {
         if (UPDATE_AVAILABLE)
-            Updater.updateFirmware();
+            UpdateManager.updateFirmware();
     }
 }
 
@@ -194,7 +194,7 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
     if (strTopic == MQTT_PREFIX + "/doupdate")
     {
         if (UPDATE_AVAILABLE)
-            Updater.updateFirmware();
+            UpdateManager.updateFirmware();
         return;
     }
 

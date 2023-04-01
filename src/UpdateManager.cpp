@@ -1,4 +1,4 @@
-#include <Updater.h>
+#include <UpdateManager.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
@@ -14,14 +14,14 @@
 Ticker UpdateTicker;
 
 // The getter for the instantiated singleton instance
-Updater_ &Updater_::getInstance()
+UpdateManager_ &UpdateManager_::getInstance()
 {
-    static Updater_ instance;
+    static UpdateManager_ instance;
     return instance;
 }
 
 // Initialize the global shared instance
-Updater_ &Updater = Updater.getInstance();
+UpdateManager_ &UpdateManager = UpdateManager.getInstance();
 
 void update_started()
 {
@@ -43,7 +43,7 @@ void update_error(int err)
     DisplayManager.show();
 }
 
-void Updater_::updateFirmware()
+void UpdateManager_::updateFirmware()
 {
     WiFiClientSecure client;
     client.setCACert(rootCACertificate);
@@ -70,7 +70,7 @@ void Updater_::updateFirmware()
     }
 }
 
-bool Updater_::checkUpdate(bool withScreen)
+bool UpdateManager_::checkUpdate(bool withScreen)
 {
     if (withScreen)
     {
@@ -143,10 +143,10 @@ bool Updater_::checkUpdate(bool withScreen)
 void checkUpdateNoReturn()
 {
     Serial.println("Check Update");
-    Updater.getInstance().checkUpdate(false);
+    UpdateManager.getInstance().checkUpdate(false);
 }
 
-void Updater_::setup()
+void UpdateManager_::setup()
 {
     UpdateTicker.attach(3600, checkUpdateNoReturn);
 }

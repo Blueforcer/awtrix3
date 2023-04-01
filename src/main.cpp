@@ -36,7 +36,7 @@
 #include "MQTTManager.h"
 #include "ServerManager.h"
 #include "Globals.h"
-#include "Updater.h"
+#include "UpdateManager.h"
 
 TaskHandle_t taskHandle;
 volatile bool StopTask = false;
@@ -74,8 +74,8 @@ void setup()
   {
     MQTTManager.setup();
     DisplayManager.loadNativeApps();
-    Updater.setup();
-    Updater.checkUpdate(false);
+    UpdateManager.setup();
+    UpdateManager.checkUpdate(false);
     StopTask = true;
     float x = 4;
     while (x >= -85)
