@@ -9,8 +9,6 @@
 #include <LightDependentResistor.h>
 #include <MenuManager.h>
 
-#define SOUND_OFF false
-
 #ifdef ULANZI
 // Pinouts für das ULANZI-Environment
 #define BATTERY_PIN 34
@@ -21,7 +19,6 @@
 #define BUTTON_SELECT_PIN 27
 #else
 // Pinouts für das WEMOS_D1_MINI32-Environment
-#define BATTERY_PIN -1
 #define BUZZER_PIN -1
 #define LDR_PIN A0
 #define BUTTON_UP_PIN D0
@@ -29,7 +26,19 @@
 #define BUTTON_SELECT_PIN D8
 #endif
 
+#ifdef ULANZI
 Adafruit_SHT31 sht31;
+#else
+
+class Mp3Notify
+{
+};
+Adafruit_BME280 bme280;
+SoftwareSerial mySoftwareSerial(D7, D5); // RX, TX
+typedef DFMiniMp3<SoftwareSerial, Mp3Notify> DfMp3;
+DfMp3 dfmp3(mySoftwareSerial);
+#endif
+
 EasyButton button_left(BUTTON_UP_PIN);
 EasyButton button_right(BUTTON_DOWN_PIN);
 EasyButton button_select(BUTTON_SELECT_PIN);
@@ -50,12 +59,18 @@ unsigned long previousMillis_LDR = 0;
 const unsigned long interval_BatTempHum = 10000;
 const unsigned long interval_LDR = 100;
 int total = 0;
+unsigned long startTime;
 
 const int LDRReadings = 10;
 int TotalLDRReadings[LDRReadings];
 float sampleSum = 0.0;
 float sampleAverage = 0.0;
 float brightnessPercent = 0.0;
+
+#ifdef awrtrix_upgrade
+class Mp3Notify;
+SoftwareSerial mySoftwareSerial(D7, D5); // RX, TX
+#endif
 
 // The getter for the instantiated singleton instance
 PeripheryManager_ &PeripheryManager_::getInstance()
@@ -69,14 +84,36 @@ PeripheryManager_ &PeripheryManager = PeripheryManager.getInstance();
 
 void left_button_pressed()
 {
-    DisplayManager.leftButton();
-    MenuManager.leftButton();
+    if (AP_MODE)
+    {
+        --MATRIX_LAYOUT;
+        if (MATRIX_LAYOUT < 0)
+            MATRIX_LAYOUT = 2;
+        saveSettings();
+        ESP.restart();
+    }
+    else
+    {
+        DisplayManager.leftButton();
+        MenuManager.leftButton();
+    }
 }
 
 void right_button_pressed()
 {
-    DisplayManager.rightButton();
-    MenuManager.rightButton();
+    if (AP_MODE)
+    {
+        ++MATRIX_LAYOUT;
+        if (MATRIX_LAYOUT > 2)
+            MATRIX_LAYOUT = 0;
+        saveSettings();
+        ESP.restart();
+    }
+    else
+    {
+        DisplayManager.rightButton();
+        MenuManager.rightButton();
+    }
 }
 
 void select_button_pressed()
@@ -105,40 +142,79 @@ void select_button_tripple()
 
 void PeripheryManager_::playBootSound()
 {
-    if (SOUND_OFF)
+    if (!SOUND_ACTIVE)
         return;
-    const int nNotes = 6;
-    String notes[nNotes] = {"E5", "C5", "G4", "E4", "G4", "C5"};
-    const int timeUnit = 150;
-    Melody melody = MelodyFactory.load("Nice Melody", timeUnit, notes, nNotes);
-    player.playAsync(melody);
+    if (BOOT_SOUND == "")
+    {
+#ifdef ULANZI
+        const int nNotes = 6;
+        String notes[nNotes] = {"E5", "C5", "G4", "E4", "G4", "C5"};
+        const int timeUnit = 150;
+        Melody melody = MelodyFactory.load("Bootsound", timeUnit, notes, nNotes);
+        player.playAsync(melody);
+#else
+// no standardsound
+#endif
+    }
+    else
+    {
+#ifdef ULANZI
+        playFromFile("/MELODIES/" + BOOT_SOUND + ".txt");
+#else
+        dfmp3.playMp3FolderTrack(BOOT_SOUND.toInt());
+#endif
+    }
 }
 
 void PeripheryManager_::stopSound()
 {
+#ifdef ULANZI
     player.stop();
+#else
+    dfmp3.stop();
+#endif
+}
+
+void PeripheryManager_::setVolume(uint8_t vol)
+{
+#ifdef AWTRIX_UPGRADE
+    dfmp3.setVolume(vol);
+#endif
 }
 
 void PeripheryManager_::playFromFile(String file)
 {
-    if (SOUND_OFF)
+    if (!SOUND_ACTIVE)
         return;
+#ifdef ULANZI
     Melody melody = MelodyFactory.loadRtttlFile(file);
     player.playAsync(melody);
+#else
+    dfmp3.playMp3FolderTrack(file.toInt());
+#endif
 }
 
 bool PeripheryManager_::isPlaying()
 {
+#ifdef ULANZI
     return player.isPlaying();
+#else
+    return false;
+#endif
 }
 
 void fistStart()
 {
-
+#ifdef ULANZI
     uint16_t ADCVALUE = analogRead(BATTERY_PIN);
-
     BATTERY_PERCENT = min((int)map(ADCVALUE, 490, 690, 0, 100), 100);
+    BATTERY_RAW = ADCVALUE;
     sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
+    CURRENT_TEMP -= 9.0;
+#else
+    CURRENT_TEMP = bme280.readTemperature();
+    CURRENT_HUM = bme280.readHumidity();
+#endif
 
     uint16_t LDRVALUE = analogRead(LDR_PIN);
     brightnessPercent = LDRVALUE / 4095.0 * 100.0;
@@ -148,6 +224,7 @@ void fistStart()
 
 void PeripheryManager_::setup()
 {
+    startTime = millis();
     pinMode(LDR_PIN, INPUT);
     pinMode(BUZZER_PIN, OUTPUT);
     digitalWrite(BUZZER_PIN, LOW);
@@ -160,7 +237,12 @@ void PeripheryManager_::setup()
     button_select.onPressedFor(1000, select_button_pressed_long);
     button_select.onSequence(2, 300, select_button_tripple);
     Wire.begin(21, 22);
+#ifdef ULANZI
     sht31.begin(0x44);
+#else
+    bme280.begin();
+    dfmp3.begin();
+#endif
     photocell.setPhotocellPositionOnGround(false);
     fistStart();
 }
@@ -176,11 +258,16 @@ void PeripheryManager_::tick()
     if (currentMillis_BatTempHum - previousMillis_BatTempHum >= interval_BatTempHum)
     {
         previousMillis_BatTempHum = currentMillis_BatTempHum;
+#ifdef ULANZI
         uint16_t ADCVALUE = analogRead(BATTERY_PIN);
         BATTERY_PERCENT = min((int)map(ADCVALUE, 475, 665, 0, 100), 100);
         BATTERY_RAW = ADCVALUE;
         sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
         CURRENT_TEMP -= 9.0;
+#else
+        CURRENT_TEMP = bme280.readTemperature();
+        CURRENT_HUM = bme280.readHumidity();
+#endif
         checkAlarms();
         MQTTManager.sendStats();
     }
@@ -273,4 +360,20 @@ void PeripheryManager_::checkAlarms()
             }
         }
     }
+}
+
+const char *PeripheryManager_::readUptime()
+{
+    static char uptime[25]; // Make the array static to keep it from being destroyed when the function returns
+    unsigned long currentTime = millis();
+    unsigned long elapsedTime = currentTime - startTime;
+    unsigned long uptimeSeconds = elapsedTime / 1000;
+    unsigned long uptimeMinutes = uptimeSeconds / 60;
+    unsigned long uptimeHours = uptimeMinutes / 60;
+    unsigned long uptimeDays = uptimeHours / 24;
+    unsigned long hours = uptimeHours % 24;
+    unsigned long minutes = uptimeMinutes % 60;
+    unsigned long seconds = uptimeSeconds % 60;
+    sprintf(uptime, "P%dDT%dH%dM%dS", uptimeDays, hours, minutes, seconds);
+    return uptime;
 }

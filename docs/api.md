@@ -1,26 +1,40 @@
-# MQTT Commands
+# MQTT / HTTP API
+
+
+## Status  
+In MQTT awtrix send its stats every 10s to `[PREFIX]/stats`  
+With HTTP, make GET request to `http://[IP]/api/stats`
+
+
+## Add custom app  
+ create custom apps or notifications to display your own text and icons.  
+ Have a look at [this section](custom?id=custom-apps-and-notifications)
+
+| Topic | URL |  Payload/Body | HTTP Header | HTTP method |
+| --- | --- | --- |--- |--- |
+| `[PREFIX]/custom/[appname]` |`http://[IP]/api/custom` | JSON | name = [appname] | POST |
 
 ## Dismiss Notification  
 Dismiss a notification which was set to "hold"=true.
 
-| Topic | Payload |
-| --- | --- |
-| `[PREFIX]/notify/dismiss` | empty payload |
+| Topic | URL | Payload/Body | HTTP method |
+| --- | --- | --- | --- |
+| `[PREFIX]/custom/[appname]` |`http://[IP]/api/notify/dismiss` | empty payload/body | POST |
 
 ## Switch Apps
 Switch to next or previous app.
 
-| Topic | Payload |
-| --- | --- |
-| `[PREFIX]/nextapp` | empty payload |
-| `[PREFIX]/previousapp` | empty payload |
+| Topic | URL | Payload/Body | HTTP method |
+| --- | --- | --- | --- |
+| `[PREFIX]/nextapp` | `http://[IP]/api/nextapp` | empty payload/body | POST |
+| `[PREFIX]/previousapp` | `http://[IP]/api/previousapp` | payload/body  | POST |
 
 ## Switch to Specific App  
 Switch to a specific app by name.
 
-| Topic | Payload |
-| --- | --- |
-| `[PREFIX]/switch` | `{"name":"time"}` |
+| Topic | URL | Payload/Body | HTTP method |
+| --- | --- | --- | --- |
+| `[PREFIX]/switch` | `http://[IP]/api/switch` | `{"name":"time"}` | POST |
 
 Built-in app names are:
 - `time`
@@ -34,9 +48,9 @@ For custom apps, use the name you set in the topic. For example, if `[PREFIX]/cu
 ## Add/remove and rearange apps 
 
 
-| Topic | 
-| --- |
-| `[PREFIX]/apps` |
+| Topic |  URL | Payload/Body | HTTP method |
+| --- | --- | --- | --- |
+| `[PREFIX]/apps`|`http://[IP]/api/apps`| json | POST |
 
 !> This function provides users with the ability to manage the apps on their device by adding, removing, and rearranging them. However, as it is an experimental feature, caution should be exercised, particularly when attempting to rearrange multiple apps at once, as this can lead to unintended consequences due to the resulting shifts in position of other apps.
   
@@ -98,15 +112,21 @@ In this example,
 - The "bat" app is inactive and will be removed,   
 - and the "github" app is active and should be displayed in position 4.  
 
+## Add timer  
+ create custom apps or notifications to display your own text and icons.
+ have a look at [this section](custom)
 
+| Topic | URL | Payload/Body |HTTP method |
+| --- | --- | --- |--- |
+| `[PREFIX]/custom/[appname]` |`http://[IP]/api/notify/dismiss` | empty payload/body | POST |
 
 
 ## Change Settings  
 Change various settings related to the app display.
 
-| Topic | Payload |
-| --- | --- |
-| `[PREFIX]/settings` | JSON properties |
+| Topic |  URL | Payload/Body |HTTP method |
+| --- | --- | --- |--- |
+| `[PREFIX]/settings` |`http://[IP]/api/settings`| JSON | POST |
 
 Each property is optional; you do not need to send all.
 

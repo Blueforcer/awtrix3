@@ -73,13 +73,20 @@ void setup()
   {
     MQTTManager.setup();
     DisplayManager.loadNativeApps();
+    StopTask = true;
+    float x = 4;
+    while (x >= -85)
+    {
+      DisplayManager.HSVtext(x, 6, ("AWTRIX   " + ServerManager.myIP.toString()).c_str(), true);
+      x -= 0.18;
+    }
   }
   else
   {
     AP_MODE = true;
+    StopTask = true;
   }
 
-  StopTask = true;
   delay(200);
   DisplayManager.clearMatrix();
 }
@@ -88,9 +95,10 @@ void loop()
 {
   ServerManager.tick();
   DisplayManager.tick();
+  PeripheryManager.tick();
   if (ServerManager.isConnected)
   {
-    PeripheryManager.tick();
+
     MQTTManager.tick();
   }
 }

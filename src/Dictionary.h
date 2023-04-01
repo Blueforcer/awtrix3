@@ -50,11 +50,13 @@ extern const char HAhumName[];
 extern const char HAhumClass[];
 extern const char HAhumUnit[];
 
+#ifdef ULANZI
 extern const char HAbatID[];
 extern const char HAbatIcon[];
 extern const char HAbatName[];
 extern const char HAbatClass[];
 extern const char HAbatUnit[];
+#endif
 
 extern const char HAluxID[];
 extern const char HAluxIcon[];

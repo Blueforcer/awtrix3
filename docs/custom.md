@@ -1,7 +1,9 @@
-# Custom Apps & Notifications
+# Custom Apps and Notifications
 
-With AWTRIX Light, you can create custom apps or notifications to display your own text and icons.
-Simply send a JSON object to the topic "awtrixlight/custom/[page]" where [page] is a the name of your page (without spaces).
+With AWTRIX Light, you can create custom apps or notifications to display your own text and icons.  
+  
+With MQTT simply send a JSON object to the topic `[PREFIX]/custom/[page]` where [page] is a the name of your page (without spaces).  
+With the [HTTP API](api?id=add-custom-app) you have to set the appname in the request header  (`name = Appname`)  
 
 ## JSON Properties
 
@@ -9,7 +11,7 @@ The JSON object has the following properties:
 
 | Key | Type | Description | Default |
 | --- | ---- | ----------- | ------- |
-| `pos` | number | defines the position of your custompage in the loop, starting at 0 for the first position. This will only apply with your first push. You cant change the position afterwards with [this function](mqtt?id=addremove-and-rearange-apps) |
+| `pos` | number | defines the position of your custompage in the loop, starting at 0 for the first position. This will only apply with your first push. You cant change the position afterwards with [this function](api?id=addremove-and-rearange-apps) |
 | `text` | string | The text to display on the page. | |
 | `icon` | string | The icon ID or filename (without extension) to display on the page. | |
 | `repeat` | number | Sets how many times the text should be scrolled through the matrix before the display ends. | 1 |
@@ -41,5 +43,6 @@ Here's an example JSON object to display the text "Hello, AWTRIX Light!" with th
 }
 ```
 
-## Delete a custom page
-To delelte a custom page simply send a empty payload to the same topic
+## Delete a custom app
+To delete a custom app simply send a empty payload/body to the same topic/url.
+You can also use [this API](api?id=addremove-and-rearange-apps)

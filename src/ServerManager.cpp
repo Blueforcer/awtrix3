@@ -13,22 +13,6 @@
 WebServer server(80);
 FSWebServer mws(LittleFS, server);
 bool FSOPEN;
-void startLittleFS()
-{
-
-    if (LittleFS.begin())
-    {
-        LittleFS.mkdir("/MELODIES");
-        LittleFS.mkdir("/ICONS");
-        FSOPEN = true;
-    }
-    else
-    {
-        Serial.println("ERROR on mounting LittleFS. It will be formmatted!");
-        LittleFS.format();
-        ESP.restart();
-    }
-}
 
 // The getter for the instantiated singleton instance
 ServerManager_ &ServerManager_::getInstance()
@@ -49,26 +33,27 @@ void versionHandler()
 void saveHandler()
 {
     WebServerClass *webRequest = mws.getRequest();
-    Serial.println("Save");
     ServerManager.getInstance().loadSettings();
     webRequest->send(200);
 }
 
+
 void ServerManager_::setup()
 {
-
     if (!local_IP.fromString(NET_IP) || !gateway.fromString(NET_GW) || !subnet.fromString(NET_SN) || !primaryDNS.fromString(NET_PDNS) || !secondaryDNS.fromString(NET_SDNS))
         NET_STATIC = false;
     if (NET_STATIC)
     {
         WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS);
     }
-    IPAddress myIP = mws.startWiFi(10000, uniqueID, "12345678");
+    myIP = mws.startWiFi(10000, uniqueID, "12345678");
+
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
     Serial.println(myIP.toString());
 
     if (isConnected)
     {
+      
         mws.addOptionBox("Network");
         mws.addOption("Static IP", NET_STATIC);
         mws.addOption("Local IP", NET_IP);
@@ -91,11 +76,29 @@ void ServerManager_::setup()
         mws.addHTML(custom_html, "icon_html");
         mws.addCSS(custom_css);
         mws.addJavascript(custom_script);
-        mws.addOptionBox("General");
-        mws.addOption("Uppercase letters", UPPERCASE_LETTERS);
-        mws.addHandler("/save", HTTP_GET, saveHandler);
+        mws.addHandler("/save", HTTP_POST, saveHandler);
+        mws.addHandler("/api/notify", HTTP_POST, []()
+                       {DisplayManager.generateNotification(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/nextapp", HTTP_POST, []()
+                       {DisplayManager.nextApp(); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/previousapp", HTTP_POST, []()
+                       {DisplayManager.previousApp(); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/timer", HTTP_POST, []()
+                       { DisplayManager.gererateTimer(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/notify/dismiss", HTTP_POST, []()
+                       { DisplayManager.dismissNotify(); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/apps", HTTP_POST, []()
+                       {  DisplayManager.updateAppVector(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/switch", HTTP_POST, []()
+                       {  DisplayManager.switchToApp(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/settings", HTTP_POST, []()
+                       {  DisplayManager.setNewSettings(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/custom", HTTP_POST, []()
+                       {  DisplayManager.generateCustomPage(mws.webserver->arg("name"),mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/stats", HTTP_GET, []()
+                       { mws.webserver->sendContent(DisplayManager.getStat()); });
+        Serial.println("Webserver loaded");
     }
-
     mws.addHandler("/version", HTTP_GET, versionHandler);
     mws.begin();
 
@@ -129,11 +132,9 @@ uint16_t stringToColor(const String &str)
     String gStr = str.substring(comma1 + 1, comma2);
     String bStr = str.substring(comma2 + 1);
 
-
     int r = rStr.toInt();
     int g = gStr.toInt();
     int b = bStr.toInt();
-
 
     if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
     {
@@ -164,9 +165,6 @@ String colorToString(uint16_t color)
 
 void ServerManager_::loadSettings()
 {
-    if (!FSOPEN)
-        startLittleFS();
-
     if (LittleFS.exists("/config.json"))
     {
         File file = LittleFS.open("/config.json", "r");
@@ -189,7 +187,6 @@ void ServerManager_::loadSettings()
         NET_SN = doc["Subnet"].as<String>();
         NET_PDNS = doc["Primary DNS"].as<String>();
         NET_SDNS = doc["Secondary DNS"].as<String>();
-        UPPERCASE_LETTERS = doc["Uppercase letters"];
         file.close();
         DisplayManager.applyAllSettings();
         Serial.println(F("Configuration loaded"));

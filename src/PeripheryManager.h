@@ -3,15 +3,23 @@
 
 #include <Arduino.h>
 #include <EasyButton.h>
-#include "Adafruit_SHT31.h"
+#ifdef ULANZI
+    #include "Adafruit_SHT31.h"
+#else
+    #include "Adafruit_BME280.h"
+    #include "SoftwareSerial.h"
+    #include <DFMiniMp3.h>
+#endif
 
 class PeripheryManager_
 {
 private:
     PeripheryManager_() = default;
     void checkAlarms();
+#ifdef ULANZI
     const int BatReadings = 10;
     uint16_t TotalBatReadings[10];
+#endif
     int readIndex = 0;
     uint16_t total = 0;
     uint16_t average = 0;
@@ -29,6 +37,8 @@ public:
     void playFromFile(String file);
     bool isPlaying();
     void stopSound();
+    void setVolume(uint8_t);
+    const char *readUptime();
 };
 
 extern PeripheryManager_ &PeripheryManager;

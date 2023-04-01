@@ -3,6 +3,7 @@
 #include <Globals.h>
 #include <ServerManager.h>
 #include <DisplayManager.h>
+#include <PeripheryManager.h>
 #include <updater.h>
 #include <icons.h>
 
@@ -26,6 +27,8 @@ enum MenuState
     WeekdayMenu,
     TempMenu,
     Appmenu,
+    SoundMenu,
+    VolumeMenu
 };
 
 const char *menuItems[] PROGMEM = {
@@ -40,10 +43,11 @@ const char *menuItems[] PROGMEM = {
     "WEEKDAY",
     "TEMP",
     "APPS",
+    "SOUND",
     "UPDATE"};
 
 int8_t menuIndex = 0;
-uint8_t menuItemCount = 12;
+uint8_t menuItemCount = 13;
 
 const char *timeFormat[] PROGMEM = {
     "%H:%M:%S",
@@ -75,8 +79,12 @@ const char *appsItems[][2] PROGMEM = {
     {"13", "time"},
     {"1158", "date"},
     {"234", "temp"},
+#ifdef ULANZI
     {"2075", "hum"},
     {"1486", "bat"}};
+#else
+    {"2075", "hum"}};
+#endif
 
 int8_t appsIndex;
 uint8_t appsCount = 5;
@@ -129,6 +137,8 @@ String MenuManager_::menutext()
         return "0x" + String(textColors[currentColor], HEX);
     case SwitchMenu:
         return AUTO_TRANSITION ? "ON" : "OFF";
+    case SoundMenu:
+        return SOUND_ACTIVE ? "ON" : "OFF";
     case TspeedMenu:
         return String(TIME_PER_TRANSITION / 1000.0, 1) + "s";
     case AppTimeMenu:
@@ -173,9 +183,11 @@ String MenuManager_::menutext()
         case 3:
             DisplayManager.drawBMP(0, 0, get_icon(2075), 8, 8);
             return SHOW_HUM ? "ON" : "OFF";
+#ifdef ULANZI
         case 4:
             DisplayManager.drawBMP(0, 0, get_icon(1486), 8, 8);
             return SHOW_BAT ? "ON" : "OFF";
+#endif
         default:
             break;
         }
@@ -231,9 +243,16 @@ void MenuManager_::rightButton()
     case WeekdayMenu:
         START_ON_MONDAY = !START_ON_MONDAY;
         break;
+    case SoundMenu:
+        SOUND_ACTIVE = !SOUND_ACTIVE;
+        break;
     case TempMenu:
         IS_CELSIUS = !IS_CELSIUS;
         break;
+    case VolumeMenu:
+        VOLUME_PERCENT = (VOLUME_PERCENT % 100) + 1;
+        VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
+        PeripheryManager.setVolume(VOLUME);
     default:
         break;
     }
@@ -291,6 +310,13 @@ void MenuManager_::leftButton()
     case TempMenu:
         IS_CELSIUS = !IS_CELSIUS;
         break;
+    case SoundMenu:
+        SOUND_ACTIVE = !SOUND_ACTIVE;
+        break;
+    case VolumeMenu:
+        VOLUME_PERCENT = (VOLUME_PERCENT % 100) + 1;
+        VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
+        PeripheryManager.setVolume(VOLUME);
     default:
         break;
     }
@@ -342,6 +368,15 @@ void MenuManager_::selectButton()
             currentState = Appmenu;
             break;
         case 11:
+            currentState = SoundMenu;
+            break;
+        case 12:
+#ifdef AWTRIX_UPGRADE
+            currentState = VolumeMenu;
+              break;
+#endif
+          
+        case 13:
             if (FirmwareVersionCheck())
             {
                 updateFirmware();
@@ -374,9 +409,11 @@ void MenuManager_::selectButton()
         case 3:
             SHOW_HUM = !SHOW_HUM;
             break;
+#ifdef ULANZI
         case 4:
             SHOW_BAT = !SHOW_BAT;
             break;
+#endif
         default:
             break;
         }
@@ -416,6 +453,12 @@ void MenuManager_::selectButtonLong()
             DisplayManager.applyAllSettings();
             saveSettings();
             break;
+        case VolumeMenu:
+#ifdef AWTRIX_UPGRADE
+            VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
+            saveSettings();
+#endif
+            break;
         case TimeFormatMenu:
             TIME_FORMAT = timeFormat[timeFormatIndex];
             saveSettings();
@@ -424,6 +467,7 @@ void MenuManager_::selectButtonLong()
             DATE_FORMAT = dateFormat[dateFormatIndex];
             saveSettings();
         case WeekdayMenu:
+        case SoundMenu:
         case TempMenu:
             saveSettings();
             break;

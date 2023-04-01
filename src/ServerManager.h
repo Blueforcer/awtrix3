@@ -14,7 +14,7 @@ public:
     void tick();
     void loadSettings();
     bool isConnected;
-    void SaveSettings();
+    IPAddress myIP;
 };
 
 extern ServerManager_ &ServerManager;

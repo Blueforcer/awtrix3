@@ -14,7 +14,9 @@
   - [Timer](timer.md)
   - [Icons](icons.md)
   - [Sounds](sounds.md)
+  - [Hidden features](dev.md)
 
-- MQTT
+- API
+  - [MQTT/HTTP](api.md)
   - [Custom Pages & Notifications](custom.md)
-  - [Commands](mqtt.md)
+

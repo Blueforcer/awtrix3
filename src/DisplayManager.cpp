@@ -13,6 +13,7 @@
 #include "ServerManager.h"
 #include "MenuManager.h"
 #include "Apps.h"
+#include "Dictionary.h"
 
 Ticker AlarmTicker;
 Ticker TimerTicker;
@@ -25,8 +26,6 @@ Ticker TimerTicker;
 
 #define MATRIX_WIDTH 32
 #define MATRIX_HEIGHT 8
-
-bool appIsSwitching;
 
 GifPlayer gif;
 
@@ -214,7 +213,7 @@ void pushCustomApp(String name, int position)
     if (customApps.count(name) == 0)
     {
         ++customPagesCount;
-        void (*customApps[10])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10};
+        void (*customApps[20])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};
 
         if (position < 0) // Insert at the end of the vector
         {
@@ -230,6 +229,7 @@ void pushCustomApp(String name, int position)
         }
 
         ui.setApps(Apps); // Add Apps
+        DisplayManager.getInstance().setAutoTransition(true);
     }
 }
 
@@ -238,17 +238,15 @@ void removeCustomApp(const String &name)
     auto it = std::find_if(Apps.begin(), Apps.end(), [&name](const std::pair<String, AppCallback> &appPair)
                            { return appPair.first == name; });
 
-    if (it != Apps.end())
-    {
-        Apps.erase(it);
-        ui.setApps(Apps);
-    }
+    Apps.erase(it);
+    ui.setApps(Apps);
 }
 
 void DisplayManager_::generateCustomPage(String name, const char *json)
 {
-    if (json == "" && customApps.count(name))
+    if (strcmp(json, "") == 0 && customApps.count(name))
     {
+        Serial.println("delete");
         customApps.erase(customApps.find(name));
         removeCustomApp(name);
         return;
@@ -295,6 +293,7 @@ void DisplayManager_::generateCustomPage(String name, const char *json)
         customApp.barSize = 0;
     }
 
+    customApp.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : -1;
     int pos = doc.containsKey("pos") ? doc["pos"].as<uint8_t>() : -1;
     customApp.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
     customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
@@ -503,8 +502,10 @@ void DisplayManager_::loadNativeApps()
     // Update the "hum" app at position 3
     updateApp("hum", HumApp, SHOW_HUM, 3);
 
+#ifdef ULANZI
     // Update the "bat" app at position 4
     updateApp("bat", BatApp, SHOW_BAT, 4);
+#endif
 
     ui.setApps(Apps);
 
@@ -513,6 +514,7 @@ void DisplayManager_::loadNativeApps()
 
 void DisplayManager_::setup()
 {
+    
     TJpgDec.setCallback(jpg_output);
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
     gif.setMatrix(&matrix);
@@ -530,17 +532,17 @@ void DisplayManager_::tick()
     }
     else
     {
-        ui.update();
         if (ui.getUiState()->appState == IN_TRANSITION && !appIsSwitching)
         {
             appIsSwitching = true;
-            MQTTManager.setCurrentApp(CURRENT_APP);
         }
         else if (ui.getUiState()->appState == FIXED && appIsSwitching)
         {
             appIsSwitching = false;
             MQTTManager.setCurrentApp(CURRENT_APP);
+            setAppTime(TIME_PER_APP);
         }
+        ui.update();
     }
 }
 
@@ -782,7 +784,8 @@ void DisplayManager_::updateAppVector(const char *json)
         bool show = true;
         int position = -1;
 
-         if (app.containsKey("show"))
+        if (app.containsKey("show"))
+
         {
             show = app["show"].as<bool>();
         }
@@ -813,11 +816,17 @@ void DisplayManager_::updateAppVector(const char *json)
             callback = HumApp;
             SHOW_HUM = show;
         }
+
+#ifdef ULANZI
+
         else if (name == "bat")
         {
             callback = BatApp;
             SHOW_BAT = show;
         }
+
+#endif
+
         else
         {
             // If the app is not one of the built-in apps, check if it's already in the vector
@@ -876,4 +885,30 @@ void DisplayManager_::updateAppVector(const char *json)
     Apps = std::move(newApps);
     ui.setApps(Apps);
     saveSettings();
+}
+
+String DisplayManager_::getStat()
+{
+    StaticJsonDocument<200> doc;
+    char buffer[5];
+    doc[BatKey] = BATTERY_PERCENT;
+    doc[BatRawKey] = BATTERY_RAW;
+    snprintf(buffer, 5, "%.0f", CURRENT_LUX);
+    doc[LuxKey] = buffer;
+    doc[LDRRawKey] = LDR_RAW;
+    doc[BrightnessKey] = BRIGHTNESS;
+    snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
+    doc[TempKey] = buffer;
+    snprintf(buffer, 5, "%.0f", CURRENT_HUM);
+    doc[HumKey] = buffer;
+    doc[UpTimeKey] = PeripheryManager.readUptime();
+    doc[SignalStrengthKey] = WiFi.RSSI();
+    String jsonString;
+    serializeJson(doc, jsonString);
+    return jsonString;
+}
+
+void DisplayManager_::setAppTime(uint16_t duration)
+{
+    ui.setTimePerApp(duration);
 }
