@@ -27,7 +27,7 @@ Switch to next or previous app.
 | Topic | URL | Payload/Body | HTTP method |
 | --- | --- | --- | --- |
 | `[PREFIX]/nextapp` | `http://[IP]/api/nextapp` | empty payload/body | POST |
-| `[PREFIX]/previousapp` | `http://[IP]/api/previousapp` | payload/body  | POST |
+| `[PREFIX]/previousapp` | `http://[IP]/api/previousapp` | empty payload/body  | POST |
 
 ## Switch to Specific App  
 Switch to a specific app by name.
