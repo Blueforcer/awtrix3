@@ -19,7 +19,9 @@ void startLittleFS()
 {
     if (LittleFS.begin())
     {
+#ifdef ULANZI
         LittleFS.mkdir("/MELODIES");
+#endif        
         LittleFS.mkdir("/ICONS");
     }
     else
@@ -32,7 +34,7 @@ void startLittleFS()
 
 void loadDevSettings()
 {
-    Serial.println("laodSettings");
+    Serial.println("loadSettings");
     File file = LittleFS.open("/dev.json", "r");
     if (!file)
     {
@@ -185,7 +187,7 @@ bool ALARM_ACTIVE;
 uint16_t TEXTCOLOR_565 = 0xFFFF;
 bool SOUND_ACTIVE;
 String BOOT_SOUND = "";
-uint8_t VOLUME;
-uint8_t VOLUME_PERCENT;
+uint8_t VOLUME_PERCENT = 50;
+uint8_t VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
 int MATRIX_LAYOUT;
 bool UPDATE_AVAILABLE = false;

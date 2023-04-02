@@ -106,8 +106,10 @@ extern const char HAramClass[];
 extern const char HAramUnit[];
 
 // JSON properites
+#ifdef ULANZI
 extern const char BatKey[];
 extern const char BatRawKey[];
+#endif
 extern const char LuxKey[];
 extern const char LDRRawKey[];
 extern const char BrightnessKey[];

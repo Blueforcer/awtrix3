@@ -106,8 +106,10 @@ const char HAramClass[] PROGMEM = {"data_size"};
 const char HAramUnit[] PROGMEM = {"B"};
 
 // JSON properites
+#ifdef ULANZI
 const char BatKey[] PROGMEM = {"bat"};
 const char BatRawKey[] PROGMEM = {"bat_raw"};
+#endif
 const char LuxKey[] PROGMEM = {"lux"};
 const char LDRRawKey[] PROGMEM = {"ldr_raw"};
 const char BrightnessKey[] PROGMEM = {"bri"};

@@ -357,16 +357,16 @@ void MQTTManager_::setup()
         humidity->setName(HAhumName);
         humidity->setDeviceClass(HAhumClass);
         humidity->setUnitOfMeasurement(HAhumUnit);
-
 #ifdef ULANZI
+
         sprintf(batID, HAbatID, macStr);
         battery = new HASensor(batID);
         battery->setIcon(HAbatIcon);
         battery->setName(HAbatName);
         battery->setDeviceClass(HAbatClass);
         battery->setUnitOfMeasurement(HAbatUnit);
-#endif
 
+#endif
         sprintf(luxID, HAluxID, macStr);
         illuminance = new HASensor(luxID);
         illuminance->setIcon(HAluxIcon);
@@ -455,8 +455,8 @@ void MQTTManager_::sendStats()
 #ifdef ULANZI
         snprintf(buffer, 5, "%d", BATTERY_PERCENT);
         battery->setValue(buffer);
-#endif
 
+#endif
         snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
         temperature->setValue(buffer);
 

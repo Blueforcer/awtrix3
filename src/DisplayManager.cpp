@@ -266,7 +266,11 @@ void DisplayManager_::generateCustomPage(String name, const char *json)
 
     if (doc.containsKey("sound"))
     {
+#ifdef ULANZI
         customApp.sound = ("/" + doc["sound"].as<String>() + ".txt");
+#else
+        customApp.sound = doc["sound"].as<String>();
+#endif
     }
     else
     {
@@ -820,17 +824,13 @@ void DisplayManager_::updateAppVector(const char *json)
             callback = HumApp;
             SHOW_HUM = show;
         }
-
 #ifdef ULANZI
-
         else if (name == "bat")
         {
             callback = BatApp;
             SHOW_BAT = show;
         }
-
 #endif
-
         else
         {
             // If the app is not one of the built-in apps, check if it's already in the vector

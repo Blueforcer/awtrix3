@@ -153,12 +153,14 @@ void PeripheryManager_::playBootSound()
     if (BOOT_SOUND == "")
     {
 #ifdef ULANZI
-        // no standardsound
+        // no standard sound
         const int nNotes = 6;
         String notes[nNotes] = {"E5", "C5", "G4", "E4", "G4", "C5"};
         const int timeUnit = 150;
         Melody melody = MelodyFactory.load("Bootsound", timeUnit, notes, nNotes);
         player.playAsync(melody);
+#else
+        playFromFile(DFMINI_MP3_BOOT);
 #endif
     }
     else
@@ -166,7 +168,7 @@ void PeripheryManager_::playBootSound()
 #ifdef ULANZI
         playFromFile("/MELODIES/" + BOOT_SOUND + ".txt");
 #else
-        dfmp3.playMp3FolderTrack(BOOT_SOUND.toInt());
+        playFromFile(BOOT_SOUND);
 #endif
     }
 }
@@ -242,7 +244,7 @@ void PeripheryManager_::setup()
 #else
     dfmp3.begin();
     delay(50);
-    dfmp3.setVolume(20); // Set initial value to saved setting MISSING!
+    setVolume(VOLUME);
 #endif
     button_left.begin();
     button_right.begin();
