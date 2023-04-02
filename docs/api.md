@@ -17,7 +17,7 @@ You can start the update with update button in HA or:
  create custom apps or notifications to display your own text and icons.  
  Have a look at [this section](custom?id=custom-apps-and-notifications)
 
-| Topic | URL |  Payload/Body | HTTP Header | HTTP method |
+| Topic | URL |  Payload/Body | Query parameters | HTTP method |
 | --- | --- | --- |--- |--- |
 | `[PREFIX]/custom/[appname]` |`http://[IP]/api/custom` | JSON | name = [appname] | POST |
 
