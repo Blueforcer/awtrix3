@@ -322,7 +322,7 @@ void MenuManager_::leftButton()
         break;
 #ifndef ULANZI
     case VolumeMenu:
-        VOLUME_PERCENT = (VOLUME_PERCENT % 100) + 1;
+        VOLUME_PERCENT = (VOLUME_PERCENT % 100) - 1;
         VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
         PeripheryManager.setVolume(VOLUME);
 #endif        

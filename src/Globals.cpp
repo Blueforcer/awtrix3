@@ -85,6 +85,11 @@ void loadSettings()
     SHOW_BAT = Settings.getBool("BAT", true);
 #endif
     SOUND_ACTIVE = Settings.getBool("SOUND", true);
+#ifndef ULANZI
+    //Settings.putUInt("VOL", VOLUME_PERCENT);
+    VOLUME_PERCENT = Settings.getUInt("VOL", 50);
+    VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
+#endif
     Settings.end();
     uniqueID = getID();
     MQTT_PREFIX = String(uniqueID);
@@ -114,6 +119,9 @@ void saveSettings()
     Settings.putBool("BAT", SHOW_BAT);
 #endif
     Settings.putBool("SOUND", SOUND_ACTIVE);
+#ifndef ULANZI
+    Settings.putUInt("VOL", VOLUME_PERCENT);
+#endif
     Settings.end();
 }
 
@@ -187,7 +195,7 @@ bool ALARM_ACTIVE;
 uint16_t TEXTCOLOR_565 = 0xFFFF;
 bool SOUND_ACTIVE;
 String BOOT_SOUND = "";
-uint8_t VOLUME_PERCENT = 50;
-uint8_t VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
+uint8_t VOLUME_PERCENT;
+uint8_t VOLUME;
 int MATRIX_LAYOUT;
 bool UPDATE_AVAILABLE = false;
