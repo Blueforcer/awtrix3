@@ -41,14 +41,7 @@
 #ifdef ULANZI
 Adafruit_SHT31 sht31;
 #else
-
-class Mp3Notify
-{
-};
 Adafruit_BME280 bme280;
-SoftwareSerial mySoftwareSerial(D7, D5); // RX, TX
-typedef DFMiniMp3<SoftwareSerial, Mp3Notify> DfMp3;
-DfMp3 dfmp3(mySoftwareSerial);
 #endif
 
 EasyButton button_left(BUTTON_UP_PIN);
@@ -57,9 +50,6 @@ EasyButton button_select(BUTTON_SELECT_PIN);
 #ifdef ULANZI
 MelodyPlayer player(BUZZER_PIN, LOW);
 #else
-// implement a notification class,
-// its member methods will get called 
-//
 class Mp3Notify{};
 SoftwareSerial mySoftwareSerial(DFPLAYER_RX, DFPLAYER_TX); // RX, TX
 DFMiniMp3<SoftwareSerial, Mp3Notify> dfmp3(mySoftwareSerial);
@@ -87,11 +77,6 @@ int TotalLDRReadings[LDRReadings];
 float sampleSum = 0.0;
 float sampleAverage = 0.0;
 float brightnessPercent = 0.0;
-
-#ifdef awrtrix_upgrade
-class Mp3Notify;
-SoftwareSerial mySoftwareSerial(D7, D5); // RX, TX
-#endif
 
 // The getter for the instantiated singleton instance
 PeripheryManager_ &PeripheryManager_::getInstance()
@@ -168,13 +153,12 @@ void PeripheryManager_::playBootSound()
     if (BOOT_SOUND == "")
     {
 #ifdef ULANZI
+        // no standardsound
         const int nNotes = 6;
         String notes[nNotes] = {"E5", "C5", "G4", "E4", "G4", "C5"};
         const int timeUnit = 150;
         Melody melody = MelodyFactory.load("Bootsound", timeUnit, notes, nNotes);
         player.playAsync(melody);
-#else
-// no standardsound
 #endif
     }
     else
@@ -198,12 +182,12 @@ void PeripheryManager_::stopSound()
 #endif
 }
 
+#ifndef ULANZI
 void PeripheryManager_::setVolume(uint8_t vol)
 {
-#ifdef AWTRIX_UPGRADE
     dfmp3.setVolume(vol);
-#endif
 }
+#endif
 
 void PeripheryManager_::playFromFile(String file)
 {
@@ -258,7 +242,7 @@ void PeripheryManager_::setup()
 #else
     dfmp3.begin();
     delay(50);
-    dfmp3.setVolume(20);
+    dfmp3.setVolume(20); // Set initial value to saved setting MISSING!
 #endif
     button_left.begin();
     button_right.begin();

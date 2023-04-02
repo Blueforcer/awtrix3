@@ -254,7 +254,7 @@ void AlarmApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
             {
 #ifdef ULANZI            
                 PeripheryManager.playFromFile("/MELODIES/" + ALARM_SOUND + ".txt");
-else
+#else
                 PeripheryManager.playFromFile(DFMINI_MP3_ALARM);            
 #endif
             }
@@ -280,7 +280,7 @@ void TimerApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
             {
 #ifdef ULANZI
                 PeripheryManager.playFromFile("/MELODIES/" + TIMER_SOUND + ".txt");
-else
+#else
                 PeripheryManager.playFromFile(DFMINI_MP3_TIMER);
 #endif
             }

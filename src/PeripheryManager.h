@@ -35,7 +35,9 @@ public:
     void playFromFile(String file);
     bool isPlaying();
     void stopSound();
+#ifndef ULANZI
     void setVolume(uint8_t);
+#endif
     const char *readUptime();
 };
 

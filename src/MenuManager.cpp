@@ -28,8 +28,12 @@ enum MenuState
     WeekdayMenu,
     TempMenu,
     Appmenu,
-    SoundMenu,
+#ifdef ULANZI
+    SoundMenu
+#else
+    SoundMenu,    
     VolumeMenu
+#endif
 };
 
 const char *menuItems[] PROGMEM = {
@@ -250,10 +254,12 @@ void MenuManager_::rightButton()
     case TempMenu:
         IS_CELSIUS = !IS_CELSIUS;
         break;
+#ifndef ULANZI
     case VolumeMenu:
         VOLUME_PERCENT = (VOLUME_PERCENT % 100) + 1;
         VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
         PeripheryManager.setVolume(VOLUME);
+#endif
     default:
         break;
     }
@@ -314,10 +320,12 @@ void MenuManager_::leftButton()
     case SoundMenu:
         SOUND_ACTIVE = !SOUND_ACTIVE;
         break;
+#ifndef ULANZI
     case VolumeMenu:
         VOLUME_PERCENT = (VOLUME_PERCENT % 100) + 1;
         VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
         PeripheryManager.setVolume(VOLUME);
+#endif        
     default:
         break;
     }
@@ -372,11 +380,10 @@ void MenuManager_::selectButton()
             currentState = SoundMenu;
             break;
         case 12:
-#ifdef AWTRIX_UPGRADE
+#ifndef ULANZI
             currentState = VolumeMenu;
               break;
-#endif
-          
+#endif          
         case 13:
             if (UpdateManager.checkUpdate(true))
             {
@@ -454,8 +461,8 @@ void MenuManager_::selectButtonLong()
             DisplayManager.applyAllSettings();
             saveSettings();
             break;
+#ifndef ULANZI
         case VolumeMenu:
-#ifdef AWTRIX_UPGRADE
             VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
             saveSettings();
 #endif
