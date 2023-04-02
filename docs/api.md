@@ -184,6 +184,6 @@ Here's an example JSON object to start a timer for 1 hour, 30 minutes, and 10 se
   "minutes": 30,  
   "seconds": 10,  
   "sound": "friends"  
-}
+} 
 ```
 
