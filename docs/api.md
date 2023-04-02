@@ -9,8 +9,9 @@ With HTTP, make GET request to `http://[IP]/api/stats`
 ## Update  
 Awtrix searches for an update every 1 Hour. If a new one is found it will be published to HA and in the stats.  
 You can start the update with update button in HA or:   
-| Topic | URL |  Payload/Body | HTTP Header | HTTP method |  
-| --- | --- | --- |--- |--- |  
+ 
+| Topic | URL | Payload/Body | HTTP Header | HTTP method |  
+| --- | --- | --- | --- | --- |  
 | `[PREFIX]/doupdate` |`http://[IP]/api/doupdate` | JSON | empty payload/body | POST |  
   
 ## Add custom app  
@@ -18,7 +19,7 @@ You can start the update with update button in HA or:
  Have a look at [this section](custom?id=custom-apps-and-notifications)
 
 | Topic | URL |  Payload/Body | Query parameters | HTTP method |
-| --- | --- | --- |--- |--- |
+| --- | --- | --- | --- | --- |
 | `[PREFIX]/custom/[appname]` |`http://[IP]/api/custom` | JSON | name = [appname] | POST |
 
 ## Dismiss Notification  
