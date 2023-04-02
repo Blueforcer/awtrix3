@@ -28,7 +28,7 @@
  */
 
 #include "MatrixDisplayUi.h"
-#include "AwtrixFont.h"
+#include "Fonts/AwtrixFont.h"
 
 MatrixDisplayUi::MatrixDisplayUi(FastLED_NeoMatrix *matrix)
 {

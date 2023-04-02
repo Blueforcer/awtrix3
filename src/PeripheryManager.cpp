@@ -16,8 +16,6 @@
 #include <LightDependentResistor.h>
 #include <MenuManager.h>
 
-#define SOUND_OFF false
-
 #ifdef ULANZI
 // Pinouts für das ULANZI-Environment
 #define BATTERY_PIN 34
@@ -43,8 +41,16 @@
 #ifdef ULANZI
 Adafruit_SHT31 sht31;
 #else
+
+class Mp3Notify
+{
+};
 Adafruit_BME280 bme280;
+SoftwareSerial mySoftwareSerial(D7, D5); // RX, TX
+typedef DFMiniMp3<SoftwareSerial, Mp3Notify> DfMp3;
+DfMp3 dfmp3(mySoftwareSerial);
 #endif
+
 EasyButton button_left(BUTTON_UP_PIN);
 EasyButton button_right(BUTTON_DOWN_PIN);
 EasyButton button_select(BUTTON_SELECT_PIN);
@@ -74,12 +80,18 @@ unsigned long previousMillis_LDR = 0;
 const unsigned long interval_BatTempHum = 10000;
 const unsigned long interval_LDR = 100;
 int total = 0;
+unsigned long startTime;
 
 const int LDRReadings = 10;
 int TotalLDRReadings[LDRReadings];
 float sampleSum = 0.0;
 float sampleAverage = 0.0;
 float brightnessPercent = 0.0;
+
+#ifdef awrtrix_upgrade
+class Mp3Notify;
+SoftwareSerial mySoftwareSerial(D7, D5); // RX, TX
+#endif
 
 // The getter for the instantiated singleton instance
 PeripheryManager_ &PeripheryManager_::getInstance()
@@ -93,14 +105,36 @@ PeripheryManager_ &PeripheryManager = PeripheryManager.getInstance();
 
 void left_button_pressed()
 {
-    DisplayManager.leftButton();
-    MenuManager.leftButton();
+    if (AP_MODE)
+    {
+        --MATRIX_LAYOUT;
+        if (MATRIX_LAYOUT < 0)
+            MATRIX_LAYOUT = 2;
+        saveSettings();
+        ESP.restart();
+    }
+    else
+    {
+        DisplayManager.leftButton();
+        MenuManager.leftButton();
+    }
 }
 
 void right_button_pressed()
 {
-    DisplayManager.rightButton();
-    MenuManager.rightButton();
+    if (AP_MODE)
+    {
+        ++MATRIX_LAYOUT;
+        if (MATRIX_LAYOUT > 2)
+            MATRIX_LAYOUT = 0;
+        saveSettings();
+        ESP.restart();
+    }
+    else
+    {
+        DisplayManager.rightButton();
+        MenuManager.rightButton();
+    }
 }
 
 void select_button_pressed()
@@ -129,17 +163,28 @@ void select_button_tripple()
 
 void PeripheryManager_::playBootSound()
 {
-    if (SOUND_OFF)
+    if (!SOUND_ACTIVE)
         return;
+    if (BOOT_SOUND == "")
+    {
 #ifdef ULANZI
-    const int nNotes = 6;
-    String notes[nNotes] = {"E5", "C5", "G4", "E4", "G4", "C5"};
-    const int timeUnit = 150;
-    Melody melody = MelodyFactory.load("Nice Melody", timeUnit, notes, nNotes);
-    player.playAsync(melody);
+        const int nNotes = 6;
+        String notes[nNotes] = {"E5", "C5", "G4", "E4", "G4", "C5"};
+        const int timeUnit = 150;
+        Melody melody = MelodyFactory.load("Bootsound", timeUnit, notes, nNotes);
+        player.playAsync(melody);
 #else
-    playFromFile(DFMINI_MP3_BOOT);
+// no standardsound
 #endif
+    }
+    else
+    {
+#ifdef ULANZI
+        playFromFile("/MELODIES/" + BOOT_SOUND + ".txt");
+#else
+        dfmp3.playMp3FolderTrack(BOOT_SOUND.toInt());
+#endif
+    }
 }
 
 void PeripheryManager_::stopSound()
@@ -153,10 +198,16 @@ void PeripheryManager_::stopSound()
 #endif
 }
 
+void PeripheryManager_::setVolume(uint8_t vol)
+{
+#ifdef AWTRIX_UPGRADE
+    dfmp3.setVolume(vol);
+#endif
+}
 
 void PeripheryManager_::playFromFile(String file)
 {
-    if (SOUND_OFF)
+    if (!SOUND_ACTIVE)
         return;
 #ifdef ULANZI
     Melody melody = MelodyFactory.loadRtttlFile(file);
@@ -188,7 +239,7 @@ void firstStart()
     CURRENT_TEMP -= 9.0;
 #else
     CURRENT_TEMP = bme280.readTemperature();
-    CURRENT_HUM = 0;
+    CURRENT_HUM = bme280.readHumidity();
 #endif
 
     uint16_t LDRVALUE = analogRead(LDR_PIN);
@@ -199,6 +250,7 @@ void firstStart()
 
 void PeripheryManager_::setup()
 {
+    startTime = millis();
     pinMode(LDR_PIN, INPUT);
 #ifdef ULANZI
     pinMode(BUZZER_PIN, OUTPUT);
@@ -221,6 +273,7 @@ void PeripheryManager_::setup()
     sht31.begin(0x44);
 #else
     bme280.begin();
+    dfmp3.begin();
 #endif
     photocell.setPhotocellPositionOnGround(false);
     firstStart();
@@ -339,4 +392,20 @@ void PeripheryManager_::checkAlarms()
             }
         }
     }
+}
+
+const char *PeripheryManager_::readUptime()
+{
+    static char uptime[25]; // Make the array static to keep it from being destroyed when the function returns
+    unsigned long currentTime = millis();
+    unsigned long elapsedTime = currentTime - startTime;
+    unsigned long uptimeSeconds = elapsedTime / 1000;
+    unsigned long uptimeMinutes = uptimeSeconds / 60;
+    unsigned long uptimeHours = uptimeMinutes / 60;
+    unsigned long uptimeDays = uptimeHours / 24;
+    unsigned long hours = uptimeHours % 24;
+    unsigned long minutes = uptimeMinutes % 60;
+    unsigned long seconds = uptimeSeconds % 60;
+    sprintf(uptime, "P%dDT%dH%dM%dS", uptimeDays, hours, minutes, seconds);
+    return uptime;
 }

@@ -66,7 +66,12 @@ extern String TIME_FORMAT;
 extern String DATE_FORMAT;
 extern bool START_ON_MONDAY;
 extern bool IS_CELSIUS;
-
+extern bool SOUND_ACTIVE;
+extern String BOOT_SOUND;
+extern uint8_t VOLUME;
+extern uint8_t VOLUME_PERCENT;
+extern int MATRIX_LAYOUT;
+extern bool UPDATE_AVAILABLE;
 void loadSettings();
 void saveSettings();
 #endif // Globals_H

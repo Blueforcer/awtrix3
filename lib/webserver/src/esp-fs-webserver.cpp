@@ -24,6 +24,12 @@ void FSWebServer::addHandler(const Uri &uri, HTTPMethod method, WebServerClass::
     webserver->on(uri, method, fn);
 }
 
+
+void FSWebServer::onNotFound(WebServerClass::THandlerFunction fn)
+{
+    webserver->onNotFound(fn);
+}
+
 void FSWebServer::addHandler(const Uri &uri, WebServerClass::THandlerFunction handler)
 {
     webserver->on(uri, HTTP_ANY, handler);
@@ -163,6 +169,7 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
         WiFi.begin(_ssid, _pass);
         Serial.print(F("Connecting to "));
         Serial.println(_ssid);
+
         uint32_t startTime = millis();
         while (WiFi.status() != WL_CONNECTED)
         {
@@ -170,6 +177,8 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
             Serial.print(".");
             if (WiFi.status() == WL_CONNECTED)
             {
+                WiFi.setAutoReconnect(true);
+                WiFi.persistent(true);
                 ip = WiFi.localIP();
                 return ip;
             }

@@ -102,7 +102,6 @@ private:
   uint8_t updateInterval = 33;
 
   uint8_t getnextAppNumber();
-  void drawIndicator();
   void drawApp();
   void drawOverlays();
   void tick();
@@ -110,7 +109,6 @@ private:
 
 public:
   MatrixDisplayUi(FastLED_NeoMatrix *matrix);
-
   uint8_t AppCount = 0;
   /**
    * Initialise the display

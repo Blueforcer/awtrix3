@@ -36,6 +36,7 @@
 #include "MQTTManager.h"
 #include "ServerManager.h"
 #include "Globals.h"
+#include "UpdateManager.h"
 
 TaskHandle_t taskHandle;
 volatile bool StopTask = false;
@@ -73,13 +74,23 @@ void setup()
   {
     MQTTManager.setup();
     DisplayManager.loadNativeApps();
+    UpdateManager.setup();
+    UpdateManager.checkUpdate(false);
+    StopTask = true;
+    float x = 4;
+    while (x >= -85)
+    {
+      DisplayManager.HSVtext(x, 6, ("AWTRIX   " + ServerManager.myIP.toString()).c_str(), true);
+      x -= 0.18;
+    }
+
   }
   else
   {
     AP_MODE = true;
+    StopTask = true;
   }
 
-  StopTask = true;
   delay(200);
   DisplayManager.clearMatrix();
 }
@@ -88,9 +99,9 @@ void loop()
 {
   ServerManager.tick();
   DisplayManager.tick();
+  PeripheryManager.tick();
   if (ServerManager.isConnected)
   {
-    PeripheryManager.tick();
     MQTTManager.tick();
   }
 }

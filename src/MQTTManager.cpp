@@ -6,8 +6,8 @@
 #include <WiFi.h>
 #include <ArduinoJson.h>
 #include "Dictionary.h"
-
-unsigned long startTime;
+#include "PeripheryManager.h"
+#include "UpdateManager.h"
 
 WiFiClient espClient;
 uint8_t lastBrightness;
@@ -37,6 +37,8 @@ HASensor *ram = nullptr;
 HABinarySensor *btnleft = nullptr;
 HABinarySensor *btnmid = nullptr;
 HABinarySensor *btnright = nullptr;
+HABinarySensor *update = nullptr;
+HAButton *doUpdate = nullptr;
 
 // The getter for the instantiated singleton instance
 MQTTManager_ &MQTTManager_::getInstance()
@@ -61,6 +63,11 @@ void onButtonCommand(HAButton *sender)
     else if (sender == prevApp)
     {
         DisplayManager.previousApp();
+    }
+    else if (sender == doUpdate)
+    {
+        if (UPDATE_AVAILABLE)
+            UpdateManager.updateFirmware();
     }
 }
 
@@ -184,6 +191,12 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         DisplayManager.previousApp();
         return;
     }
+    if (strTopic == MQTT_PREFIX + "/doupdate")
+    {
+        if (UPDATE_AVAILABLE)
+            UpdateManager.updateFirmware();
+        return;
+    }
 
     else if (strTopic.startsWith(MQTT_PREFIX + "/custom"))
     {
@@ -203,7 +216,7 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
 void onMqttConnected()
 {
     String prefix = MQTT_PREFIX;
-    const char* topics[] PROGMEM = {
+    const char *topics[] PROGMEM = {
         "/brightness",
         "/notify/dismiss",
         "/notify",
@@ -213,15 +226,17 @@ void onMqttConnected()
         "/settings",
         "/previousapp",
         "/nextapp",
+        "/doupdate",
         "/nextapp",
-        "/apps"
-    };
-    for (const char* topic : topics) {
+        "/apps"};
+    for (const char *topic : topics)
+    {
         String fullTopic = prefix + topic;
         mqtt.subscribe(fullTopic.c_str());
     }
     Serial.println(F("MQTT Connected"));
 }
+
 void connect()
 {
     mqtt.onMessage(onMqttMessage);
@@ -240,14 +255,14 @@ void connect()
 }
 
 char matID[40], briID[40];
-char btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40];
+char btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], updateID[40], doUpdateID[40];
 #ifdef ULANZI
 char batID[40];
 #endif
 
 void MQTTManager_::setup()
 {
-    startTime = millis();
+
     if (HA_DISCOVERY)
     {
         Serial.println(F("Starting Homeassistant discorvery"));
@@ -262,6 +277,8 @@ void MQTTManager_::setup()
         device.setManufacturer(HAmanufacturer);
         device.setModel(HAmodel);
         device.setAvailability(true);
+        device.enableSharedAvailability();
+        device.enableLastWill();
 
         String uniqueIDWithSuffix;
 
@@ -295,6 +312,12 @@ void MQTTManager_::setup()
         dismiss = new HAButton(btnAID);
         dismiss->setIcon(HAbtnaIcon);
         dismiss->setName(HAbtnaName);
+
+        sprintf(doUpdateID, HAdoUpID, macStr);
+        doUpdate = new HAButton(doUpdateID);
+        doUpdate->setIcon(HAdoUpIcon);
+        doUpdate->setName(HAdoUpName);
+        doUpdate->onCommand(onButtonCommand);
 
         sprintf(transID, HAtransID, macStr);
         transition = new HASwitch(transID);
@@ -370,6 +393,12 @@ void MQTTManager_::setup()
         btnleft = new HABinarySensor(btnLID);
         btnleft->setName(HAbtnLName);
 
+        sprintf(updateID, HAupdateID, macStr);
+        update = new HABinarySensor(updateID);
+        update->setIcon(HAupdateIcon);
+        update->setName(HAupdateName);
+        update->setDeviceClass(HAupdateClass);
+
         sprintf(btnMID, HAbtnMID, macStr);
         btnmid = new HABinarySensor(btnMID);
         btnmid->setName(HAbtnMName);
@@ -418,22 +447,6 @@ void MQTTManager_::setCurrentApp(String value)
         curApp->setValue(value.c_str());
 }
 
-const char *readUptime()
-{
-    static char uptime[25]; // Make the array static to keep it from being destroyed when the function returns
-    unsigned long currentTime = millis();
-    unsigned long elapsedTime = currentTime - startTime;
-    unsigned long uptimeSeconds = elapsedTime / 1000;
-    unsigned long uptimeMinutes = uptimeSeconds / 60;
-    unsigned long uptimeHours = uptimeMinutes / 60;
-    unsigned long uptimeDays = uptimeHours / 24;
-    unsigned long hours = uptimeHours % 24;
-    unsigned long minutes = uptimeMinutes % 60;
-    unsigned long seconds = uptimeSeconds % 60;
-    sprintf(uptime, "P%dDT%dH%dM%dS", uptimeDays, hours, minutes, seconds);
-    return uptime;
-}
-
 void MQTTManager_::sendStats()
 {
     if (HA_DISCOVERY)
@@ -466,33 +479,17 @@ void MQTTManager_::sendStats()
         int freeHeapBytes = ESP.getFreeHeap();
         itoa(freeHeapBytes, rambuffer, 10);
         ram->setValue(rambuffer);
-        uptime->setValue(readUptime());
+        uptime->setValue(PeripheryManager.readUptime());
         version->setValue(VERSION);
         transition->setState(AUTO_TRANSITION, false);
+
+        update->setState(UPDATE_AVAILABLE, false);
     }
     else
     {
     }
 
-    StaticJsonDocument<200> doc;
-    char buffer[5];
-#ifdef ULANZI
-    doc[BatKey] = BATTERY_PERCENT;
-    doc[BatRawKey] = BATTERY_RAW;
-#endif
-    snprintf(buffer, 5, "%.0f", CURRENT_LUX);
-    doc[LuxKey] = buffer;
-    doc[LDRRawKey] = LDR_RAW;
-    doc[BrightnessKey] = BRIGHTNESS;
-    snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
-    doc[TempKey] = buffer;
-    snprintf(buffer, 5, "%.0f", CURRENT_HUM);
-    doc[HumKey] = buffer;
-    doc[UpTimeKey] = readUptime();
-    doc[SignalStrengthKey] = WiFi.RSSI();
-    String jsonString;
-    serializeJson(doc, jsonString);
-    publish(StatsTopic, jsonString.c_str());
+    publish(StatsTopic, DisplayManager.getStat().c_str());
 }
 
 void MQTTManager_::sendButton(byte btn, bool state)

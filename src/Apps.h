@@ -36,6 +36,7 @@ struct CustomApp
     bool isGif;
     bool rainbow;
     bool soundPlayed;
+    uint16_t duration = 0;
     String sound;
     int16_t repeat = 0;
     int16_t currentRepeat = 0;
@@ -61,7 +62,7 @@ struct Notification
     bool isGif;
     bool flag = false;
     unsigned long startime = 0;
-    unsigned long duration = 0;
+    uint16_t duration = 0;
     int16_t repeat = -1;
     bool hold = false;
     byte pushIcon = 0;
@@ -104,7 +105,7 @@ int findAppIndexByName(const String &name)
     return -1;
 }
 
-void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     if (notify.flag)
         return;
@@ -152,7 +153,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     }
 }
 
-void DateApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+void DateApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     if (notify.flag)
         return;
@@ -180,7 +181,7 @@ void DateApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     }
 }
 
-void TempApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+void TempApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     if (notify.flag)
         return;
@@ -201,7 +202,7 @@ void TempApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     }
 }
 
-void HumApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+void HumApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     if (notify.flag)
         return;
@@ -215,7 +216,7 @@ void HumApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
 }
 
 #ifdef ULANZI
-void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     if (notify.flag)
         return;
@@ -287,7 +288,7 @@ else
     }
 }
 
-void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     // Abort if notify.flag is set
     if (notify.flag)
@@ -304,13 +305,21 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         return;
     }
 
-    // reset custom App properties if last App
-    if (lastApp)
+    // reset custom App properties if last frame
+    if (lastFrame)
     {
         ca->iconWasPushed = false;
         ca->scrollposition = 9;
         ca->iconPosition = 0;
         ca->scrollDelay = 0;
+    }
+
+    if (!DisplayManager.appIsSwitching)
+    {
+        if (ca->duration > 0)
+        {
+            DisplayManager.setAppTime(ca->duration);
+        }
     }
 
     CURRENT_APP = ca->name;
@@ -634,64 +643,126 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
     DisplayManager.getInstance().resetTextColor();
 }
 
-void CApp1(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+// Unattractive to have a function for every customapp wich does the same, but currently still no other option found TODO
+
+void CApp1(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     String name = getAppNameByFunction(CApp1);
-    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
-void CApp2(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+void CApp2(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     String name = getAppNameByFunction(CApp2);
-    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
-void CApp3(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+void CApp3(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     String name = getAppNameByFunction(CApp3);
-    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
-void CApp4(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+void CApp4(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     String name = getAppNameByFunction(CApp4);
-    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
-void CApp5(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+void CApp5(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     String name = getAppNameByFunction(CApp5);
-    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
-void CApp6(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+void CApp6(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     String name = getAppNameByFunction(CApp6);
-    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
-void CApp7(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+void CApp7(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     String name = getAppNameByFunction(CApp7);
-    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
-void CApp8(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+void CApp8(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     String name = getAppNameByFunction(CApp8);
-    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
-void CApp9(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+void CApp9(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     String name = getAppNameByFunction(CApp9);
-    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
-void CApp10(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+void CApp10(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     String name = getAppNameByFunction(CApp10);
-    ShowCustomApp(name, matrix, state, x, y, firstApp, lastApp);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+}
+
+void CApp11(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+{
+    String name = getAppNameByFunction(CApp11);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+}
+
+void CApp12(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+{
+    String name = getAppNameByFunction(CApp12);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+}
+
+void CApp13(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+{
+    String name = getAppNameByFunction(CApp13);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+}
+
+void CApp14(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+{
+    String name = getAppNameByFunction(CApp14);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+}
+
+void CApp15(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+{
+    String name = getAppNameByFunction(CApp15);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+}
+
+void CApp16(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+{
+    String name = getAppNameByFunction(CApp16);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+}
+
+void CApp17(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+{
+    String name = getAppNameByFunction(CApp17);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+}
+
+void CApp18(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+{
+    String name = getAppNameByFunction(CApp18);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+}
+
+void CApp19(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+{
+    String name = getAppNameByFunction(CApp19);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+}
+
+void CApp20(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+{
+    String name = getAppNameByFunction(CApp20);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
 }
 
 const uint16_t *getWeatherIcon(int code)
@@ -708,7 +779,7 @@ const uint16_t *getWeatherIcon(int code)
     }
 }
 
-void WeatherApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp)
+void WeatherApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
 {
     if (notify.flag)
         return;

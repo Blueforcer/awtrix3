@@ -1,12 +1,27 @@
+#include <UpdateManager.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
 #include <WiFiClientSecure.h>
 #include "cert.h"
 #include "DisplayManager.h"
+#include <Ticker.h>
+#include "Globals.h"
 
 #define URL_fw_Version "https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/version"
 #define URL_fw_Bin "https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/flasher/firmware/firmware.bin"
+
+Ticker UpdateTicker;
+
+// The getter for the instantiated singleton instance
+UpdateManager_ &UpdateManager_::getInstance()
+{
+    static UpdateManager_ instance;
+    return instance;
+}
+
+// Initialize the global shared instance
+UpdateManager_ &UpdateManager = UpdateManager.getInstance();
 
 void update_started()
 {
@@ -14,7 +29,6 @@ void update_started()
 
 void update_finished()
 {
-
 }
 
 void update_progress(int cur, int total)
@@ -29,7 +43,7 @@ void update_error(int err)
     DisplayManager.show();
 }
 
-void updateFirmware()
+void UpdateManager_::updateFirmware()
 {
     WiFiClientSecure client;
     client.setCACert(rootCACertificate);
@@ -56,13 +70,15 @@ void updateFirmware()
     }
 }
 
-
-bool FirmwareVersionCheck()
+bool UpdateManager_::checkUpdate(bool withScreen)
 {
+    if (withScreen)
+    {
+        DisplayManager.clear();
+        DisplayManager.printText(0, 6, "CHECK", true, true);
+        DisplayManager.show();
+    }
 
-    DisplayManager.clear();
-    DisplayManager.printText(0, 6, "CHECK", true, true);
-    DisplayManager.show();
     String payload;
     int httpCode;
     String fwurl = "";
@@ -103,20 +119,34 @@ bool FirmwareVersionCheck()
         payload.trim();
         if (payload.equals(VERSION))
         {
-            Serial.printf("\nDevice already on latest firmware version:%s\n", VERSION);
-            DisplayManager.clear();
-            DisplayManager.printText(0, 6, "NO UP :(", true, true);
-            DisplayManager.show();
-            delay(1000);
+            UPDATE_AVAILABLE = false;
+            Serial.printf("\nDevice already on latest firmware version: %s\n", VERSION);
+            if (withScreen)
+            {
+                DisplayManager.clear();
+                DisplayManager.printText(0, 6, "NO UP :(", true, true);
+                DisplayManager.show();
+                delay(1000);
+            }
             return 0;
         }
         else
         {
-            Serial.println(payload);
-            Serial.println("New firmware detected");
-            DisplayManager.printText(0, 6, payload.c_str(), true, true);
+            UPDATE_AVAILABLE = true;
             return 1;
         }
     }
+    UPDATE_AVAILABLE = false;
     return 0;
+}
+
+void checkUpdateNoReturn()
+{
+    Serial.println("Check Update");
+    UpdateManager.getInstance().checkUpdate(false);
+}
+
+void UpdateManager_::setup()
+{
+    UpdateTicker.attach(3600, checkUpdateNoReturn);
 }

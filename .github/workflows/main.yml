@@ -89,14 +89,6 @@ jobs:
           asset_name: firmware.bin
           asset_content_type: application/octet-stream
 
-      - name: Discord notification
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        uses: Ilshidur/action-discord@master
-        with:
-          args: 'https://github.com/Blueforcer/awtrix-light/releases/tag/${{ steps.version_number.outputs.firmware_version }}'
-
-
       - name: Commit
         id: commit   
         uses: stefanzweifel/git-auto-commit-action@v4
