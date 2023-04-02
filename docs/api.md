@@ -10,8 +10,8 @@ With HTTP, make GET request to `http://[IP]/api/stats`
 Awtrix searches for an update every 1 Hour. If a new one is found it will be published to HA and in the stats.  
 You can start the update with update button in HA or:   
 | Topic | URL |  Payload/Body | HTTP Header | HTTP method |  
-| --- | --- | --- |--- |--- |
-| `[PREFIX]/doupdate` |`http://[IP]/api/doupdate` | JSON | empty payload/body | POST |
+| --- | --- | --- |--- |--- |  
+| `[PREFIX]/doupdate` |`http://[IP]/api/doupdate` | JSON | empty payload/body | POST |  
   
 ## Add custom app  
  create custom apps or notifications to display your own text and icons.  
