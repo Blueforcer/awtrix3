@@ -1,6 +1,13 @@
 #include <PeripheryManager.h>
+#ifdef ULANZI
 #include <melody_player.h>
 #include <melody_factory.h>
+#include "Adafruit_SHT31.h"
+#else
+#include "Adafruit_BME280.h"
+#include "SoftwareSerial.h"
+#include <DFMiniMp3.h>
+#endif
 #include "Globals.h"
 #include "DisplayManager.h"
 #include "MQTTManager.h"
@@ -19,13 +26,18 @@
 #define BUTTON_UP_PIN 26
 #define BUTTON_DOWN_PIN 14
 #define BUTTON_SELECT_PIN 27
+#define I2C_SCL_PIN 22
+#define I2C_SDA_PIN 21
 #else
 // Pinouts für das WEMOS_D1_MINI32-Environment
-#define BUZZER_PIN -1
 #define LDR_PIN A0
 #define BUTTON_UP_PIN D0
 #define BUTTON_DOWN_PIN D4
 #define BUTTON_SELECT_PIN D8
+#define DFPLAYER_RX D7
+#define DFPLAYER_TX D5
+#define I2C_SCL_PIN D1
+#define I2C_SDA_PIN D3
 #endif
 
 #ifdef ULANZI
@@ -36,7 +48,16 @@ Adafruit_BME280 bme280;
 EasyButton button_left(BUTTON_UP_PIN);
 EasyButton button_right(BUTTON_DOWN_PIN);
 EasyButton button_select(BUTTON_SELECT_PIN);
+#ifdef ULANZI
 MelodyPlayer player(BUZZER_PIN, LOW);
+#else
+// implement a notification class,
+// its member methods will get called 
+//
+class Mp3Notify{};
+SoftwareSerial mySoftwareSerial(DFPLAYER_RX, DFPLAYER_TX); // RX, TX
+DFMiniMp3<SoftwareSerial, Mp3Notify> dfmp3(mySoftwareSerial);
+#endif
 
 #define USED_PHOTOCELL LightDependentResistor::GL5516
 
@@ -110,32 +131,54 @@ void PeripheryManager_::playBootSound()
 {
     if (SOUND_OFF)
         return;
+#ifdef ULANZI
     const int nNotes = 6;
     String notes[nNotes] = {"E5", "C5", "G4", "E4", "G4", "C5"};
     const int timeUnit = 150;
     Melody melody = MelodyFactory.load("Nice Melody", timeUnit, notes, nNotes);
     player.playAsync(melody);
+#else
+    playFromFile(DFMINI_MP3_BOOT);
+#endif
 }
 
 void PeripheryManager_::stopSound()
 {
+#ifdef ULANZI
     player.stop();
+#else
+	dfmp3.stopAdvertisement();
+	delay(50);
+	dfmp3.stop();
+#endif
 }
+
 
 void PeripheryManager_::playFromFile(String file)
 {
     if (SOUND_OFF)
         return;
+#ifdef ULANZI
     Melody melody = MelodyFactory.loadRtttlFile(file);
     player.playAsync(melody);
+#else
+    dfmp3.playMp3FolderTrack(file.toInt());
+#endif
 }
 
 bool PeripheryManager_::isPlaying()
 {
+#ifdef ULANZI
     return player.isPlaying();
+#else
+    if ((dfmp3.getStatus() & 0xff) == 0x01) // 0x01 = DfMp3_StatusState_Playing
+        return true;
+    else
+        return false;
+#endif
 }
 
-void fistStart()
+void firstStart()
 {
 #ifdef ULANZI
     uint16_t ADCVALUE = analogRead(BATTERY_PIN);
@@ -157,8 +200,14 @@ void fistStart()
 void PeripheryManager_::setup()
 {
     pinMode(LDR_PIN, INPUT);
+#ifdef ULANZI
     pinMode(BUZZER_PIN, OUTPUT);
     digitalWrite(BUZZER_PIN, LOW);
+#else
+    dfmp3.begin();
+    delay(50);
+    dfmp3.setVolume(20);
+#endif
     button_left.begin();
     button_right.begin();
     button_select.begin();
@@ -167,14 +216,14 @@ void PeripheryManager_::setup()
     button_select.onPressed(select_button_pressed);
     button_select.onPressedFor(1000, select_button_pressed_long);
     button_select.onSequence(2, 300, select_button_tripple);
-    Wire.begin(21, 22);
+    Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
 #ifdef ULANZI
     sht31.begin(0x44);
 #else
     bme280.begin();
 #endif
     photocell.setPhotocellPositionOnGround(false);
-    fistStart();
+    firstStart();
 }
 
 void PeripheryManager_::tick()

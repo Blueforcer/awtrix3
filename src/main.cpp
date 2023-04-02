@@ -57,9 +57,9 @@ void BootAnimation(void *parameter)
 
 void setup()
 {
+  Serial.begin(9600);
   PeripheryManager.setup();
   delay(500);
-  Serial.begin(9600);
   loadSettings();
   ServerManager.loadSettings();
   DisplayManager.setup();

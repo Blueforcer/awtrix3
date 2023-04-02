@@ -3,10 +3,10 @@
 
 #include <Arduino.h>
 #include <EasyButton.h>
-#ifdef ULANZI
-#include "Adafruit_SHT31.h"
-#else
-#include "Adafruit_BME280.h"
+#ifndef ULANZI
+#define DFMINI_MP3_BOOT "1"
+#define DFMINI_MP3_ALARM "2"
+#define DFMINI_MP3_TIMER "2"
 #endif
 
 class PeripheryManager_

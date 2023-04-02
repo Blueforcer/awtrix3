@@ -386,7 +386,11 @@ void DisplayManager_::generateNotification(const char *json)
 
     if (doc.containsKey("sound"))
     {
+#ifdef ULANZI
         PeripheryManager.playFromFile("/MELODIES/" + doc["sound"].as<String>() + ".txt");
+#else
+        PeripheryManager.playFromFile(doc["sound"].as<String>());
+#endif
     }
 
     if (doc.containsKey("bar"))
