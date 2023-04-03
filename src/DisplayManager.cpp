@@ -30,7 +30,6 @@ fs::File gifFile;
 GifPlayer gif;
 bool showGif;
 CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
-// Awtrix Big / Ulanzi
 
 FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
 MatrixDisplayUi *ui = new MatrixDisplayUi(matrix);
