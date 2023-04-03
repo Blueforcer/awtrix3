@@ -11,5 +11,6 @@ The JSON object has the following properties:
 
 | Key | Type | Description | Default |
 | --- | ---- | ----------- | ------- |
-| `bootsound` | string | Uses a custom melodie from the MELODIES folder |  |
+| `bootsound` | string | Uses a custom melodie while booting |  |
 | `uppercase` | boolean | Print every character in uppercase | true |
+| `temp_dec_places` | int | Number of decimal places for temperature measurements | 0 |

@@ -61,6 +61,11 @@ void loadDevSettings()
             UPPERCASE_LETTERS = doc["uppercase"].as<bool>();
         }
 
+        if (doc.containsKey("temp_dec_places"))
+        {
+            TEMP_DECIMAL_PLACES = doc["temp_dec_places"].as<int>();
+        }
+
         file.close();
     }
 }
@@ -198,7 +203,10 @@ bool ALARM_ACTIVE;
 uint16_t TEXTCOLOR_565 = 0xFFFF;
 bool SOUND_ACTIVE;
 String BOOT_SOUND = "";
+int TEMP_DECIMAL_PLACES = 0;
+#ifndef ULANZI
 uint8_t VOLUME_PERCENT;
 uint8_t VOLUME;
+#endif
 int MATRIX_LAYOUT;
 bool UPDATE_AVAILABLE = false;
