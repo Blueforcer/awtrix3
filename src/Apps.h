@@ -251,7 +251,13 @@ void AlarmApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         if (ALARM_SOUND != "")
         {
             if (!PeripheryManager.isPlaying())
+            {
+#ifdef ULANZI            
                 PeripheryManager.playFromFile("/MELODIES/" + ALARM_SOUND + ".txt");
+#else
+                PeripheryManager.playFromFile(DFMINI_MP3_ALARM);            
+#endif
+            }
         }
     }
 }
@@ -271,7 +277,13 @@ void TimerApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         if (TIMER_SOUND != "")
         {
             if (!PeripheryManager.isPlaying())
+            {
+#ifdef ULANZI
                 PeripheryManager.playFromFile("/MELODIES/" + TIMER_SOUND + ".txt");
+#else
+                PeripheryManager.playFromFile(DFMINI_MP3_TIMER);
+#endif
+            }
         }
     }
 }

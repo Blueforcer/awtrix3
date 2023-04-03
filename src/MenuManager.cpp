@@ -28,8 +28,12 @@ enum MenuState
     WeekdayMenu,
     TempMenu,
     Appmenu,
+#ifdef ULANZI
+    SoundMenu
+#else
     SoundMenu,
     VolumeMenu
+#endif
 };
 
 const char *menuItems[] PROGMEM = {
@@ -45,10 +49,17 @@ const char *menuItems[] PROGMEM = {
     "TEMP",
     "APPS",
     "SOUND",
+#ifndef ULANZI
+    "VOLUME"   ,
+#endif
     "UPDATE"};
 
 int8_t menuIndex = 0;
+#ifdef ULANZI
 uint8_t menuItemCount = 13;
+#else
+uint8_t menuItemCount = 14;
+#endif
 
 const char *timeFormat[] PROGMEM = {
     "%H:%M:%S",
@@ -193,6 +204,10 @@ String MenuManager_::menutext()
             break;
         }
         break;
+#ifndef ULANZI
+    case VolumeMenu:
+        return String(VOLUME_PERCENT) + "%";
+#endif
     default:
         break;
     }
@@ -250,10 +265,13 @@ void MenuManager_::rightButton()
     case TempMenu:
         IS_CELSIUS = !IS_CELSIUS;
         break;
+#ifndef ULANZI
     case VolumeMenu:
-        VOLUME_PERCENT = (VOLUME_PERCENT % 100) + 1;
-        VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
-        PeripheryManager.setVolume(VOLUME);
+        if ((VOLUME_PERCENT + 1) > 100)
+            VOLUME_PERCENT = 0;
+        else
+            VOLUME_PERCENT++;
+#endif
     default:
         break;
     }
@@ -314,10 +332,13 @@ void MenuManager_::leftButton()
     case SoundMenu:
         SOUND_ACTIVE = !SOUND_ACTIVE;
         break;
+#ifndef ULANZI
     case VolumeMenu:
-        VOLUME_PERCENT = (VOLUME_PERCENT % 100) + 1;
-        VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
-        PeripheryManager.setVolume(VOLUME);
+        if ((VOLUME_PERCENT - 1) < 0)
+            VOLUME_PERCENT = 100;
+        else
+            VOLUME_PERCENT--;
+#endif        
     default:
         break;
     }
@@ -372,11 +393,10 @@ void MenuManager_::selectButton()
             currentState = SoundMenu;
             break;
         case 12:
-#ifdef AWTRIX_UPGRADE
+#ifndef ULANZI
             currentState = VolumeMenu;
-              break;
-#endif
-          
+            break;
+#endif          
         case 13:
             if (UpdateManager.checkUpdate(true))
             {
@@ -454,12 +474,6 @@ void MenuManager_::selectButtonLong()
             DisplayManager.applyAllSettings();
             saveSettings();
             break;
-        case VolumeMenu:
-#ifdef AWTRIX_UPGRADE
-            VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
-            saveSettings();
-#endif
-            break;
         case TimeFormatMenu:
             TIME_FORMAT = timeFormat[timeFormatIndex];
             saveSettings();
@@ -476,6 +490,13 @@ void MenuManager_::selectButtonLong()
             DisplayManager.loadNativeApps();
             saveSettings();
             break;
+#ifndef ULANZI
+        case VolumeMenu:            
+            VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
+            PeripheryManager.setVolume(VOLUME);
+            saveSettings();
+            break;
+#endif
         default:
             break;
         }

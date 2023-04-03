@@ -19,7 +19,9 @@ void startLittleFS()
 {
     if (LittleFS.begin())
     {
+#ifdef ULANZI
         LittleFS.mkdir("/MELODIES");
+#endif        
         LittleFS.mkdir("/ICONS");
     }
     else
@@ -32,31 +34,30 @@ void startLittleFS()
 
 void loadDevSettings()
 {
-    Serial.println("laodSettings");
-    File file = LittleFS.open("/dev.json", "r");
-    if (!file)
+    Serial.println("loadSettings");
+    if (LittleFS.exists("/dev.json"))
     {
-        return;
-    }
-    DynamicJsonDocument doc(128);
-    DeserializationError error = deserializeJson(doc, file);
-    if (error)
-    {
-        Serial.println(F("Failed to read dev settings"));
-        return;
-    }
+        File file = LittleFS.open("/dev.json", "r");
+        DynamicJsonDocument doc(128);
+        DeserializationError error = deserializeJson(doc, file);
+        if (error)
+        {
+            Serial.println(F("Failed to read dev settings"));
+            return;
+        }
 
-    if (doc.containsKey("bootsound"))
-    {
-        BOOT_SOUND = doc["bootsound"].as<String>();
-    }
+        if (doc.containsKey("bootsound"))
+        {
+            BOOT_SOUND = doc["bootsound"].as<String>();
+        }
 
-    if (doc.containsKey("bootsound"))
-    {
-        UPPERCASE_LETTERS = doc["uppercase"].as<bool>();
-    }
+        if (doc.containsKey("bootsound"))
+        {
+            UPPERCASE_LETTERS = doc["uppercase"].as<bool>();
+        }
 
-    file.close();
+        file.close();
+    }
 }
 
 void loadSettings()
@@ -83,6 +84,11 @@ void loadSettings()
     SHOW_BAT = Settings.getBool("BAT", true);
 #endif
     SOUND_ACTIVE = Settings.getBool("SOUND", true);
+#ifndef ULANZI
+    //Settings.putUInt("VOL", VOLUME_PERCENT);
+    VOLUME_PERCENT = Settings.getUInt("VOL", 50);
+    VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
+#endif
     Settings.end();
     uniqueID = getID();
     MQTT_PREFIX = String(uniqueID);
@@ -112,6 +118,9 @@ void saveSettings()
     Settings.putBool("BAT", SHOW_BAT);
 #endif
     Settings.putBool("SOUND", SOUND_ACTIVE);
+#ifndef ULANZI
+    Settings.putUInt("VOL", VOLUME_PERCENT);
+#endif
     Settings.end();
 }
 
@@ -185,7 +194,7 @@ bool ALARM_ACTIVE;
 uint16_t TEXTCOLOR_565 = 0xFFFF;
 bool SOUND_ACTIVE;
 String BOOT_SOUND = "";
-uint8_t VOLUME;
 uint8_t VOLUME_PERCENT;
+uint8_t VOLUME;
 int MATRIX_LAYOUT;
 bool UPDATE_AVAILABLE = false;

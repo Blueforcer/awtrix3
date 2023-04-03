@@ -30,7 +30,12 @@ fs::File gifFile;
 GifPlayer gif;
 bool showGif;
 CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
+// Awtrix Big / Ulanzi
 FastLED_NeoMatrix matrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
+// Awtrid Midi
+//FastLED_NeoMatrix matrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+// Awtrix Mini?
+//FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
 
 MatrixDisplayUi ui(&matrix);
 
@@ -271,7 +276,11 @@ void DisplayManager_::generateCustomPage(String name, const char *json)
 
     if (doc.containsKey("sound"))
     {
+#ifdef ULANZI
         customApp.sound = ("/" + doc["sound"].as<String>() + ".txt");
+#else
+        customApp.sound = doc["sound"].as<String>();
+#endif
     }
     else
     {
@@ -390,7 +399,11 @@ void DisplayManager_::generateNotification(const char *json)
 
     if (doc.containsKey("sound"))
     {
+#ifdef ULANZI
         PeripheryManager.playFromFile("/MELODIES/" + doc["sound"].as<String>() + ".txt");
+#else
+        PeripheryManager.playFromFile(doc["sound"].as<String>());
+#endif
     }
 
     if (doc.containsKey("bar"))
@@ -832,17 +845,13 @@ void DisplayManager_::updateAppVector(const char *json)
             callback = HumApp;
             SHOW_HUM = show;
         }
-
 #ifdef ULANZI
-
         else if (name == "bat")
         {
             callback = BatApp;
             SHOW_BAT = show;
         }
-
 #endif
-
         else
         {
             // If the app is not one of the built-in apps, check if it's already in the vector

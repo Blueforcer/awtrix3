@@ -3,12 +3,13 @@
 
 #include <Arduino.h>
 #include <EasyButton.h>
-#ifdef ULANZI
-    #include "Adafruit_SHT31.h"
-#else
-    #include "Adafruit_BME280.h"
-    #include "SoftwareSerial.h"
-    #include <DFMiniMp3.h>
+#ifndef ULANZI
+#define DFMINI_MP3_BOOT "1"
+#define DFMINI_MP3_ALARM "2"
+#define DFMINI_MP3_TIMER "2"
+#define DFMINI_MP3_CLICK "5"
+#define DFMINI_MP3_CLICK_ON "3"
+#define DFMINI_MP3_ENTER "4"
 #endif
 
 class PeripheryManager_
@@ -37,7 +38,9 @@ public:
     void playFromFile(String file);
     bool isPlaying();
     void stopSound();
+#ifndef ULANZI
     void setVolume(uint8_t);
+#endif
     const char *readUptime();
 };
 
