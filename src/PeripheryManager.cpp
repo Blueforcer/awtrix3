@@ -99,13 +99,13 @@ void left_button_pressed()
 
     if (AP_MODE)
     {
-        #ifndef ULANZI
+#ifdef AWTRIX_UPGRADE
         --MATRIX_LAYOUT;
         if (MATRIX_LAYOUT < 0)
             MATRIX_LAYOUT = 2;
         saveSettings();
         ESP.restart();
-        #endif
+#endif
     }
     else
     {
@@ -116,18 +116,18 @@ void left_button_pressed()
 
 void right_button_pressed()
 {
-    #ifdef AWTRIX_UPGRADE
+#ifdef AWTRIX_UPGRADE
     PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
-    #endif
+#endif
     if (AP_MODE)
     {
-         #ifndef ULANZI
+#ifdef AWTRIX_UPGRADE
         ++MATRIX_LAYOUT;
         if (MATRIX_LAYOUT > 2)
             MATRIX_LAYOUT = 0;
         saveSettings();
         ESP.restart();
-         #endif
+#endif
     }
     else
     {
@@ -138,9 +138,9 @@ void right_button_pressed()
 
 void select_button_pressed()
 {
-    #ifdef AWTRIX_UPGRADE
+#ifdef AWTRIX_UPGRADE
     PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
-    #endif
+#endif
     DisplayManager.selectButton();
     MenuManager.selectButton();
 }
