@@ -295,7 +295,7 @@ void PeripheryManager_::tick()
         CURRENT_TEMP = bme280.readTemperature();
         CURRENT_HUM = bme280.readHumidity();
 #endif
-        checkAlarms();
+        //checkAlarms();
         MQTTManager.sendStats();
     }
 

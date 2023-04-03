@@ -26,9 +26,9 @@ Ticker TimerTicker;
 
 #define MATRIX_WIDTH 32
 #define MATRIX_HEIGHT 8
-
+fs::File gifFile;
 GifPlayer gif;
-
+bool showGif;
 CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
 // Awtrix Big / Ulanzi
 FastLED_NeoMatrix matrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
@@ -95,10 +95,11 @@ bool DisplayManager_::setAutoTransition(bool active)
     }
 }
 
-void DisplayManager_::drawGIF(uint16_t x, uint16_t y, fs::File gifFile)
+void DisplayManager_::drawGIF(uint16_t x, uint16_t y, fs::File gFile)
 {
-    gif.setFile(gifFile);
-    gif.drawFrame(x, y);
+    gif.setFile(gFile);
+    if (!showGif)
+        showGif = true;
 }
 
 void DisplayManager_::drawJPG(uint16_t x, uint16_t y, fs::File jpgFile)
@@ -134,6 +135,7 @@ void DisplayManager_::clearMatrix()
 
 bool jpg_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t *bitmap)
 {
+
     uint16_t bitmapIndex = 0;
 
     for (uint16_t row = 0; row < h; row++)
@@ -249,6 +251,7 @@ void removeCustomApp(const String &name)
 
 void DisplayManager_::generateCustomPage(String name, const char *json)
 {
+
     if (strcmp(json, "") == 0 && customApps.count(name))
     {
         Serial.println("delete");
@@ -256,6 +259,8 @@ void DisplayManager_::generateCustomPage(String name, const char *json)
         removeCustomApp(name);
         return;
     }
+
+    Serial.printf("Appname %s", name);
 
     DynamicJsonDocument doc(1024);
     DeserializationError error = deserializeJson(doc, json);
@@ -529,12 +534,17 @@ void DisplayManager_::setup()
 {
 
     TJpgDec.setCallback(jpg_output);
+    TJpgDec.setJpgScale(1);
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
     gif.setMatrix(&matrix);
     ui.setAppAnimation(SLIDE_DOWN);
     ui.setOverlays(overlays, 4);
     setAutoTransition(AUTO_TRANSITION);
     ui.init();
+}
+
+void ShowGif()
+{
 }
 
 void DisplayManager_::tick()
@@ -545,9 +555,11 @@ void DisplayManager_::tick()
     }
     else
     {
+
         if (ui.getUiState()->appState == IN_TRANSITION && !appIsSwitching)
         {
             appIsSwitching = true;
+            showGif = false;
         }
         else if (ui.getUiState()->appState == FIXED && appIsSwitching)
         {
@@ -555,7 +567,11 @@ void DisplayManager_::tick()
             MQTTManager.setCurrentApp(CURRENT_APP);
             setAppTime(TIME_PER_APP);
         }
-        ui.update();
+        int remainingTimeBudget = ui.update();
+
+        if (showGif)
+            gif.drawFrame(0, 0);
+        matrix.show();
     }
 }
 
@@ -907,6 +923,7 @@ String DisplayManager_::getStat()
     snprintf(buffer, 5, "%.0f", CURRENT_LUX);
     doc[LuxKey] = buffer;
     doc[LDRRawKey] = LDR_RAW;
+    doc["ram"] = ESP.getFreeHeap();
     doc[BrightnessKey] = BRIGHTNESS;
     snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
     doc[TempKey] = buffer;

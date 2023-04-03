@@ -12,7 +12,7 @@
 WiFiClient espClient;
 uint8_t lastBrightness;
 HADevice device;
-HAMqtt mqtt(espClient, device, 19);
+HAMqtt mqtt(espClient, device, 21);
 
 unsigned long reconnectTimer = 0;
 const unsigned long reconnectInterval = 30000; // 30 Sekunden
@@ -276,6 +276,9 @@ void MQTTManager_::setup()
         device.setSoftwareVersion(VERSION);
         device.setManufacturer(HAmanufacturer);
         device.setModel(HAmodel);
+        char url[50];
+        snprintf(url, sizeof(url), "http://%s", WiFi.localIP().toString().c_str());
+        device.setURL("http://192.168.178.102");
         device.setAvailability(true);
         device.enableSharedAvailability();
         device.enableLastWill();
