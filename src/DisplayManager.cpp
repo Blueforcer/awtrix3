@@ -298,7 +298,7 @@ void DisplayManager_::generateCustomPage(String name, const char *json)
         customApp.barSize = 0;
     }
 
-    customApp.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : -1;
+    customApp.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : 0;
     int pos = doc.containsKey("pos") ? doc["pos"].as<uint8_t>() : -1;
     customApp.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
     customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
@@ -519,7 +519,7 @@ void DisplayManager_::loadNativeApps()
 
 void DisplayManager_::setup()
 {
-    
+
     TJpgDec.setCallback(jpg_output);
     TJpgDec.setJpgScale(1);
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
@@ -907,8 +907,10 @@ String DisplayManager_::getStat()
 {
     StaticJsonDocument<200> doc;
     char buffer[5];
+#ifdef ULANZI
     doc[BatKey] = BATTERY_PERCENT;
     doc[BatRawKey] = BATTERY_RAW;
+#endif
     snprintf(buffer, 5, "%.0f", CURRENT_LUX);
     doc[LuxKey] = buffer;
     doc[LDRRawKey] = LDR_RAW;
@@ -920,6 +922,7 @@ String DisplayManager_::getStat()
     doc[HumKey] = buffer;
     doc[UpTimeKey] = PeripheryManager.readUptime();
     doc[SignalStrengthKey] = WiFi.RSSI();
+    doc[UpdateKey] = UPDATE_AVAILABLE;
     String jsonString;
     serializeJson(doc, jsonString);
     return jsonString;

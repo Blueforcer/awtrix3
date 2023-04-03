@@ -6,6 +6,13 @@ In MQTT awtrix send its stats every 10s to `[PREFIX]/stats`
 With HTTP, make GET request to `http://[IP]/api/stats`
 
 
+## Update  
+Awtrix searches for an update every 1 Hour. If a new one is found it will be published to HA and in the stats.  
+You can start the update with update button in HA or:   
+| Topic | URL |  Payload/Body | HTTP Header | HTTP method |
+| --- | --- | --- |--- |--- |
+| `[PREFIX]/doupdate` |`http://[IP]/api/doupdate` | JSON | empty payload/body | POST |
+  
 ## Add custom app  
  create custom apps or notifications to display your own text and icons.  
  Have a look at [this section](custom?id=custom-apps-and-notifications)
@@ -27,7 +34,7 @@ Switch to next or previous app.
 | Topic | URL | Payload/Body | HTTP method |
 | --- | --- | --- | --- |
 | `[PREFIX]/nextapp` | `http://[IP]/api/nextapp` | empty payload/body | POST |
-| `[PREFIX]/previousapp` | `http://[IP]/api/previousapp` | payload/body  | POST |
+| `[PREFIX]/previousapp` | `http://[IP]/api/previousapp` | empty payload/body  | POST |
 
 ## Switch to Specific App  
 Switch to a specific app by name.
@@ -43,7 +50,8 @@ Built-in app names are:
 - `hum`
 - `bat`
 
-For custom apps, use the name you set in the topic. For example, if `[PREFIX]/custom/test` is your topic, then `test` is the name.
+For custom apps, use the name you set in the topic or http request header.  
+In MQTT for example, if `[PREFIX]/custom/test` is your topic, then `test` is the name.
 
 ## Add/remove and rearange apps 
 
@@ -63,10 +71,14 @@ This provides flexibility in organizing apps according to personal preference.
 
 The JSON payload is an array of objects, where each object represents an app to be displayed on awtrix. Each app object contains the following fields:
 
-`"name"`: The name of the app ("time", "date", "temp", "hum", "bat") are the native apps.  
-For custom apps, use the name you set in the topic. For example, if `[PREFIX]/custom/test` is your topic, then `test` is the name.    
-`"show"`: A boolean indicating whether the app should be shown on the screen or not. If not present, the app is considered active by default.  
-`"pos"`: An integer indicating the position of the app in the list. If not present, the app will be added to the end of the list.  
+### JSON Properties
+
+| Property | Description |Default |
+|----------|-------------|-------------|
+| name     | The name of the app. If it's a native app, it can be one of "time", "date", "temp", "hum", or "bat". For custom apps, use the name you set in the topic. For example, if `[PREFIX]/custom/test` is your topic, then `test` is the name. | |
+| show     | A boolean indicating whether the app should be shown on the screen or not. If not present, the app is considered active by default. | true |
+| pos      | An integer indicating the position of the app in the list. If not present, the app will be added to the end of the list. | Last Item |
+
 
 > You can also just send the information for one app.
 
@@ -128,6 +140,8 @@ Change various settings related to the app display.
 | --- | --- | --- |--- |
 | `[PREFIX]/settings` |`http://[IP]/api/settings`| JSON | POST |
 
+
+#### JSON Properties
 Each property is optional; you do not need to send all.
 
 | Key | Type | Description | Value Range | Default |
@@ -139,3 +153,37 @@ Each property is optional; you do not need to send all.
 | `brightness` | number | Determines the brightness of the matrix. | An integer between 0 and 255. | N/A |
 | `autobrightness` | boolean | Determines if automatic brightness control is active. | `true` or `false`. | N/A |
 | `autotransition` | boolean | Determines if automatic switching to the next app is active. | `true` or `false`. | N/A |
+
+
+## Timer
+
+With AWTRIX Light, you can set a timer using MQTT. Simply send a JSON object to the topic **[PREFIX]/timer** to start a timer. 
+
+When the timer goes off, the display will show a notification, and you can dismiss the timer by pressing the middle button. 
+
+#### JSON Properties
+
+The JSON object has the following properties:
+
+| Key | Type | Description |
+| --- | ---- | ----------- |
+| `hours` | number | The number of hours after midnight when the timer should be triggered. |
+| `minutes` | number | The number of minutes after the hour when the timer should be triggered. |
+| `seconds` | number | The number of seconds after the minute when the timer should be triggered. |
+| `sound` | string | The name of the sound file (without extension) to play when the timer is triggered. |
+
+Each value is optional, so you can set a timer for just minutes, or any combination of hours, minutes, and seconds. If you only want to start a timer in some minutes, just send the minutes.
+
+## Example
+
+Here's an example JSON object to start a timer for 1 hour, 30 minutes, and 10 seconds, with the sound "friends":
+
+```json
+{  
+  "hours": 1,  
+  "minutes": 30,  
+  "seconds": 10,  
+  "sound": "friends"  
+}
+```
+

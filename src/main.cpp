@@ -75,6 +75,8 @@ void setup()
   {
     MQTTManager.setup();
     DisplayManager.loadNativeApps();
+    UpdateManager.setup();
+    UpdateManager.checkUpdate(false);
     StopTask = true;
     float x = 4;
     while (x >= -85)
@@ -101,7 +103,6 @@ void loop()
   PeripheryManager.tick();
   if (ServerManager.isConnected)
   {
-
     MQTTManager.tick();
   }
 }

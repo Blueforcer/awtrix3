@@ -69,6 +69,17 @@ const char HAtransID[] PROGMEM = {"%s_tra"};
 const char HAtransName[] PROGMEM = {"Transition"};
 const char HAtransIcon[] PROGMEM = {"mdi:swap-vertical"};
 
+const char HAupdateID[] PROGMEM = {"%s_upd"};
+const char HAupdateName[] PROGMEM = {"Update"};
+const char HAupdateClass[] PROGMEM = {"update"};
+const char HAupdateIcon[] PROGMEM = {"mdi:update"};
+
+
+const char HAdoUpID[] PROGMEM = {"%s_doupd"};
+const char HAdoUpName[] PROGMEM = {"Start Update"};
+const char HAdoUpIcon[] PROGMEM = {"mdi:update"};
+
+
 const char HAsigID[] PROGMEM = {"%s_sig"};
 const char HAsigIcon[] PROGMEM = {"mdi:sun-wireless"};
 const char HAsigName[] PROGMEM = {"WiFi strength"};
@@ -104,3 +115,4 @@ const char TempKey[] PROGMEM = {"temp"};
 const char HumKey[] PROGMEM = {"hum"};
 const char UpTimeKey[] PROGMEM = {"uptime"};
 const char SignalStrengthKey[] PROGMEM = {"wifi_signal"};
+const char UpdateKey[] PROGMEM = {"up_available"};

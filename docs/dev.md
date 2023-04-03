@@ -11,5 +11,5 @@ The JSON object has the following properties:
 
 | Key | Type | Description | Default |
 | --- | ---- | ----------- | ------- |
-| `bootsound` | string | Uses a custom melodie from the MELODIES folder | standart |
+| `bootsound` | string | Uses a custom melodie from the MELODIES folder |  |
 | `uppercase` | boolean | Print every character in uppercase | true |
