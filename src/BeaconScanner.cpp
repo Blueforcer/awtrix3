@@ -225,53 +225,56 @@ void printAllowedIds()
 
 bool loadBeaconSettings()
 {
-    Serial.println("laodSettings");
-    File file = LittleFS.open("/beacons.json", "r");
-    if (!file)
+    Serial.println("loadSettings");
+    if (LittleFS.exists("/beacons.json"))
     {
-        return false;
-    }
-    DynamicJsonDocument doc(128);
-    DeserializationError error = deserializeJson(doc, file);
-    if (error)
-    {
-        Serial.println(F("Failed to read beacon settings"));
-        return false;
-    }
-
-    if (doc.containsKey("room"))
-    {
-        room = doc["room"].as<String>();
-        Serial.println(room);
-    }
-    else
-    {
-        return false;
-    }
-
-    if (doc.containsKey("trigger_distance"))
-    {
-        triggerDistance = doc["trigger_distance"].as<float>();
-        Serial.println(triggerDistance);
-    }
-    else
-    {
-        return false;
-    }
-
-    if (doc.containsKey("allowed_ids"))
-    {
-        JsonArray allowedIdsJsonArray = doc["allowed_ids"];
-        for (const char *id : allowedIdsJsonArray)
+        File file = LittleFS.open("/beacons.json", "r");
+        DynamicJsonDocument doc(128);
+        DeserializationError error = deserializeJson(doc, file);
+        if (error)
         {
-            allowedIds.push_back(String(id));
+            Serial.println(F("Failed to read beacon settings"));
+            return false;
         }
-        printAllowedIds();
-    }
 
-    return true;
-    file.close();
-}
+        if (doc.containsKey("room"))
+        {
+            room = doc["room"].as<String>();
+            Serial.println(room);
+        }
+        else
+        {
+            return false;
+        }
+
+        if (doc.containsKey("trigger_distance"))
+        {
+            triggerDistance = doc["trigger_distance"].as<float>();
+            Serial.println(triggerDistance);
+        }
+        else
+        {
+            return false;
+        }
+
+        if (doc.containsKey("allowed_ids"))
+        {
+            JsonArray allowedIdsJsonArray = doc["allowed_ids"];
+            for (const char *id : allowedIdsJsonArray)
+            {
+                allowedIds.push_back(String(id));
+            }
+            printAllowedIds();
+        }
+
+        return true;
+        file.close();
+    }
+    else
+    {
+        return false;
+    }
+ }
 
 void BeaconScanner_::setup()
 {
