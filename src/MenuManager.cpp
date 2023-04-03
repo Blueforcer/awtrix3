@@ -31,7 +31,7 @@ enum MenuState
 #ifdef ULANZI
     SoundMenu
 #else
-    SoundMenu,    
+    SoundMenu,
     VolumeMenu
 #endif
 };
@@ -49,10 +49,17 @@ const char *menuItems[] PROGMEM = {
     "TEMP",
     "APPS",
     "SOUND",
+#ifndef ULANZI
+    "VOLUME"   ,
+#endif
     "UPDATE"};
 
 int8_t menuIndex = 0;
+#ifdef ULANZI
 uint8_t menuItemCount = 13;
+#else
+uint8_t menuItemCount = 14;
+#endif
 
 const char *timeFormat[] PROGMEM = {
     "%H:%M:%S",
@@ -197,6 +204,10 @@ String MenuManager_::menutext()
             break;
         }
         break;
+#ifndef ULANZI
+    case VolumeMenu:
+        return String(VOLUME_PERCENT) + "%";
+#endif
     default:
         break;
     }
@@ -256,9 +267,10 @@ void MenuManager_::rightButton()
         break;
 #ifndef ULANZI
     case VolumeMenu:
-        VOLUME_PERCENT = (VOLUME_PERCENT % 100) + 1;
-        VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
-        PeripheryManager.setVolume(VOLUME);
+        if ((VOLUME_PERCENT + 1) > 100)
+            VOLUME_PERCENT = 0;
+        else
+            VOLUME_PERCENT++;
 #endif
     default:
         break;
@@ -322,9 +334,10 @@ void MenuManager_::leftButton()
         break;
 #ifndef ULANZI
     case VolumeMenu:
-        VOLUME_PERCENT = (VOLUME_PERCENT % 100) - 1;
-        VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
-        PeripheryManager.setVolume(VOLUME);
+        if ((VOLUME_PERCENT - 1) < 0)
+            VOLUME_PERCENT = 100;
+        else
+            VOLUME_PERCENT--;
 #endif        
     default:
         break;
@@ -382,7 +395,7 @@ void MenuManager_::selectButton()
         case 12:
 #ifndef ULANZI
             currentState = VolumeMenu;
-              break;
+            break;
 #endif          
         case 13:
             if (UpdateManager.checkUpdate(true))
@@ -461,12 +474,6 @@ void MenuManager_::selectButtonLong()
             DisplayManager.applyAllSettings();
             saveSettings();
             break;
-#ifndef ULANZI
-        case VolumeMenu:
-            VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
-            saveSettings();
-#endif
-            break;
         case TimeFormatMenu:
             TIME_FORMAT = timeFormat[timeFormatIndex];
             saveSettings();
@@ -483,6 +490,13 @@ void MenuManager_::selectButtonLong()
             DisplayManager.loadNativeApps();
             saveSettings();
             break;
+#ifndef ULANZI
+        case VolumeMenu:            
+            VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
+            PeripheryManager.setVolume(VOLUME);
+            saveSettings();
+            break;
+#endif
         default:
             break;
         }

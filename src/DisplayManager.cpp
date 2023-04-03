@@ -30,7 +30,12 @@ Ticker TimerTicker;
 GifPlayer gif;
 
 CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
+// Awtrix Big / Ulanzi
 FastLED_NeoMatrix matrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
+// Awtrid Midi
+//FastLED_NeoMatrix matrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+// Awtrix Mini?
+//FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
 
 MatrixDisplayUi ui(&matrix);
 

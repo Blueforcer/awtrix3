@@ -7,6 +7,9 @@
 #define DFMINI_MP3_BOOT "1"
 #define DFMINI_MP3_ALARM "2"
 #define DFMINI_MP3_TIMER "2"
+#define DFMINI_MP3_CLICK "5"
+#define DFMINI_MP3_CLICK_ON "3"
+#define DFMINI_MP3_ENTER "4"
 #endif
 
 class PeripheryManager_

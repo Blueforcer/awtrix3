@@ -30,8 +30,8 @@
 // Pinouts für das WEMOS_D1_MINI32-Environment
 #define LDR_PIN A0
 #define BUTTON_UP_PIN D0
-#define BUTTON_DOWN_PIN D4
-#define BUTTON_SELECT_PIN D8
+#define BUTTON_DOWN_PIN D8
+#define BUTTON_SELECT_PIN D4
 #define DFPLAYER_RX D7
 #define DFPLAYER_TX D5
 #define I2C_SCL_PIN D1
@@ -42,6 +42,7 @@
 Adafruit_SHT31 sht31;
 #else
 Adafruit_BME280 bme280;
+TwoWire I2Cbme280 = TwoWire(0);
 #endif
 
 EasyButton button_left(BUTTON_UP_PIN);
@@ -90,6 +91,7 @@ PeripheryManager_ &PeripheryManager = PeripheryManager.getInstance();
 
 void left_button_pressed()
 {
+    PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
     if (AP_MODE)
     {
         --MATRIX_LAYOUT;
@@ -107,6 +109,7 @@ void left_button_pressed()
 
 void right_button_pressed()
 {
+    PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
     if (AP_MODE)
     {
         ++MATRIX_LAYOUT;
@@ -124,18 +127,21 @@ void right_button_pressed()
 
 void select_button_pressed()
 {
+    PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
     DisplayManager.selectButton();
     MenuManager.selectButton();
 }
 
 void select_button_pressed_long()
 {
+    PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
     DisplayManager.selectButtonLong();
     MenuManager.selectButtonLong();
 }
 
 void select_button_tripple()
 {
+    PeripheryManager.playFromFile(DFMINI_MP3_CLICK_ON);
     if (MATRIX_OFF)
     {
         DisplayManager.MatrixState(true);
@@ -187,7 +193,9 @@ void PeripheryManager_::stopSound()
 #ifndef ULANZI
 void PeripheryManager_::setVolume(uint8_t vol)
 {
+    uint8_t curVolume = dfmp3.getVolume(); // need to read volume in order to work. Donno why! :(
     dfmp3.setVolume(vol);
+    delay(50);
 }
 #endif
 
@@ -243,7 +251,7 @@ void PeripheryManager_::setup()
     digitalWrite(BUZZER_PIN, LOW);
 #else
     dfmp3.begin();
-    delay(50);
+    delay(100);
     setVolume(VOLUME);
 #endif
     button_left.begin();
@@ -254,11 +262,13 @@ void PeripheryManager_::setup()
     button_select.onPressed(select_button_pressed);
     button_select.onPressedFor(1000, select_button_pressed_long);
     button_select.onSequence(2, 300, select_button_tripple);
-    Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+
 #ifdef ULANZI
+    Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
     sht31.begin(0x44);
 #else
-    bme280.begin();
+    I2Cbme280.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+    bme280.begin(0x76, &I2Cbme280);
     dfmp3.begin();
 #endif
     photocell.setPhotocellPositionOnGround(false);
@@ -267,7 +277,6 @@ void PeripheryManager_::setup()
 
 void PeripheryManager_::tick()
 {
-
     MQTTManager.sendButton(0, button_left.read());
     MQTTManager.sendButton(1, button_select.read());
     MQTTManager.sendButton(2, button_right.read());
