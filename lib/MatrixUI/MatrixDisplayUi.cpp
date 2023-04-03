@@ -220,7 +220,7 @@ void MatrixDisplayUi::tick()
   if (this->AppCount > 0)
     this->drawApp();
   this->drawOverlays();
-  this->matrix->show();
+  //this->matrix->show();
 }
 
 void MatrixDisplayUi::drawApp()

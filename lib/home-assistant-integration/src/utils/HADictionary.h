@@ -35,6 +35,7 @@ extern const char HASerializerUnderscore[];
 extern const char HADeviceIdentifiersProperty[];
 extern const char HADeviceManufacturerProperty[];
 extern const char HADeviceModelProperty[];
+extern const char HAIPProperty[];
 extern const char HADeviceSoftwareVersionProperty[];
 extern const char HANameProperty[];
 extern const char HAUniqueIdProperty[];

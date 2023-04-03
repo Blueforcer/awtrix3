@@ -10,12 +10,14 @@ public:
 #define ERROR_BADGIFFORMAT 3
 #define ERROR_UNKNOWNCONTROLEXT 4
 #define ERROR_FINISHED 5
+#define WIDTH 32
+#define HEIGHT 8
 private:
   bool needNewFrame;
   long lastFrameTime;
   bool firstFrameDone;
   int newframeDelay;
-  int lastFrame[8 * 8];
+  int lastFrame[WIDTH * HEIGHT];
   bool lastFrameDrawn = false;
   unsigned long nextFrameTime = 0;
 #define GIFHDRTAGNORM "GIF87a"
@@ -30,6 +32,7 @@ private:
 #define DISPOSAL_LEAVE 1
 #define DISPOSAL_BACKGROUND 2
 #define DISPOSAL_RESTORE 3
+
   typedef struct
   {
     byte Red;
@@ -67,8 +70,8 @@ public:
   byte lzwImageData[1280];
   char tempBuffer[260];
   File file;
-  byte imageData[8 * 8];
-  byte imageDataBU[8 * 8];
+  byte imageData[WIDTH * HEIGHT];
+  byte imageDataBU[WIDTH * HEIGHT];
 
   void backUpStream(int n)
   {
@@ -99,7 +102,7 @@ public:
     int yOffset;
     for (int yy = y; yy < height + y; yy++)
     {
-      yOffset = yy * 8;
+      yOffset = yy * WIDTH;
       for (int xx = x; xx < width + x; xx++)
       {
         imageData[yOffset + xx] = colorIndex;
@@ -119,7 +122,7 @@ public:
 
     for (int yy = y; yy < height + y; yy++)
     {
-      yOffset = yy * 8;
+      yOffset = yy * WIDTH;
       for (int xx = x; xx < width + x; xx++)
       {
         offset = yOffset + xx;
@@ -229,8 +232,8 @@ public:
 
       rectX = 0;
       rectY = 0;
-      rectWidth = 8;
-      rectHeight = 8;
+      rectWidth = WIDTH;
+      rectHeight = HEIGHT;
     }
 
     if ((prevDisposalMethod != DISPOSAL_NONE) && (prevDisposalMethod != DISPOSAL_LEAVE))
@@ -450,7 +453,7 @@ public:
     int yOffset, pixel;
     for (int y = tbiImageY; y < tbiHeight + tbiImageY; y++)
     {
-      yOffset = y * 8;
+      yOffset = y * WIDTH;
       for (int x = tbiImageX; x < tbiWidth + tbiImageX; x++)
       {
         pixel = lastFrame[yOffset + x];
@@ -474,26 +477,26 @@ public:
     {
       for (int line = tbiImageY + 0; line < tbiHeight + tbiImageY; line += 8)
       {
-        lzw_decode(imageData + (line * 8) + tbiImageX, tbiWidth);
+        lzw_decode(imageData + (line * WIDTH) + tbiImageX, tbiWidth);
       }
       for (int line = tbiImageY + 4; line < tbiHeight + tbiImageY; line += 8)
       {
-        lzw_decode(imageData + (line * 8) + tbiImageX, tbiWidth);
+        lzw_decode(imageData + (line * WIDTH) + tbiImageX, tbiWidth);
       }
       for (int line = tbiImageY + 2; line < tbiHeight + tbiImageY; line += 4)
       {
-        lzw_decode(imageData + (line * 8) + tbiImageX, tbiWidth);
+        lzw_decode(imageData + (line * WIDTH) + tbiImageX, tbiWidth);
       }
       for (int line = tbiImageY + 1; line < tbiHeight + tbiImageY; line += 2)
       {
-        lzw_decode(imageData + (line * 8) + tbiImageX, tbiWidth);
+        lzw_decode(imageData + (line * WIDTH) + tbiImageX, tbiWidth);
       }
     }
     else
     {
       for (int line = tbiImageY; line < tbiHeight + tbiImageY; line++)
       {
-        lzw_decode(imageData + (line * 8) + tbiImageX, tbiWidth);
+        lzw_decode(imageData + (line * WIDTH) + tbiImageX, tbiWidth);
       }
     }
 
@@ -510,7 +513,7 @@ public:
     int yOffset, pixel;
     for (int y = tbiImageY; y < tbiHeight + tbiImageY; y++)
     {
-      yOffset = y * 8;
+      yOffset = y * WIDTH;
       for (int x = tbiImageX; x < tbiWidth + tbiImageX; x++)
       {
         pixel = imageData[yOffset + x];

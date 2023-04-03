@@ -6,7 +6,7 @@
 
 #define HADEVICE_INIT \
     _ownsUniqueId(false), \
-    _serializer(new HASerializer(nullptr, 5)), \
+    _serializer(new HASerializer(nullptr, 6)), \
     _availabilityTopic(nullptr), \
     _sharedAvailability(false), \
     _available(true) // device will be available by default
@@ -66,6 +66,11 @@ void HADevice::setManufacturer(const char* manufacturer)
 void HADevice::setModel(const char* model)
 {
     _serializer->set(AHATOFSTR(HADeviceModelProperty), model);
+}
+
+void HADevice::setURL(const char* url)
+{
+    _serializer->set(AHATOFSTR(HAIPProperty), url);
 }
 
 void HADevice::setName(const char* name)
