@@ -31,13 +31,9 @@ GifPlayer gif;
 bool showGif;
 CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
 // Awtrix Big / Ulanzi
-FastLED_NeoMatrix matrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
-// Awtrid Midi
-//FastLED_NeoMatrix matrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
-// Awtrix Mini?
-//FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
 
-MatrixDisplayUi ui(&matrix);
+FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+MatrixDisplayUi *ui = new MatrixDisplayUi(matrix);
 
 DisplayManager_ &DisplayManager_::getInstance()
 {
@@ -51,22 +47,22 @@ void DisplayManager_::setBrightness(uint8_t bri)
 {
     if (MATRIX_OFF && !ALARM_ACTIVE)
     {
-        matrix.setBrightness(0);
+        matrix->setBrightness(0);
     }
     else
     {
-        matrix.setBrightness(bri);
+        matrix->setBrightness(bri);
     }
 }
 
 void DisplayManager_::setFPS(uint8_t fps)
 {
-    ui.setTargetFPS(fps);
+    ui->setTargetFPS(fps);
 }
 
 void DisplayManager_::setTextColor(uint16_t color)
 {
-    matrix.setTextColor(color);
+    matrix->setTextColor(color);
 }
 
 void DisplayManager_::MatrixState(bool on)
@@ -78,19 +74,19 @@ void DisplayManager_::MatrixState(bool on)
 bool DisplayManager_::setAutoTransition(bool active)
 {
 
-    if (ui.AppCount < 2)
+    if (ui->AppCount < 2)
     {
-        ui.disablesetAutoTransition();
+        ui->disablesetAutoTransition();
         return false;
     }
     if (active && AUTO_TRANSITION)
     {
-        ui.enablesetAutoTransition();
+        ui->enablesetAutoTransition();
         return true;
     }
     else
     {
-        ui.disablesetAutoTransition();
+        ui->disablesetAutoTransition();
         return false;
     }
 }
@@ -109,14 +105,14 @@ void DisplayManager_::drawJPG(uint16_t x, uint16_t y, fs::File jpgFile)
 
 void DisplayManager_::drawBMP(int16_t x, int16_t y, const uint16_t bitmap[], int16_t w, int16_t h)
 {
-    matrix.drawRGBBitmap(y, x, bitmap, w, h);
+    matrix->drawRGBBitmap(y, x, bitmap, w, h);
 }
 
 void DisplayManager_::applyAllSettings()
 {
-    ui.setTargetFPS(MATRIX_FPS);
-    ui.setTimePerApp(TIME_PER_APP);
-    ui.setTimePerTransition(TIME_PER_TRANSITION);
+    ui->setTargetFPS(MATRIX_FPS);
+    ui->setTimePerApp(TIME_PER_APP);
+    ui->setTimePerTransition(TIME_PER_TRANSITION);
     setBrightness(BRIGHTNESS);
     setTextColor(TEXTCOLOR_565);
     setAutoTransition(AUTO_TRANSITION);
@@ -124,13 +120,13 @@ void DisplayManager_::applyAllSettings()
 
 void DisplayManager_::resetTextColor()
 {
-    matrix.setTextColor(TEXTCOLOR_565);
+    matrix->setTextColor(TEXTCOLOR_565);
 }
 
 void DisplayManager_::clearMatrix()
 {
-    matrix.clear();
-    matrix.show();
+    matrix->clear();
+    matrix->show();
 }
 
 bool jpg_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t *bitmap)
@@ -146,7 +142,7 @@ bool jpg_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t *bitmap)
             uint8_t r = ((color & 0xF800) >> 11) << 3;
             uint8_t g = ((color & 0x07E0) >> 5) << 2;
             uint8_t b = (color & 0x001F) << 3;
-            matrix.drawPixel(x + col, y + row, matrix.Color(r, g, b));
+            matrix->drawPixel(x + col, y + row, matrix->Color(r, g, b));
         }
     }
     return 0;
@@ -158,11 +154,11 @@ void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool cen
     {
         uint16_t textWidth = getTextWidth(text, ignoreUppercase);
         int16_t textX = ((32 - textWidth) / 2);
-        matrix.setCursor(textX, y);
+        matrix->setCursor(textX, y);
     }
     else
     {
-        matrix.setCursor(x, y);
+        matrix->setCursor(x, y);
     }
 
     if (UPPERCASE_LETTERS && !ignoreUppercase)
@@ -176,35 +172,35 @@ void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool cen
         }
 
         upperText[length] = '\0'; // Null terminator
-        matrix.print(upperText);
+        matrix->print(upperText);
     }
     else
     {
-        matrix.print(text);
+        matrix->print(text);
     }
 }
 
 void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear)
 {
     if (clear)
-        matrix.clear();
+        matrix->clear();
     static uint8_t hueOffset = 0;
     uint16_t xpos = 0;
     for (uint16_t i = 0; i < strlen(text); i++)
     {
         uint8_t hue = map(i, 0, strlen(text), 0, 255) + hueOffset;
         uint32_t textColor = hsvToRgb(hue, 255, 255);
-        matrix.setTextColor(textColor);
+        matrix->setTextColor(textColor);
         const char *myChar = &text[i];
 
-        matrix.setCursor(xpos + x, y);
+        matrix->setCursor(xpos + x, y);
         if (UPPERCASE_LETTERS)
         {
-            matrix.print((char)toupper(text[i]));
+            matrix->print((char)toupper(text[i]));
         }
         else
         {
-            matrix.print(&text[i]);
+            matrix->print(&text[i]);
         }
         char temp_str[2] = {'\0', '\0'};
         temp_str[0] = text[i];
@@ -212,7 +208,7 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear
     }
     hueOffset++;
     if (clear)
-        matrix.show();
+        matrix->show();
 }
 
 void pushCustomApp(String name, int position)
@@ -235,7 +231,7 @@ void pushCustomApp(String name, int position)
             Apps.push_back(std::make_pair(name, customApps[customPagesCount]));
         }
 
-        ui.setApps(Apps); // Add Apps
+        ui->setApps(Apps); // Add Apps
         DisplayManager.getInstance().setAutoTransition(true);
     }
 }
@@ -246,7 +242,7 @@ void removeCustomApp(const String &name)
                            { return appPair.first == name; });
 
     Apps.erase(it);
-    ui.setApps(Apps);
+    ui->setApps(Apps);
 }
 
 void DisplayManager_::generateCustomPage(String name, const char *json)
@@ -525,22 +521,22 @@ void DisplayManager_::loadNativeApps()
     updateApp("bat", BatApp, SHOW_BAT, 4);
 #endif
 
-    ui.setApps(Apps);
+    ui->setApps(Apps);
 
     setAutoTransition(true);
 }
 
 void DisplayManager_::setup()
 {
-
     TJpgDec.setCallback(jpg_output);
     TJpgDec.setJpgScale(1);
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
-    gif.setMatrix(&matrix);
-    ui.setAppAnimation(SLIDE_DOWN);
-    ui.setOverlays(overlays, 4);
+    setMatrixLayout(MATRIX_LAYOUT);
+    gif.setMatrix(matrix);
+    ui->setAppAnimation(SLIDE_DOWN);
+    ui->setOverlays(overlays, 4);
     setAutoTransition(AUTO_TRANSITION);
-    ui.init();
+    ui->init();
 }
 
 void ShowGif()
@@ -556,57 +552,57 @@ void DisplayManager_::tick()
     else
     {
 
-        if (ui.getUiState()->appState == IN_TRANSITION && !appIsSwitching)
+        if (ui->getUiState()->appState == IN_TRANSITION && !appIsSwitching)
         {
             appIsSwitching = true;
             showGif = false;
         }
-        else if (ui.getUiState()->appState == FIXED && appIsSwitching)
+        else if (ui->getUiState()->appState == FIXED && appIsSwitching)
         {
             appIsSwitching = false;
             MQTTManager.setCurrentApp(CURRENT_APP);
             setAppTime(TIME_PER_APP);
         }
-        int remainingTimeBudget = ui.update();
+        int remainingTimeBudget = ui->update();
 
         if (showGif)
             gif.drawFrame(0, 0);
-        matrix.show();
+        matrix->show();
     }
 }
 
 void DisplayManager_::clear()
 {
-    matrix.clear();
+    matrix->clear();
 }
 
 void DisplayManager_::show()
 {
-    matrix.show();
+    matrix->show();
 }
 
 void DisplayManager_::leftButton()
 {
     if (!MenuManager.inMenu)
-        ui.previousApp();
+        ui->previousApp();
 }
 
 void DisplayManager_::rightButton()
 {
     if (!MenuManager.inMenu)
-        ui.nextApp();
+        ui->nextApp();
 }
 
 void DisplayManager_::nextApp()
 {
     if (!MenuManager.inMenu)
-        ui.nextApp();
+        ui->nextApp();
 }
 
 void DisplayManager_::previousApp()
 {
     if (!MenuManager.inMenu)
-        ui.previousApp();
+        ui->previousApp();
 }
 
 void snozzeTimerCallback()
@@ -689,7 +685,7 @@ void DisplayManager_::switchToApp(const char *json)
     bool fast = doc["fast"] | false;
     int index = findAppIndexByName(name);
     if (index > -1)
-        ui.transitionToApp(index);
+        ui->transitionToApp(index);
 }
 
 void DisplayManager_::setNewSettings(const char *json)
@@ -711,15 +707,15 @@ void DisplayManager_::setNewSettings(const char *json)
 
 void DisplayManager_::drawProgressBar(int cur, int total)
 {
-    matrix.clear();
+    matrix->clear();
     int progress = (cur * 100) / total;
     char progressStr[5];
     snprintf(progressStr, 5, "%d%%", progress); // Formatieren des Prozentzeichens
     printText(0, 6, progressStr, true, false);
     int leds_for_progress = (progress * MATRIX_WIDTH * MATRIX_HEIGHT) / 100;
-    matrix.drawFastHLine(0, 7, MATRIX_WIDTH, matrix.Color(100, 100, 100));
-    matrix.drawFastHLine(0, 7, leds_for_progress / MATRIX_HEIGHT, matrix.Color(0, 255, 0));
-    matrix.show();
+    matrix->drawFastHLine(0, 7, MATRIX_WIDTH, matrix->Color(100, 100, 100));
+    matrix->drawFastHLine(0, 7, leds_for_progress / MATRIX_HEIGHT, matrix->Color(0, 255, 0));
+    matrix->show();
 }
 
 void DisplayManager_::drawMenuIndicator(int cur, int total, uint16_t color)
@@ -733,11 +729,11 @@ void DisplayManager_::drawMenuIndicator(int cur, int total, uint16_t color)
         int x = leftMargin + i * (menuItemWidth + pixelSpacing);
         if (i == cur)
         {
-            matrix.drawLine(x, 7, x + menuItemWidth - 1, 7, color);
+            matrix->drawLine(x, 7, x + menuItemWidth - 1, 7, color);
         }
         else
         {
-            matrix.drawLine(x, 7, x + menuItemWidth - 1, 7, matrix.Color(100, 100, 100));
+            matrix->drawLine(x, 7, x + menuItemWidth - 1, 7, matrix->Color(100, 100, 100));
         }
     }
 }
@@ -784,7 +780,7 @@ void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte 
         int x1 = x + startX + (barWidth + 1) * i;
         int barHeight = newData[i];
         int y1 = min(8 - barHeight, 7);
-        matrix.fillRect(x1, y1 + y, barWidth, barHeight, color);
+        matrix->fillRect(x1, y1 + y, barWidth, barHeight, color);
     }
 }
 
@@ -908,7 +904,7 @@ void DisplayManager_::updateAppVector(const char *json)
 
     // Update the apps vector, set it in the UI, and save settings
     Apps = std::move(newApps);
-    ui.setApps(Apps);
+    ui->setApps(Apps);
     saveSettings();
 }
 
@@ -939,5 +935,27 @@ String DisplayManager_::getStat()
 
 void DisplayManager_::setAppTime(uint16_t duration)
 {
-    ui.setTimePerApp(duration);
+    ui->setTimePerApp(duration);
+}
+
+void DisplayManager_::setMatrixLayout(int layout)
+{
+    delete matrix; // Free memory from the current matrix object
+    switch (layout)
+    {
+    case 0:
+        matrix = new FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
+        break;
+    case 1:
+        matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+        break;
+    case 2:
+        matrix = new FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
+        break;
+    default:
+        break;
+    }
+
+    delete ui;                        // Free memory from the current ui object
+    ui = new MatrixDisplayUi(matrix); // Create a new ui object with the new matrix
 }

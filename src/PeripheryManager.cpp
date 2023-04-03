@@ -51,7 +51,9 @@ EasyButton button_select(BUTTON_SELECT_PIN);
 #ifdef ULANZI
 MelodyPlayer player(BUZZER_PIN, LOW);
 #else
-class Mp3Notify{};
+class Mp3Notify
+{
+};
 SoftwareSerial mySoftwareSerial(DFPLAYER_RX, DFPLAYER_TX); // RX, TX
 DFMiniMp3<SoftwareSerial, Mp3Notify> dfmp3(mySoftwareSerial);
 #endif
@@ -91,14 +93,19 @@ PeripheryManager_ &PeripheryManager = PeripheryManager.getInstance();
 
 void left_button_pressed()
 {
+#ifdef AWTRIX_UPGRADE
     PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
+#endif
+
     if (AP_MODE)
     {
+        #ifndef ULANZI
         --MATRIX_LAYOUT;
         if (MATRIX_LAYOUT < 0)
             MATRIX_LAYOUT = 2;
         saveSettings();
         ESP.restart();
+        #endif
     }
     else
     {
@@ -109,14 +116,18 @@ void left_button_pressed()
 
 void right_button_pressed()
 {
+    #ifdef AWTRIX_UPGRADE
     PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
+    #endif
     if (AP_MODE)
     {
+         #ifndef ULANZI
         ++MATRIX_LAYOUT;
         if (MATRIX_LAYOUT > 2)
             MATRIX_LAYOUT = 0;
         saveSettings();
         ESP.restart();
+         #endif
     }
     else
     {
@@ -127,21 +138,22 @@ void right_button_pressed()
 
 void select_button_pressed()
 {
+    #ifdef AWTRIX_UPGRADE
     PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
+    #endif
     DisplayManager.selectButton();
     MenuManager.selectButton();
 }
 
 void select_button_pressed_long()
 {
-    PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
+
     DisplayManager.selectButtonLong();
     MenuManager.selectButtonLong();
 }
 
-void select_button_tripple()
+void select_button_double()
 {
-    PeripheryManager.playFromFile(DFMINI_MP3_CLICK_ON);
     if (MATRIX_OFF)
     {
         DisplayManager.MatrixState(true);
@@ -184,9 +196,9 @@ void PeripheryManager_::stopSound()
 #ifdef ULANZI
     player.stop();
 #else
-	dfmp3.stopAdvertisement();
-	delay(50);
-	dfmp3.stop();
+    dfmp3.stopAdvertisement();
+    delay(50);
+    dfmp3.stop();
 #endif
 }
 
@@ -261,7 +273,7 @@ void PeripheryManager_::setup()
     button_right.onPressed(right_button_pressed);
     button_select.onPressed(select_button_pressed);
     button_select.onPressedFor(1000, select_button_pressed_long);
-    button_select.onSequence(2, 300, select_button_tripple);
+    button_select.onSequence(2, 300, select_button_double);
 
 #ifdef ULANZI
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
@@ -295,7 +307,7 @@ void PeripheryManager_::tick()
         CURRENT_TEMP = bme280.readTemperature();
         CURRENT_HUM = bme280.readHumidity();
 #endif
-        //checkAlarms();
+        // checkAlarms();
         MQTTManager.sendStats();
     }
 
@@ -383,7 +395,7 @@ void PeripheryManager_::checkAlarms()
                     SNOOZE_TIME = 0;
                 }
             }
-        }      
+        }
     }
 }
 
