@@ -21,7 +21,7 @@ void startLittleFS()
     {
 #ifdef ULANZI
         LittleFS.mkdir("/MELODIES");
-#endif        
+#endif
         LittleFS.mkdir("/ICONS");
     }
     else
@@ -49,6 +49,11 @@ void loadDevSettings()
         if (doc.containsKey("bootsound"))
         {
             BOOT_SOUND = doc["bootsound"].as<String>();
+        }
+
+        if (doc.containsKey("matrix"))
+        {
+            MATRIX_LAYOUT = doc["matrix"];
         }
 
         if (doc.containsKey("bootsound"))
@@ -85,7 +90,7 @@ void loadSettings()
 #endif
     SOUND_ACTIVE = Settings.getBool("SOUND", true);
 #ifndef ULANZI
-    //Settings.putUInt("VOL", VOLUME_PERCENT);
+    // Settings.putUInt("VOL", VOLUME_PERCENT);
     VOLUME_PERCENT = Settings.getUInt("VOL", 50);
     VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
 #endif

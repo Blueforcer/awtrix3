@@ -59,11 +59,10 @@ void BootAnimation(void *parameter)
 
 void setup()
 {
-
-  PeripheryManager.setup();
-  delay(1000);
-  Serial.begin(115200);
   loadSettings();
+  Serial.begin(9600);
+  PeripheryManager.setup();
+  delay(500);
   ServerManager.loadSettings();
   DisplayManager.setup();
   DisplayManager.HSVtext(9, 6, VERSION, true);
