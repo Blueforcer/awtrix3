@@ -35,30 +35,29 @@ void startLittleFS()
 void loadDevSettings()
 {
     Serial.println("loadSettings");
-    File file = LittleFS.open("/dev.json", "r");
-    if (!file)
+    if (LittleFS.exists("/dev.json"))
     {
-        return;
-    }
-    DynamicJsonDocument doc(128);
-    DeserializationError error = deserializeJson(doc, file);
-    if (error)
-    {
-        Serial.println(F("Failed to read dev settings"));
-        return;
-    }
+        File file = LittleFS.open("/dev.json", "r");
+        DynamicJsonDocument doc(128);
+        DeserializationError error = deserializeJson(doc, file);
+        if (error)
+        {
+            Serial.println(F("Failed to read dev settings"));
+            return;
+        }
 
-    if (doc.containsKey("bootsound"))
-    {
-        BOOT_SOUND = doc["bootsound"].as<String>();
-    }
+        if (doc.containsKey("bootsound"))
+        {
+            BOOT_SOUND = doc["bootsound"].as<String>();
+        }
 
-    if (doc.containsKey("bootsound"))
-    {
-        UPPERCASE_LETTERS = doc["uppercase"].as<bool>();
-    }
+        if (doc.containsKey("bootsound"))
+        {
+            UPPERCASE_LETTERS = doc["uppercase"].as<bool>();
+        }
 
-    file.close();
+        file.close();
+    }
 }
 
 void loadSettings()

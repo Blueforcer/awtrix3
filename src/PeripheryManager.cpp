@@ -329,63 +329,61 @@ time_t lastAlarmTime = 0;
 
 void PeripheryManager_::checkAlarms()
 {
-    File file = LittleFS.open("/alarms.json", "r");
-    if (!file)
+    if (LittleFS.exists("/alarms.json"))
     {
-        return;
-    }
-
-    DynamicJsonDocument doc(file.size() * 1.33);
-    DeserializationError error = deserializeJson(doc, file);
-    if (error)
-    {
-        Serial.println(F("Failed to read Alarm file"));
-        return;
-    }
-    JsonArray alarms = doc["alarms"];
-    file.close();
-
-    time_t now1 = time(nullptr);
-    struct tm *timeInfo;
-    timeInfo = localtime(&now1);
-    int currentHour = timeInfo->tm_hour;
-    int currentMinute = timeInfo->tm_min;
-    int currentDay = timeInfo->tm_wday - 1;
-
-    for (JsonObject alarm : alarms)
-    {
-        int alarmHour = alarm["hour"];
-        int alarmMinute = alarm["minute"];
-        String alarmDays = alarm["days"];
-
-        if (currentHour == alarmHour && currentMinute == alarmMinute && alarmDays.indexOf(String(currentDay)) != -1)
+        File file = LittleFS.open("/alarms.json", "r");
+        DynamicJsonDocument doc(file.size() * 1.33);
+        DeserializationError error = deserializeJson(doc, file);
+        if (error)
         {
-            if (difftime(now1, lastAlarmTime) < MIN_ALARM_INTERVAL)
-            {
-                return;
-            }
-
-            ALARM_ACTIVE = true;
-            lastAlarmTime = now1;
-
-            if (alarm.containsKey("sound"))
-            {
-                ALARM_SOUND = alarm["sound"].as<String>();
-            }
-            else
-            {
-                ALARM_SOUND = "";
-            }
-
-            if (alarm.containsKey("snooze"))
-            {
-                SNOOZE_TIME = alarm["snooze"].as<uint8_t>();
-            }
-            else
-            {
-                SNOOZE_TIME = 0;
-            }
+            Serial.println(F("Failed to read Alarm file"));
+            return;
         }
+        JsonArray alarms = doc["alarms"];
+        file.close();
+
+        time_t now1 = time(nullptr);
+        struct tm *timeInfo;
+        timeInfo = localtime(&now1);
+        int currentHour = timeInfo->tm_hour;
+        int currentMinute = timeInfo->tm_min;
+        int currentDay = timeInfo->tm_wday - 1;
+
+        for (JsonObject alarm : alarms)
+        {
+            int alarmHour = alarm["hour"];
+            int alarmMinute = alarm["minute"];
+            String alarmDays = alarm["days"];
+
+            if (currentHour == alarmHour && currentMinute == alarmMinute && alarmDays.indexOf(String(currentDay)) != -1)
+            {
+                if (difftime(now1, lastAlarmTime) < MIN_ALARM_INTERVAL)
+                {
+                    return;
+                }
+
+                ALARM_ACTIVE = true;
+                lastAlarmTime = now1;
+
+                if (alarm.containsKey("sound"))
+                {
+                    ALARM_SOUND = alarm["sound"].as<String>();
+                }
+                else
+                {
+                    ALARM_SOUND = "";
+                }
+
+                if (alarm.containsKey("snooze"))
+                {
+                    SNOOZE_TIME = alarm["snooze"].as<uint8_t>();
+                }
+                else
+                {
+                    SNOOZE_TIME = 0;
+                }
+            }
+        }      
     }
 }
 
