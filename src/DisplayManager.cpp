@@ -136,18 +136,12 @@ void DisplayManager_::clearMatrix()
 
 bool jpg_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t *bitmap)
 {
-
     uint16_t bitmapIndex = 0;
-
     for (uint16_t row = 0; row < h; row++)
     {
         for (uint16_t col = 0; col < w; col++)
         {
-            uint16_t color = bitmap[bitmapIndex++];
-            uint8_t r = ((color & 0xF800) >> 11) << 3;
-            uint8_t g = ((color & 0x07E0) >> 5) << 2;
-            uint8_t b = (color & 0x001F) << 3;
-            matrix->drawPixel(x + col, y + row, matrix->Color(r, g, b));
+            matrix->drawPixel(x + col, y + row, bitmap[bitmapIndex++]);
         }
     }
     return 0;

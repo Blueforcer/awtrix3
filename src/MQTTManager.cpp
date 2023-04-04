@@ -12,7 +12,7 @@
 WiFiClient espClient;
 uint8_t lastBrightness;
 HADevice device;
-HAMqtt mqtt(espClient, device, 21);
+HAMqtt mqtt(espClient, device, 22);
 
 unsigned long reconnectTimer = 0;
 const unsigned long reconnectInterval = 30000; // 30 Sekunden
