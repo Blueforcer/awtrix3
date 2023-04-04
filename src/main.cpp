@@ -62,7 +62,6 @@ void setup()
   loadSettings();
   Serial.begin(115200);
   PeripheryManager.setup();
-  delay(500);
   ServerManager.loadSettings();
   DisplayManager.setup();
   DisplayManager.HSVtext(9, 6, VERSION, true);
@@ -70,7 +69,6 @@ void setup()
   PeripheryManager.playBootSound();
   xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 1);
   ServerManager.setup();
-
   if (ServerManager.isConnected)
   {
     MQTTManager.setup();

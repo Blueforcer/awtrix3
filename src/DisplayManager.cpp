@@ -90,6 +90,7 @@ bool DisplayManager_::setAutoTransition(bool active)
         ui->disablesetAutoTransition();
         return false;
     }
+    showGif = false;
 }
 
 void DisplayManager_::drawGIF(uint16_t x, uint16_t y, fs::File gFile)
@@ -258,14 +259,15 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
         Serial.println("delete");
         customApps.erase(customApps.find(name));
         removeCustomApp(name);
+        showGif = false;
         return;
     }
-
 
     DynamicJsonDocument doc(1024);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
+        showGif = false;
         doc.clear();
         return;
     }
@@ -458,7 +460,7 @@ void DisplayManager_::generateNotification(const char *json)
         notify.color = TEXTCOLOR_565;
     }
 
-     notify.flag = true;
+    notify.flag = true;
     showGif = false;
 
     if (doc.containsKey("icon"))
@@ -487,7 +489,6 @@ void DisplayManager_::generateNotification(const char *json)
         fs::File nullPointer;
         notify.icon = nullPointer;
     }
-   
 }
 
 void DisplayManager_::loadNativeApps()

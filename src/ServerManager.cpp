@@ -50,7 +50,7 @@ void ServerManager_::setup()
 
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
     Serial.println(myIP.toString());
-
+    Serial.println(isConnected);
     if (isConnected)
     {
 

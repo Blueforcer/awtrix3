@@ -75,7 +75,7 @@ void loadSettings()
     TEXTCOLOR_565 = Settings.getUInt("COL", 0xFFFF);
     AUTO_TRANSITION = Settings.getBool("TRANS", true);
     TIME_PER_TRANSITION = Settings.getUInt("TSPEED", 400);
-    TIME_PER_APP = Settings.getUInt("ADUR", 5000);
+    TIME_PER_APP = Settings.getUInt("ADUR", 7000);
     TIME_FORMAT = Settings.getString("TFORMAT", "%H:%M:%S");
     DATE_FORMAT = Settings.getString("DFORMAT", "%d.%m.%y");
     START_ON_MONDAY = Settings.getBool("SOM", true);
@@ -161,7 +161,7 @@ String NET_PDNS = "8.8.8.8";
 String NET_SDNS = "1.1.1.1";
 int TIME_PER_APP = 7000;
 uint8_t MATRIX_FPS = 23;
-int TIME_PER_TRANSITION = 500;
+int TIME_PER_TRANSITION = 400;
 String NTP_SERVER = "de.pool.ntp.org";
 String NTP_TZ = "CET-1CEST,M3.5.0,M10.5.0/3";
 bool HA_DISCOVERY = false;
