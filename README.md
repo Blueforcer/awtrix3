@@ -41,6 +41,8 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
 - Pre-installed Apps like time, date, temperature, humidity and battery
 - Add customapps without recompiling straight from your Smarthome.
 - Noitification support
+- Animated icons
+- Custom icons without recompiling
 - Easy to use icon system
 - Powerful MQTT commands
 - HTTP API
