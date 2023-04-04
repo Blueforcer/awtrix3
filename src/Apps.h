@@ -188,16 +188,21 @@ void TempApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     CURRENT_APP = "Temperature";
     DisplayManager.getInstance().resetTextColor();
     matrix->drawRGBBitmap(x, y, get_icon(234), 8, 8);
-    matrix->setCursor(12 + x, 6 + y);
+    
+    if (TEMP_DECIMAL_PLACES > 0)
+        matrix->setCursor(8 + x, 6 + y);
+    else
+        matrix->setCursor(12 + x, 6 + y);
+
     if (IS_CELSIUS)
     {
-        matrix->print((int)CURRENT_TEMP);
+        matrix->print(CURRENT_TEMP, TEMP_DECIMAL_PLACES);
         matrix->print(utf8ascii("°C"));
     }
     else
     {
-        int tempF = (CURRENT_TEMP * 9 / 5) + 32;
-        matrix->print(tempF);
+        double tempF = (CURRENT_TEMP * 9 / 5) + 32;
+        matrix->print(tempF, TEMP_DECIMAL_PLACES);
         matrix->print(utf8ascii("°F"));
     }
 }
@@ -210,8 +215,8 @@ void HumApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     DisplayManager.getInstance().resetTextColor();
     matrix->drawRGBBitmap(x, y + 1, get_icon(2075), 8, 8);
     matrix->setCursor(14 + x, 6 + y);
-    int humidity = CURRENT_HUM; // Temperatur ohne Nachkommastellen
-    matrix->print(humidity);    // Ausgabe der Temperatur
+    int humidity = CURRENT_HUM; // Humidity without decimal places
+    matrix->print(humidity);    // Output humidity
     matrix->print("%");
 }
 

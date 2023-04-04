@@ -93,13 +93,12 @@ PeripheryManager_ &PeripheryManager = PeripheryManager.getInstance();
 
 void left_button_pressed()
 {
-#ifdef AWTRIX_UPGRADE
+#ifndef ULANZI
     PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
 #endif
-
     if (AP_MODE)
     {
-#ifdef AWTRIX_UPGRADE
+#ifndef ULANZI
         --MATRIX_LAYOUT;
         if (MATRIX_LAYOUT < 0)
             MATRIX_LAYOUT = 2;
@@ -116,12 +115,12 @@ void left_button_pressed()
 
 void right_button_pressed()
 {
-#ifdef AWTRIX_UPGRADE
+#ifndef ULANZI
     PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
 #endif
     if (AP_MODE)
     {
-#ifdef AWTRIX_UPGRADE
+#ifndef ULANZI
         ++MATRIX_LAYOUT;
         if (MATRIX_LAYOUT > 2)
             MATRIX_LAYOUT = 0;
@@ -138,7 +137,7 @@ void right_button_pressed()
 
 void select_button_pressed()
 {
-#ifdef AWTRIX_UPGRADE
+#ifndef ULANZI
     PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
 #endif
     DisplayManager.selectButton();
