@@ -27,6 +27,7 @@ private:
 public:
     static DisplayManager_ &getInstance();
     bool appIsSwitching;
+    bool showGif;
     void setup();
     void tick();
     void clear();
@@ -49,7 +50,7 @@ public:
     void setFPS(uint8_t);
     void MatrixState(bool);
     void generateNotification(const char *json);
-    void generateCustomPage(String name, const char *json);
+    void generateCustomPage(const String &name, const char *json);
     void printText(int16_t x, int16_t y, const char *text, bool centered, bool ignoreUppercase);
     bool setAutoTransition(bool active);
     void switchToApp(const char *json);

@@ -72,6 +72,7 @@ extern uint8_t VOLUME_PERCENT;
 extern uint8_t VOLUME;
 extern int MATRIX_LAYOUT;
 extern bool UPDATE_AVAILABLE;
+extern long RECEIVED_MESSAGES;
 void loadSettings();
 void saveSettings();
 #endif // Globals_H

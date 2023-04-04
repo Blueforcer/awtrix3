@@ -60,7 +60,7 @@ void BootAnimation(void *parameter)
 void setup()
 {
   loadSettings();
-  Serial.begin(9600);
+  Serial.begin(115200);
   PeripheryManager.setup();
   delay(500);
   ServerManager.loadSettings();

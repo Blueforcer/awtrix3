@@ -509,25 +509,26 @@ public:
       }
     }
 
-    // Zeichne das Bild auf die Matrix
-    int yOffset, pixel;
+    int pixel, yOffset;
     for (int y = tbiImageY; y < tbiHeight + tbiImageY; y++)
     {
       yOffset = y * WIDTH;
       for (int x = tbiImageX; x < tbiWidth + tbiImageX; x++)
       {
         pixel = imageData[yOffset + x];
-        if (pixel == -99)
+        if (pixel == transparentColorIndex) // Check if the pixel index is the transparent index
         {
-          mtx->drawPixel(x + offsetX, y + offsetY, mtx->Color(0, 0, 0));
-          continue;
+          mtx->drawPixel(x + offsetX, y + offsetY, mtx->Color(0, 0, 0)); // Draw a black pixel
+          lastFrame[yOffset + x] = -99;                                  // Save it as a special value
         }
-
-        lastFrame[yOffset + x] = pixel;
-        color.red = gifPalette[pixel].Red;
-        color.green = gifPalette[pixel].Green;
-        color.blue = gifPalette[pixel].Blue;
-        mtx->drawPixel(x + offsetX, y + offsetY, color);
+        else
+        {
+          color.red = gifPalette[pixel].Red;
+          color.green = gifPalette[pixel].Green;
+          color.blue = gifPalette[pixel].Blue;
+          mtx->drawPixel(x + offsetX, y + offsetY, color);
+          lastFrame[yOffset + x] = pixel;
+        }
       }
     }
     needNewFrame = false;
@@ -596,6 +597,8 @@ public:
 
   unsigned long drawFrame(int x, int y)
   {
+    offsetX = x;
+    offsetY = y;
     if (!file)
       return 0;
 
@@ -607,8 +610,6 @@ public:
 
     lastFrameDrawn = false;
 
-    offsetX = x;
-    offsetY = y;
     boolean done = false;
     while (!done)
     {

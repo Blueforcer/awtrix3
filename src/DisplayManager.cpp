@@ -28,7 +28,8 @@ Ticker TimerTicker;
 #define MATRIX_HEIGHT 8
 fs::File gifFile;
 GifPlayer gif;
-bool showGif;
+
+uint16_t gifX, gifY;
 CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
 // Awtrix Big / Ulanzi
 
@@ -93,9 +94,13 @@ bool DisplayManager_::setAutoTransition(bool active)
 
 void DisplayManager_::drawGIF(uint16_t x, uint16_t y, fs::File gFile)
 {
-    gif.setFile(gFile);
+    gifX = x;
+    gifY = y;
     if (!showGif)
+    {
+        gif.setFile(gFile);
         showGif = true;
+    }
 }
 
 void DisplayManager_::drawJPG(uint16_t x, uint16_t y, fs::File jpgFile)
@@ -245,7 +250,7 @@ void removeCustomApp(const String &name)
     ui->setApps(Apps);
 }
 
-void DisplayManager_::generateCustomPage(String name, const char *json)
+void DisplayManager_::generateCustomPage(const String &name, const char *json)
 {
 
     if (strcmp(json, "") == 0 && customApps.count(name))
@@ -256,12 +261,14 @@ void DisplayManager_::generateCustomPage(String name, const char *json)
         return;
     }
 
-    Serial.printf("Appname %s", name);
 
     DynamicJsonDocument doc(1024);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
+    {
+        doc.clear();
         return;
+    }
 
     CustomApp customApp;
 
@@ -349,6 +356,10 @@ void DisplayManager_::generateCustomPage(String name, const char *json)
         }
         else
         {
+            if (customApp.icon)
+            {
+                customApp.icon.close();
+            }
             if (LittleFS.exists("/ICONS/" + iconFileName + ".jpg"))
             {
                 customApp.isGif = false;
@@ -374,6 +385,7 @@ void DisplayManager_::generateCustomPage(String name, const char *json)
 
     pushCustomApp(name, pos - 1);
     customApps[name] = customApp;
+    doc.clear();
 }
 
 void DisplayManager_::generateNotification(const char *json)
@@ -387,7 +399,7 @@ void DisplayManager_::generateNotification(const char *json)
     notify.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
     notify.hold = doc.containsKey("hold") ? doc["hold"].as<bool>() : false;
     notify.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
-    notify.flag = true;
+
     notify.startime = millis();
     notify.scrollposition = 9;
     notify.iconWasPushed = false;
@@ -446,6 +458,9 @@ void DisplayManager_::generateNotification(const char *json)
         notify.color = TEXTCOLOR_565;
     }
 
+     notify.flag = true;
+    showGif = false;
+
     if (doc.containsKey("icon"))
     {
         String iconFileName = doc["icon"].as<String>();
@@ -472,6 +487,7 @@ void DisplayManager_::generateNotification(const char *json)
         fs::File nullPointer;
         notify.icon = nullPointer;
     }
+   
 }
 
 void DisplayManager_::loadNativeApps()
@@ -534,6 +550,9 @@ void DisplayManager_::setup()
     setMatrixLayout(MATRIX_LAYOUT);
     gif.setMatrix(matrix);
     ui->setAppAnimation(SLIDE_DOWN);
+    ui->setTimePerApp(TIME_PER_APP);
+    ui->setTimePerTransition(TIME_PER_TRANSITION);
+    ui->setTargetFPS(MATRIX_FPS);
     ui->setOverlays(overlays, 4);
     setAutoTransition(AUTO_TRANSITION);
     ui->init();
@@ -551,7 +570,6 @@ void DisplayManager_::tick()
     }
     else
     {
-
         if (ui->getUiState()->appState == IN_TRANSITION && !appIsSwitching)
         {
             appIsSwitching = true;
@@ -565,8 +583,8 @@ void DisplayManager_::tick()
         }
         int remainingTimeBudget = ui->update();
 
-        if (showGif)
-            gif.drawFrame(0, 0);
+        if (showGif && !MenuManager.inMenu)
+            gif.drawFrame(gifX, gifY);
         matrix->show();
     }
 }
@@ -645,8 +663,10 @@ void DisplayManager_::selectButtonLong()
 
 void DisplayManager_::dismissNotify()
 {
+
     notify.hold = false;
     notify.flag = false;
+    showGif = false;
 }
 
 void timerCallback()
@@ -672,7 +692,7 @@ void DisplayManager_::gererateTimer(String Payload)
     futureTimeinfo.tm_sec += seconds;
     time_t futureTime = mktime(&futureTimeinfo);
     int interval = difftime(futureTime, now) * 1000;
-    TimerTicker.attach_ms(interval, timerCallback);
+    TimerTicker.once_ms(interval, timerCallback);
 }
 
 void DisplayManager_::switchToApp(const char *json)
@@ -701,6 +721,7 @@ void DisplayManager_::setNewSettings(const char *json)
     BRIGHTNESS = doc.containsKey("brightness") ? doc["brightness"] : BRIGHTNESS;
     AUTO_BRIGHTNESS = doc.containsKey("autobrightness") ? doc["autobrightness"] : AUTO_BRIGHTNESS;
     AUTO_TRANSITION = doc.containsKey("autotransition") ? doc["autotransition"] : AUTO_TRANSITION;
+    UPPERCASE_LETTERS = doc.containsKey("uppercase") ? doc["uppercase"] : UPPERCASE_LETTERS;
     applyAllSettings();
     saveSettings();
 }
@@ -910,7 +931,7 @@ void DisplayManager_::updateAppVector(const char *json)
 
 String DisplayManager_::getStat()
 {
-    StaticJsonDocument<200> doc;
+    StaticJsonDocument<256> doc;
     char buffer[5];
 #ifdef ULANZI
     doc[BatKey] = BATTERY_PERCENT;
@@ -928,9 +949,9 @@ String DisplayManager_::getStat()
     doc[UpTimeKey] = PeripheryManager.readUptime();
     doc[SignalStrengthKey] = WiFi.RSSI();
     doc[UpdateKey] = UPDATE_AVAILABLE;
+    doc["messages"] = RECEIVED_MESSAGES;
     String jsonString;
-    serializeJson(doc, jsonString);
-    return jsonString;
+    return serializeJson(doc, jsonString), jsonString;
 }
 
 void DisplayManager_::setAppTime(uint16_t duration)

@@ -493,6 +493,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         notify.iconWasPushed = false;
         notify.iconPosition = 0;
         notify.scrollDelay = 0;
+        DisplayManager.showGif=false;
         return;
     }
 

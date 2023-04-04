@@ -140,61 +140,72 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
     char *payloadCopy = new char[length + 1];
     memcpy(payloadCopy, payload, length);
     payloadCopy[length] = '\0';
-    if (strTopic == MQTT_PREFIX + "/notify")
+    ++RECEIVED_MESSAGES;
+    if (strTopic.equals(MQTT_PREFIX + "/notify"))
     {
         if (payload[0] != '{' || payload[length - 1] != '}')
         {
+            delete[] payloadCopy;
             return;
         }
         DisplayManager.generateNotification(payloadCopy);
+        delete[] payloadCopy;
         return;
     }
 
-    if (strTopic == MQTT_PREFIX + "/timer")
+    if (strTopic.equals(MQTT_PREFIX + "/timer"))
     {
         DisplayManager.gererateTimer(payloadCopy);
+        delete[] payloadCopy;
         return;
     }
 
-    if (strTopic == MQTT_PREFIX + "/notify/dismiss")
+    if (strTopic.equals(MQTT_PREFIX + "/notify/dismiss"))
     {
         DisplayManager.dismissNotify();
+        delete[] payloadCopy;
         return;
     }
 
-    if (strTopic == MQTT_PREFIX + "/apps")
+    if (strTopic.equals(MQTT_PREFIX + "/apps"))
     {
         DisplayManager.updateAppVector(payloadCopy);
+        delete[] payloadCopy;
         return;
     }
 
-    if (strTopic == MQTT_PREFIX + "/switch")
+    if (strTopic.equals(MQTT_PREFIX + "/switch"))
     {
         DisplayManager.switchToApp(payloadCopy);
+        delete[] payloadCopy;
         return;
     }
 
-    if (strTopic == MQTT_PREFIX + "/settings")
+    if (strTopic.equals(MQTT_PREFIX + "/settings"))
     {
         DisplayManager.setNewSettings(payloadCopy);
+        delete[] payloadCopy;
         return;
     }
 
-    if (strTopic == MQTT_PREFIX + "/nextapp")
+    if (strTopic.equals(MQTT_PREFIX + "/nextapp"))
     {
         DisplayManager.nextApp();
+        delete[] payloadCopy;
         return;
     }
 
-    if (strTopic == MQTT_PREFIX + "/previousapp")
+    if (strTopic.equals(MQTT_PREFIX + "/previousapp"))
     {
         DisplayManager.previousApp();
+        delete[] payloadCopy;
         return;
     }
-    if (strTopic == MQTT_PREFIX + "/doupdate")
+    if (strTopic.equals(MQTT_PREFIX + "/doupdate"))
     {
         if (UPDATE_AVAILABLE)
             UpdateManager.updateFirmware();
+        delete[] payloadCopy;
         return;
     }
 
@@ -208,9 +219,9 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         }
 
         DisplayManager.generateCustomPage(topic_str, payloadCopy);
+        delete[] payloadCopy;
         return;
     }
-    delete[] payloadCopy;
 }
 
 void onMqttConnected()
