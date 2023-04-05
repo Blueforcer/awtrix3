@@ -78,27 +78,29 @@ void ServerManager_::setup()
         mws.addJavascript(custom_script);
         mws.addHandler("/save", HTTP_POST, saveHandler);
         mws.addHandler("/api/notify", HTTP_POST, []()
-                       {DisplayManager.generateNotification(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.generateNotification(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/nextapp", HTTP_POST, []()
-                       {DisplayManager.nextApp(); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.nextApp(); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/previousapp", HTTP_POST, []()
-                       {DisplayManager.previousApp(); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.previousApp(); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/timer", HTTP_POST, []()
                        { DisplayManager.gererateTimer(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/notify/dismiss", HTTP_POST, []()
                        { DisplayManager.dismissNotify(); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/apps", HTTP_POST, []()
-                       {  DisplayManager.updateAppVector(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.updateAppVector(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/switch", HTTP_POST, []()
-                       {  DisplayManager.switchToApp(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.switchToApp(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/loop", HTTP_GET, []()
+                       { mws.webserver->sendContent(DisplayManager.getAppsAsJson()); });
         mws.addHandler("/api/settings", HTTP_POST, []()
-                       {  DisplayManager.setNewSettings(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.setNewSettings(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/custom", HTTP_POST, []()
-                       {  DisplayManager.generateCustomPage(mws.webserver->arg("name"),mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.generateCustomPage(mws.webserver->arg("name"),mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/stats", HTTP_GET, []()
                        { mws.webserver->sendContent(DisplayManager.getStat()); });
         mws.addHandler("/api/doupdate", HTTP_POST, []()
-                       {  if (UPDATE_AVAILABLE)
+                       { if (UPDATE_AVAILABLE)
             UpdateManager.updateFirmware(); mws.webserver->send(200,"OK"); });
         Serial.println("Webserver loaded");
     }

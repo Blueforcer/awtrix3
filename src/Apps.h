@@ -38,6 +38,7 @@ struct CustomApp
     bool soundPlayed;
     uint16_t duration = 0;
     String sound;
+    byte textCase = 0;
     int16_t repeat = 0;
     int16_t currentRepeat = 0;
     String name;
@@ -65,6 +66,7 @@ struct Notification
     uint16_t duration = 0;
     int16_t repeat = -1;
     bool hold = false;
+    byte textCase = 0;
     byte pushIcon = 0;
     int16_t iconPosition = 0;
     bool iconWasPushed = false;
@@ -91,7 +93,7 @@ String getAppNameByFunction(AppCallback AppFunction)
         }
     }
 
-    return ""; // Gibt einen leeren String zurück, wenn die App-Funktion nicht gefunden wurde
+    return "";
 }
 
 int findAppIndexByName(const String &name)
@@ -188,7 +190,7 @@ void TempApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     CURRENT_APP = "Temperature";
     DisplayManager.getInstance().resetTextColor();
     matrix->drawRGBBitmap(x, y, get_icon(234), 8, 8);
-    
+
     if (TEMP_DECIMAL_PLACES > 0)
         matrix->setCursor(8 + x, 6 + y);
     else
@@ -257,10 +259,10 @@ void AlarmApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         {
             if (!PeripheryManager.isPlaying())
             {
-#ifdef ULANZI            
+#ifdef ULANZI
                 PeripheryManager.playFromFile("/MELODIES/" + ALARM_SOUND + ".txt");
 #else
-                PeripheryManager.playFromFile(DFMINI_MP3_ALARM);            
+                PeripheryManager.playFromFile(DFMINI_MP3_ALARM);
 #endif
             }
         }
@@ -407,12 +409,12 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             // Display text with rainbow effect if enabled
             if (ca->rainbow)
             {
-                DisplayManager.HSVtext(x + textX, 6 + y, ca->text.c_str(), false);
+                DisplayManager.HSVtext(x + textX, 6 + y, ca->text.c_str(), false, ca->textCase);
             }
             else
             {
                 // Display text
-                DisplayManager.printText(x + textX, y + 6, ca->text.c_str(), false, false);
+                DisplayManager.printText(x + textX, y + 6, ca->text.c_str(), false, ca->textCase);
             }
         }
         else
@@ -420,11 +422,11 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             // Display scrolling text with rainbow effect if enabled
             if (ca->rainbow)
             {
-                DisplayManager.HSVtext(x + ca->scrollposition, 6 + y, ca->text.c_str(), false);
+                DisplayManager.HSVtext(x + ca->scrollposition, 6 + y, ca->text.c_str(), false, ca->textCase);
             }
             else
             {
-                DisplayManager.printText(x + ca->scrollposition, 6 + y, ca->text.c_str(), false, false);
+                DisplayManager.printText(x + ca->scrollposition, 6 + y, ca->text.c_str(), false, ca->textCase);
             }
         }
     }
@@ -498,7 +500,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         notify.iconWasPushed = false;
         notify.iconPosition = 0;
         notify.scrollDelay = 0;
-        DisplayManager.showGif=false;
+        DisplayManager.showGif = false;
         return;
     }
 
@@ -581,12 +583,12 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
             if (notify.rainbow)
             {
                 // Display text in rainbow color if enabled
-                DisplayManager.HSVtext(textX, 6, notify.text.c_str(), false);
+                DisplayManager.HSVtext(textX, 6, notify.text.c_str(), false, notify.textCase);
             }
             else
             {
                 // Display text in solid color
-                DisplayManager.printText(textX, 6, notify.text.c_str(), false, false);
+                DisplayManager.printText(textX, 6, notify.text.c_str(), false, notify.textCase);
             }
         }
         else
@@ -594,12 +596,12 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
             if (notify.rainbow)
             {
                 // Display scrolling text in rainbow color if enabled
-                DisplayManager.HSVtext(notify.scrollposition, 6, notify.text.c_str(), false);
+                DisplayManager.HSVtext(notify.scrollposition, 6, notify.text.c_str(), false, notify.textCase);
             }
             else
             {
                 // Display scrolling text in solid color
-                DisplayManager.printText(notify.scrollposition, 6, notify.text.c_str(), false, false);
+                DisplayManager.printText(notify.scrollposition, 6, notify.text.c_str(), false, notify.textCase);
             }
         }
     }

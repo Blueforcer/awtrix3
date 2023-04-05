@@ -51,7 +51,7 @@ void BootAnimation(void *parameter)
     {
       break;
     }
-    DisplayManager.HSVtext(4, 6, "AWTRIX", true);
+    DisplayManager.HSVtext(4, 6, "AWTRIX", true, 0);
     vTaskDelay(xDelay);
   }
   vTaskDelete(NULL);
@@ -64,10 +64,10 @@ void setup()
   PeripheryManager.setup();
   ServerManager.loadSettings();
   DisplayManager.setup();
-  DisplayManager.HSVtext(9, 6, VERSION, true);
+  DisplayManager.HSVtext(9, 6, VERSION, true, 0);
   delay(500);
   PeripheryManager.playBootSound();
-  xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 1);
+  xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 0);
   ServerManager.setup();
   if (ServerManager.isConnected)
   {
@@ -79,7 +79,7 @@ void setup()
     float x = 4;
     while (x >= -85)
     {
-      DisplayManager.HSVtext(x, 6, ("AWTRIX   " + ServerManager.myIP.toString()).c_str(), true);
+      DisplayManager.HSVtext(x, 6, ("AWTRIX   " + ServerManager.myIP.toString()).c_str(), true, 0);
       x -= 0.18;
     }
     BeaconScanner.setup();

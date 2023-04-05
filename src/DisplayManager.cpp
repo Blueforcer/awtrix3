@@ -14,6 +14,7 @@
 #include "MenuManager.h"
 #include "Apps.h"
 #include "Dictionary.h"
+#include <set>
 
 Ticker AlarmTicker;
 Ticker TimerTicker;
@@ -147,11 +148,11 @@ bool jpg_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t *bitmap)
     return 0;
 }
 
-void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool centered, bool ignoreUppercase)
+void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase)
 {
     if (centered)
     {
-        uint16_t textWidth = getTextWidth(text, ignoreUppercase);
+        uint16_t textWidth = getTextWidth(text, textCase);
         int16_t textX = ((32 - textWidth) / 2);
         matrix->setCursor(textX, y);
     }
@@ -160,7 +161,7 @@ void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool cen
         matrix->setCursor(x, y);
     }
 
-    if (UPPERCASE_LETTERS && !ignoreUppercase)
+    if ((UPPERCASE_LETTERS && textCase == 0) || textCase == 1)
     {
         size_t length = strlen(text);
         char upperText[length + 1]; // +1 for the null terminator
@@ -179,7 +180,7 @@ void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool cen
     }
 }
 
-void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear)
+void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear, byte textCase)
 {
     if (clear)
         matrix->clear();
@@ -193,7 +194,7 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear
         const char *myChar = &text[i];
 
         matrix->setCursor(xpos + x, y);
-        if (UPPERCASE_LETTERS)
+        if ((UPPERCASE_LETTERS && textCase == 0) || textCase == 1)
         {
             matrix->print((char)toupper(text[i]));
         }
@@ -235,7 +236,7 @@ void pushCustomApp(String name, int position)
     }
 }
 
-void removeCustomApp(const String &name)
+void removeCustomAppFromApps(const String &name)
 {
     auto it = std::find_if(Apps.begin(), Apps.end(), [&name](const std::pair<String, AppCallback> &appPair)
                            { return appPair.first == name; });
@@ -251,7 +252,7 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
     {
         Serial.println("delete");
         customApps.erase(customApps.find(name));
-        removeCustomApp(name);
+        removeCustomAppFromApps(name);
         showGif = false;
         return;
     }
@@ -309,6 +310,7 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
     int pos = doc.containsKey("pos") ? doc["pos"].as<uint8_t>() : -1;
     customApp.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
     customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
+    customApp.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
     customApp.name = name;
     customApp.text = utf8ascii(doc["text"].as<String>());
 
@@ -394,7 +396,7 @@ void DisplayManager_::generateNotification(const char *json)
     notify.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
     notify.hold = doc.containsKey("hold") ? doc["hold"].as<bool>() : false;
     notify.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
-
+    notify.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
     notify.startime = millis();
     notify.scrollposition = 9;
     notify.iconWasPushed = false;
@@ -560,7 +562,7 @@ void DisplayManager_::tick()
 {
     if (AP_MODE)
     {
-        HSVtext(2, 6, "AP MODE", true);
+        HSVtext(2, 6, "AP MODE", true, 1);
     }
     else
     {
@@ -725,7 +727,7 @@ void DisplayManager_::drawProgressBar(int cur, int total)
     matrix->clear();
     int progress = (cur * 100) / total;
     char progressStr[5];
-    snprintf(progressStr, 5, "%d%%", progress); // Formatieren des Prozentzeichens
+    snprintf(progressStr, 5, "%d%%", progress);
     printText(0, 6, progressStr, true, false);
     int leds_for_progress = (progress * MATRIX_WIDTH * MATRIX_HEIGHT) / 100;
     matrix->drawFastHLine(0, 7, MATRIX_WIDTH, matrix->Color(100, 100, 100));
@@ -758,7 +760,6 @@ void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte 
     int maximum = 0;
     int newData[dataSize];
 
-    // Finde das Maximum in der Datenliste
     for (int i = 0; i < dataSize; i++)
     {
         int d = data[i];
@@ -768,14 +769,12 @@ void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte 
         }
     }
 
-    // Berechne neue Datenwerte zwischen 0 und 8 basierend auf dem Maximum
     for (int i = 0; i < dataSize; i++)
     {
         int d = data[i];
         newData[i] = map(d, 0, maximum, 0, 8);
     }
 
-    // Berechne die Breite der Balken basierend auf der Anzahl der Daten und der Breite der Matrix
     int barWidth;
     if (withIcon)
     {
@@ -786,10 +785,8 @@ void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte 
         barWidth = (32 / (dataSize)-1);
     }
 
-    // Berechne die Startposition des Graphen basierend auf dem Icon-Parameter
     int startX = withIcon ? 9 : 0;
 
-    // Zeichne die Balken auf die Matrix
     for (int i = 0; i < dataSize; i++)
     {
         int x1 = x + startX + (barWidth + 1) * i;
@@ -799,126 +796,92 @@ void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte 
     }
 }
 
+std::pair<String, AppCallback> getNativeAppByName(const String &appName)
+{
+    if (appName == "time")
+    {
+        return std::make_pair("time", TimeApp);
+    }
+    else if (appName == "date")
+    {
+        return std::make_pair("date", DateApp);
+    }
+    else if (appName == "temp")
+    {
+        return std::make_pair("temp", TempApp);
+    }
+    else if (appName == "hum")
+    {
+        return std::make_pair("hum", HumApp);
+    }
+    else if (appName == "bat")
+    {
+        return std::make_pair("bat", BatApp);
+    }
+    return std::make_pair("", nullptr);
+}
+
 void DisplayManager_::updateAppVector(const char *json)
 {
-    // Parse the JSON input
-    DynamicJsonDocument doc(1024);
-    auto error = deserializeJson(doc, json);
-    if (error)
+    StaticJsonDocument<512> doc; // Erhöhen Sie die Größe des Dokuments bei Bedarf
+    deserializeJson(doc, json);
+
+    JsonArray appArray;
+    if (doc.is<JsonObject>())
     {
-        // If parsing fails, print an error message and return
-        Serial.print("Failed to parse JSON: ");
-        Serial.println(error.c_str());
-        return;
+        JsonArray tempArray = doc.to<JsonArray>();
+        tempArray.add(doc.as<JsonObject>());
+        appArray = tempArray;
+    }
+    else if (doc.is<JsonArray>())
+    {
+        appArray = doc.as<JsonArray>();
     }
 
-    // Create new vectors to store updated apps
-    std::vector<std::pair<String, AppCallback>> newApps;
-    std::vector<String> activeApps;
-
-    // Loop through all apps in the JSON input
-    for (const auto &app : doc.as<JsonArray>())
+    for (JsonObject appObj : appArray)
     {
-        // Get the app name, active status, and position (if specified)
-        String name = app["name"].as<String>();
-        bool show = true;
-        int position = -1;
+        String appName = appObj["name"].as<String>();
+        bool show = appObj["show"].as<bool>();
+        int position = appObj.containsKey("pos") ? appObj["pos"].as<int>() : Apps.size();
 
-        if (app.containsKey("show"))
+        auto appIt = std::find_if(Apps.begin(), Apps.end(), [&appName](const std::pair<String, AppCallback> &app)
+                                  { return app.first == appName; });
 
+        std::pair<String, AppCallback> nativeApp = getNativeAppByName(appName);
+        if (!show)
         {
-            show = app["show"].as<bool>();
+            if (appIt != Apps.end())
+            {
+                Apps.erase(appIt);
+            }
         }
-        if (app.containsKey("pos"))
-        {
-            position = app["pos"].as<int>();
-        }
-
-        // Find the corresponding AppCallback function based on the app name
-        AppCallback callback;
-        if (name == "time")
-        {
-            callback = TimeApp;
-            SHOW_TIME = show;
-        }
-        else if (name == "date")
-        {
-            callback = DateApp;
-            SHOW_DATE = show;
-        }
-        else if (name == "temp")
-        {
-            callback = TempApp;
-            SHOW_TEMP = show;
-        }
-        else if (name == "hum")
-        {
-            callback = HumApp;
-            SHOW_HUM = show;
-        }
-#ifdef ULANZI
-        else if (name == "bat")
-        {
-            callback = BatApp;
-            SHOW_BAT = show;
-        }
-#endif
         else
         {
-            // If the app is not one of the built-in apps, check if it's already in the vector
-            int appIndex = findAppIndexByName(name);
-            if (appIndex >= 0)
+            if (nativeApp.second != nullptr)
             {
-                // The app is in the vector, so we can move it to a new position or remove it
-                auto it = Apps.begin() + appIndex;
-                if (show)
+                if (appIt != Apps.end())
                 {
-                    if (position >= 0 && static_cast<size_t>(position) < newApps.size())
-                    {
-                        Apps.erase(it);
-                        newApps.insert(newApps.begin() + position, std::make_pair(name, it->second));
-                    }
+                    Apps.erase(appIt);
                 }
-                else
-                {
-                    // If the app is being removed, also remove it from the customApps map
-                    if (customApps.count(name))
-                    {
-                        customApps.erase(customApps.find(name));
-                        removeCustomApp(name);
-                    }
-                }
-            }
-            continue;
-        }
-        if (show)
-        {
-            // Add the app to the new vector
-            if (position >= 0 && static_cast<size_t>(position) < newApps.size())
-            {
-                newApps.insert(newApps.begin() + position, std::make_pair(name, callback));
+                position = position < 0 ? 0 : position >= Apps.size() ? Apps.size()
+                                                                      : position;
+                Apps.insert(Apps.begin() + position, nativeApp);
             }
             else
             {
-                newApps.emplace_back(name, callback);
+                if (appIt != Apps.end() && appObj.containsKey("pos"))
+                {
+                    std::pair<String, AppCallback> app = *appIt;
+                    Apps.erase(appIt);
+                    position = position < 0 ? 0 : position >= Apps.size() ? Apps.size()
+                                                                          : position;
+                    Apps.insert(Apps.begin() + position, app);
+                }
             }
         }
-
-        activeApps.push_back(name);
     }
 
-    // Loop through all apps currently in the vector
-    for (const auto &app : Apps)
-    {
-        // If the app is not in the updated activeApps vector, add it to the newApps vector
-        if (std::find(activeApps.begin(), activeApps.end(), app.first) == activeApps.end())
-        {
-            newApps.push_back(app);
-        }
-    }
-
-    // Update the apps vector, set it in the UI, and save settings
-    Apps = std::move(newApps);
+    // Set the updated apps vector in the UI and save settings
     ui->setApps(Apps);
     saveSettings();
 }
@@ -973,4 +936,22 @@ void DisplayManager_::setMatrixLayout(int layout)
 
     delete ui;                        // Free memory from the current ui object
     ui = new MatrixDisplayUi(matrix); // Create a new ui object with the new matrix
+}
+
+String DisplayManager_::getAppsAsJson()
+{
+    // Create a JSON object to hold the app positions and names
+    DynamicJsonDocument doc(1024);
+    JsonObject appsObject = doc.to<JsonObject>();
+
+    // Add each app position and name to the object
+    for (size_t i = 0; i < Apps.size(); i++)
+    {
+        appsObject[String(i)] = Apps[i].first;
+    }
+
+    // Serialize the JSON object to a string and return it
+    String json;
+    serializeJson(appsObject, json);
+    return json;
 }
