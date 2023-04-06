@@ -250,7 +250,7 @@ void AlarmApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
     {
         matrix->fillScreen(matrix->Color(255, 0, 0));
         CURRENT_APP = "Alarm";
-        uint16_t textWidth = getTextWidth("ALARM", false);
+        uint16_t textWidth = getTextWidth("ALARM", 0);
         int16_t textX = ((32 - textWidth) / 2);
         matrix->setTextColor(0);
         matrix->setCursor(textX, 6);
@@ -276,7 +276,7 @@ void TimerApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         matrix->fillScreen(matrix->Color(0, 255, 0));
         CURRENT_APP = "Timer";
         String menuText = "TIMER";
-        uint16_t textWidth = getTextWidth(menuText.c_str(), false);
+        uint16_t textWidth = getTextWidth(menuText.c_str(), 0);
         int16_t textX = ((32 - textWidth) / 2);
         matrix->setTextColor(0);
         matrix->setCursor(textX, 6);
@@ -335,14 +335,14 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     bool hasIcon = ca->icon;
     uint16_t availableWidth = (hasIcon) ? 24 : 32;
 
-    bool noScrolling = getTextWidth(ca->text.c_str(), false) <= availableWidth;
+    bool noScrolling = getTextWidth(ca->text.c_str(), ca->textCase) <= availableWidth;
     if (ca->barSize > 0)
     {
         DisplayManager.drawBarChart(x, y, ca->barData, ca->barSize, hasIcon, ca->color);
     }
     else
     {
-        if ((ca->repeat > 0) && (getTextWidth(ca->text.c_str(), false) > availableWidth) && (state->appState == FIXED))
+        if ((ca->repeat > 0) && (getTextWidth(ca->text.c_str(), ca->textCase) > availableWidth) && (state->appState == FIXED))
         {
             DisplayManager.setAutoTransition(false);
         }
@@ -351,9 +351,9 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             DisplayManager.setAutoTransition(true);
         }
 
-        if (getTextWidth(ca->text.c_str(), false) > availableWidth && !(state->appState == IN_TRANSITION))
+        if (getTextWidth(ca->text.c_str(), ca->textCase) > availableWidth && !(state->appState == IN_TRANSITION))
         {
-            if (ca->scrollposition <= -getTextWidth(ca->text.c_str(), false))
+            if (ca->scrollposition <= -getTextWidth(ca->text.c_str(), ca->textCase))
             {
                 ca->scrollDelay = 0;
                 ca->scrollposition = 9;
@@ -401,7 +401,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 }
             }
         }
-        int16_t textX = (hasIcon) ? ((24 - getTextWidth(ca->text.c_str(), false)) / 2) + 9 : ((32 - getTextWidth(ca->text.c_str(), false)) / 2);
+        int16_t textX = (hasIcon) ? ((24 - getTextWidth(ca->text.c_str(), ca->textCase)) / 2) + 9 : ((32 - getTextWidth(ca->text.c_str(), ca->textCase)) / 2);
         matrix->setTextColor(ca->color);
         if (noScrolling)
         {
@@ -511,7 +511,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
     matrix->fillRect(0, 0, 32, 8, 0);
 
     // Calculate text and available width
-    uint16_t textWidth = getTextWidth(notify.text.c_str(), false);
+    uint16_t textWidth = getTextWidth(notify.text.c_str(), notify.textCase);
     uint16_t availableWidth = hasIcon ? 24 : 32;
 
     // Check if text is scrolling
@@ -795,7 +795,7 @@ void WeatherApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t 
     DisplayManager.getInstance().resetTextColor();
     matrix->drawRGBBitmap(x, y, getWeatherIcon(WEATHER_CODE), 8, 8);
     String text = WEATHER_TEMP + "°" + WEATHER_HUM + "%";
-    uint16_t textWidth = getTextWidth(text.c_str(), false);
+    uint16_t textWidth = getTextWidth(text.c_str(), 0);
     int16_t textX = ((23 - textWidth) / 2);
     matrix->setCursor(textX + 11, 6 + y);
     matrix->print(utf8ascii(text));

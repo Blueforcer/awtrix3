@@ -204,7 +204,7 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear
         }
         char temp_str[2] = {'\0', '\0'};
         temp_str[0] = text[i];
-        xpos += getTextWidth(temp_str, false);
+        xpos += getTextWidth(temp_str, textCase);
     }
     hueOffset++;
     if (clear)
