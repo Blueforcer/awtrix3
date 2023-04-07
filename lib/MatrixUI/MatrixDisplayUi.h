@@ -61,7 +61,7 @@ struct MatrixDisplayUiState
 
   // Normal = 1, Inverse = -1;
   int8_t appTransitionDirection = 1;
-
+  bool lastFrameShown = false;
   bool manuelControll = false;
 
   // Custom data that can be used by the user
@@ -85,7 +85,7 @@ private:
   uint16_t ticksPerTransition = 15; // ~  500ms at 30 FPS
 
   bool setAutoTransition = true;
-
+  bool lastFrameShown;
   AppCallback *AppFunctions;
 
   // Internally used to transition to a specific app
@@ -114,6 +114,7 @@ public:
    * Initialise the display
    */
   void init();
+  void show();
 
   /**
    * Configure the internal used target FPS

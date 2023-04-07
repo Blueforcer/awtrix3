@@ -189,7 +189,7 @@ void TempApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         return;
     CURRENT_APP = "Temperature";
     DisplayManager.getInstance().resetTextColor();
-    matrix->drawRGBBitmap(x, y, get_icon(234), 8, 8);
+    matrix->drawRGBBitmap(x, y, icon_234, 8, 8);
 
     if (TEMP_DECIMAL_PLACES > 0)
         matrix->setCursor(8 + x, 6 + y);
@@ -215,12 +215,14 @@ void HumApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
         return;
     CURRENT_APP = "Humidity";
     DisplayManager.getInstance().resetTextColor();
-    matrix->drawRGBBitmap(x, y + 1, get_icon(2075), 8, 8);
+    matrix->drawRGBBitmap(x, y + 1, icon_2075, 8, 8);
     matrix->setCursor(14 + x, 6 + y);
     int humidity = CURRENT_HUM; // Humidity without decimal places
     matrix->print(humidity);    // Output humidity
     matrix->print("%");
 }
+
+
 
 #ifdef ULANZI
 void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
@@ -229,7 +231,7 @@ void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
         return;
     CURRENT_APP = "Battery";
     DisplayManager.getInstance().resetTextColor();
-    matrix->drawRGBBitmap(x, y, get_icon(1486), 8, 8);
+    matrix->drawRGBBitmap(x, y, icon_1486, 8, 8);
     matrix->setCursor(14 + x, 6 + y);
     matrix->print(BATTERY_PERCENT); // Ausgabe des Ladezustands
     matrix->print("%");

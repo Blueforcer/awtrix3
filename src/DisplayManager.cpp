@@ -95,13 +95,8 @@ bool DisplayManager_::setAutoTransition(bool active)
 
 void DisplayManager_::drawGIF(uint16_t x, uint16_t y, fs::File gFile)
 {
-    gifX = x;
-    gifY = y;
-    if (!showGif)
-    {
-        gif.setFile(gFile);
-        showGif = true;
-    }
+    gif.setFile(gFile);
+    gif.drawFrame(x, y);
 }
 
 void DisplayManager_::drawJPG(uint16_t x, uint16_t y, fs::File jpgFile)
@@ -542,8 +537,10 @@ void DisplayManager_::setup()
 {
     TJpgDec.setCallback(jpg_output);
     TJpgDec.setJpgScale(1);
-    FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
+
+    FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT).setTemperature(OvercastSky);
     setMatrixLayout(MATRIX_LAYOUT);
+
     gif.setMatrix(matrix);
     ui->setAppAnimation(SLIDE_DOWN);
     ui->setTimePerApp(TIME_PER_APP);
@@ -565,7 +562,10 @@ void DisplayManager_::tick()
         HSVtext(2, 6, "AP MODE", true, 1);
     }
     else
+
     {
+        ui->update();
+
         if (ui->getUiState()->appState == IN_TRANSITION && !appIsSwitching)
         {
             appIsSwitching = true;
@@ -577,11 +577,9 @@ void DisplayManager_::tick()
             MQTTManager.setCurrentApp(CURRENT_APP);
             setAppTime(TIME_PER_APP);
         }
-        int remainingTimeBudget = ui->update();
-
-        if (showGif && !MenuManager.inMenu)
-            gif.drawFrame(gifX, gifY);
-        matrix->show();
+        //   if (showGif && !MenuManager.inMenu)
+        //
+        // matrix->show();
     }
 }
 

@@ -59,13 +59,16 @@ void BootAnimation(void *parameter)
 
 void setup()
 {
+  pinMode(15, OUTPUT);
+  digitalWrite(15, LOW);
+  delay(2000);
   loadSettings();
   Serial.begin(115200);
   PeripheryManager.setup();
   ServerManager.loadSettings();
   DisplayManager.setup();
   DisplayManager.HSVtext(9, 6, VERSION, true, 0);
-  delay(500);
+
   PeripheryManager.playBootSound();
   xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 0);
   ServerManager.setup();

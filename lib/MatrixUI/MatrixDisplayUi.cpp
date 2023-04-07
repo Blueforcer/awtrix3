@@ -170,13 +170,14 @@ int8_t MatrixDisplayUi::update()
   int8_t timeBudget = this->updateInterval - (appStart - this->state.lastUpdate);
   if (timeBudget <= 0)
   {
-    // Implement app skipping to ensure time budget is keept
+    // Implement frame skipping to ensure time budget is keept
     if (this->setAutoTransition && this->state.lastUpdate != 0)
       this->state.ticksSinceLastStateSwitch += ceil(-timeBudget / this->updateInterval);
 
     this->state.lastUpdate = appStart;
     this->tick();
   }
+
   return this->updateInterval - (millis() - appStart);
 }
 
@@ -220,7 +221,7 @@ void MatrixDisplayUi::tick()
   if (this->AppCount > 0)
     this->drawApp();
   this->drawOverlays();
-  //this->matrix->show();
+  this->matrix->show();
 }
 
 void MatrixDisplayUi::drawApp()

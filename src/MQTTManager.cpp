@@ -287,9 +287,6 @@ void MQTTManager_::setup()
         device.setSoftwareVersion(VERSION);
         device.setManufacturer(HAmanufacturer);
         device.setModel(HAmodel);
-        char url[50];
-        snprintf(url, sizeof(url), "http://%s", WiFi.localIP().toString().c_str());
-        device.setURL("http://192.168.178.102");
         device.setAvailability(true);
         device.enableSharedAvailability();
         device.enableLastWill();

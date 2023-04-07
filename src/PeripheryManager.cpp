@@ -96,21 +96,9 @@ void left_button_pressed()
 #ifndef ULANZI
     PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
 #endif
-    if (AP_MODE)
-    {
-#ifndef ULANZI
-        --MATRIX_LAYOUT;
-        if (MATRIX_LAYOUT < 0)
-            MATRIX_LAYOUT = 2;
-        saveSettings();
-        ESP.restart();
-#endif
-    }
-    else
-    {
-        DisplayManager.leftButton();
-        MenuManager.leftButton();
-    }
+
+    DisplayManager.leftButton();
+    MenuManager.leftButton();
 }
 
 void right_button_pressed()
@@ -118,21 +106,9 @@ void right_button_pressed()
 #ifndef ULANZI
     PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
 #endif
-    if (AP_MODE)
-    {
-#ifndef ULANZI
-        ++MATRIX_LAYOUT;
-        if (MATRIX_LAYOUT > 2)
-            MATRIX_LAYOUT = 0;
-        saveSettings();
-        ESP.restart();
-#endif
-    }
-    else
-    {
-        DisplayManager.rightButton();
-        MenuManager.rightButton();
-    }
+
+    DisplayManager.rightButton();
+    MenuManager.rightButton();
 }
 
 void select_button_pressed()
@@ -146,9 +122,21 @@ void select_button_pressed()
 
 void select_button_pressed_long()
 {
-
-    DisplayManager.selectButtonLong();
-    MenuManager.selectButtonLong();
+    if (AP_MODE)
+    {
+#ifndef ULANZI
+        ++MATRIX_LAYOUT;
+        if (MATRIX_LAYOUT < 0)
+            MATRIX_LAYOUT = 2;
+        saveSettings();
+        ESP.restart();
+#endif
+    }
+    else
+    {
+        DisplayManager.selectButtonLong();
+        MenuManager.selectButtonLong();
+    }
 }
 
 void select_button_double()
@@ -234,37 +222,15 @@ bool PeripheryManager_::isPlaying()
 #endif
 }
 
-void firstStart()
-{
-#ifdef ULANZI
-    uint16_t ADCVALUE = analogRead(BATTERY_PIN);
-    BATTERY_PERCENT = min((int)map(ADCVALUE, 490, 690, 0, 100), 100);
-    BATTERY_RAW = ADCVALUE;
-    sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
-    CURRENT_TEMP -= 9.0;
-#else
-    CURRENT_TEMP = bme280.readTemperature();
-    CURRENT_HUM = bme280.readHumidity();
-#endif
-
-    uint16_t LDRVALUE = analogRead(LDR_PIN);
-    brightnessPercent = LDRVALUE / 4095.0 * 100.0;
-    int brightness = map(brightnessPercent, 0, 100, 10, 120);
-    DisplayManager.setBrightness(brightness);
-}
-
 void PeripheryManager_::setup()
 {
     startTime = millis();
     pinMode(LDR_PIN, INPUT);
-#ifdef ULANZI
-    pinMode(BUZZER_PIN, OUTPUT);
-    digitalWrite(BUZZER_PIN, LOW);
-#else
-    dfmp3.begin();
-    delay(100);
-    setVolume(VOLUME);
-#endif
+    #ifdef AWTRIX_UPGRADE
+        dfmp3.begin();
+        delay(100);
+        setVolume(VOLUME);
+    #endif
     button_left.begin();
     button_right.begin();
     button_select.begin();
@@ -283,7 +249,6 @@ void PeripheryManager_::setup()
     dfmp3.begin();
 #endif
     photocell.setPhotocellPositionOnGround(false);
-    firstStart();
 }
 
 void PeripheryManager_::tick()
