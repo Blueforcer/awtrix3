@@ -363,18 +363,12 @@ void PeripheryManager_::checkAlarms()
     }
 }
 
-const char *PeripheryManager_::readUptime()
+const char* PeripheryManager_::readUptime()
 {
     static char uptime[25]; // Make the array static to keep it from being destroyed when the function returns
     unsigned long currentTime = millis();
     unsigned long elapsedTime = currentTime - startTime;
     unsigned long uptimeSeconds = elapsedTime / 1000;
-    unsigned long uptimeMinutes = uptimeSeconds / 60;
-    unsigned long uptimeHours = uptimeMinutes / 60;
-    unsigned long uptimeDays = uptimeHours / 24;
-    unsigned long hours = uptimeHours % 24;
-    unsigned long minutes = uptimeMinutes % 60;
-    unsigned long seconds = uptimeSeconds % 60;
-    sprintf(uptime, "P%dDT%dH%dM%dS", uptimeDays, hours, minutes, seconds);
+    sprintf(uptime, "%lu", uptimeSeconds);
     return uptime;
 }

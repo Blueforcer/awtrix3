@@ -399,6 +399,7 @@ void MQTTManager_::setup()
         uptime = new HASensor(upID);
         uptime->setName(HAupName);
         uptime->setDeviceClass(HAupClass);
+        uptime->setUnitOfMeasurement("s");
 
         sprintf(btnLID, HAbtnLID, macStr);
         btnleft = new HABinarySensor(btnLID);
