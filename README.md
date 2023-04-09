@@ -16,8 +16,9 @@
 ![Discord](https://img.shields.io/discord/546407049148366859?label=Discord&style=flat-square)
 [![Compile](https://github.com/Blueforcer/awtrix-light/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/Blueforcer/awtrix-light/actions/workflows/main.yml)
     
-
-![GIF-230324_161917](https://user-images.githubusercontent.com/31169771/227567565-3780ee83-1158-4371-9390-fd03a7873496.gif)
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=N0NKPJzGHuA" target="_blank">
+ <img src="http://img.youtube.com/vi/N0NKPJzGHuA/mqdefault.jpg" alt="Watch the video" height="280" border="10" />
+</a>
 </div>
 
 AWTRIX Light is an open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882)  
