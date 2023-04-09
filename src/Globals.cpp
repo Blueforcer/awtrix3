@@ -19,7 +19,9 @@ void startLittleFS()
 {
     if (LittleFS.begin())
     {
+#ifdef ULANZI
         LittleFS.mkdir("/MELODIES");
+#endif
         LittleFS.mkdir("/ICONS");
     }
     else
@@ -32,31 +34,40 @@ void startLittleFS()
 
 void loadDevSettings()
 {
-    Serial.println("laodSettings");
-    File file = LittleFS.open("/dev.json", "r");
-    if (!file)
+    Serial.println("loadSettings");
+    if (LittleFS.exists("/dev.json"))
     {
-        return;
-    }
-    DynamicJsonDocument doc(128);
-    DeserializationError error = deserializeJson(doc, file);
-    if (error)
-    {
-        Serial.println(F("Failed to read dev settings"));
-        return;
-    }
+        File file = LittleFS.open("/dev.json", "r");
+        DynamicJsonDocument doc(128);
+        DeserializationError error = deserializeJson(doc, file);
+        if (error)
+        {
+            Serial.println(F("Failed to read dev settings"));
+            return;
+        }
 
-    if (doc.containsKey("bootsound"))
-    {
-        BOOT_SOUND = doc["bootsound"].as<String>();
-    }
+        if (doc.containsKey("bootsound"))
+        {
+            BOOT_SOUND = doc["bootsound"].as<String>();
+        }
 
-    if (doc.containsKey("bootsound"))
-    {
-        UPPERCASE_LETTERS = doc["uppercase"].as<bool>();
-    }
+        if (doc.containsKey("matrix"))
+        {
+            MATRIX_LAYOUT = doc["matrix"];
+        }
 
-    file.close();
+        if (doc.containsKey("bootsound"))
+        {
+            UPPERCASE_LETTERS = doc["uppercase"].as<bool>();
+        }
+
+        if (doc.containsKey("temp_dec_places"))
+        {
+            TEMP_DECIMAL_PLACES = doc["temp_dec_places"].as<int>();
+        }
+
+        file.close();
+    }
 }
 
 void loadSettings()
@@ -68,8 +79,8 @@ void loadSettings()
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", true);
     TEXTCOLOR_565 = Settings.getUInt("COL", 0xFFFF);
     AUTO_TRANSITION = Settings.getBool("TRANS", true);
-    TIME_PER_TRANSITION = Settings.getUInt("TSPEED", 500);
-    TIME_PER_APP = Settings.getUInt("ADUR", 5000);
+    TIME_PER_TRANSITION = Settings.getUInt("TSPEED", 400);
+    TIME_PER_APP = Settings.getUInt("ADUR", 7000);
     TIME_FORMAT = Settings.getString("TFORMAT", "%H:%M:%S");
     DATE_FORMAT = Settings.getString("DFORMAT", "%d.%m.%y");
     START_ON_MONDAY = Settings.getBool("SOM", true);
@@ -83,6 +94,10 @@ void loadSettings()
     SHOW_BAT = Settings.getBool("BAT", true);
 #endif
     SOUND_ACTIVE = Settings.getBool("SOUND", true);
+#ifndef ULANZI
+    VOLUME_PERCENT = Settings.getUInt("VOL", 50);
+    VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
+#endif
     Settings.end();
     uniqueID = getID();
     MQTT_PREFIX = String(uniqueID);
@@ -112,6 +127,9 @@ void saveSettings()
     Settings.putBool("BAT", SHOW_BAT);
 #endif
     Settings.putBool("SOUND", SOUND_ACTIVE);
+#ifndef ULANZI
+    Settings.putUInt("VOL", VOLUME_PERCENT);
+#endif
     Settings.end();
 }
 
@@ -121,7 +139,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.47";
+const char *VERSION = "0.48";
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
@@ -147,7 +165,7 @@ String NET_PDNS = "8.8.8.8";
 String NET_SDNS = "1.1.1.1";
 int TIME_PER_APP = 7000;
 uint8_t MATRIX_FPS = 23;
-int TIME_PER_TRANSITION = 500;
+int TIME_PER_TRANSITION = 400;
 String NTP_SERVER = "de.pool.ntp.org";
 String NTP_TZ = "CET-1CEST,M3.5.0,M10.5.0/3";
 bool HA_DISCOVERY = false;
@@ -185,7 +203,11 @@ bool ALARM_ACTIVE;
 uint16_t TEXTCOLOR_565 = 0xFFFF;
 bool SOUND_ACTIVE;
 String BOOT_SOUND = "";
-uint8_t VOLUME;
+int TEMP_DECIMAL_PLACES = 0;
+#ifndef ULANZI
 uint8_t VOLUME_PERCENT;
+uint8_t VOLUME;
+#endif
 int MATRIX_LAYOUT;
 bool UPDATE_AVAILABLE = false;
+long RECEIVED_MESSAGES;

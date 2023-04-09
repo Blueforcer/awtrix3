@@ -12,7 +12,7 @@
 WiFiClient espClient;
 uint8_t lastBrightness;
 HADevice device;
-HAMqtt mqtt(espClient, device, 19);
+HAMqtt mqtt(espClient, device, 22);
 
 unsigned long reconnectTimer = 0;
 const unsigned long reconnectInterval = 30000; // 30 Sekunden
@@ -140,61 +140,72 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
     char *payloadCopy = new char[length + 1];
     memcpy(payloadCopy, payload, length);
     payloadCopy[length] = '\0';
-    if (strTopic == MQTT_PREFIX + "/notify")
+    ++RECEIVED_MESSAGES;
+    if (strTopic.equals(MQTT_PREFIX + "/notify"))
     {
         if (payload[0] != '{' || payload[length - 1] != '}')
         {
+            delete[] payloadCopy;
             return;
         }
         DisplayManager.generateNotification(payloadCopy);
+        delete[] payloadCopy;
         return;
     }
 
-    if (strTopic == MQTT_PREFIX + "/timer")
+    if (strTopic.equals(MQTT_PREFIX + "/timer"))
     {
         DisplayManager.gererateTimer(payloadCopy);
+        delete[] payloadCopy;
         return;
     }
 
-    if (strTopic == MQTT_PREFIX + "/notify/dismiss")
+    if (strTopic.equals(MQTT_PREFIX + "/notify/dismiss"))
     {
         DisplayManager.dismissNotify();
+        delete[] payloadCopy;
         return;
     }
 
-    if (strTopic == MQTT_PREFIX + "/apps")
+    if (strTopic.equals(MQTT_PREFIX + "/apps"))
     {
         DisplayManager.updateAppVector(payloadCopy);
+        delete[] payloadCopy;
         return;
     }
 
-    if (strTopic == MQTT_PREFIX + "/switch")
+    if (strTopic.equals(MQTT_PREFIX + "/switch"))
     {
         DisplayManager.switchToApp(payloadCopy);
+        delete[] payloadCopy;
         return;
     }
 
-    if (strTopic == MQTT_PREFIX + "/settings")
+    if (strTopic.equals(MQTT_PREFIX + "/settings"))
     {
         DisplayManager.setNewSettings(payloadCopy);
+        delete[] payloadCopy;
         return;
     }
 
-    if (strTopic == MQTT_PREFIX + "/nextapp")
+    if (strTopic.equals(MQTT_PREFIX + "/nextapp"))
     {
         DisplayManager.nextApp();
+        delete[] payloadCopy;
         return;
     }
 
-    if (strTopic == MQTT_PREFIX + "/previousapp")
+    if (strTopic.equals(MQTT_PREFIX + "/previousapp"))
     {
         DisplayManager.previousApp();
+        delete[] payloadCopy;
         return;
     }
-    if (strTopic == MQTT_PREFIX + "/doupdate")
+    if (strTopic.equals(MQTT_PREFIX + "/doupdate"))
     {
         if (UPDATE_AVAILABLE)
             UpdateManager.updateFirmware();
+        delete[] payloadCopy;
         return;
     }
 
@@ -208,9 +219,9 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         }
 
         DisplayManager.generateCustomPage(topic_str, payloadCopy);
+        delete[] payloadCopy;
         return;
     }
-    delete[] payloadCopy;
 }
 
 void onMqttConnected()
@@ -357,16 +368,16 @@ void MQTTManager_::setup()
         humidity->setName(HAhumName);
         humidity->setDeviceClass(HAhumClass);
         humidity->setUnitOfMeasurement(HAhumUnit);
-
 #ifdef ULANZI
+
         sprintf(batID, HAbatID, macStr);
         battery = new HASensor(batID);
         battery->setIcon(HAbatIcon);
         battery->setName(HAbatName);
         battery->setDeviceClass(HAbatClass);
         battery->setUnitOfMeasurement(HAbatUnit);
-#endif
 
+#endif
         sprintf(luxID, HAluxID, macStr);
         illuminance = new HASensor(luxID);
         illuminance->setIcon(HAluxIcon);
@@ -388,6 +399,7 @@ void MQTTManager_::setup()
         uptime = new HASensor(upID);
         uptime->setName(HAupName);
         uptime->setDeviceClass(HAupClass);
+        uptime->setUnitOfMeasurement("s");
 
         sprintf(btnLID, HAbtnLID, macStr);
         btnleft = new HABinarySensor(btnLID);
@@ -455,8 +467,8 @@ void MQTTManager_::sendStats()
 #ifdef ULANZI
         snprintf(buffer, 5, "%d", BATTERY_PERCENT);
         battery->setValue(buffer);
-#endif
 
+#endif
         snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
         temperature->setValue(buffer);
 

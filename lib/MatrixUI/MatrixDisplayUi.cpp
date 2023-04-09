@@ -30,6 +30,9 @@
 #include "MatrixDisplayUi.h"
 #include "Fonts/AwtrixFont.h"
 
+  GifPlayer gif1;
+  GifPlayer gif2;
+
 MatrixDisplayUi::MatrixDisplayUi(FastLED_NeoMatrix *matrix)
 {
   this->matrix = matrix;
@@ -41,6 +44,8 @@ void MatrixDisplayUi::init()
   this->matrix->setTextWrap(false);
   this->matrix->setBrightness(70);
   this->matrix->setFont(&AwtrixFont);
+  gif1.setMatrix(this->matrix);
+  gif2.setMatrix(this->matrix);
 }
 
 void MatrixDisplayUi::setTargetFPS(uint8_t fps)
@@ -170,13 +175,14 @@ int8_t MatrixDisplayUi::update()
   int8_t timeBudget = this->updateInterval - (appStart - this->state.lastUpdate);
   if (timeBudget <= 0)
   {
-    // Implement app skipping to ensure time budget is keept
+    // Implement frame skipping to ensure time budget is keept
     if (this->setAutoTransition && this->state.lastUpdate != 0)
       this->state.ticksSinceLastStateSwitch += ceil(-timeBudget / this->updateInterval);
 
     this->state.lastUpdate = appStart;
     this->tick();
   }
+
   return this->updateInterval - (millis() - appStart);
 }
 
@@ -255,12 +261,12 @@ void MatrixDisplayUi::drawApp()
     bool FirstApp = progress < 0.2;
     bool LastApp = progress > 0.8;
     this->matrix->drawRect(x, y, x1, y1, matrix->Color(0, 0, 0));
-    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, x, y, FirstApp, LastApp);
-    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, x1, y1, FirstApp, LastApp);
+    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, x, y, FirstApp, LastApp, &gif1);
+    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, x1, y1, FirstApp, LastApp, &gif2);
     break;
   }
   case FIXED:
-    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, false, false);
+    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, false, false, &gif2);
     break;
   }
 }
@@ -277,7 +283,7 @@ void MatrixDisplayUi::drawOverlays()
 {
   for (uint8_t i = 0; i < this->overlayCount; i++)
   {
-    (this->overlayFunctions[i])(this->matrix, &this->state);
+    (this->overlayFunctions[i])(this->matrix, &this->state, &gif2);
   }
 }
 

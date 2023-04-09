@@ -27,6 +27,7 @@ private:
 public:
     static DisplayManager_ &getInstance();
     bool appIsSwitching;
+    bool showGif;
     void setup();
     void tick();
     void clear();
@@ -34,7 +35,7 @@ public:
     void applyAllSettings();
     void rightButton();
     void dismissNotify();
-    void HSVtext(int16_t, int16_t, const char *, bool);
+    void HSVtext(int16_t, int16_t, const char *, bool, byte textCase);
     void loadNativeApps();
     void nextApp();
     void previousApp();
@@ -49,8 +50,8 @@ public:
     void setFPS(uint8_t);
     void MatrixState(bool);
     void generateNotification(const char *json);
-    void generateCustomPage(String name, const char *json);
-    void printText(int16_t x, int16_t y, const char *text, bool centered, bool ignoreUppercase);
+    void generateCustomPage(const String &name, const char *json);
+    void printText(int16_t x, int16_t y, const char *text, bool centered,  byte textCase);
     bool setAutoTransition(bool active);
     void switchToApp(const char *json);
     void setNewSettings(const char *json);
@@ -63,6 +64,7 @@ public:
     void updateAppVector(const char *json);
     void setMatrixLayout(int layout);
     void setAppTime(uint16_t duration);
+    String getAppsAsJson();
     String getStat();
 };
 

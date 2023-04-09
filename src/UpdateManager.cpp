@@ -8,8 +8,13 @@
 #include <Ticker.h>
 #include "Globals.h"
 
+#ifdef ULANZI
 #define URL_fw_Version "https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/version"
 #define URL_fw_Bin "https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/flasher/firmware/firmware.bin"
+#else
+#define URL_fw_Version "todo"
+#define URL_fw_Bin "todo"
+#endif
 
 Ticker UpdateTicker;
 

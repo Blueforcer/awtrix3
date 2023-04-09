@@ -32,13 +32,13 @@ uint16_t hexToRgb565(String hexValue)
     return color;
 }
 
-uint16_t getTextWidth(const char *text, bool ignoreUpperCase)
+uint16_t getTextWidth(const char *text, byte textCase)
 {
     uint16_t width = 0;
     for (const char *c = text; *c != '\0'; ++c)
     {
         char current_char = *c;
-        if (UPPERCASE_LETTERS && !ignoreUpperCase)
+        if ((UPPERCASE_LETTERS && textCase == 0) || textCase == 1)
         {
             current_char = toupper(current_char);
         }

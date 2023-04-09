@@ -14,6 +14,8 @@
 #include "MenuManager.h"
 #include "Apps.h"
 #include "Dictionary.h"
+#include <set>
+#include "GifPlayer.h"
 
 Ticker AlarmTicker;
 Ticker TimerTicker;
@@ -26,13 +28,14 @@ Ticker TimerTicker;
 
 #define MATRIX_WIDTH 32
 #define MATRIX_HEIGHT 8
-
+fs::File gifFile;
 GifPlayer gif;
 
+uint16_t gifX, gifY;
 CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
-FastLED_NeoMatrix matrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
 
-MatrixDisplayUi ui(&matrix);
+FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+MatrixDisplayUi *ui = new MatrixDisplayUi(matrix);
 
 DisplayManager_ &DisplayManager_::getInstance()
 {
@@ -46,22 +49,22 @@ void DisplayManager_::setBrightness(uint8_t bri)
 {
     if (MATRIX_OFF && !ALARM_ACTIVE)
     {
-        matrix.setBrightness(0);
+        matrix->setBrightness(0);
     }
     else
     {
-        matrix.setBrightness(bri);
+        matrix->setBrightness(bri);
     }
 }
 
 void DisplayManager_::setFPS(uint8_t fps)
 {
-    ui.setTargetFPS(fps);
+    ui->setTargetFPS(fps);
 }
 
 void DisplayManager_::setTextColor(uint16_t color)
 {
-    matrix.setTextColor(color);
+    matrix->setTextColor(color);
 }
 
 void DisplayManager_::MatrixState(bool on)
@@ -73,27 +76,22 @@ void DisplayManager_::MatrixState(bool on)
 bool DisplayManager_::setAutoTransition(bool active)
 {
 
-    if (ui.AppCount < 2)
+    if (ui->AppCount < 2)
     {
-        ui.disablesetAutoTransition();
+        ui->disablesetAutoTransition();
         return false;
     }
     if (active && AUTO_TRANSITION)
     {
-        ui.enablesetAutoTransition();
+        ui->enablesetAutoTransition();
         return true;
     }
     else
     {
-        ui.disablesetAutoTransition();
+        ui->disablesetAutoTransition();
         return false;
     }
-}
-
-void DisplayManager_::drawGIF(uint16_t x, uint16_t y, fs::File gifFile)
-{
-    gif.setFile(gifFile);
-    gif.drawFrame(x, y);
+    showGif = false;
 }
 
 void DisplayManager_::drawJPG(uint16_t x, uint16_t y, fs::File jpgFile)
@@ -103,14 +101,14 @@ void DisplayManager_::drawJPG(uint16_t x, uint16_t y, fs::File jpgFile)
 
 void DisplayManager_::drawBMP(int16_t x, int16_t y, const uint16_t bitmap[], int16_t w, int16_t h)
 {
-    matrix.drawRGBBitmap(y, x, bitmap, w, h);
+    matrix->drawRGBBitmap(y, x, bitmap, w, h);
 }
 
 void DisplayManager_::applyAllSettings()
 {
-    ui.setTargetFPS(MATRIX_FPS);
-    ui.setTimePerApp(TIME_PER_APP);
-    ui.setTimePerTransition(TIME_PER_TRANSITION);
+    ui->setTargetFPS(MATRIX_FPS);
+    ui->setTimePerApp(TIME_PER_APP);
+    ui->setTimePerTransition(TIME_PER_TRANSITION);
     setBrightness(BRIGHTNESS);
     setTextColor(TEXTCOLOR_565);
     setAutoTransition(AUTO_TRANSITION);
@@ -118,47 +116,42 @@ void DisplayManager_::applyAllSettings()
 
 void DisplayManager_::resetTextColor()
 {
-    matrix.setTextColor(TEXTCOLOR_565);
+    matrix->setTextColor(TEXTCOLOR_565);
 }
 
 void DisplayManager_::clearMatrix()
 {
-    matrix.clear();
-    matrix.show();
+    matrix->clear();
+    matrix->show();
 }
 
 bool jpg_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t *bitmap)
 {
     uint16_t bitmapIndex = 0;
-
     for (uint16_t row = 0; row < h; row++)
     {
         for (uint16_t col = 0; col < w; col++)
         {
-            uint16_t color = bitmap[bitmapIndex++];
-            uint8_t r = ((color & 0xF800) >> 11) << 3;
-            uint8_t g = ((color & 0x07E0) >> 5) << 2;
-            uint8_t b = (color & 0x001F) << 3;
-            matrix.drawPixel(x + col, y + row, matrix.Color(r, g, b));
+            matrix->drawPixel(x + col, y + row, bitmap[bitmapIndex++]);
         }
     }
     return 0;
 }
 
-void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool centered, bool ignoreUppercase)
+void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase)
 {
     if (centered)
     {
-        uint16_t textWidth = getTextWidth(text, ignoreUppercase);
+        uint16_t textWidth = getTextWidth(text, textCase);
         int16_t textX = ((32 - textWidth) / 2);
-        matrix.setCursor(textX, y);
+        matrix->setCursor(textX, y);
     }
     else
     {
-        matrix.setCursor(x, y);
+        matrix->setCursor(x, y);
     }
 
-    if (UPPERCASE_LETTERS && !ignoreUppercase)
+    if ((UPPERCASE_LETTERS && textCase == 0) || textCase == 1)
     {
         size_t length = strlen(text);
         char upperText[length + 1]; // +1 for the null terminator
@@ -169,43 +162,43 @@ void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool cen
         }
 
         upperText[length] = '\0'; // Null terminator
-        matrix.print(upperText);
+        matrix->print(upperText);
     }
     else
     {
-        matrix.print(text);
+        matrix->print(text);
     }
 }
 
-void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear)
+void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear, byte textCase)
 {
     if (clear)
-        matrix.clear();
+        matrix->clear();
     static uint8_t hueOffset = 0;
     uint16_t xpos = 0;
     for (uint16_t i = 0; i < strlen(text); i++)
     {
         uint8_t hue = map(i, 0, strlen(text), 0, 255) + hueOffset;
         uint32_t textColor = hsvToRgb(hue, 255, 255);
-        matrix.setTextColor(textColor);
+        matrix->setTextColor(textColor);
         const char *myChar = &text[i];
 
-        matrix.setCursor(xpos + x, y);
-        if (UPPERCASE_LETTERS)
+        matrix->setCursor(xpos + x, y);
+        if ((UPPERCASE_LETTERS && textCase == 0) || textCase == 1)
         {
-            matrix.print((char)toupper(text[i]));
+            matrix->print((char)toupper(text[i]));
         }
         else
         {
-            matrix.print(&text[i]);
+            matrix->print(&text[i]);
         }
         char temp_str[2] = {'\0', '\0'};
         temp_str[0] = text[i];
-        xpos += getTextWidth(temp_str, false);
+        xpos += getTextWidth(temp_str, textCase);
     }
     hueOffset++;
     if (clear)
-        matrix.show();
+        matrix->show();
 }
 
 void pushCustomApp(String name, int position)
@@ -213,7 +206,7 @@ void pushCustomApp(String name, int position)
     if (customApps.count(name) == 0)
     {
         ++customPagesCount;
-        void (*customApps[20])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};
+        void (*customApps[20])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool, GifPlayer *) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};
 
         if (position < 0) // Insert at the end of the vector
         {
@@ -228,34 +221,40 @@ void pushCustomApp(String name, int position)
             Apps.push_back(std::make_pair(name, customApps[customPagesCount]));
         }
 
-        ui.setApps(Apps); // Add Apps
+        ui->setApps(Apps); // Add Apps
         DisplayManager.getInstance().setAutoTransition(true);
     }
 }
 
-void removeCustomApp(const String &name)
+void removeCustomAppFromApps(const String &name)
 {
     auto it = std::find_if(Apps.begin(), Apps.end(), [&name](const std::pair<String, AppCallback> &appPair)
                            { return appPair.first == name; });
 
     Apps.erase(it);
-    ui.setApps(Apps);
+    ui->setApps(Apps);
 }
 
-void DisplayManager_::generateCustomPage(String name, const char *json)
+void DisplayManager_::generateCustomPage(const String &name, const char *json)
 {
+
     if (strcmp(json, "") == 0 && customApps.count(name))
     {
         Serial.println("delete");
         customApps.erase(customApps.find(name));
-        removeCustomApp(name);
+        removeCustomAppFromApps(name);
+        showGif = false;
         return;
     }
 
     DynamicJsonDocument doc(1024);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
+    {
+        showGif = false;
+        doc.clear();
         return;
+    }
 
     CustomApp customApp;
 
@@ -266,7 +265,11 @@ void DisplayManager_::generateCustomPage(String name, const char *json)
 
     if (doc.containsKey("sound"))
     {
+#ifdef ULANZI
         customApp.sound = ("/" + doc["sound"].as<String>() + ".txt");
+#else
+        customApp.sound = doc["sound"].as<String>();
+#endif
     }
     else
     {
@@ -297,8 +300,9 @@ void DisplayManager_::generateCustomPage(String name, const char *json)
     int pos = doc.containsKey("pos") ? doc["pos"].as<uint8_t>() : -1;
     customApp.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
     customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
+    customApp.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
     customApp.name = name;
-    customApp.text = utf8ascii(doc["text"].as<String>());
+    customApp.text = doc.containsKey("text") ? utf8ascii(doc["text"].as<String>()) : "";
 
     if (doc.containsKey("color"))
     {
@@ -339,6 +343,10 @@ void DisplayManager_::generateCustomPage(String name, const char *json)
         }
         else
         {
+            if (customApp.icon)
+            {
+                customApp.icon.close();
+            }
             if (LittleFS.exists("/ICONS/" + iconFileName + ".jpg"))
             {
                 customApp.isGif = false;
@@ -364,6 +372,7 @@ void DisplayManager_::generateCustomPage(String name, const char *json)
 
     pushCustomApp(name, pos - 1);
     customApps[name] = customApp;
+    doc.clear();
 }
 
 void DisplayManager_::generateNotification(const char *json)
@@ -372,12 +381,12 @@ void DisplayManager_::generateNotification(const char *json)
     deserializeJson(doc, json);
 
     notify.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
-    notify.text = utf8ascii(doc["text"].as<String>());
+    notify.text = doc.containsKey("text") ? utf8ascii(doc["text"].as<String>()) : "";
     notify.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint16_t>() : -1;
     notify.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
     notify.hold = doc.containsKey("hold") ? doc["hold"].as<bool>() : false;
     notify.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
-    notify.flag = true;
+    notify.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
     notify.startime = millis();
     notify.scrollposition = 9;
     notify.iconWasPushed = false;
@@ -385,7 +394,11 @@ void DisplayManager_::generateNotification(const char *json)
 
     if (doc.containsKey("sound"))
     {
+#ifdef ULANZI
         PeripheryManager.playFromFile("/MELODIES/" + doc["sound"].as<String>() + ".txt");
+#else
+        PeripheryManager.playFromFile(doc["sound"].as<String>());
+#endif
     }
 
     if (doc.containsKey("bar"))
@@ -431,6 +444,9 @@ void DisplayManager_::generateNotification(const char *json)
     {
         notify.color = TEXTCOLOR_565;
     }
+
+    notify.flag = true;
+    showGif = false;
 
     if (doc.containsKey("icon"))
     {
@@ -507,77 +523,86 @@ void DisplayManager_::loadNativeApps()
     updateApp("bat", BatApp, SHOW_BAT, 4);
 #endif
 
-    ui.setApps(Apps);
+    ui->setApps(Apps);
 
     setAutoTransition(true);
 }
 
 void DisplayManager_::setup()
 {
-
     TJpgDec.setCallback(jpg_output);
-    FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
-    gif.setMatrix(&matrix);
-    ui.setAppAnimation(SLIDE_DOWN);
-    ui.setOverlays(overlays, 4);
+    TJpgDec.setJpgScale(1);
+
+    FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT).setTemperature(OvercastSky);
+    setMatrixLayout(MATRIX_LAYOUT);
+
+    gif.setMatrix(matrix);
+    ui->setAppAnimation(SLIDE_DOWN);
+    ui->setTimePerApp(TIME_PER_APP);
+    ui->setTimePerTransition(TIME_PER_TRANSITION);
+    ui->setTargetFPS(MATRIX_FPS);
+    ui->setOverlays(overlays, 4);
     setAutoTransition(AUTO_TRANSITION);
-    ui.init();
+    ui->init();
 }
 
 void DisplayManager_::tick()
 {
     if (AP_MODE)
     {
-        HSVtext(2, 6, "AP MODE", true);
+        HSVtext(2, 6, "AP MODE", true, 1);
     }
     else
+
     {
-        if (ui.getUiState()->appState == IN_TRANSITION && !appIsSwitching)
+        ui->update();
+
+        if (ui->getUiState()->appState == IN_TRANSITION && !appIsSwitching)
         {
             appIsSwitching = true;
+            showGif = false;
         }
-        else if (ui.getUiState()->appState == FIXED && appIsSwitching)
+        else if (ui->getUiState()->appState == FIXED && appIsSwitching)
         {
             appIsSwitching = false;
             MQTTManager.setCurrentApp(CURRENT_APP);
             setAppTime(TIME_PER_APP);
         }
-        ui.update();
     }
 }
 
 void DisplayManager_::clear()
 {
-    matrix.clear();
+    matrix->clear();
 }
 
 void DisplayManager_::show()
 {
-    matrix.show();
+    matrix->show();
 }
 
 void DisplayManager_::leftButton()
 {
     if (!MenuManager.inMenu)
-        ui.previousApp();
+        ui->previousApp();
 }
 
 void DisplayManager_::rightButton()
 {
     if (!MenuManager.inMenu)
-        ui.nextApp();
+        ui->nextApp();
 }
 
 void DisplayManager_::nextApp()
 {
     if (!MenuManager.inMenu)
-        ui.nextApp();
+        ui->nextApp();
 }
 
 void DisplayManager_::previousApp()
 {
     if (!MenuManager.inMenu)
-        ui.previousApp();
+        ui->previousApp();
 }
 
 void snozzeTimerCallback()
@@ -620,8 +645,10 @@ void DisplayManager_::selectButtonLong()
 
 void DisplayManager_::dismissNotify()
 {
+
     notify.hold = false;
     notify.flag = false;
+    showGif = false;
 }
 
 void timerCallback()
@@ -647,7 +674,7 @@ void DisplayManager_::gererateTimer(String Payload)
     futureTimeinfo.tm_sec += seconds;
     time_t futureTime = mktime(&futureTimeinfo);
     int interval = difftime(futureTime, now) * 1000;
-    TimerTicker.attach_ms(interval, timerCallback);
+    TimerTicker.once_ms(interval, timerCallback);
 }
 
 void DisplayManager_::switchToApp(const char *json)
@@ -660,7 +687,7 @@ void DisplayManager_::switchToApp(const char *json)
     bool fast = doc["fast"] | false;
     int index = findAppIndexByName(name);
     if (index > -1)
-        ui.transitionToApp(index);
+        ui->transitionToApp(index);
 }
 
 void DisplayManager_::setNewSettings(const char *json)
@@ -676,21 +703,22 @@ void DisplayManager_::setNewSettings(const char *json)
     BRIGHTNESS = doc.containsKey("brightness") ? doc["brightness"] : BRIGHTNESS;
     AUTO_BRIGHTNESS = doc.containsKey("autobrightness") ? doc["autobrightness"] : AUTO_BRIGHTNESS;
     AUTO_TRANSITION = doc.containsKey("autotransition") ? doc["autotransition"] : AUTO_TRANSITION;
+    UPPERCASE_LETTERS = doc.containsKey("uppercase") ? doc["uppercase"] : UPPERCASE_LETTERS;
     applyAllSettings();
     saveSettings();
 }
 
 void DisplayManager_::drawProgressBar(int cur, int total)
 {
-    matrix.clear();
+    matrix->clear();
     int progress = (cur * 100) / total;
     char progressStr[5];
-    snprintf(progressStr, 5, "%d%%", progress); // Formatieren des Prozentzeichens
+    snprintf(progressStr, 5, "%d%%", progress);
     printText(0, 6, progressStr, true, false);
     int leds_for_progress = (progress * MATRIX_WIDTH * MATRIX_HEIGHT) / 100;
-    matrix.drawFastHLine(0, 7, MATRIX_WIDTH, matrix.Color(100, 100, 100));
-    matrix.drawFastHLine(0, 7, leds_for_progress / MATRIX_HEIGHT, matrix.Color(0, 255, 0));
-    matrix.show();
+    matrix->drawFastHLine(0, 7, MATRIX_WIDTH, matrix->Color(100, 100, 100));
+    matrix->drawFastHLine(0, 7, leds_for_progress / MATRIX_HEIGHT, matrix->Color(0, 255, 0));
+    matrix->show();
 }
 
 void DisplayManager_::drawMenuIndicator(int cur, int total, uint16_t color)
@@ -704,11 +732,11 @@ void DisplayManager_::drawMenuIndicator(int cur, int total, uint16_t color)
         int x = leftMargin + i * (menuItemWidth + pixelSpacing);
         if (i == cur)
         {
-            matrix.drawLine(x, 7, x + menuItemWidth - 1, 7, color);
+            matrix->drawLine(x, 7, x + menuItemWidth - 1, 7, color);
         }
         else
         {
-            matrix.drawLine(x, 7, x + menuItemWidth - 1, 7, matrix.Color(100, 100, 100));
+            matrix->drawLine(x, 7, x + menuItemWidth - 1, 7, matrix->Color(100, 100, 100));
         }
     }
 }
@@ -718,7 +746,6 @@ void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte 
     int maximum = 0;
     int newData[dataSize];
 
-    // Finde das Maximum in der Datenliste
     for (int i = 0; i < dataSize; i++)
     {
         int d = data[i];
@@ -728,14 +755,12 @@ void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte 
         }
     }
 
-    // Berechne neue Datenwerte zwischen 0 und 8 basierend auf dem Maximum
     for (int i = 0; i < dataSize; i++)
     {
         int d = data[i];
         newData[i] = map(d, 0, maximum, 0, 8);
     }
 
-    // Berechne die Breite der Balken basierend auf der Anzahl der Daten und der Breite der Matrix
     int barWidth;
     if (withIcon)
     {
@@ -746,150 +771,110 @@ void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte 
         barWidth = (32 / (dataSize)-1);
     }
 
-    // Berechne die Startposition des Graphen basierend auf dem Icon-Parameter
     int startX = withIcon ? 9 : 0;
 
-    // Zeichne die Balken auf die Matrix
     for (int i = 0; i < dataSize; i++)
     {
         int x1 = x + startX + (barWidth + 1) * i;
         int barHeight = newData[i];
         int y1 = min(8 - barHeight, 7);
-        matrix.fillRect(x1, y1 + y, barWidth, barHeight, color);
+        matrix->fillRect(x1, y1 + y, barWidth, barHeight, color);
     }
+}
+
+std::pair<String, AppCallback> getNativeAppByName(const String &appName)
+{
+    if (appName == "time")
+    {
+        return std::make_pair("time", TimeApp);
+    }
+    else if (appName == "date")
+    {
+        return std::make_pair("date", DateApp);
+    }
+    else if (appName == "temp")
+    {
+        return std::make_pair("temp", TempApp);
+    }
+    else if (appName == "hum")
+    {
+        return std::make_pair("hum", HumApp);
+    }
+    else if (appName == "bat")
+    {
+        return std::make_pair("bat", BatApp);
+    }
+    return std::make_pair("", nullptr);
 }
 
 void DisplayManager_::updateAppVector(const char *json)
 {
-    // Parse the JSON input
-    DynamicJsonDocument doc(1024);
-    auto error = deserializeJson(doc, json);
-    if (error)
+    StaticJsonDocument<512> doc; // Erhöhen Sie die Größe des Dokuments bei Bedarf
+    deserializeJson(doc, json);
+
+    JsonArray appArray;
+    if (doc.is<JsonObject>())
     {
-        // If parsing fails, print an error message and return
-        Serial.print("Failed to parse JSON: ");
-        Serial.println(error.c_str());
-        return;
+        JsonArray tempArray = doc.to<JsonArray>();
+        tempArray.add(doc.as<JsonObject>());
+        appArray = tempArray;
+    }
+    else if (doc.is<JsonArray>())
+    {
+        appArray = doc.as<JsonArray>();
     }
 
-    // Create new vectors to store updated apps
-    std::vector<std::pair<String, AppCallback>> newApps;
-    std::vector<String> activeApps;
-
-    // Loop through all apps in the JSON input
-    for (const auto &app : doc.as<JsonArray>())
+    for (JsonObject appObj : appArray)
     {
-        // Get the app name, active status, and position (if specified)
-        String name = app["name"].as<String>();
-        bool show = true;
-        int position = -1;
+        String appName = appObj["name"].as<String>();
+        bool show = appObj["show"].as<bool>();
+        int position = appObj.containsKey("pos") ? appObj["pos"].as<int>() : Apps.size();
 
-        if (app.containsKey("show"))
+        auto appIt = std::find_if(Apps.begin(), Apps.end(), [&appName](const std::pair<String, AppCallback> &app)
+                                  { return app.first == appName; });
 
+        std::pair<String, AppCallback> nativeApp = getNativeAppByName(appName);
+        if (!show)
         {
-            show = app["show"].as<bool>();
+            if (appIt != Apps.end())
+            {
+                Apps.erase(appIt);
+            }
         }
-        if (app.containsKey("pos"))
-        {
-            position = app["pos"].as<int>();
-        }
-
-        // Find the corresponding AppCallback function based on the app name
-        AppCallback callback;
-        if (name == "time")
-        {
-            callback = TimeApp;
-            SHOW_TIME = show;
-        }
-        else if (name == "date")
-        {
-            callback = DateApp;
-            SHOW_DATE = show;
-        }
-        else if (name == "temp")
-        {
-            callback = TempApp;
-            SHOW_TEMP = show;
-        }
-        else if (name == "hum")
-        {
-            callback = HumApp;
-            SHOW_HUM = show;
-        }
-
-#ifdef ULANZI
-
-        else if (name == "bat")
-        {
-            callback = BatApp;
-            SHOW_BAT = show;
-        }
-
-#endif
-
         else
         {
-            // If the app is not one of the built-in apps, check if it's already in the vector
-            int appIndex = findAppIndexByName(name);
-            if (appIndex >= 0)
+            if (nativeApp.second != nullptr)
             {
-                // The app is in the vector, so we can move it to a new position or remove it
-                auto it = Apps.begin() + appIndex;
-                if (show)
+                if (appIt != Apps.end())
                 {
-                    if (position >= 0 && static_cast<size_t>(position) < newApps.size())
-                    {
-                        Apps.erase(it);
-                        newApps.insert(newApps.begin() + position, std::make_pair(name, it->second));
-                    }
+                    Apps.erase(appIt);
                 }
-                else
-                {
-                    // If the app is being removed, also remove it from the customApps map
-                    if (customApps.count(name))
-                    {
-                        customApps.erase(customApps.find(name));
-                        removeCustomApp(name);
-                    }
-                }
-            }
-            continue;
-        }
-        if (show)
-        {
-            // Add the app to the new vector
-            if (position >= 0 && static_cast<size_t>(position) < newApps.size())
-            {
-                newApps.insert(newApps.begin() + position, std::make_pair(name, callback));
+                position = position < 0 ? 0 : position >= Apps.size() ? Apps.size()
+                                                                      : position;
+                Apps.insert(Apps.begin() + position, nativeApp);
             }
             else
             {
-                newApps.emplace_back(name, callback);
+                if (appIt != Apps.end() && appObj.containsKey("pos"))
+                {
+                    std::pair<String, AppCallback> app = *appIt;
+                    Apps.erase(appIt);
+                    position = position < 0 ? 0 : position >= Apps.size() ? Apps.size()
+                                                                          : position;
+                    Apps.insert(Apps.begin() + position, app);
+                }
             }
         }
-
-        activeApps.push_back(name);
     }
 
-    // Loop through all apps currently in the vector
-    for (const auto &app : Apps)
-    {
-        // If the app is not in the updated activeApps vector, add it to the newApps vector
-        if (std::find(activeApps.begin(), activeApps.end(), app.first) == activeApps.end())
-        {
-            newApps.push_back(app);
-        }
-    }
-
-    // Update the apps vector, set it in the UI, and save settings
-    Apps = std::move(newApps);
-    ui.setApps(Apps);
+    // Set the updated apps vector in the UI and save settings
+    ui->setApps(Apps);
     saveSettings();
 }
 
 String DisplayManager_::getStat()
 {
-    StaticJsonDocument<200> doc;
+    StaticJsonDocument<256> doc;
     char buffer[5];
 #ifdef ULANZI
     doc[BatKey] = BATTERY_PERCENT;
@@ -898,6 +883,7 @@ String DisplayManager_::getStat()
     snprintf(buffer, 5, "%.0f", CURRENT_LUX);
     doc[LuxKey] = buffer;
     doc[LDRRawKey] = LDR_RAW;
+    doc["ram"] = ESP.getFreeHeap();
     doc[BrightnessKey] = BRIGHTNESS;
     snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
     doc[TempKey] = buffer;
@@ -906,12 +892,52 @@ String DisplayManager_::getStat()
     doc[UpTimeKey] = PeripheryManager.readUptime();
     doc[SignalStrengthKey] = WiFi.RSSI();
     doc[UpdateKey] = UPDATE_AVAILABLE;
+    doc["messages"] = RECEIVED_MESSAGES;
     String jsonString;
-    serializeJson(doc, jsonString);
-    return jsonString;
+    return serializeJson(doc, jsonString), jsonString;
 }
 
 void DisplayManager_::setAppTime(uint16_t duration)
 {
-    ui.setTimePerApp(duration);
+    ui->setTimePerApp(duration);
+}
+
+void DisplayManager_::setMatrixLayout(int layout)
+{
+    delete matrix; // Free memory from the current matrix object
+    switch (layout)
+    {
+    case 0:
+        matrix = new FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
+        break;
+    case 1:
+        matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+        break;
+    case 2:
+        matrix = new FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
+        break;
+    default:
+        break;
+    }
+
+    delete ui;                        // Free memory from the current ui object
+    ui = new MatrixDisplayUi(matrix); // Create a new ui object with the new matrix
+}
+
+String DisplayManager_::getAppsAsJson()
+{
+    // Create a JSON object to hold the app positions and names
+    DynamicJsonDocument doc(1024);
+    JsonObject appsObject = doc.to<JsonObject>();
+
+    // Add each app position and name to the object
+    for (size_t i = 0; i < Apps.size(); i++)
+    {
+        appsObject[String(i)] = Apps[i].first;
+    }
+
+    // Serialize the JSON object to a string and return it
+    String json;
+    serializeJson(appsObject, json);
+    return json;
 }

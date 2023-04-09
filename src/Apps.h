@@ -38,6 +38,7 @@ struct CustomApp
     bool soundPlayed;
     uint16_t duration = 0;
     String sound;
+    byte textCase = 0;
     int16_t repeat = 0;
     int16_t currentRepeat = 0;
     String name;
@@ -65,6 +66,7 @@ struct Notification
     uint16_t duration = 0;
     int16_t repeat = -1;
     bool hold = false;
+    byte textCase = 0;
     byte pushIcon = 0;
     int16_t iconPosition = 0;
     bool iconWasPushed = false;
@@ -91,7 +93,7 @@ String getAppNameByFunction(AppCallback AppFunction)
         }
     }
 
-    return ""; // Gibt einen leeren String zurück, wenn die App-Funktion nicht gefunden wurde
+    return "";
 }
 
 int findAppIndexByName(const String &name)
@@ -105,7 +107,7 @@ int findAppIndexByName(const String &name)
     return -1;
 }
 
-void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     if (notify.flag)
         return;
@@ -153,7 +155,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     }
 }
 
-void DateApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void DateApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     if (notify.flag)
         return;
@@ -181,55 +183,60 @@ void DateApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     }
 }
 
-void TempApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void TempApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     if (notify.flag)
         return;
     CURRENT_APP = "Temperature";
     DisplayManager.getInstance().resetTextColor();
-    matrix->drawRGBBitmap(x, y, get_icon(234), 8, 8);
-    matrix->setCursor(12 + x, 6 + y);
+    matrix->drawRGBBitmap(x, y, icon_234, 8, 8);
+
+    if (TEMP_DECIMAL_PLACES > 0)
+        matrix->setCursor(8 + x, 6 + y);
+    else
+        matrix->setCursor(12 + x, 6 + y);
+
     if (IS_CELSIUS)
     {
-        matrix->print((int)CURRENT_TEMP);
+        matrix->print(CURRENT_TEMP, TEMP_DECIMAL_PLACES);
         matrix->print(utf8ascii("°C"));
     }
     else
     {
-        int tempF = (CURRENT_TEMP * 9 / 5) + 32;
-        matrix->print(tempF);
+        double tempF = (CURRENT_TEMP * 9 / 5) + 32;
+        matrix->print(tempF, TEMP_DECIMAL_PLACES);
         matrix->print(utf8ascii("°F"));
     }
 }
 
-void HumApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void HumApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     if (notify.flag)
         return;
     CURRENT_APP = "Humidity";
     DisplayManager.getInstance().resetTextColor();
-    matrix->drawRGBBitmap(x, y + 1, get_icon(2075), 8, 8);
+    matrix->drawRGBBitmap(x, y + 1, icon_2075, 8, 8);
     matrix->setCursor(14 + x, 6 + y);
-    int humidity = CURRENT_HUM; // Temperatur ohne Nachkommastellen
-    matrix->print(humidity);    // Ausgabe der Temperatur
+    int humidity = CURRENT_HUM; // Humidity without decimal places
+    matrix->print(humidity);    // Output humidity
     matrix->print("%");
 }
 
 #ifdef ULANZI
-void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     if (notify.flag)
         return;
     CURRENT_APP = "Battery";
     DisplayManager.getInstance().resetTextColor();
-    matrix->drawRGBBitmap(x, y, get_icon(1486), 8, 8);
+    matrix->drawRGBBitmap(x, y, icon_1486, 8, 8);
     matrix->setCursor(14 + x, 6 + y);
     matrix->print(BATTERY_PERCENT); // Ausgabe des Ladezustands
     matrix->print("%");
 }
 #endif
 
-void MenuApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
+void MenuApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
 {
     if (!MenuManager.inMenu)
         return;
@@ -237,13 +244,13 @@ void MenuApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
     DisplayManager.printText(0, 6, utf8ascii(MenuManager.menutext()).c_str(), true, true);
 }
 
-void AlarmApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
+void AlarmApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
 {
     if (ALARM_ACTIVE)
     {
         matrix->fillScreen(matrix->Color(255, 0, 0));
         CURRENT_APP = "Alarm";
-        uint16_t textWidth = getTextWidth("ALARM", false);
+        uint16_t textWidth = getTextWidth("ALARM", 0);
         int16_t textX = ((32 - textWidth) / 2);
         matrix->setTextColor(0);
         matrix->setCursor(textX, 6);
@@ -251,19 +258,25 @@ void AlarmApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         if (ALARM_SOUND != "")
         {
             if (!PeripheryManager.isPlaying())
+            {
+#ifdef ULANZI
                 PeripheryManager.playFromFile("/MELODIES/" + ALARM_SOUND + ".txt");
+#else
+                PeripheryManager.playFromFile(DFMINI_MP3_ALARM);
+#endif
+            }
         }
     }
 }
 
-void TimerApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
+void TimerApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
 {
     if (TIMER_ACTIVE)
     {
         matrix->fillScreen(matrix->Color(0, 255, 0));
         CURRENT_APP = "Timer";
         String menuText = "TIMER";
-        uint16_t textWidth = getTextWidth(menuText.c_str(), false);
+        uint16_t textWidth = getTextWidth(menuText.c_str(), 0);
         int16_t textX = ((32 - textWidth) / 2);
         matrix->setTextColor(0);
         matrix->setCursor(textX, 6);
@@ -271,12 +284,18 @@ void TimerApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         if (TIMER_SOUND != "")
         {
             if (!PeripheryManager.isPlaying())
+            {
+#ifdef ULANZI
                 PeripheryManager.playFromFile("/MELODIES/" + TIMER_SOUND + ".txt");
+#else
+                PeripheryManager.playFromFile(DFMINI_MP3_TIMER);
+#endif
+            }
         }
     }
 }
 
-void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     // Abort if notify.flag is set
     if (notify.flag)
@@ -316,14 +335,14 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     bool hasIcon = ca->icon;
     uint16_t availableWidth = (hasIcon) ? 24 : 32;
 
-    bool noScrolling = getTextWidth(ca->text.c_str(), false) <= availableWidth;
+    bool noScrolling = getTextWidth(ca->text.c_str(), ca->textCase) <= availableWidth;
     if (ca->barSize > 0)
     {
         DisplayManager.drawBarChart(x, y, ca->barData, ca->barSize, hasIcon, ca->color);
     }
     else
     {
-        if ((ca->repeat > 0) && (getTextWidth(ca->text.c_str(), false) > availableWidth) && (state->appState == FIXED))
+        if ((ca->repeat > 0) && (getTextWidth(ca->text.c_str(), ca->textCase) > availableWidth) && (state->appState == FIXED))
         {
             DisplayManager.setAutoTransition(false);
         }
@@ -332,9 +351,9 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             DisplayManager.setAutoTransition(true);
         }
 
-        if (getTextWidth(ca->text.c_str(), false) > availableWidth && !(state->appState == IN_TRANSITION))
+        if (getTextWidth(ca->text.c_str(), ca->textCase) > availableWidth && !(state->appState == IN_TRANSITION))
         {
-            if (ca->scrollposition <= -getTextWidth(ca->text.c_str(), false))
+            if (ca->scrollposition <= -getTextWidth(ca->text.c_str(), ca->textCase))
             {
                 ca->scrollDelay = 0;
                 ca->scrollposition = 9;
@@ -382,7 +401,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 }
             }
         }
-        int16_t textX = (hasIcon) ? ((24 - getTextWidth(ca->text.c_str(), false)) / 2) + 9 : ((32 - getTextWidth(ca->text.c_str(), false)) / 2);
+        int16_t textX = (hasIcon) ? ((24 - getTextWidth(ca->text.c_str(), ca->textCase)) / 2) + 9 : ((32 - getTextWidth(ca->text.c_str(), ca->textCase)) / 2);
         matrix->setTextColor(ca->color);
         if (noScrolling)
         {
@@ -390,12 +409,12 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             // Display text with rainbow effect if enabled
             if (ca->rainbow)
             {
-                DisplayManager.HSVtext(x + textX, 6 + y, ca->text.c_str(), false);
+                DisplayManager.HSVtext(x + textX, 6 + y, ca->text.c_str(), false, ca->textCase);
             }
             else
             {
                 // Display text
-                DisplayManager.printText(x + textX, y + 6, ca->text.c_str(), false, false);
+                DisplayManager.printText(x + textX, y + 6, ca->text.c_str(), false, ca->textCase);
             }
         }
         else
@@ -403,11 +422,11 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             // Display scrolling text with rainbow effect if enabled
             if (ca->rainbow)
             {
-                DisplayManager.HSVtext(x + ca->scrollposition, 6 + y, ca->text.c_str(), false);
+                DisplayManager.HSVtext(x + ca->scrollposition, 6 + y, ca->text.c_str(), false, ca->textCase);
             }
             else
             {
-                DisplayManager.printText(x + ca->scrollposition, 6 + y, ca->text.c_str(), false, false);
+                DisplayManager.printText(x + ca->scrollposition, 6 + y, ca->text.c_str(), false, ca->textCase);
             }
         }
     }
@@ -436,10 +455,8 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         // Display animated GIF if enabled and App is fixed, since we have only one gifplayer instance, it looks weird when 2 apps want to draw a different gif
         if (ca->isGif)
         {
-            if (state->appState == FIXED)
-            {
-                DisplayManager.drawGIF(x + ca->iconPosition, y, ca->icon);
-            }
+            
+            gifPlayer->playGif(x + ca->iconPosition, y, &ca->icon);
         }
         else
         {
@@ -457,7 +474,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     DisplayManager.getInstance().resetTextColor();
 }
 
-void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
+void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
 {
     // Check if notification flag is set
     if (!notify.flag)
@@ -481,6 +498,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         notify.iconWasPushed = false;
         notify.iconPosition = 0;
         notify.scrollDelay = 0;
+        DisplayManager.showGif = false;
         return;
     }
 
@@ -491,7 +509,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
     matrix->fillRect(0, 0, 32, 8, 0);
 
     // Calculate text and available width
-    uint16_t textWidth = getTextWidth(notify.text.c_str(), false);
+    uint16_t textWidth = getTextWidth(notify.text.c_str(), notify.textCase);
     uint16_t availableWidth = hasIcon ? 24 : 32;
 
     // Check if text is scrolling
@@ -563,12 +581,12 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
             if (notify.rainbow)
             {
                 // Display text in rainbow color if enabled
-                DisplayManager.HSVtext(textX, 6, notify.text.c_str(), false);
+                DisplayManager.HSVtext(textX, 6, notify.text.c_str(), false, notify.textCase);
             }
             else
             {
                 // Display text in solid color
-                DisplayManager.printText(textX, 6, notify.text.c_str(), false, false);
+                DisplayManager.printText(textX, 6, notify.text.c_str(), false, notify.textCase);
             }
         }
         else
@@ -576,12 +594,12 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
             if (notify.rainbow)
             {
                 // Display scrolling text in rainbow color if enabled
-                DisplayManager.HSVtext(notify.scrollposition, 6, notify.text.c_str(), false);
+                DisplayManager.HSVtext(notify.scrollposition, 6, notify.text.c_str(), false, notify.textCase);
             }
             else
             {
                 // Display scrolling text in solid color
-                DisplayManager.printText(notify.scrollposition, 6, notify.text.c_str(), false, false);
+                DisplayManager.printText(notify.scrollposition, 6, notify.text.c_str(), false, notify.textCase);
             }
         }
     }
@@ -612,7 +630,8 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
         if (notify.isGif)
         {
             // Display GIF if present
-            DisplayManager.drawGIF(notify.iconPosition, 0, notify.icon);
+           
+            gifPlayer->playGif(notify.iconPosition, 0, &notify.icon);
         }
         else
         {
@@ -633,124 +652,124 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state)
 
 // Unattractive to have a function for every customapp wich does the same, but currently still no other option found TODO
 
-void CApp1(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp1(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp1);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp2(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp2(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp2);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp3(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp3(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp3);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp4(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp4(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp4);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp5(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp5(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp5);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp6(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp6(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp6);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp7(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp7(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp7);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp8(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp8(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp8);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp9(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp9(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp9);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp10(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp10(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp10);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp11(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp11(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp11);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp12(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp12(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp12);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp13(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp13(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp13);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp14(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp14(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp14);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp15(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp15(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp15);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp16(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp16(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp16);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp17(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp17(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp17);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp18(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp18(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp18);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp19(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp19(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp19);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
-void CApp20(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
+void CApp20(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
     String name = getAppNameByFunction(CApp20);
-    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame);
+    ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
 }
 
 const uint16_t *getWeatherIcon(int code)
@@ -775,7 +794,7 @@ void WeatherApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t 
     DisplayManager.getInstance().resetTextColor();
     matrix->drawRGBBitmap(x, y, getWeatherIcon(WEATHER_CODE), 8, 8);
     String text = WEATHER_TEMP + "°" + WEATHER_HUM + "%";
-    uint16_t textWidth = getTextWidth(text.c_str(), false);
+    uint16_t textWidth = getTextWidth(text.c_str(), 0);
     int16_t textX = ((23 - textWidth) / 2);
     matrix->setCursor(textX + 11, 6 + y);
     matrix->print(utf8ascii(text));
