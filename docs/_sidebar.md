@@ -17,5 +17,4 @@
 
 - API
   - [MQTT/HTTP](api.md)
-  - [Custom Pages & Notifications](custom.md)
 
