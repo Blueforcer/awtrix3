@@ -15,6 +15,7 @@
 #include "Apps.h"
 #include "Dictionary.h"
 #include <set>
+#include "GifPlayer.h"
 
 Ticker AlarmTicker;
 Ticker TimerTicker;
@@ -91,12 +92,6 @@ bool DisplayManager_::setAutoTransition(bool active)
         return false;
     }
     showGif = false;
-}
-
-void DisplayManager_::drawGIF(uint16_t x, uint16_t y, fs::File gFile)
-{
-    gif.setFile(gFile);
-    gif.drawFrame(x, y);
 }
 
 void DisplayManager_::drawJPG(uint16_t x, uint16_t y, fs::File jpgFile)
@@ -211,7 +206,7 @@ void pushCustomApp(String name, int position)
     if (customApps.count(name) == 0)
     {
         ++customPagesCount;
-        void (*customApps[20])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};
+        void (*customApps[20])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool, GifPlayer *) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};
 
         if (position < 0) // Insert at the end of the vector
         {
@@ -307,7 +302,7 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
     customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
     customApp.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
     customApp.name = name;
-    customApp.text = utf8ascii(doc["text"].as<String>());
+    customApp.text = doc.containsKey("text") ? utf8ascii(doc["text"].as<String>()) : "";
 
     if (doc.containsKey("color"))
     {
@@ -386,7 +381,7 @@ void DisplayManager_::generateNotification(const char *json)
     deserializeJson(doc, json);
 
     notify.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
-    notify.text = utf8ascii(doc["text"].as<String>());
+    notify.text = doc.containsKey("text") ? utf8ascii(doc["text"].as<String>()) : "";
     notify.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint16_t>() : -1;
     notify.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
     notify.hold = doc.containsKey("hold") ? doc["hold"].as<bool>() : false;
@@ -551,10 +546,6 @@ void DisplayManager_::setup()
     ui->init();
 }
 
-void ShowGif()
-{
-}
-
 void DisplayManager_::tick()
 {
     if (AP_MODE)
@@ -577,9 +568,6 @@ void DisplayManager_::tick()
             MQTTManager.setCurrentApp(CURRENT_APP);
             setAppTime(TIME_PER_APP);
         }
-        //   if (showGif && !MenuManager.inMenu)
-        //
-        // matrix->show();
     }
 }
 

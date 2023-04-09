@@ -37,7 +37,6 @@
 #include "ServerManager.h"
 #include "Globals.h"
 #include "UpdateManager.h"
-#include "BeaconScanner.h"
 
 TaskHandle_t taskHandle;
 volatile bool StopTask = false;
@@ -85,7 +84,7 @@ void setup()
       DisplayManager.HSVtext(x, 6, ("AWTRIX   " + ServerManager.myIP.toString()).c_str(), true, 0);
       x -= 0.18;
     }
-    BeaconScanner.setup();
+    // BeaconScanner.setup();
   }
   else
   {
@@ -94,6 +93,7 @@ void setup()
   }
 
   delay(200);
+  DisplayManager.setBrightness(BRIGHTNESS);
   DisplayManager.clearMatrix();
 }
 

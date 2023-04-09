@@ -31,7 +31,7 @@
 #include <Arduino.h>
 #include "FastLED_NeoMatrix.h"
 #include <vector>
-
+#include "GifPlayer.h"
 // #define DEBUG_MatrixDisplayUi(...) Serial.printf( __VA_ARGS__ )
 
 #ifndef DEBUG_MatrixDisplayUi
@@ -53,6 +53,7 @@ enum AppState
 // Structure of the UiState
 struct MatrixDisplayUiState
 {
+
   u_int64_t lastUpdate = 0;
   uint16_t ticksSinceLastStateSwitch = 0;
 
@@ -68,17 +69,17 @@ struct MatrixDisplayUiState
   void *userData = NULL;
 };
 
-typedef void (*AppCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstApp, bool lastApp);
-typedef void (*OverlayCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state);
+typedef void (*AppCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer);
+typedef void (*OverlayCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
 
 class MatrixDisplayUi
 {
 private:
   FastLED_NeoMatrix *matrix;
 
+
   // Values for the Apps
   AnimationDirection appAnimationDirection = SLIDE_DOWN;
-
   int8_t lastTransitionDirection = 1;
 
   uint16_t ticksPerApp = 151;       // ~ 5000ms at 30 FPS
@@ -86,7 +87,7 @@ private:
 
   bool setAutoTransition = true;
   bool lastFrameShown;
-  AppCallback *AppFunctions;
+  AppCallback *AppFunctions = nullptr;
 
   // Internally used to transition to a specific app
   int8_t nextAppNumber = -1;
@@ -114,7 +115,6 @@ public:
    * Initialise the display
    */
   void init();
-  void show();
 
   /**
    * Configure the internal used target FPS
