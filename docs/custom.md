@@ -22,6 +22,8 @@ The JSON object has the following properties:
 | `sound` | string | The filename of your RTTTL ringtone file (without extension). | |
 | `pushIcon` | number | 0 = Icon doesn't move. 1 = Icon moves with text and will not appear again. 2 = Icon moves with text but appears again when the text starts to scroll again. | 0 |
 | `bar` | array of integers | draws a bargraph. Without icon maximum 16 values, with icon 11 values |  |
+| `textCase` | integer | Changes teh Uppercase setting. 0=global setting, 1=forces uppercase; 2=shows what is sent. | 0 |
+
 
 
 All keys are optional, so you can send just the properties you want to use.
