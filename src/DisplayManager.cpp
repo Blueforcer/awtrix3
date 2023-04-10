@@ -56,7 +56,11 @@ void DisplayManager_::setBrightness(uint8_t bri)
     else
     {
         matrix->setBrightness(bri);
-        //napplyGamma_video(&leds[256], 256, 2.2);
+        if (GAMMA > 0)
+        {
+            Serial.println(GAMMA);
+            napplyGamma_video(&leds[256], 256, GAMMA);
+        }
     }
 }
 
@@ -423,7 +427,7 @@ void DisplayManager_::generateNotification(const char *json)
     else
     {
         notify.barSize = 0;
-    } 
+    }
 
     if (doc.containsKey("color"))
     {
@@ -475,7 +479,7 @@ void DisplayManager_::generateNotification(const char *json)
     }
     else
     {
-        fs::File nullPointer; 
+        fs::File nullPointer;
         notify.icon = nullPointer;
     }
 }
@@ -537,8 +541,12 @@ void DisplayManager_::setup()
     TJpgDec.setCallback(jpg_output);
     TJpgDec.setJpgScale(1);
 
-    FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT).setCorrection(OvercastSky);
+    FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
     setMatrixLayout(MATRIX_LAYOUT);
+    if (COLOR_CORRECTION)
+    {
+        FastLED.setCorrection(COLOR_CORRECTION);
+    }
     gif.setMatrix(matrix);
     ui->setAppAnimation(SLIDE_DOWN);
     ui->setTimePerApp(TIME_PER_APP);
@@ -948,18 +956,20 @@ String DisplayManager_::getAppsAsJson()
     return json;
 }
 
-
-void DisplayManager_::onStateParse(const char *json)
+void DisplayManager_::powerStateParse(const char *json)
 {
-    DynamicJsonDocument doc(512);
+    DynamicJsonDocument doc(128);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
         return;
-    bool state = doc["state"].as<bool>();
-    onState(state);
+    if (doc.containsKey("state"))
+    {
+        bool state = doc["state"].as<bool>();
+        setPower(state);
+    }
 }
 
-void DisplayManager_::onState(bool state)
+void DisplayManager_::setPower(bool state)
 {
     if (state)
     {
@@ -974,13 +984,116 @@ void DisplayManager_::onState(bool state)
     }
 }
 
-void DisplayManager_::setIndicator1(bool state, uint16_t color)
+void DisplayManager_::setIndicator1Color(uint16_t color)
 {
-    ui->setIndicator1(state, color);
+    ui->setIndicator1Color(color);
 }
 
-void DisplayManager_::setIndicator2(bool state, uint16_t color)
+void DisplayManager_::setIndicator1State(bool state)
 {
-    ui->setIndicator2(state, color);
+    ui->setIndicator1State(state);
 }
 
+void DisplayManager_::setIndicator2Color(uint16_t color)
+{
+    ui->setIndicator2Color(color);
+}
+
+void DisplayManager_::setIndicator2State(bool state)
+{
+    ui->setIndicator2State(state);
+}
+
+void DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
+{
+    DynamicJsonDocument doc(128);
+    DeserializationError error = deserializeJson(doc, json);
+    if (error)
+        return;
+    if (doc.containsKey("color"))
+    {
+        auto color = doc["color"];
+        if (color.is<String>())
+        {
+            uint16_t col = hexToRgb565(color.as<String>());
+            if (col > 0)
+            {
+                if (indicator == 1)
+                {
+                    ui->setIndicator1State(true);
+                    ui->setIndicator1Color(col);
+                }
+                else
+                {
+                    ui->setIndicator2State(true);
+                    ui->setIndicator2Color(col);
+                }
+            }
+            else
+            {
+                if (indicator == 1)
+                {
+                    ui->setIndicator1State(false);
+                }
+                else
+                {
+                    ui->setIndicator2State(false);
+                }
+            }
+        }
+        else if (color.is<JsonArray>() && color.size() == 3)
+        {
+            uint8_t r = color[0];
+            uint8_t g = color[1];
+            uint8_t b = color[2];
+
+            if (r == 0 && g == 0 && b == 0)
+            {
+                if (indicator == 1)
+                {
+                    ui->setIndicator1State(false);
+                }
+                else
+                {
+                    ui->setIndicator2State(false);
+                }
+            }
+            else
+            {
+                if (indicator == 1)
+                {
+                    ui->setIndicator1State(true);
+                    ui->setIndicator1Color((r << 11) | (g << 5) | b);
+                }
+                else
+                {
+                    ui->setIndicator2State(true);
+                    ui->setIndicator2Color((r << 11) | (g << 5) | b);
+                }
+            }
+        }
+    }
+
+    if (doc.containsKey("blink"))
+    {
+        if (indicator == 1)
+        {
+            ui->setIndicator1Blink(doc["blink"].as<bool>());
+        }
+        else
+        {
+            ui->setIndicator2Blink(doc["blink"].as<bool>());
+        }
+    }
+    else
+    {
+        if (indicator == 1)
+        {
+            ui->setIndicator1Blink(false);
+        }
+        else
+        {
+            ui->setIndicator2Blink(false);
+        }
+    }
+}

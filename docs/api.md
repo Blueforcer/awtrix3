@@ -1,26 +1,42 @@
 # MQTT / HTTP API
-
-
+  
 ## Status  
 In MQTT awtrix send its stats every 10s to `[PREFIX]/stats`  
 With HTTP, make GET request to `http://[IP]/api/stats`
-
-
-## Update  
-Awtrix searches for an update every 1 Hour. If a new one is found it will be published to HA and in the stats.  
-You can start the update with update button in HA or:   
-   
-| Topic | URL | Payload/Body | HTTP Header | HTTP method |  
-| --- | --- | --- | --- | --- |  
-| `[PREFIX]/doupdate` |`http://[IP]/api/doupdate` | JSON | empty payload/body | POST |  
   
+  
+## Turn display on or off    
+  
+| Topic | URL | Payload/Body | HTTP method |  
+| --- | --- | --- | --- |  
+| `[PREFIX]/power` | `http://[IP]/api/power` | `{"state":value}` | POST |  
 
+
+Valid values are:  
+- `0` => off  
+- `1` => on  
+
+
+## Colored indicators     
+
+A colored indicator is like a small notification sign wich will be shown on the upper right or lower right corner.  
+
+| Topic | URL | Payload/Body | HTTP method |  
+| --- | --- | --- | --- |  
+| `[PREFIX]/indicator1` | `http://[IP]/api/indicator1` | `{"color":[255,0,0]}` | POST |  
+| `[PREFIX]/indicator2` | `http://[IP]/api/indicator2` | `{"color":[0,255,0]}` | POST |  
+
+Instead of a RGB array you can also sent HEX color strings like `{"color":"#32a852"}`  
+Send the color black  `{"color":[0,0,0]}` or `{"color":"0"}` to hide the indicators.    
+Optionally you can make the indicator blinking by adding the key `"blink":true/false`.   
+  
 ## Custom Apps and Notifications
 With AWTRIX Light, you can create custom apps or notifications to display your own text and icons.  
   
-With MQTT simply send a JSON object to the topic `[PREFIX]/custom/[page]` where [page] is a the name of your page (without spaces).  
-With the [HTTP API](api?id=add-custom-app) you have to set the appname in the request header  (`name = Appname`)  
-
+With MQTT simply send a JSON object to the topic `[PREFIX]/custom/[app]` where [app] is a the name of your app (without spaces).  
+With the HTTP API you have to set the appname in the request header  (`name = [appname]`)  
+You can also send a one-time notification with the same JSON format. Simply send your JSON object to `[PREFIX]/notify` or `http://[IP]/api/notify`.  
+  
 | Topic | URL |  Payload/Body | Query parameters | HTTP method |
 | --- | --- | --- | --- | --- |
 | `[PREFIX]/custom/[appname]` |`http://[IP]/api/custom` | JSON | name = [appname] | POST |
@@ -43,14 +59,14 @@ The JSON object has the following properties:
 | `sound` | string | The filename of your RTTTL ringtone file (without extension). | |
 | `pushIcon` | number | 0 = Icon doesn't move. 1 = Icon moves with text and will not appear again. 2 = Icon moves with text but appears again when the text starts to scroll again. | 0 |
 | `bar` | array of integers | draws a bargraph. Without icon maximum 16 values, with icon 11 values |  |
-| `textCase` | integer | Changes the Uppercase setting. 0=global setting, 1=forces uppercase; 2=shows what is sent. | 0 |
+| `textCase` | integer | Changes the Uppercase setting. 0=global setting, 1=forces uppercase; 2=shows as it sent. | 0 |
 
 
 All keys are optional, so you can send just the properties you want to use.
 
 To update a custom page, simply send a modified JSON object to the same topic. The display will be updated immediately.
 
-You can also send a one-time notification with the same JSON format. Simply send your JSON object to "awtrixlight/notify".
+
 
 ### Example
 
@@ -234,12 +250,11 @@ Here's an example JSON object to start a timer for 1 hour, 30 minutes, and 10 se
   "sound": "friends"  
 } 
 ```
-
-## Turn display on or off
-| Topic | URL | Payload/Body | HTTP method |
-| --- | --- | --- | --- |
-| `[PREFIX]/onstate` | `http://[IP]/api/onstate` | `{"state":value}` | POST |
-
-Valid values are:
-- `0` => off
-- `1` => on
+  
+## Update  
+Awtrix searches for an update every 1 Hour. If a new one is found it will be published to HA and in the stats.  
+You can start the update with update button in HA or:   
+   
+| Topic | URL | Payload/Body | HTTP Header | HTTP method |  
+| --- | --- | --- | --- | --- |  
+| `[PREFIX]/doupdate` |`http://[IP]/api/doupdate` | JSON | empty payload/body | POST |  

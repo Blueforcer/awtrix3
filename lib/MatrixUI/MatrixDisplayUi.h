@@ -106,6 +106,8 @@ private:
 
   bool indicator1State = false;
   bool indicator2State = false;
+  bool indicator1Blink = false;
+  bool indicator2Blink = false;
 
   uint8_t getnextAppNumber();
   void drawApp();
@@ -153,8 +155,13 @@ public:
    */
   void setTimePerTransition(uint16_t time);
 
-  void setIndicator1(bool state, uint16_t color);
-  void setIndicator2(bool state, uint16_t color);
+  void setIndicator1Color(uint16_t color);
+  void setIndicator1State(bool state);
+  void setIndicator2Color(uint16_t color);
+  void setIndicator2State(bool state);
+
+  void setIndicator1Blink(bool Blink);
+  void setIndicator2Blink(bool Blink);
 
   void drawIndicators();
   // Customize indicator position and style
