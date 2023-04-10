@@ -1065,4 +1065,27 @@ void DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
             }
         }
     }
+
+    if (doc.containsKey("blink"))
+    {
+        if (indicator == 1)
+        {
+            ui->setIndicator1Blink(doc["blink"].as<bool>());
+        }
+        else
+        {
+            ui->setIndicator2Blink(doc["blink"].as<bool>());
+        }
+    }
+    else
+    {
+        if (indicator == 1)
+        {
+            ui->setIndicator1Blink(false);
+        }
+        else
+        {
+            ui->setIndicator2Blink(false);
+        }
+    }
 }
