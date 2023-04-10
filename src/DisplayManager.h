@@ -51,7 +51,7 @@ public:
     void MatrixState(bool);
     void generateNotification(const char *json);
     void generateCustomPage(const String &name, const char *json);
-    void printText(int16_t x, int16_t y, const char *text, bool centered,  byte textCase);
+    void printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase);
     bool setAutoTransition(bool active);
     void switchToApp(const char *json);
     void setNewSettings(const char *json);
@@ -66,8 +66,13 @@ public:
     void setAppTime(uint16_t duration);
     String getAppsAsJson();
     String getStat();
+
     void onState(bool state);
     void onStateParse(const char *json);
+
+    void setIndicator1(bool state, uint16_t color);
+    void setIndicator2(bool state, uint16_t color);
+
 };
 
 extern DisplayManager_ &DisplayManager;

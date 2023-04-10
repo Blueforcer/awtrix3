@@ -30,8 +30,8 @@
 #include "MatrixDisplayUi.h"
 #include "Fonts/AwtrixFont.h"
 
-  GifPlayer gif1;
-  GifPlayer gif2;
+GifPlayer gif1;
+GifPlayer gif2;
 
 MatrixDisplayUi::MatrixDisplayUi(FastLED_NeoMatrix *matrix)
 {
@@ -223,10 +223,27 @@ void MatrixDisplayUi::tick()
   }
 
   this->matrix->clear();
+  
   if (this->AppCount > 0)
     this->drawApp();
   this->drawOverlays();
+  this->drawIndicators();
   this->matrix->show();
+}
+void MatrixDisplayUi::drawIndicators()
+{
+  if (indicator1State)
+  {
+    matrix->drawPixel(31, 0, indicator1Color);
+    matrix->drawPixel(30, 0, indicator1Color);
+    matrix->drawPixel(31, 1, indicator1Color);
+  }
+  if (indicator2State)
+  {
+    matrix->drawPixel(31, 7, indicator2Color);
+    matrix->drawPixel(31, 6, indicator2Color);
+    matrix->drawPixel(30, 7, indicator2Color);
+  }
 }
 
 void MatrixDisplayUi::drawApp()
@@ -292,4 +309,18 @@ uint8_t MatrixDisplayUi::getnextAppNumber()
   if (this->nextAppNumber != -1)
     return this->nextAppNumber;
   return (this->state.currentApp + this->AppCount + this->state.appTransitionDirection) % this->AppCount;
+}
+
+void MatrixDisplayUi::setIndicator1(bool state, uint16_t color)
+{
+  this->indicator1State = state;
+  if (color > 0)
+    this->indicator1Color = color;
+}
+
+void MatrixDisplayUi::setIndicator2(bool state, uint16_t color)
+{
+  this->indicator2State = state;
+  if (color > 0)
+    this->indicator2Color = color;
 }
