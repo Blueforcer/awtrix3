@@ -37,6 +37,8 @@ CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
 FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
 MatrixDisplayUi *ui = new MatrixDisplayUi(matrix);
 
+uint8_t lastBrightness;
+
 DisplayManager_ &DisplayManager_::getInstance()
 {
     static DisplayManager_ instance;
@@ -54,6 +56,11 @@ void DisplayManager_::setBrightness(uint8_t bri)
     else
     {
         matrix->setBrightness(bri);
+        if (GAMMA > 0)
+        {
+            Serial.println(GAMMA);
+            napplyGamma_video(&leds[256], 256, GAMMA);
+        }
     }
 }
 
@@ -140,6 +147,7 @@ bool jpg_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t *bitmap)
 
 void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase)
 {
+
     if (centered)
     {
         uint16_t textWidth = getTextWidth(text, textCase);
@@ -533,9 +541,12 @@ void DisplayManager_::setup()
     TJpgDec.setCallback(jpg_output);
     TJpgDec.setJpgScale(1);
 
-    FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT).setTemperature(OvercastSky);
+    FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
     setMatrixLayout(MATRIX_LAYOUT);
-
+    if (COLOR_CORRECTION)
+    {
+        FastLED.setCorrection(COLOR_CORRECTION);
+    }
     gif.setMatrix(matrix);
     ui->setAppAnimation(SLIDE_DOWN);
     ui->setTimePerApp(TIME_PER_APP);
@@ -555,6 +566,7 @@ void DisplayManager_::tick()
     else
 
     {
+
         ui->update();
 
         if (ui->getUiState()->appState == IN_TRANSITION && !appIsSwitching)
@@ -800,10 +812,12 @@ std::pair<String, AppCallback> getNativeAppByName(const String &appName)
     {
         return std::make_pair("hum", HumApp);
     }
+#ifdef ULANZI
     else if (appName == "bat")
     {
         return std::make_pair("bat", BatApp);
     }
+#endif
     return std::make_pair("", nullptr);
 }
 
@@ -940,4 +954,146 @@ String DisplayManager_::getAppsAsJson()
     String json;
     serializeJson(appsObject, json);
     return json;
+}
+
+void DisplayManager_::powerStateParse(const char *json)
+{
+    DynamicJsonDocument doc(128);
+    DeserializationError error = deserializeJson(doc, json);
+    if (error)
+        return;
+    if (doc.containsKey("state"))
+    {
+        bool state = doc["state"].as<bool>();
+        setPower(state);
+    }
+}
+
+void DisplayManager_::setPower(bool state)
+{
+    if (state)
+    {
+        MATRIX_OFF = false;
+        setBrightness(lastBrightness);
+    }
+    else
+    {
+        MATRIX_OFF = true;
+        lastBrightness = BRIGHTNESS;
+        setBrightness(0);
+    }
+}
+
+void DisplayManager_::setIndicator1Color(uint16_t color)
+{
+    ui->setIndicator1Color(color);
+}
+
+void DisplayManager_::setIndicator1State(bool state)
+{
+    ui->setIndicator1State(state);
+}
+
+void DisplayManager_::setIndicator2Color(uint16_t color)
+{
+    ui->setIndicator2Color(color);
+}
+
+void DisplayManager_::setIndicator2State(bool state)
+{
+    ui->setIndicator2State(state);
+}
+
+void DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
+{
+    DynamicJsonDocument doc(128);
+    DeserializationError error = deserializeJson(doc, json);
+    if (error)
+        return;
+    if (doc.containsKey("color"))
+    {
+        auto color = doc["color"];
+        if (color.is<String>())
+        {
+            uint16_t col = hexToRgb565(color.as<String>());
+            if (col > 0)
+            {
+                if (indicator == 1)
+                {
+                    ui->setIndicator1State(true);
+                    ui->setIndicator1Color(col);
+                }
+                else
+                {
+                    ui->setIndicator2State(true);
+                    ui->setIndicator2Color(col);
+                }
+            }
+            else
+            {
+                if (indicator == 1)
+                {
+                    ui->setIndicator1State(false);
+                }
+                else
+                {
+                    ui->setIndicator2State(false);
+                }
+            }
+        }
+        else if (color.is<JsonArray>() && color.size() == 3)
+        {
+            uint8_t r = color[0];
+            uint8_t g = color[1];
+            uint8_t b = color[2];
+
+            if (r == 0 && g == 0 && b == 0)
+            {
+                if (indicator == 1)
+                {
+                    ui->setIndicator1State(false);
+                }
+                else
+                {
+                    ui->setIndicator2State(false);
+                }
+            }
+            else
+            {
+                if (indicator == 1)
+                {
+                    ui->setIndicator1State(true);
+                    ui->setIndicator1Color((r << 11) | (g << 5) | b);
+                }
+                else
+                {
+                    ui->setIndicator2State(true);
+                    ui->setIndicator2Color((r << 11) | (g << 5) | b);
+                }
+            }
+        }
+    }
+
+    if (doc.containsKey("blink"))
+    {
+        if (indicator == 1)
+        {
+            ui->setIndicator1Blink(doc["blink"].as<bool>());
+        }
+        else
+        {
+            ui->setIndicator2Blink(doc["blink"].as<bool>());
+        }
+    }
+    else
+    {
+        if (indicator == 1)
+        {
+            ui->setIndicator1Blink(false);
+        }
+        else
+        {
+            ui->setIndicator2Blink(false);
+        }
+    }
 }

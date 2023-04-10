@@ -99,9 +99,15 @@ void ServerManager_::setup()
                        { DisplayManager.generateCustomPage(mws.webserver->arg("name"),mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/stats", HTTP_GET, []()
                        { mws.webserver->sendContent(DisplayManager.getStat()); });
+        mws.addHandler("/api/indicator1", HTTP_POST, []()
+                       { DisplayManager.indicatorParser(1,mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/indicator2", HTTP_POST, []()
+                       { DisplayManager.indicatorParser(2,mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/doupdate", HTTP_POST, []()
                        { if (UPDATE_AVAILABLE)
             UpdateManager.updateFirmware(); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/power", HTTP_POST, []()
+                       { DisplayManager.powerStateParse(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         Serial.println("Webserver loaded");
     }
     mws.addHandler("/version", HTTP_GET, versionHandler);

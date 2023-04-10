@@ -10,14 +10,15 @@
 #include "UpdateManager.h"
 
 WiFiClient espClient;
-uint8_t lastBrightness;
 HADevice device;
-HAMqtt mqtt(espClient, device, 22);
+HAMqtt mqtt(espClient, device, 25);
 
 unsigned long reconnectTimer = 0;
 const unsigned long reconnectInterval = 30000; // 30 Sekunden
 
 HALight *Matrix = nullptr;
+HALight *Indikator1 = nullptr;
+HALight *Indikator2 = nullptr;
 HASelect *BriMode = nullptr;
 HAButton *dismiss = nullptr;
 HAButton *nextApp = nullptr;
@@ -101,25 +102,36 @@ void onSelectCommand(int8_t index, HASelect *sender)
 
 void onRGBColorCommand(HALight::RGBColor color, HALight *sender)
 {
-    TEXTCOLOR_565 = ((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F);
-    saveSettings();
+    if (sender == Matrix)
+    {
+        TEXTCOLOR_565 = ((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F);
+        saveSettings();
+    }
+    else if (sender == Indikator1)
+    {
+        DisplayManager.setIndicator1Color(((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F));
+    }
+    else if (sender == Indikator2)
+    {
+        DisplayManager.setIndicator2Color(((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F));
+    }
     sender->setRGBColor(color); // report color back to the Home Assistant
 }
 
 void onStateCommand(bool state, HALight *sender)
 {
-    if (state)
+    if (sender == Matrix)
     {
-        MATRIX_OFF = false;
-        DisplayManager.setBrightness(lastBrightness);
+        DisplayManager.setPower(state);
     }
-    else
+    else if (sender == Indikator1)
     {
-        MATRIX_OFF = true;
-        lastBrightness = BRIGHTNESS;
-        DisplayManager.setBrightness(0);
+        DisplayManager.setIndicator1State(state);
     }
-
+    else if (sender == Indikator2)
+    {
+        DisplayManager.setIndicator2State(state);
+    }
     sender->setState(state);
 }
 
@@ -129,7 +141,6 @@ void onBrightnessCommand(uint8_t brightness, HALight *sender)
     if (AUTO_BRIGHTNESS)
         return;
     BRIGHTNESS = brightness;
-    lastBrightness = brightness;
     saveSettings();
     DisplayManager.setBrightness(brightness);
 }
@@ -208,7 +219,24 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
-
+    if (strTopic.equals(MQTT_PREFIX + "/power"))
+    {
+        DisplayManager.powerStateParse(payloadCopy);
+        delete[] payloadCopy;
+        return;
+    }
+    if (strTopic.equals(MQTT_PREFIX + "/indicator1"))
+    {
+        DisplayManager.indicatorParser(1, payloadCopy);
+        delete[] payloadCopy;
+        return;
+    }
+    if (strTopic.equals(MQTT_PREFIX + "/indicator2"))
+    {
+        DisplayManager.indicatorParser(2, payloadCopy);
+        delete[] payloadCopy;
+        return;
+    }
     else if (strTopic.startsWith(MQTT_PREFIX + "/custom"))
     {
         String topic_str = topic;
@@ -239,7 +267,10 @@ void onMqttConnected()
         "/nextapp",
         "/doupdate",
         "/nextapp",
-        "/apps"};
+        "/apps",
+        "/power",
+        "/indicator1",
+        "/indicator2"};
     for (const char *topic : topics)
     {
         String fullTopic = prefix + topic;
@@ -265,7 +296,7 @@ void connect()
     }
 }
 
-char matID[40], briID[40];
+char matID[40], ind1ID[40], ind2ID[40], briID[40];
 char btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], updateID[40], doUpdateID[40];
 #ifdef ULANZI
 char batID[40];
@@ -273,7 +304,6 @@ char batID[40];
 
 void MQTTManager_::setup()
 {
-
     if (HA_DISCOVERY)
     {
         Serial.println(F("Starting Homeassistant discorvery"));
@@ -303,6 +333,20 @@ void MQTTManager_::setup()
         Matrix->onRGBColorCommand(onRGBColorCommand);
         Matrix->setCurrentState(true);
         Matrix->setBRIGHTNESS(BRIGHTNESS);
+
+        sprintf(ind1ID, HAi1ID, macStr);
+        Indikator1 = new HALight(ind1ID, HALight::RGBFeature);
+        Indikator1->setIcon(HAi1Icon);
+        Indikator1->setName(HAi1Name);
+        Indikator1->onStateCommand(onStateCommand);
+        Indikator1->onRGBColorCommand(onRGBColorCommand);
+
+        sprintf(ind2ID, HAi2ID, macStr);
+        Indikator2 = new HALight(ind2ID, HALight::RGBFeature);
+        Indikator2->setIcon(HAi2Icon);
+        Indikator2->setName(HAi2Name);
+        Indikator2->onStateCommand(onStateCommand);
+        Indikator2->onRGBColorCommand(onRGBColorCommand);
 
         HALight::RGBColor color;
         color.red = (TEXTCOLOR_565 >> 11) << 3;
@@ -368,8 +412,8 @@ void MQTTManager_::setup()
         humidity->setName(HAhumName);
         humidity->setDeviceClass(HAhumClass);
         humidity->setUnitOfMeasurement(HAhumUnit);
-#ifdef ULANZI
 
+#ifdef ULANZI
         sprintf(batID, HAbatID, macStr);
         battery = new HASensor(batID);
         battery->setIcon(HAbatIcon);

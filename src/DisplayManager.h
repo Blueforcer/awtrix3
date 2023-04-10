@@ -51,11 +51,10 @@ public:
     void MatrixState(bool);
     void generateNotification(const char *json);
     void generateCustomPage(const String &name, const char *json);
-    void printText(int16_t x, int16_t y, const char *text, bool centered,  byte textCase);
+    void printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase);
     bool setAutoTransition(bool active);
     void switchToApp(const char *json);
     void setNewSettings(const char *json);
-    void drawGIF(uint16_t x, uint16_t y, fs::File gifFile);
     void drawJPG(uint16_t x, uint16_t y, fs::File jpgFile);
     void drawProgressBar(int cur, int total);
     void drawMenuIndicator(int cur, int total, uint16_t color);
@@ -66,6 +65,13 @@ public:
     void setAppTime(uint16_t duration);
     String getAppsAsJson();
     String getStat();
+    void setPower(bool state);
+    void powerStateParse(const char *json);
+    void setIndicator1Color(uint16_t color);
+    void setIndicator1State(bool state);
+    void setIndicator2Color(uint16_t color);
+    void setIndicator2State(bool state);
+    void indicatorParser(uint8_t indicator, const char *json);
 };
 
 extern DisplayManager_ &DisplayManager;

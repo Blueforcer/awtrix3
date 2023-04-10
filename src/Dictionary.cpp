@@ -17,6 +17,15 @@ const char HAmodel[] PROGMEM = {"AWTRIX Light"};
 const char HAmatID[] PROGMEM = {"%s_mat"};
 const char HAmatIcon[] PROGMEM = {"mdi:lightbulb"};
 const char HAmatName[] PROGMEM = {"Matrix"};
+
+const char HAi1ID[] PROGMEM = {"%s_ind1"};
+const char HAi1Icon[] PROGMEM = {"mdi:arrow-top-right-thick"};
+const char HAi1Name[] PROGMEM = {"Indicator 1"};
+
+const char HAi2ID[] PROGMEM = {"%s_ind2"};
+const char HAi2Icon[] PROGMEM = {"mdi:arrow-bottom-right-thick"};
+const char HAi2Name[] PROGMEM = {"Indicator 2"};
+
 const char HAbriID[] PROGMEM = {"%s_bri"};
 const char HAbriIcon[] PROGMEM = {"mdi:brightness-auto"};
 const char HAbriName[] PROGMEM = {"Brightness mode"};
@@ -74,11 +83,9 @@ const char HAupdateName[] PROGMEM = {"Update"};
 const char HAupdateClass[] PROGMEM = {"update"};
 const char HAupdateIcon[] PROGMEM = {"mdi:update"};
 
-
 const char HAdoUpID[] PROGMEM = {"%s_doupd"};
 const char HAdoUpName[] PROGMEM = {"Start Update"};
 const char HAdoUpIcon[] PROGMEM = {"mdi:update"};
-
 
 const char HAsigID[] PROGMEM = {"%s_sig"};
 const char HAsigIcon[] PROGMEM = {"mdi:sun-wireless"};
