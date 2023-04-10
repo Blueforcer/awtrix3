@@ -153,8 +153,10 @@ public:
    */
   void setTimePerTransition(uint16_t time);
 
-  void setIndicator1(bool state, uint16_t color);
-  void setIndicator2(bool state, uint16_t color);
+  void setIndicator1Color(uint16_t color);
+  void setIndicator1State(bool state);
+  void setIndicator2Color(uint16_t color);
+  void setIndicator2State(bool state);
 
   void drawIndicators();
   // Customize indicator position and style

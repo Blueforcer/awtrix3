@@ -109,11 +109,11 @@ void onRGBColorCommand(HALight::RGBColor color, HALight *sender)
     }
     else if (sender == Indikator1)
     {
-        DisplayManager.setIndicator1(true, ((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F));
+        DisplayManager.setIndicator1Color(((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F));
     }
     else if (sender == Indikator2)
     {
-        DisplayManager.setIndicator2(true, ((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F));
+        DisplayManager.setIndicator2Color(((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F));
     }
     sender->setRGBColor(color); // report color back to the Home Assistant
 }
@@ -122,15 +122,15 @@ void onStateCommand(bool state, HALight *sender)
 {
     if (sender == Matrix)
     {
-        DisplayManager.onState(state);
+        DisplayManager.setPower(state);
     }
     else if (sender == Indikator1)
     {
-        DisplayManager.setIndicator1(state, 0);
+        DisplayManager.setIndicator1State(state);
     }
     else if (sender == Indikator2)
     {
-        DisplayManager.setIndicator2(state, 0);
+        DisplayManager.setIndicator2State(state);
     }
     sender->setState(state);
 }
@@ -219,10 +219,21 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
-    if (strTopic.equals(MQTT_PREFIX + "/onstate"))
+    if (strTopic.equals(MQTT_PREFIX + "/power"))
     {
-        DisplayManager.onStateParse(payloadCopy);
-        Serial.println(payloadCopy);
+        DisplayManager.powerStateParse(payloadCopy);
+        delete[] payloadCopy;
+        return;
+    }
+    if (strTopic.equals(MQTT_PREFIX + "/indicator1"))
+    {
+        DisplayManager.indicatorParser(1, payloadCopy);
+        delete[] payloadCopy;
+        return;
+    }
+    if (strTopic.equals(MQTT_PREFIX + "/indicator2"))
+    {
+        DisplayManager.indicatorParser(2, payloadCopy);
         delete[] payloadCopy;
         return;
     }
@@ -257,7 +268,9 @@ void onMqttConnected()
         "/doupdate",
         "/nextapp",
         "/apps",
-        "/onstate"};
+        "/power",
+        "/indicator1",
+        "/indicator2"};
     for (const char *topic : topics)
     {
         String fullTopic = prefix + topic;

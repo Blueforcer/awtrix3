@@ -223,7 +223,7 @@ void MatrixDisplayUi::tick()
   }
 
   this->matrix->clear();
-  
+
   if (this->AppCount > 0)
     this->drawApp();
   this->drawOverlays();
@@ -311,16 +311,22 @@ uint8_t MatrixDisplayUi::getnextAppNumber()
   return (this->state.currentApp + this->AppCount + this->state.appTransitionDirection) % this->AppCount;
 }
 
-void MatrixDisplayUi::setIndicator1(bool state, uint16_t color)
+void MatrixDisplayUi::setIndicator1Color(uint16_t color)
 {
-  this->indicator1State = state;
-  if (color > 0)
     this->indicator1Color = color;
 }
 
-void MatrixDisplayUi::setIndicator2(bool state, uint16_t color)
+void MatrixDisplayUi::setIndicator1State(bool state)
+{
+  this->indicator1State = state;
+}
+
+void MatrixDisplayUi::setIndicator2Color(uint16_t color)
+{
+    this->indicator2Color = color;
+}
+
+void MatrixDisplayUi::setIndicator2State(bool state)
 {
   this->indicator2State = state;
-  if (color > 0)
-    this->indicator2Color = color;
 }
