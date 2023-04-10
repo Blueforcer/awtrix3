@@ -43,7 +43,7 @@ The JSON object has the following properties:
 | `sound` | string | The filename of your RTTTL ringtone file (without extension). | |
 | `pushIcon` | number | 0 = Icon doesn't move. 1 = Icon moves with text and will not appear again. 2 = Icon moves with text but appears again when the text starts to scroll again. | 0 |
 | `bar` | array of integers | draws a bargraph. Without icon maximum 16 values, with icon 11 values |  |
-| `textCase` | integer | Changes teh Uppercase setting. 0=global setting, 1=forces uppercase; 2=shows what is sent. | 0 |
+| `textCase` | integer | Changes the Uppercase setting. 0=global setting, 1=forces uppercase; 2=shows what is sent. | 0 |
 
 
 All keys are optional, so you can send just the properties you want to use.
@@ -222,7 +222,7 @@ The JSON object has the following properties:
 
 Each value is optional, so you can set a timer for just minutes, or any combination of hours, minutes, and seconds. If you only want to start a timer in some minutes, just send the minutes.
 
-## Example
+#### Example
 
 Here's an example JSON object to start a timer for 1 hour, 30 minutes, and 10 seconds, with the sound "friends":
 
@@ -235,3 +235,11 @@ Here's an example JSON object to start a timer for 1 hour, 30 minutes, and 10 se
 } 
 ```
 
+## Turn display on or off
+| Topic | URL | Payload/Body | HTTP method |
+| --- | --- | --- | --- |
+| `[PREFIX]/onstate` | `http://[IP]/api/onstate` | `{"state":value}` | POST |
+
+Valid values are:
+- `0` => off
+- `1` => on

@@ -96,7 +96,6 @@ void left_button_pressed()
 #ifndef ULANZI
     PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
 #endif
-
     DisplayManager.leftButton();
     MenuManager.leftButton();
 }
@@ -106,7 +105,6 @@ void right_button_pressed()
 #ifndef ULANZI
     PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
 #endif
-
     DisplayManager.rightButton();
     MenuManager.rightButton();
 }

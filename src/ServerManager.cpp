@@ -102,6 +102,8 @@ void ServerManager_::setup()
         mws.addHandler("/api/doupdate", HTTP_POST, []()
                        { if (UPDATE_AVAILABLE)
             UpdateManager.updateFirmware(); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/onstate", HTTP_POST, []()
+                       { DisplayManager.onStateParse(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         Serial.println("Webserver loaded");
     }
     mws.addHandler("/version", HTTP_GET, versionHandler);

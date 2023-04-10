@@ -16,11 +16,12 @@
 ![Discord](https://img.shields.io/discord/546407049148366859?label=Discord&style=flat-square)
 [![Compile](https://github.com/Blueforcer/awtrix-light/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/Blueforcer/awtrix-light/actions/workflows/main.yml)
     
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=N0NKPJzGHuA" target="_blank">
+ <img src="http://img.youtube.com/vi/N0NKPJzGHuA/mqdefault.jpg" alt="Watch the video" height="280" border="10" />
+</a>  
+</div>  
 
-![GIF-230324_161917](https://user-images.githubusercontent.com/31169771/227567565-3780ee83-1158-4371-9390-fd03a7873496.gif)
-</div>
-
-AWTRIX Light is an open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882)  
+AWTRIX Light is a open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882)  
   
 AWL meant to be a companion for your smarthome like HomeAssistant, IOBroker, NodeRed and so on.    
 Even if you don't have a Smarthome system, but would like to experiment with NodeRed or N8N, you are still welcome to join us.  
@@ -40,7 +41,9 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
 - Onscreen menu where you can change your settings directly on the device
 - Pre-installed Apps like time, date, temperature, humidity and battery
 - Add customapps without recompiling straight from your Smarthome.
-- Noitification support
+- Notification support
+- Animated icons
+- Custom icons without recompiling
 - Easy to use icon system
 - Powerful MQTT commands
 - HTTP API
