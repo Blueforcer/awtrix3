@@ -60,12 +60,14 @@ DFMiniMp3<SoftwareSerial, Mp3Notify> dfmp3(mySoftwareSerial);
 
 #ifdef ULANZI
 #define USED_PHOTOCELL LightDependentResistor::GL5516
+#define PHOTOCELL_SERIES_RESISTOR 10000
 #else
 #define USED_PHOTOCELL LightDependentResistor::GL5528
+#define PHOTOCELL_SERIES_RESISTOR 1000
 #endif
 
 LightDependentResistor photocell(LDR_PIN,
-                                 10000,
+                                 PHOTOCELL_SERIES_RESISTOR,
                                  USED_PHOTOCELL,
                                  10,
                                  10);
