@@ -37,6 +37,8 @@ CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
 FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
 MatrixDisplayUi *ui = new MatrixDisplayUi(matrix);
 
+uint8_t lastBrightness;
+
 DisplayManager_ &DisplayManager_::getInstance()
 {
     static DisplayManager_ instance;
@@ -800,10 +802,12 @@ std::pair<String, AppCallback> getNativeAppByName(const String &appName)
     {
         return std::make_pair("hum", HumApp);
     }
+#ifdef ULANZI
     else if (appName == "bat")
     {
         return std::make_pair("bat", BatApp);
     }
+#endif
     return std::make_pair("", nullptr);
 }
 
@@ -940,4 +944,29 @@ String DisplayManager_::getAppsAsJson()
     String json;
     serializeJson(appsObject, json);
     return json;
+}
+
+void DisplayManager_::onStateParse(const char *json)
+{
+    DynamicJsonDocument doc(512);
+    DeserializationError error = deserializeJson(doc, json);
+    if (error)
+        return;
+    bool state = doc["state"].as<bool>();
+    onState(state);
+}
+
+void DisplayManager_::onState(bool state)
+{
+    if (state)
+    {
+        MATRIX_OFF = false;
+        setBrightness(lastBrightness);
+    }
+    else
+    {
+        MATRIX_OFF = true;
+        lastBrightness = BRIGHTNESS;
+        setBrightness(0);
+    }
 }

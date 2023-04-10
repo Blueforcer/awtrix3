@@ -10,7 +10,6 @@
 #include "UpdateManager.h"
 
 WiFiClient espClient;
-uint8_t lastBrightness;
 HADevice device;
 HAMqtt mqtt(espClient, device, 22);
 
@@ -108,18 +107,7 @@ void onRGBColorCommand(HALight::RGBColor color, HALight *sender)
 
 void onStateCommand(bool state, HALight *sender)
 {
-    if (state)
-    {
-        MATRIX_OFF = false;
-        DisplayManager.setBrightness(lastBrightness);
-    }
-    else
-    {
-        MATRIX_OFF = true;
-        lastBrightness = BRIGHTNESS;
-        DisplayManager.setBrightness(0);
-    }
-
+    DisplayManager.onState(state);
     sender->setState(state);
 }
 
@@ -129,7 +117,6 @@ void onBrightnessCommand(uint8_t brightness, HALight *sender)
     if (AUTO_BRIGHTNESS)
         return;
     BRIGHTNESS = brightness;
-    lastBrightness = brightness;
     saveSettings();
     DisplayManager.setBrightness(brightness);
 }
@@ -208,7 +195,13 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
-
+    if (strTopic.equals(MQTT_PREFIX + "/onstate"))
+    {
+        DisplayManager.onStateParse(payloadCopy);
+        Serial.println(payloadCopy);
+        delete[] payloadCopy;
+        return;
+    }
     else if (strTopic.startsWith(MQTT_PREFIX + "/custom"))
     {
         String topic_str = topic;
@@ -239,7 +232,8 @@ void onMqttConnected()
         "/nextapp",
         "/doupdate",
         "/nextapp",
-        "/apps"};
+        "/apps",
+        "/onstate"};
     for (const char *topic : topics)
     {
         String fullTopic = prefix + topic;
@@ -273,7 +267,6 @@ char batID[40];
 
 void MQTTManager_::setup()
 {
-
     if (HA_DISCOVERY)
     {
         Serial.println(F("Starting Homeassistant discorvery"));
@@ -368,8 +361,8 @@ void MQTTManager_::setup()
         humidity->setName(HAhumName);
         humidity->setDeviceClass(HAhumClass);
         humidity->setUnitOfMeasurement(HAhumUnit);
-#ifdef ULANZI
 
+#ifdef ULANZI
         sprintf(batID, HAbatID, macStr);
         battery = new HASensor(batID);
         battery->setIcon(HAbatIcon);

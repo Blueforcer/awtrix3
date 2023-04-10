@@ -66,6 +66,8 @@ public:
     void setAppTime(uint16_t duration);
     String getAppsAsJson();
     String getStat();
+    void onState(bool state);
+    void onStateParse(const char *json);
 };
 
 extern DisplayManager_ &DisplayManager;
