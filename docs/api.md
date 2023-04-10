@@ -1,19 +1,29 @@
 # MQTT / HTTP API
-
-
+  
 ## Status  
 In MQTT awtrix send its stats every 10s to `[PREFIX]/stats`  
 With HTTP, make GET request to `http://[IP]/api/stats`
-
-
-## Update  
-Awtrix searches for an update every 1 Hour. If a new one is found it will be published to HA and in the stats.  
-You can start the update with update button in HA or:   
-   
-| Topic | URL | Payload/Body | HTTP Header | HTTP method |  
-| --- | --- | --- | --- | --- |  
-| `[PREFIX]/doupdate` |`http://[IP]/api/doupdate` | JSON | empty payload/body | POST |  
   
+  
+## Turn display on or off    
+  
+| Topic | URL | Payload/Body | HTTP method |  
+| --- | --- | --- | --- |  
+| `[PREFIX]/power` | `http://[IP]/api/power` | `{"state":value}` | POST |  
+  
+Valid values are:  
+- `0` => off  
+- `1` => on  
+  
+## Show a colored indicator    
+A colored indicator is like a small notification sign wich will be shown on the upper right or lower right corner.  
+
+| Topic | URL | Payload/Body | HTTP method |  
+| --- | --- | --- | --- |  
+| `[PREFIX]/indicator1` | `http://[IP]/api/indicator1` | `{"color":[255,0,0]}` | POST |  
+| `[PREFIX]/indicator2` | `http://[IP]/api/indicator2` | `{"color":[0,255,0]}` | POST |  
+   
+instead of a RGB array you can also sent HEX color strings like `{"color":"#32a852"}`    
 
 ## Custom Apps and Notifications
 With AWTRIX Light, you can create custom apps or notifications to display your own text and icons.  
@@ -234,12 +244,11 @@ Here's an example JSON object to start a timer for 1 hour, 30 minutes, and 10 se
   "sound": "friends"  
 } 
 ```
-
-## Turn display on or off
-| Topic | URL | Payload/Body | HTTP method |
-| --- | --- | --- | --- |
-| `[PREFIX]/onstate` | `http://[IP]/api/onstate` | `{"state":value}` | POST |
-
-Valid values are:
-- `0` => off
-- `1` => on
+  
+## Update  
+Awtrix searches for an update every 1 Hour. If a new one is found it will be published to HA and in the stats.  
+You can start the update with update button in HA or:   
+   
+| Topic | URL | Payload/Body | HTTP Header | HTTP method |  
+| --- | --- | --- | --- | --- |  
+| `[PREFIX]/doupdate` |`http://[IP]/api/doupdate` | JSON | empty payload/body | POST |  
