@@ -56,7 +56,11 @@ void DisplayManager_::setBrightness(uint8_t bri)
     else
     {
         matrix->setBrightness(bri);
-        // napplyGamma_video(&leds[256], 256, 2.2);
+        if (GAMMA > 0)
+        {
+            Serial.println(GAMMA);
+            napplyGamma_video(&leds[256], 256, GAMMA);
+        }
     }
 }
 
@@ -537,8 +541,12 @@ void DisplayManager_::setup()
     TJpgDec.setCallback(jpg_output);
     TJpgDec.setJpgScale(1);
 
-    FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT).setCorrection(OvercastSky);
+    FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
     setMatrixLayout(MATRIX_LAYOUT);
+    if (COLOR_CORRECTION)
+    {
+        FastLED.setCorrection(COLOR_CORRECTION);
+    }
     gif.setMatrix(matrix);
     ui->setAppAnimation(SLIDE_DOWN);
     ui->setTimePerApp(TIME_PER_APP);

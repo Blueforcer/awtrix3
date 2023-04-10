@@ -94,7 +94,6 @@ void setup()
 
   delay(200);
   DisplayManager.setBrightness(BRIGHTNESS);
-  DisplayManager.clearMatrix();
 }
 
 void loop()

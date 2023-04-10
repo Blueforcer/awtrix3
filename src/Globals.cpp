@@ -2,6 +2,7 @@
 #include "Preferences.h"
 #include <WiFi.h>
 #include <ArduinoJson.h>
+
 #include <LittleFS.h>
 
 Preferences Settings;
@@ -66,6 +67,22 @@ void loadDevSettings()
             TEMP_DECIMAL_PLACES = doc["temp_dec_places"].as<int>();
         }
 
+        if (doc.containsKey("gamma"))
+        {
+            GAMMA = doc["gamma"].as<float>();
+        }
+
+        if (doc.containsKey("color_correction"))
+        {
+            auto correction = doc["color_correction"];
+            if (correction.is<JsonArray>() && correction.size() == 3)
+            {
+                uint8_t r = correction[0];
+                uint8_t g = correction[1];
+                uint8_t b = correction[2];
+                COLOR_CORRECTION.setRGB(r, g, b);
+            }
+        }
         file.close();
     }
 }
@@ -211,3 +228,5 @@ uint8_t VOLUME;
 int MATRIX_LAYOUT;
 bool UPDATE_AVAILABLE = false;
 long RECEIVED_MESSAGES;
+CRGB COLOR_CORRECTION;
+float GAMMA = 0;

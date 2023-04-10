@@ -1,6 +1,7 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 #include <Arduino.h>
+#include <FastLED.h>
 
 extern const char *uniqueID;
 extern const char *VERSION;
@@ -76,6 +77,8 @@ extern uint8_t VOLUME;
 extern int MATRIX_LAYOUT;
 extern bool UPDATE_AVAILABLE;
 extern long RECEIVED_MESSAGES;
+extern CRGB COLOR_CORRECTION;
+extern float GAMMA;
 void loadSettings();
 void saveSettings();
 #endif // Globals_H
