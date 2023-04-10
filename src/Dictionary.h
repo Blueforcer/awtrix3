@@ -17,6 +17,15 @@ extern const char HAmodel[];
 extern const char HAmatID[];
 extern const char HAmatIcon[];
 extern const char HAmatName[];
+
+extern const char HAi1ID[];
+extern const char HAi1Icon[];
+extern const char HAi1Name[];
+
+extern const char HAi2ID[];
+extern const char HAi2Icon[];
+extern const char HAi2Name[];
+
 extern const char HAbriID[];
 extern const char HAbriIcon[];
 extern const char HAbriName[];

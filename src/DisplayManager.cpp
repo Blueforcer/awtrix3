@@ -54,6 +54,7 @@ void DisplayManager_::setBrightness(uint8_t bri)
     else
     {
         matrix->setBrightness(bri);
+        //napplyGamma_video(&leds[256], 256, 2.2);
     }
 }
 
@@ -140,6 +141,7 @@ bool jpg_output(int16_t x, int16_t y, uint16_t w, uint16_t h, uint16_t *bitmap)
 
 void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase)
 {
+
     if (centered)
     {
         uint16_t textWidth = getTextWidth(text, textCase);
@@ -533,9 +535,8 @@ void DisplayManager_::setup()
     TJpgDec.setCallback(jpg_output);
     TJpgDec.setJpgScale(1);
 
-    FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT).setTemperature(OvercastSky);
+    FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT).setCorrection(OvercastSky);
     setMatrixLayout(MATRIX_LAYOUT);
-
     gif.setMatrix(matrix);
     ui->setAppAnimation(SLIDE_DOWN);
     ui->setTimePerApp(TIME_PER_APP);
@@ -555,6 +556,7 @@ void DisplayManager_::tick()
     else
 
     {
+
         ui->update();
 
         if (ui->getUiState()->appState == IN_TRANSITION && !appIsSwitching)
@@ -940,4 +942,14 @@ String DisplayManager_::getAppsAsJson()
     String json;
     serializeJson(appsObject, json);
     return json;
+}
+
+void DisplayManager_::setIndicator1(bool state, uint16_t color)
+{
+    ui->setIndicator1(state, color);
+}
+
+void DisplayManager_::setIndicator2(bool state, uint16_t color)
+{
+    ui->setIndicator2(state, color);
 }

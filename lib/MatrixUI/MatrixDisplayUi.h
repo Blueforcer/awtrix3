@@ -77,7 +77,6 @@ class MatrixDisplayUi
 private:
   FastLED_NeoMatrix *matrix;
 
-
   // Values for the Apps
   AnimationDirection appAnimationDirection = SLIDE_DOWN;
   int8_t lastTransitionDirection = 1;
@@ -101,6 +100,12 @@ private:
 
   // Bookeeping for update
   uint8_t updateInterval = 33;
+
+  uint16_t indicator1Color = 63488;
+  uint16_t indicator2Color = 31;
+
+  bool indicator1State = false;
+  bool indicator2State = false;
 
   uint8_t getnextAppNumber();
   void drawApp();
@@ -148,6 +153,10 @@ public:
    */
   void setTimePerTransition(uint16_t time);
 
+  void setIndicator1(bool state, uint16_t color);
+  void setIndicator2(bool state, uint16_t color);
+
+  void drawIndicators();
   // Customize indicator position and style
 
   // App settings
