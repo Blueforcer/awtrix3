@@ -10,20 +10,23 @@ With HTTP, make GET request to `http://[IP]/api/stats`
 | Topic | URL | Payload/Body | HTTP method |  
 | --- | --- | --- | --- |  
 | `[PREFIX]/power` | `http://[IP]/api/power` | `{"state":value}` | POST |  
-  
+
+
 Valid values are:  
 - `0` => off  
 - `1` => on  
-  
-## Show a colored indicator    
+
+
+## Colored indicators     
+
 A colored indicator is like a small notification sign wich will be shown on the upper right or lower right corner.  
 
 | Topic | URL | Payload/Body | HTTP method |  
 | --- | --- | --- | --- |  
 | `[PREFIX]/indicator1` | `http://[IP]/api/indicator1` | `{"color":[255,0,0]}` | POST |  
 | `[PREFIX]/indicator2` | `http://[IP]/api/indicator2` | `{"color":[0,255,0]}` | POST |  
-   
-instead of a RGB array you can also sent HEX color strings like `{"color":"#32a852"}`    
+
+Instead of a RGB array you can also sent HEX color strings like `{"color":"#32a852"}`    
 
 ## Custom Apps and Notifications
 With AWTRIX Light, you can create custom apps or notifications to display your own text and icons.  
