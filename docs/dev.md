@@ -3,6 +3,8 @@
 Ok, now they are no longer hidden :).  
 This section contains small setting options that the majority of users do not change or change very rarely and therefore saved the effort of creating an elaborate settings interface.
 
+All features are only loaded at boot. So you have to restart awtrix after modifying.   
+
 Create a `dev.json` in your filemanager.
 
 ## JSON Properties
