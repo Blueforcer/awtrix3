@@ -57,7 +57,7 @@ void loadDevSettings()
             MATRIX_LAYOUT = doc["matrix"];
         }
 
-        if (doc.containsKey("bootsound"))
+        if (doc.containsKey("uppercase"))
         {
             UPPERCASE_LETTERS = doc["uppercase"].as<bool>();
         }

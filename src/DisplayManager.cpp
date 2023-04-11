@@ -535,7 +535,7 @@ void DisplayManager_::setup()
 {
     TJpgDec.setCallback(jpg_output);
     TJpgDec.setJpgScale(1);
-
+   
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
     setMatrixLayout(MATRIX_LAYOUT);
     if (COLOR_CORRECTION)
