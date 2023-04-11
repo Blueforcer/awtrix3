@@ -15,5 +15,6 @@ The JSON object has the following properties:
 | --- | ---- | ----------- | ------- |
 | `bootsound` | string | Uses a custom melodie while booting |  |
 | `uppercase` | boolean | Print every character in uppercase | `true` |
+| `matrix` | int | Changes the matrix layout (0,1 or 2) | `0` |
 | `temp_dec_places` | int | Number of decimal places for temperature measurements | `0` |
 | `color_correction` | array of int | Sets the colorcorrection of the matrix | `[255,255,255]` |
