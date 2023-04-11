@@ -56,11 +56,6 @@ void DisplayManager_::setBrightness(uint8_t bri)
     else
     {
         matrix->setBrightness(bri);
-        if (GAMMA > 0)
-        {
-            Serial.println(GAMMA);
-            napplyGamma_video(&leds[256], 256, GAMMA);
-        }
     }
 }
 
@@ -1094,6 +1089,17 @@ void DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
         else
         {
             ui->setIndicator2Blink(false);
+        }
+    }
+}
+
+void DisplayManager_::gammaCorrection()
+{
+    if (GAMMA > 0)
+    {
+        for (int i = 0; i < 256; i++)
+        {
+            leds[i] = applyGamma_video(leds[i], GAMMA);
         }
     }
 }

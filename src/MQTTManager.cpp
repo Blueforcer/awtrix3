@@ -237,6 +237,20 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
+    if (strTopic.equals(MQTT_PREFIX + "/timeformat"))
+    {
+        TIME_FORMAT = String(payloadCopy);
+        saveSettings();
+        delete[] payloadCopy;
+        return;
+    }
+    if (strTopic.equals(MQTT_PREFIX + "/dateformat"))
+    {
+        DATE_FORMAT = String(payloadCopy);
+        saveSettings();
+        delete[] payloadCopy;
+        return;
+    }
     else if (strTopic.startsWith(MQTT_PREFIX + "/custom"))
     {
         String topic_str = topic;
@@ -270,7 +284,9 @@ void onMqttConnected()
         "/apps",
         "/power",
         "/indicator1",
-        "/indicator2"};
+        "/indicator2",
+        "/timeformat",
+        "/dateformat"};
     for (const char *topic : topics)
     {
         String fullTopic = prefix + topic;

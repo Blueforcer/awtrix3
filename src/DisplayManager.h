@@ -71,6 +71,7 @@ public:
     void setIndicator1State(bool state);
     void setIndicator2Color(uint16_t color);
     void setIndicator2State(bool state);
+    void gammaCorrection();
     void indicatorParser(uint8_t indicator, const char *json);
 };
 

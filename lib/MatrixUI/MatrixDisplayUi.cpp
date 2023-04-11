@@ -228,6 +228,7 @@ void MatrixDisplayUi::tick()
     this->drawApp();
   this->drawOverlays();
   this->drawIndicators();
+  DisplayManager.gammaCorrection();
   this->matrix->show();
 }
 

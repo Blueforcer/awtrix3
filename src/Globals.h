@@ -81,4 +81,7 @@ extern CRGB COLOR_CORRECTION;
 extern float GAMMA;
 void loadSettings();
 void saveSettings();
+
+
+
 #endif // Globals_H

@@ -32,6 +32,8 @@
 #include "FastLED_NeoMatrix.h"
 #include <vector>
 #include "GifPlayer.h"
+#include "../../src/DisplayManager.h"
+
 // #define DEBUG_MatrixDisplayUi(...) Serial.printf( __VA_ARGS__ )
 
 #ifndef DEBUG_MatrixDisplayUi

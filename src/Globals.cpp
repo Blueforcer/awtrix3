@@ -187,6 +187,8 @@ String NTP_SERVER = "de.pool.ntp.org";
 String NTP_TZ = "CET-1CEST,M3.5.0,M10.5.0/3";
 bool HA_DISCOVERY = false;
 
+
+
 // Periphery
 String CURRENT_APP;
 float CURRENT_TEMP;
@@ -225,7 +227,7 @@ int TEMP_DECIMAL_PLACES = 0;
 uint8_t VOLUME_PERCENT;
 uint8_t VOLUME;
 #endif
-int MATRIX_LAYOUT;
+int MATRIX_LAYOUT = 0;
 bool UPDATE_AVAILABLE = false;
 long RECEIVED_MESSAGES;
 CRGB COLOR_CORRECTION;
