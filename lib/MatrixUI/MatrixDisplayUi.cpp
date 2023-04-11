@@ -33,6 +33,8 @@
 GifPlayer gif1;
 GifPlayer gif2;
 
+
+
 MatrixDisplayUi::MatrixDisplayUi(FastLED_NeoMatrix *matrix)
 {
   this->matrix = matrix;
