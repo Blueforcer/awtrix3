@@ -56,5 +56,6 @@
         "mutex": "cpp",
         "thread": "cpp",
         "set": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": true
 }

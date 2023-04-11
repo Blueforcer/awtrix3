@@ -47,6 +47,8 @@ struct CustomApp
     bool iconWasPushed = false;
     int barData[16] = {0};
     int barSize;
+    long lastUpdate;
+    int16_t lifetime;
 };
 
 String currentCustomApp;

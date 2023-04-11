@@ -235,16 +235,14 @@ void removeCustomAppFromApps(const String &name)
                            { return appPair.first == name; });
 
     Apps.erase(it);
+    customApps.erase(customApps.find(name));
     ui->setApps(Apps);
 }
 
 void DisplayManager_::generateCustomPage(const String &name, const char *json)
 {
-
     if (strcmp(json, "") == 0 && customApps.count(name))
     {
-        Serial.println("delete");
-        customApps.erase(customApps.find(name));
         removeCustomAppFromApps(name);
         showGif = false;
         return;
@@ -304,8 +302,10 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
     customApp.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
     customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
     customApp.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
+    customApp.lifetime = doc.containsKey("lifetime") ? doc["lifetime"] : 0;
     customApp.name = name;
     customApp.text = doc.containsKey("text") ? utf8ascii(doc["text"].as<String>()) : "";
+    customApp.lastUpdate = millis();
 
     if (doc.containsKey("color"))
     {
@@ -552,6 +552,23 @@ void DisplayManager_::setup()
     ui->init();
 }
 
+void checkLifetime()
+{
+    for (auto it = customApps.begin(); it != customApps.end();)
+    {
+        CustomApp &app = it->second;
+        if (app.lifetime > 0 && (millis() - app.lastUpdate) / 1000 >= app.lifetime)
+        {
+            removeCustomAppFromApps(it->first);
+            ++it;
+        }
+        else
+        {
+            ++it;
+        }
+    }
+}
+
 void DisplayManager_::tick()
 {
     if (AP_MODE)
@@ -559,15 +576,12 @@ void DisplayManager_::tick()
         HSVtext(2, 6, "AP MODE", true, 1);
     }
     else
-
     {
-
         ui->update();
-
         if (ui->getUiState()->appState == IN_TRANSITION && !appIsSwitching)
         {
             appIsSwitching = true;
-            showGif = false;
+            checkLifetime();
         }
         else if (ui->getUiState()->appState == FIXED && appIsSwitching)
         {
@@ -652,7 +666,6 @@ void DisplayManager_::selectButtonLong()
 
 void DisplayManager_::dismissNotify()
 {
-
     notify.hold = false;
     notify.flag = false;
     showGif = false;

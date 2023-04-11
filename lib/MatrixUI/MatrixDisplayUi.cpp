@@ -304,12 +304,27 @@ void MatrixDisplayUi::drawApp()
   }
 }
 
+bool MatrixDisplayUi::isCurrentAppValid()
+{
+  for (size_t i = 0; i < AppCount; ++i)
+  {
+    if (AppFunctions[i] == AppFunctions[this->state.currentApp])
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 void MatrixDisplayUi::resetState()
 {
-  this->state.lastUpdate = 0;
-  this->state.ticksSinceLastStateSwitch = 0;
-  this->state.appState = FIXED;
-  this->state.currentApp = 0;
+  if (!isCurrentAppValid())
+  {
+    this->state.lastUpdate = 0;
+    this->state.ticksSinceLastStateSwitch = 0;
+    this->state.appState = FIXED;
+    this->state.currentApp = 0;
+  }
 }
 
 void MatrixDisplayUi::drawOverlays()

@@ -116,6 +116,7 @@ private:
   void drawOverlays();
   void tick();
   void resetState();
+  bool isCurrentAppValid();
 
 public:
   MatrixDisplayUi(FastLED_NeoMatrix *matrix);

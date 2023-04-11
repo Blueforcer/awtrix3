@@ -46,14 +46,12 @@ void ServerManager_::setup()
     {
         WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS);
     }
-    myIP = mws.startWiFi(10000, uniqueID, "12345678");
-
+    myIP = mws.startWiFi(15000, uniqueID, "12345678");
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
     Serial.println(myIP.toString());
     Serial.println(isConnected);
     if (isConnected)
     {
-
         mws.addOptionBox("Network");
         mws.addOption("Static IP", NET_STATIC);
         mws.addOption("Local IP", NET_IP);
@@ -131,12 +129,10 @@ void ServerManager_::tick()
 
 uint16_t stringToColor(const String &str)
 {
-
     int comma1 = str.indexOf(',');
     int comma2 = str.lastIndexOf(',');
     if (comma1 < 0 || comma2 < 0 || comma2 == comma1)
     {
-        // Ungültiges Format
         return 0xFFFF;
     }
     String rStr = str.substring(0, comma1);
@@ -158,16 +154,13 @@ uint16_t stringToColor(const String &str)
 
 String colorToString(uint16_t color)
 {
-
     uint8_t r = (color >> 11) << 3;
     uint8_t g = ((color >> 5) & 0x3F) << 2;
     uint8_t b = (color & 0x1F) << 3;
-
     if (r > 255 || g > 255 || b > 255)
     {
         return "#FFFFFF";
     }
-
     String rStr = String(r);
     String gStr = String(g);
     String bStr = String(b);
