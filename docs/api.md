@@ -60,7 +60,7 @@ The JSON object has the following properties:
 | `pushIcon` | number | 0 = Icon doesn't move. 1 = Icon moves with text and will not appear again. 2 = Icon moves with text but appears again when the text starts to scroll again. | 0 |
 | `bar` | array of integers | draws a bargraph. Without icon maximum 16 values, with icon 11 values |  |
 | `textCase` | integer | Changes the Uppercase setting. 0=global setting, 1=forces uppercase; 2=shows as it sent. | 0 |
-
+| `lifetime` | integer | Removes the custom app when there is no update after the given time in seconds | 0 |
 
 All keys are optional, so you can send just the properties you want to use.
 
