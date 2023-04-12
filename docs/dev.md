@@ -18,3 +18,5 @@ The JSON object has the following properties:
 | `matrix` | int | Changes the matrix layout (0,1 or 2) | `0` |
 | `temp_dec_places` | int | Number of decimal places for temperature measurements | `0` |
 | `color_correction` | array of int | Sets the colorcorrection of the matrix | `[255,255,255]` |
+| `color_temperature` | array of int | Sets the colortemperature of the matrix | `[255,255,255]` |
+| `gamma` |float | Sets the gamma of the matrix | `2.5` |
