@@ -166,7 +166,7 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
         uint32_t startTime = millis();
         while (WiFi.status() != WL_CONNECTED)
         {
-            delay(500);
+            delay(300);
             Serial.print(".");
             if (WiFi.status() == WL_CONNECTED)
             {
@@ -301,7 +301,7 @@ void FSWebServer::doWifiConnection()
         uint32_t beginTime = millis();
         while (WiFi.status() != WL_CONNECTED)
         {
-            delay(100);
+            delay(300);
             Serial.print("*.*");
             if (millis() - beginTime > m_timeout)
                 break;

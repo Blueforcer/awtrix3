@@ -32,6 +32,8 @@
 #include "FastLED_NeoMatrix.h"
 #include <vector>
 #include "GifPlayer.h"
+#include "../../src/DisplayManager.h"
+
 // #define DEBUG_MatrixDisplayUi(...) Serial.printf( __VA_ARGS__ )
 
 #ifndef DEBUG_MatrixDisplayUi
@@ -101,19 +103,12 @@ private:
   // Bookeeping for update
   uint8_t updateInterval = 33;
 
-  uint16_t indicator1Color = 63488;
-  uint16_t indicator2Color = 31;
-
-  bool indicator1State = false;
-  bool indicator2State = false;
-  bool indicator1Blink = false;
-  bool indicator2Blink = false;
-
   uint8_t getnextAppNumber();
   void drawApp();
   void drawOverlays();
   void tick();
   void resetState();
+  bool isCurrentAppValid();
 
 public:
   MatrixDisplayUi(FastLED_NeoMatrix *matrix);
@@ -204,5 +199,12 @@ public:
   MatrixDisplayUiState *getUiState();
 
   int8_t update();
+
+  uint16_t indicator1Color = 63488;
+  uint16_t indicator2Color = 31;
+  bool indicator1State = false;
+  bool indicator2State = false;
+  bool indicator1Blink = false;
+  bool indicator2Blink = false;
 };
 #endif

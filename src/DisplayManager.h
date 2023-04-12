@@ -45,10 +45,9 @@ public:
     void clearMatrix();
     void selectButton();
     void selectButtonLong();
-    void setBrightness(uint8_t);
+    void setBrightness(int);
     void setTextColor(uint16_t color);
     void setFPS(uint8_t);
-    void MatrixState(bool);
     void generateNotification(const char *json);
     void generateCustomPage(const String &name, const char *json);
     void printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase);
@@ -71,7 +70,11 @@ public:
     void setIndicator1State(bool state);
     void setIndicator2Color(uint16_t color);
     void setIndicator2State(bool state);
+    void gammaCorrection();
     void indicatorParser(uint8_t indicator, const char *json);
+    void showSleepAnimation();
+    void showCurtainEffect();
+    void sendAppLoop();
 };
 
 extern DisplayManager_ &DisplayManager;

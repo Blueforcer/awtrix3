@@ -141,11 +141,11 @@ void select_button_double()
 {
     if (MATRIX_OFF)
     {
-        DisplayManager.MatrixState(true);
+        DisplayManager.setPower(true);
     }
     else
     {
-        DisplayManager.MatrixState(false);
+        DisplayManager.setPower(false);
     }
 }
 
@@ -224,11 +224,11 @@ void PeripheryManager_::setup()
 {
     startTime = millis();
     pinMode(LDR_PIN, INPUT);
-    #ifdef AWTRIX_UPGRADE
-        dfmp3.begin();
-        delay(100);
-        setVolume(VOLUME);
-    #endif
+#ifdef AWTRIX_UPGRADE
+    dfmp3.begin();
+    delay(100);
+    setVolume(VOLUME);
+#endif
     button_left.begin();
     button_right.begin();
     button_select.begin();
@@ -288,11 +288,10 @@ void PeripheryManager_::tick()
         sampleAverage = sampleSum / (float)LDRReadings;
         LDR_RAW = sampleAverage;
         CURRENT_LUX = (roundf(photocell.getSmoothedLux() * 1000) / 1000);
-        if (AUTO_BRIGHTNESS)
+        if (AUTO_BRIGHTNESS && !MATRIX_OFF)
         {
             brightnessPercent = sampleAverage / 4095.0 * 100.0;
-            BRIGHTNESS = map(brightnessPercent, 0, 100, 0, 255);
-            int brightness = map(brightnessPercent, 0, 100, 10, 120);
+            int brightness = map(brightnessPercent, 0, 100, 10, 200);
             DisplayManager.setBrightness(brightness);
         }
     }
@@ -361,7 +360,7 @@ void PeripheryManager_::checkAlarms()
     }
 }
 
-const char* PeripheryManager_::readUptime()
+const char *PeripheryManager_::readUptime()
 {
     static char uptime[25]; // Make the array static to keep it from being destroyed when the function returns
     unsigned long currentTime = millis();

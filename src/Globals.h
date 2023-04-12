@@ -49,8 +49,8 @@ extern String CURRENT_APP;
 extern uint8_t BATTERY_PERCENT;
 extern uint16_t BATTERY_RAW;
 #endif
-extern uint8_t BRIGHTNESS;
-extern uint8_t BRIGHTNESS_PERCENT;
+extern int  BRIGHTNESS;
+extern int  BRIGHTNESS_PERCENT;
 extern String TEXTCOLOR;
 extern String TIME_FORMAT;
 extern bool AUTO_BRIGHTNESS;
@@ -78,7 +78,11 @@ extern int MATRIX_LAYOUT;
 extern bool UPDATE_AVAILABLE;
 extern long RECEIVED_MESSAGES;
 extern CRGB COLOR_CORRECTION;
+extern CRGB COLOR_TEMPERATURE;
 extern float GAMMA;
 void loadSettings();
 void saveSettings();
+
+
+
 #endif // Globals_H

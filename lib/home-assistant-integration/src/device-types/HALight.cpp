@@ -111,6 +111,7 @@ bool HALight::setColorTemperature(const uint16_t temperature, const bool force)
 bool HALight::setRGBColor(const RGBColor& color, const bool force)
 {
     if (!force && color == _currentRGBColor) {
+
         return true;
     }
 
