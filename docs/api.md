@@ -220,7 +220,34 @@ Each property is optional; you do not need to send all.
 | `color_correction` | array of ints | Sets the color correction for the matrix | an array of RGB values | N/A |
 | `color_temperature` | array of ints | Sets the color temperature for the matrix | an array of RGB values | N/A |
 | `gamma` | float | Sets the gamma for the matrix | 2.5 | N/A |
+| `time_format` | string | Sets the timeformat for the TimeApp | see below | N/A |
+| `fate_format` | string | Sets the dateformat for the DateApp | see below | N/A |
 
+**Timeformats:**  
+```bash  
+%H:%M:%S     13:30:45  
+%l:%M:%S     1:30:45  
+%H:%M        13:30  
+%H %M        13.30 with blinking colon  
+%l:%M        1:30  
+%l %M        1:30 with blinking colon  
+%l:%M %p     1:30 PM  
+%l %M %p     1:30 PM with blinking colon  
+```
+  
+**Dateformats:**  
+```bash  
+%d.%m.%y     01.04.22  
+%d.%m        01.04  
+%y-%m-%d     22-04-01  
+%m-%d        04-01  
+%m/%d/%y     04/01/22  
+%m/%d        04/01  
+%d/%m/%y     01/04/22  
+%d/%m        01/04  
+%m-%d-%y     04-01-22  
+```  
+  
 ## Timer
 
 With AWTRIX Light, you can set a timer using MQTT. Simply send a JSON object to the topic **[PREFIX]/timer** to start a timer. 
