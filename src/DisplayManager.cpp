@@ -236,8 +236,6 @@ void removeCustomAppFromApps(const String &name, bool setApps)
 
 bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, std::vector<String> &fragments, uint16_t standardColor)
 {
-
-    Serial.println(jsonText);
     colors.clear();
     fragments.clear();
 
@@ -366,15 +364,15 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
     if (doc.containsKey("text"))
     {
         String text = utf8ascii(doc["text"].as<String>());
-        if (!parseFragmentsText(text, customApp.colors, customApp.fragments, customApp.color))
-        {
-            customApp.text = text;
-        };
+        parseFragmentsText(text, customApp.colors, customApp.fragments, customApp.color);
+        customApp.text = text;
     }
     else
     {
         customApp.text = "";
     }
+
+    Serial.println(customApp.text);
 
     if (currentCustomApp != name)
     {
@@ -427,9 +425,7 @@ void DisplayManager_::generateNotification(const char *json)
 {
     StaticJsonDocument<1024> doc;
     deserializeJson(doc, json);
-
     notify.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
-
     notify.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint16_t>() : -1;
     notify.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
     notify.hold = doc.containsKey("hold") ? doc["hold"].as<bool>() : false;
@@ -497,10 +493,8 @@ void DisplayManager_::generateNotification(const char *json)
     if (doc.containsKey("text"))
     {
         String text = utf8ascii(doc["text"].as<String>());
-        if (!parseFragmentsText(text, notify.colors, notify.fragments, notify.color))
-        {
-            notify.text = text;
-        };
+        parseFragmentsText(text, notify.colors, notify.fragments, notify.color);
+        notify.text = text;
     }
     else
     {
