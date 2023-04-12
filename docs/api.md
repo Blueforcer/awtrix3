@@ -35,7 +35,10 @@ With AWTRIX Light, you can create custom apps or notifications to display your o
   
 With MQTT simply send a JSON object to the topic `[PREFIX]/custom/[app]` where [app] is a the name of your app (without spaces).  
 With the HTTP API you have to set the appname in the request header  (`name = [appname]`)  
+To update a custom page, simply send a modified JSON object to the same endpoint. The display will be updated immediately.  
+
 You can also send a one-time notification with the same JSON format. Simply send your JSON object to `[PREFIX]/notify` or `http://[IP]/api/notify`.  
+  
   
 | Topic | URL |  Payload/Body | Query parameters | HTTP method |
 | --- | --- | --- | --- | --- |
@@ -44,7 +47,8 @@ You can also send a one-time notification with the same JSON format. Simply send
 
 ### JSON Properties
 
-The JSON object has the following properties:
+The JSON object has the following properties,  
+All keys are optional, so you can send just the properties you want to use.
 
 | Key | Type | Description | Default |
 | --- | ---- | ----------- | ------- |
@@ -59,13 +63,9 @@ The JSON object has the following properties:
 | `sound` | string | The filename of your RTTTL ringtone file (without extension). | |
 | `pushIcon` | number | 0 = Icon doesn't move. 1 = Icon moves with text and will not appear again. 2 = Icon moves with text but appears again when the text starts to scroll again. | 0 |
 | `bar` | array of integers | draws a bargraph. Without icon maximum 16 values, with icon 11 values |  |
-| `textCase` | integer | Changes the Uppercase setting. 0=global setting, 1=forces uppercase; 2=shows as it sent. | 0 |
 | `lifetime` | integer | Removes the custom app when there is no update after the given time in seconds | 0 |
-
-All keys are optional, so you can send just the properties you want to use.
-
-To update a custom page, simply send a modified JSON object to the same topic. The display will be updated immediately.
-
+| `textCase` | integer | Changes the Uppercase setting. 0=global setting, 1=forces uppercase; 2=shows as it sent. | 0 |
+| `textOffset` | integer | Sets an offset for the x position of a starting text. | 0 |
 
 
 ### Example
@@ -81,6 +81,26 @@ Here's an example JSON object to display the text "Hello, AWTRIX Light!" with th
 }
 ```
 
+### Display a text in colored fragments
+You can display a text where you allowed to colorize fragments of the text.  
+Simply send an array of your fragments, containing `"t"` as your textfragment and `"c"` for the color hex value`.  
+
+```json
+{
+  "text": [
+    {
+      "t": "Hello, ",
+      "c": "FF0000"
+    },
+    {
+      "t": "world!",
+      "c": "00FF00"
+    }
+  ],
+  "repeat": 2
+}
+```  
+  
 ## Delete a custom app
 To delete a custom app simply send a empty payload/body to the same topic/url.
 You can also use [this API](api?id=addremove-and-rearange-apps)

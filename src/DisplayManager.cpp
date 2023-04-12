@@ -223,21 +223,58 @@ void pushCustomApp(String name, int position)
     }
 }
 
-void removeCustomAppFromApps(const String &name)
+void removeCustomAppFromApps(const String &name, bool setApps)
 {
     auto it = std::find_if(Apps.begin(), Apps.end(), [&name](const std::pair<String, AppCallback> &appPair)
                            { return appPair.first == name; });
 
     Apps.erase(it);
     customApps.erase(customApps.find(name));
-    ui->setApps(Apps);
+    if (setApps)
+        ui->setApps(Apps);
+}
+
+bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, std::vector<String> &fragments, uint16_t standardColor)
+{
+
+    Serial.println(jsonText);
+    colors.clear();
+    fragments.clear();
+
+    StaticJsonDocument<512> doc;
+    DeserializationError error = deserializeJson(doc, jsonText);
+
+    if (error)
+    {
+        return false;
+    }
+
+    JsonArray fragmentArray = doc.as<JsonArray>();
+
+    for (JsonObject fragmentObj : fragmentArray)
+    {
+        String textFragment = fragmentObj["t"].as<String>();
+        uint16_t color;
+        if (fragmentObj.containsKey("c"))
+        {
+            color = hexToRgb565(fragmentObj["c"].as<String>());
+        }
+        else
+        {
+            color = standardColor;
+        }
+
+        fragments.push_back(textFragment);
+        colors.push_back(color);
+    }
+    return true;
 }
 
 void DisplayManager_::generateCustomPage(const String &name, const char *json)
 {
     if (strcmp(json, "") == 0 && customApps.count(name))
     {
-        removeCustomAppFromApps(name);
+        removeCustomAppFromApps(name, true);
         showGif = false;
         return;
     }
@@ -297,8 +334,9 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
     customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
     customApp.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
     customApp.lifetime = doc.containsKey("lifetime") ? doc["lifetime"] : 0;
+    customApp.textOffset = doc.containsKey("textOffset") ? doc["textOffset"] : 0;
     customApp.name = name;
-    customApp.text = doc.containsKey("text") ? utf8ascii(doc["text"].as<String>()) : "";
+
     customApp.lastUpdate = millis();
 
     if (doc.containsKey("color"))
@@ -325,9 +363,22 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
         customApp.color = TEXTCOLOR_565;
     }
 
+    if (doc.containsKey("text"))
+    {
+        String text = utf8ascii(doc["text"].as<String>());
+        if (!parseFragmentsText(text, customApp.colors, customApp.fragments, customApp.color))
+        {
+            customApp.text = text;
+        };
+    }
+    else
+    {
+        customApp.text = "";
+    }
+
     if (currentCustomApp != name)
     {
-        customApp.scrollposition = 9;
+        customApp.scrollposition = 9 + customApp.textOffset;
     }
 
     customApp.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint8_t>() : -1;
@@ -378,17 +429,18 @@ void DisplayManager_::generateNotification(const char *json)
     deserializeJson(doc, json);
 
     notify.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
-    notify.text = doc.containsKey("text") ? utf8ascii(doc["text"].as<String>()) : "";
+
     notify.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint16_t>() : -1;
     notify.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
     notify.hold = doc.containsKey("hold") ? doc["hold"].as<bool>() : false;
     notify.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
     notify.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
+    notify.textOffset = doc.containsKey("textOffset") ? doc["textOffset"] : 0;
     notify.startime = millis();
-    notify.scrollposition = 9;
+    notify.scrollposition = 9 + notify.textOffset;
     notify.iconWasPushed = false;
     notify.iconPosition = 0;
-
+    notify.scrollDelay = 0;
     if (doc.containsKey("sound"))
     {
 #ifdef ULANZI
@@ -440,6 +492,19 @@ void DisplayManager_::generateNotification(const char *json)
     else
     {
         notify.color = TEXTCOLOR_565;
+    }
+
+    if (doc.containsKey("text"))
+    {
+        String text = utf8ascii(doc["text"].as<String>());
+        if (!parseFragmentsText(text, notify.colors, notify.fragments, notify.color))
+        {
+            notify.text = text;
+        };
+    }
+    else
+    {
+        notify.text = "";
     }
 
     notify.flag = true;
@@ -552,19 +617,26 @@ void DisplayManager_::setup()
 
 void checkLifetime()
 {
-    for (auto it = customApps.begin(); it != customApps.end();)
+    // Sammeln Sie die Namen der zu entfernenden Apps
+    std::vector<String> appsToRemove;
+
+    for (auto it = customApps.begin(); it != customApps.end(); ++it)
     {
         CustomApp &app = it->second;
         if (app.lifetime > 0 && (millis() - app.lastUpdate) / 1000 >= app.lifetime)
         {
-            removeCustomAppFromApps(it->first);
-            ++it;
-        }
-        else
-        {
-            ++it;
+            String appName = it->first;
+            appsToRemove.push_back(appName);
         }
     }
+
+    // Entfernen Sie die gesammelten Apps nach der Schleife
+    for (const String &appName : appsToRemove)
+    {
+        removeCustomAppFromApps(appName, false);
+    }
+    if (appsToRemove.size() > 0)
+        ui->setApps(Apps);
 }
 
 void DisplayManager_::tick()

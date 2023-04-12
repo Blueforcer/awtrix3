@@ -49,6 +49,9 @@ struct CustomApp
     int barSize;
     long lastUpdate;
     int16_t lifetime;
+    std::vector<uint16_t> colors;
+    std::vector<String> fragments;
+    uint8_t textOffset;
 };
 
 String currentCustomApp;
@@ -74,6 +77,9 @@ struct Notification
     bool iconWasPushed = false;
     int barData[16] = {0};
     int barSize;
+    std::vector<uint16_t> colors;
+    std::vector<String> fragments;
+    uint8_t textOffset;
 };
 
 Notification notify;
@@ -318,7 +324,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     if (lastFrame)
     {
         ca->iconWasPushed = false;
-        ca->scrollposition = 9;
+        ca->scrollposition = 9 + ca->textOffset;
         ca->iconPosition = 0;
         ca->scrollDelay = 0;
     }
@@ -335,9 +341,25 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     currentCustomApp = name;
 
     bool hasIcon = ca->icon;
+
+    // Calculate text and available width
+    uint16_t textWidth = 0;
+    if (!ca->fragments.empty())
+    {
+        for (const auto &fragment : ca->fragments)
+        {
+            textWidth += getTextWidth(fragment.c_str(), ca->textCase);
+        }
+    }
+    else
+    {
+        textWidth = getTextWidth(ca->text.c_str(), ca->textCase);
+    }
+
     uint16_t availableWidth = (hasIcon) ? 24 : 32;
 
-    bool noScrolling = getTextWidth(ca->text.c_str(), ca->textCase) <= availableWidth;
+    bool noScrolling = textWidth <= availableWidth;
+
     if (ca->barSize > 0)
     {
         DisplayManager.drawBarChart(x, y, ca->barData, ca->barSize, hasIcon, ca->color);
@@ -353,12 +375,12 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             DisplayManager.setAutoTransition(true);
         }
 
-        if (getTextWidth(ca->text.c_str(), ca->textCase) > availableWidth && !(state->appState == IN_TRANSITION))
+        if (textWidth > availableWidth && !(state->appState == IN_TRANSITION))
         {
-            if (ca->scrollposition <= -getTextWidth(ca->text.c_str(), ca->textCase))
+            if (ca->scrollposition <= -textWidth)
             {
                 ca->scrollDelay = 0;
-                ca->scrollposition = 9;
+                ca->scrollposition = 9 + ca->textOffset;
                 if (ca->iconWasPushed && ca->pushIcon == 2)
                 {
                     ca->iconWasPushed = false;
@@ -379,7 +401,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 
         if (!noScrolling)
         {
-            if ((ca->scrollDelay > MATRIX_FPS * 1.2))
+            if ((ca->scrollDelay > MATRIX_FPS * 1.2) || ((hasIcon ? ca->textOffset + 9 : ca->textOffset) > 31))
             {
                 --ca->scrollposition;
             }
@@ -390,45 +412,71 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 {
                     if (ca->iconWasPushed && ca->pushIcon == 1)
                     {
-                        ca->scrollposition = 0;
+                        ca->scrollposition = 0 + notify.textOffset;
                     }
                     else
                     {
-                        ca->scrollposition = 9;
+                        ca->scrollposition = 9 + ca->textOffset;
                     }
                 }
                 else
                 {
-                    ca->scrollposition = 0;
+                    ca->scrollposition = 0 + notify.textOffset;
                 }
             }
         }
-        int16_t textX = (hasIcon) ? ((24 - getTextWidth(ca->text.c_str(), ca->textCase)) / 2) + 9 : ((32 - getTextWidth(ca->text.c_str(), ca->textCase)) / 2);
+        int16_t textX = (hasIcon) ? ((24 - getTextWidth(ca->text.c_str(), ca->textCase)) / 2) + 9 + ca->textOffset : ((32 - getTextWidth(ca->text.c_str(), ca->textCase)) / 2);
         matrix->setTextColor(ca->color);
         if (noScrolling)
         {
             ca->repeat = -1; // Disable repeat if text is too short for scrolling
             // Display text with rainbow effect if enabled
-            if (ca->rainbow)
+
+            if (!ca->fragments.empty())
             {
-                DisplayManager.HSVtext(x + textX, 6 + y, ca->text.c_str(), false, ca->textCase);
+                int16_t fragmentX = textX;
+                for (size_t i = 0; i < ca->fragments.size(); ++i)
+                {
+                    matrix->setTextColor(ca->colors[i]);
+                    DisplayManager.printText(x + fragmentX, y + 6, ca->fragments[i].c_str(), false, ca->textCase);
+                    fragmentX += getTextWidth(ca->fragments[i].c_str(), ca->textCase);
+                }
             }
             else
             {
-                // Display text
-                DisplayManager.printText(x + textX, y + 6, ca->text.c_str(), false, ca->textCase);
+                if (ca->rainbow)
+                {
+                    DisplayManager.HSVtext(x + textX, 6 + y, ca->text.c_str(), false, ca->textCase);
+                }
+                else
+                {
+                    // Display text
+                    DisplayManager.printText(x + textX, y + 6, ca->text.c_str(), false, ca->textCase);
+                }
             }
         }
         else
         {
-            // Display scrolling text with rainbow effect if enabled
-            if (ca->rainbow)
+            if (!ca->fragments.empty())
             {
-                DisplayManager.HSVtext(x + ca->scrollposition, 6 + y, ca->text.c_str(), false, ca->textCase);
+                int16_t fragmentX = ca->scrollposition;
+                for (size_t i = 0; i < ca->fragments.size(); ++i)
+                {
+                    matrix->setTextColor(ca->colors[i]);
+                    DisplayManager.printText(x + fragmentX, y + 6, ca->fragments[i].c_str(), false, ca->textCase);
+                    fragmentX += getTextWidth(ca->fragments[i].c_str(), ca->textCase);
+                }
             }
             else
             {
-                DisplayManager.printText(x + ca->scrollposition, 6 + y, ca->text.c_str(), false, ca->textCase);
+                if (ca->rainbow)
+                {
+                    DisplayManager.HSVtext(x + ca->scrollposition, 6 + y, ca->text.c_str(), false, ca->textCase);
+                }
+                else
+                {
+                    DisplayManager.printText(x + ca->scrollposition, 6 + y, ca->text.c_str(), false, ca->textCase);
+                }
             }
         }
     }
@@ -457,7 +505,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         // Display animated GIF if enabled and App is fixed, since we have only one gifplayer instance, it looks weird when 2 apps want to draw a different gif
         if (ca->isGif)
         {
-            
+
             gifPlayer->playGif(x + ca->iconPosition, y, &ca->icon);
         }
         else
@@ -511,7 +559,19 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
     matrix->fillRect(0, 0, 32, 8, 0);
 
     // Calculate text and available width
-    uint16_t textWidth = getTextWidth(notify.text.c_str(), notify.textCase);
+    uint16_t textWidth = 0;
+    if (!notify.fragments.empty())
+    {
+        for (const auto &fragment : notify.fragments)
+        {
+            textWidth += getTextWidth(fragment.c_str(), notify.textCase);
+        }
+    }
+    else
+    {
+        textWidth = getTextWidth(notify.text.c_str(), notify.textCase);
+    }
+
     uint16_t availableWidth = hasIcon ? 24 : 32;
 
     // Check if text is scrolling
@@ -527,7 +587,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
         {
             // Reset scroll position and icon position if needed
             notify.scrollDelay = 0;
-            notify.scrollposition = 9;
+            notify.scrollposition = 9 + notify.textOffset;
 
             if (notify.pushIcon == 2)
             {
@@ -544,7 +604,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
 
         if (!noScrolling)
         {
-            if ((notify.scrollDelay > MATRIX_FPS * 1.2))
+            if ((notify.scrollDelay > MATRIX_FPS * 1.2) || ((hasIcon ? notify.textOffset + 9 : notify.textOffset) > 31))
             {
                 --notify.scrollposition;
             }
@@ -555,16 +615,16 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
                 {
                     if (notify.iconWasPushed && notify.pushIcon == 1)
                     {
-                        notify.scrollposition = 0;
+                        notify.scrollposition = 0 + notify.textOffset;
                     }
                     else
                     {
-                        notify.scrollposition = 9;
+                        notify.scrollposition = 9 + notify.textOffset;
                     }
                 }
                 else
                 {
-                    notify.scrollposition = 0;
+                    notify.scrollposition = 0 + notify.textOffset;
                 }
             }
         }
@@ -580,28 +640,52 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
             // Disable repeat if text is not scrolling
             notify.repeat = -1;
 
-            if (notify.rainbow)
+            if (!notify.fragments.empty())
             {
-                // Display text in rainbow color if enabled
-                DisplayManager.HSVtext(textX, 6, notify.text.c_str(), false, notify.textCase);
+                int16_t fragmentX = textX;
+                for (size_t i = 0; i < notify.fragments.size(); ++i)
+                {
+                    matrix->setTextColor(notify.colors[i]);
+                    DisplayManager.printText(fragmentX, 6, notify.fragments[i].c_str(), false, notify.textCase);
+                    fragmentX += getTextWidth(notify.fragments[i].c_str(), notify.textCase);
+                }
             }
             else
             {
-                // Display text in solid color
-                DisplayManager.printText(textX, 6, notify.text.c_str(), false, notify.textCase);
+                if (notify.rainbow)
+                {
+                    DisplayManager.HSVtext(textX, 6, notify.text.c_str(), false, notify.textCase);
+                }
+                else
+                {
+                    DisplayManager.printText(textX, 6, notify.text.c_str(), false, notify.textCase);
+                }
             }
         }
         else
         {
-            if (notify.rainbow)
+            if (!notify.fragments.empty())
             {
-                // Display scrolling text in rainbow color if enabled
-                DisplayManager.HSVtext(notify.scrollposition, 6, notify.text.c_str(), false, notify.textCase);
+                int16_t fragmentX = notify.scrollposition;
+                for (size_t i = 0; i < notify.fragments.size(); ++i)
+                {
+                    matrix->setTextColor(notify.colors[i]);
+                    DisplayManager.printText(fragmentX, 6, notify.fragments[i].c_str(), false, notify.textCase);
+                    fragmentX += getTextWidth(notify.fragments[i].c_str(), notify.textCase);
+                }
             }
             else
             {
-                // Display scrolling text in solid color
-                DisplayManager.printText(notify.scrollposition, 6, notify.text.c_str(), false, notify.textCase);
+                if (notify.rainbow)
+                {
+                    // Display scrolling text in rainbow color if enabled
+                    DisplayManager.HSVtext(notify.scrollposition, 6, notify.text.c_str(), false, notify.textCase);
+                }
+                else
+                {
+                    // Display scrolling text in solid color
+                    DisplayManager.printText(notify.scrollposition, 6, notify.text.c_str(), false, notify.textCase);
+                }
             }
         }
     }
@@ -632,7 +716,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
         if (notify.isGif)
         {
             // Display GIF if present
-           
+
             gifPlayer->playGif(notify.iconPosition, 0, &notify.icon);
         }
         else
