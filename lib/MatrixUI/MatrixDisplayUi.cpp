@@ -33,8 +33,6 @@
 GifPlayer gif1;
 GifPlayer gif2;
 
-
-
 MatrixDisplayUi::MatrixDisplayUi(FastLED_NeoMatrix *matrix)
 {
   this->matrix = matrix;
@@ -106,6 +104,7 @@ void MatrixDisplayUi::setApps(const std::vector<std::pair<String, AppCallback>> 
     AppFunctions[i] = appPairs[i].second;
   }
   this->resetState();
+  DisplayManager.sendAppLoop();
 }
 
 // -/----- Overlays ------\-

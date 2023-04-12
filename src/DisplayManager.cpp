@@ -47,7 +47,7 @@ DisplayManager_ &DisplayManager_::getInstance()
 
 DisplayManager_ &DisplayManager = DisplayManager.getInstance();
 
-void DisplayManager_::setBrightness(uint8_t bri)
+void DisplayManager_::setBrightness(int bri)
 {
     if (MATRIX_OFF && !ALARM_ACTIVE)
     {
@@ -69,15 +69,8 @@ void DisplayManager_::setTextColor(uint16_t color)
     matrix->setTextColor(color);
 }
 
-void DisplayManager_::MatrixState(bool on)
-{
-    MATRIX_OFF = !on;
-    setBrightness(BRIGHTNESS);
-}
-
 bool DisplayManager_::setAutoTransition(bool active)
 {
-
     if (ui->AppCount < 2)
     {
         ui->disablesetAutoTransition();
@@ -111,6 +104,7 @@ void DisplayManager_::applyAllSettings()
     ui->setTargetFPS(MATRIX_FPS);
     ui->setTimePerApp(TIME_PER_APP);
     ui->setTimePerTransition(TIME_PER_TRANSITION);
+
     setBrightness(BRIGHTNESS);
     setTextColor(TEXTCOLOR_565);
     setAutoTransition(AUTO_TRANSITION);
@@ -535,12 +529,16 @@ void DisplayManager_::setup()
 {
     TJpgDec.setCallback(jpg_output);
     TJpgDec.setJpgScale(1);
-   
+
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
     setMatrixLayout(MATRIX_LAYOUT);
     if (COLOR_CORRECTION)
     {
         FastLED.setCorrection(COLOR_CORRECTION);
+    }
+    if (COLOR_TEMPERATURE)
+    {
+        FastLED.setTemperature(COLOR_TEMPERATURE);
     }
     gif.setMatrix(matrix);
     ui->setAppAnimation(SLIDE_DOWN);
@@ -716,14 +714,71 @@ void DisplayManager_::setNewSettings(const char *json)
     DeserializationError error = deserializeJson(doc, json);
     if (error)
         return;
+
+    if (doc.containsKey("textcolor"))
+    {
+        auto color = doc["textcolor"];
+        if (color.is<String>())
+        {
+            TEXTCOLOR_565 = hexToRgb565(color.as<String>());
+        }
+        else if (color.is<JsonArray>() && color.size() == 3)
+        {
+            uint8_t r = color[0];
+            uint8_t g = color[1];
+            uint8_t b = color[2];
+            TEXTCOLOR_565 = (r << 11) | (g << 5) | b;
+        }
+    }
+
     TIME_PER_APP = doc.containsKey("apptime") ? doc["apptime"] : TIME_PER_APP;
     TIME_PER_TRANSITION = doc.containsKey("transition") ? doc["transition"] : TIME_PER_TRANSITION;
-    TEXTCOLOR_565 = doc.containsKey("textcolor") ? hexToRgb565(doc["textcolor"]) : TEXTCOLOR_565;
     MATRIX_FPS = doc.containsKey("fps") ? doc["fps"] : MATRIX_FPS;
     BRIGHTNESS = doc.containsKey("brightness") ? doc["brightness"] : BRIGHTNESS;
-    AUTO_BRIGHTNESS = doc.containsKey("autobrightness") ? doc["autobrightness"] : AUTO_BRIGHTNESS;
-    AUTO_TRANSITION = doc.containsKey("autotransition") ? doc["autotransition"] : AUTO_TRANSITION;
+    TIME_FORMAT = doc.containsKey("timeformat") ? doc["timeformat"].as<String>() : TIME_FORMAT;
+    GAMMA = doc.containsKey("gamma") ? doc["gamma"].as<float>() : GAMMA;
+    DATE_FORMAT = doc.containsKey("dateformat") ? doc["dateformat"].as<String>() : DATE_FORMAT;
+    AUTO_BRIGHTNESS = doc.containsKey("auto_brightness") ? doc["autobrightness"] : AUTO_BRIGHTNESS;
+    AUTO_TRANSITION = doc.containsKey("auto_transition") ? doc["autotransition"] : AUTO_TRANSITION;
     UPPERCASE_LETTERS = doc.containsKey("uppercase") ? doc["uppercase"] : UPPERCASE_LETTERS;
+    if (doc.containsKey("color_correction"))
+    {
+        auto color = doc["color_correction"];
+        if (color.is<String>())
+        {
+            COLOR_CORRECTION = hexToRgb565(color.as<String>());
+        }
+        else if (color.is<JsonArray>() && color.size() == 3)
+        {
+            uint8_t r = color[0];
+            uint8_t g = color[1];
+            uint8_t b = color[2];
+            COLOR_CORRECTION = (r << 11) | (g << 5) | b;
+        }
+        if (COLOR_CORRECTION)
+        {
+            FastLED.setCorrection(COLOR_CORRECTION);
+        }
+    }
+    if (doc.containsKey("color_temperature"))
+    {
+        auto temperature = doc["color_temperature"];
+        if (temperature.is<String>())
+        {
+            COLOR_CORRECTION = hexToRgb565(temperature.as<String>());
+        }
+        else if (temperature.is<JsonArray>() && temperature.size() == 3)
+        {
+            uint8_t r = temperature[0];
+            uint8_t g = temperature[1];
+            uint8_t b = temperature[2];
+            COLOR_TEMPERATURE = (r << 11) | (g << 5) | b;
+        }
+        if (COLOR_TEMPERATURE)
+        {
+            FastLED.setTemperature(COLOR_TEMPERATURE);
+        }
+    }
     applyAllSettings();
     saveSettings();
 }
@@ -955,7 +1010,7 @@ String DisplayManager_::getAppsAsJson()
     // Add each app position and name to the object
     for (size_t i = 0; i < Apps.size(); i++)
     {
-        appsObject[String(i)] = Apps[i].first;
+        appsObject[Apps[i].first] = i;
     }
 
     // Serialize the JSON object to a string and return it
@@ -977,17 +1032,45 @@ void DisplayManager_::powerStateParse(const char *json)
     }
 }
 
+void DisplayManager_::showSleepAnimation()
+{
+    matrix->setTextColor(0xFFFF);
+    int steps[][2] = {{12, 8}, {13, 7}, {14, 6}, {15, 5}, {14, 4}, {13, 3}, {12, 2}, {13, 1}, {14, 0}, {15, -1}, {14, -2}, {13, -3}, {12, -4}, {13, -5}};
+    int numSteps = sizeof(steps) / sizeof(steps[0]);
+    for (int i = 0; i < numSteps; i++)
+    {
+        clear();
+        printText(steps[i][0], steps[i][1], "Z", false, 1);
+        show();
+        delay(80);
+    }
+}
+
+void DisplayManager_::showCurtainEffect()
+{
+    int width = 32;
+    int height = 8;
+
+    for (int i = 0; i <= width / 2; i++)
+    {
+        // ui->update();
+        matrix->fillRect(0, 0, i, 8, 0xFFFF); // Linker Vorhang
+        show();
+        delay(80);
+    }
+}
+
 void DisplayManager_::setPower(bool state)
 {
     if (state)
     {
         MATRIX_OFF = false;
-        setBrightness(lastBrightness);
+        setBrightness(BRIGHTNESS);
     }
     else
     {
         MATRIX_OFF = true;
-        lastBrightness = BRIGHTNESS;
+        showSleepAnimation();
         setBrightness(0);
     }
 }
@@ -1014,16 +1097,34 @@ void DisplayManager_::setIndicator2State(bool state)
 
 void DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
 {
+
+    if (strcmp(json, "") == 0)
+    {
+        if (indicator == 1)
+        {
+            ui->setIndicator1State(false);
+            MQTTManager.setIndicatorState(1, ui->indicator1State, ui->indicator1Color);
+        }
+        else
+        {
+            ui->setIndicator2State(false);
+            MQTTManager.setIndicatorState(2, ui->indicator2State, ui->indicator2Color);
+        }
+        return;
+    }
+
     DynamicJsonDocument doc(128);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
         return;
+
     if (doc.containsKey("color"))
     {
         auto color = doc["color"];
         if (color.is<String>())
         {
             uint16_t col = hexToRgb565(color.as<String>());
+
             if (col > 0)
             {
                 if (indicator == 1)
@@ -1104,6 +1205,8 @@ void DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
             ui->setIndicator2Blink(false);
         }
     }
+    MQTTManager.setIndicatorState(1, ui->indicator1State, ui->indicator1Color);
+    // MQTTManager.setIndicatorState(2, ui->indicator2State, ui->indicator2Color);
 }
 
 void DisplayManager_::gammaCorrection()
@@ -1115,4 +1218,9 @@ void DisplayManager_::gammaCorrection()
             leds[i] = applyGamma_video(leds[i], GAMMA);
         }
     }
+}
+
+void DisplayManager_::sendAppLoop()
+{
+    MQTTManager.publish("stats/loop", getAppsAsJson().c_str());
 }

@@ -82,22 +82,20 @@ void onSwitchCommand(bool state, HASwitch *sender)
 
 void onSelectCommand(int8_t index, HASelect *sender)
 {
+
+    sender->setState(index); // report the selected option back to the HA panel
     switch (index)
     {
     case 0:
-        AUTO_BRIGHTNESS = true;
+        AUTO_BRIGHTNESS = false;
+        Matrix->setBrightness(BRIGHTNESS, true);
         break;
     case 1:
-        AUTO_BRIGHTNESS = false;
-
-        break;
-    default:
         AUTO_BRIGHTNESS = true;
-        return;
+        break;
     }
-    Matrix->setBrightness(BRIGHTNESS);
+
     saveSettings();
-    sender->setState(index); // report the selected option back to the HA panel
 }
 
 void onRGBColorCommand(HALight::RGBColor color, HALight *sender)
@@ -237,20 +235,6 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
-    if (strTopic.equals(MQTT_PREFIX + "/timeformat"))
-    {
-        TIME_FORMAT = String(payloadCopy);
-        saveSettings();
-        delete[] payloadCopy;
-        return;
-    }
-    if (strTopic.equals(MQTT_PREFIX + "/dateformat"))
-    {
-        DATE_FORMAT = String(payloadCopy);
-        saveSettings();
-        delete[] payloadCopy;
-        return;
-    }
     else if (strTopic.startsWith(MQTT_PREFIX + "/custom"))
     {
         String topic_str = topic;
@@ -350,6 +334,17 @@ void MQTTManager_::setup()
         Matrix->setCurrentState(true);
         Matrix->setBRIGHTNESS(BRIGHTNESS);
 
+        HALight::RGBColor color;
+        color.isSet = true;
+        color.red = (TEXTCOLOR_565 >> 11) & 0x1F;  // Bitverschiebung um 11 Bits und Maskierung mit 0x1F
+        color.green = (TEXTCOLOR_565 >> 5) & 0x3F; // Bitverschiebung um 5 Bits und Maskierung mit 0x3F
+        color.blue = TEXTCOLOR_565 & 0x1F;         // Maskierung mit 0x1F
+        color.red <<= 3;
+        color.green <<= 2;
+        color.blue <<= 3;
+        Matrix->setCurrentRGBColor(color);
+        Matrix->setState(true, true);
+
         sprintf(ind1ID, HAi1ID, macStr);
         Indikator1 = new HALight(ind1ID, HALight::RGBFeature);
         Indikator1->setIcon(HAi1Icon);
@@ -363,13 +358,6 @@ void MQTTManager_::setup()
         Indikator2->setName(HAi2Name);
         Indikator2->onStateCommand(onStateCommand);
         Indikator2->onRGBColorCommand(onRGBColorCommand);
-
-        HALight::RGBColor color;
-        color.red = (TEXTCOLOR_565 >> 11) << 3;
-        color.green = ((TEXTCOLOR_565 >> 5) & 0x3F) << 2;
-        color.blue = (TEXTCOLOR_565 & 0x1F) << 3;
-        Matrix->setCurrentRGBColor(color);
-        Matrix->setState(true, true);
 
         sprintf(briID, HAbriID, macStr);
         BriMode = new HASelect(briID);
@@ -538,10 +526,18 @@ void MQTTManager_::sendStats()
         snprintf(buffer, 5, "%.0f", CURRENT_LUX);
         illuminance->setValue(buffer);
 
-        BriMode->setState(AUTO_BRIGHTNESS, true);
-        Matrix->setBRIGHTNESS(BRIGHTNESS);
+        BriMode->setState(AUTO_BRIGHTNESS, false);
+        Matrix->setBrightness(BRIGHTNESS);
         Matrix->setState(!MATRIX_OFF, false);
-
+        HALight::RGBColor color;
+        color.isSet = true;
+        color.red = (TEXTCOLOR_565 >> 11) & 0x1F;
+        color.green = (TEXTCOLOR_565 >> 5) & 0x3F;
+        color.blue = TEXTCOLOR_565 & 0x1F;
+        color.red <<= 3;
+        color.green <<= 2;
+        color.blue <<= 3;
+        Matrix->setRGBColor(color);
         int8_t rssiValue = WiFi.RSSI();
         char rssiString[4];
         snprintf(rssiString, sizeof(rssiString), "%d", rssiValue);
@@ -600,5 +596,34 @@ void MQTTManager_::sendButton(byte btn, bool state)
         break;
     default:
         break;
+    }
+}
+
+void MQTTManager_::setIndicatorState(uint8_t indicator, bool state, uint16_t color)
+{
+    if (HA_DISCOVERY)
+    {
+        HALight::RGBColor c;
+        c.isSet = true;
+        c.red = (color >> 11) & 0x1F;
+        c.green = (color >> 5) & 0x3F;
+        c.blue = color & 0x1F;
+        c.red <<= 3;
+        c.green <<= 2;
+        c.blue <<= 3;
+
+        switch (indicator)
+        {
+        case 1:
+            Indikator1->setRGBColor(c);
+            Indikator1->setState(state);
+            break;
+        case 2:
+            Indikator2->setRGBColor(c);
+            Indikator2->setState(state);
+            break;
+        default:
+            break;
+        }
     }
 }

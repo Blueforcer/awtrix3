@@ -103,14 +103,6 @@ private:
   // Bookeeping for update
   uint8_t updateInterval = 33;
 
-  uint16_t indicator1Color = 63488;
-  uint16_t indicator2Color = 31;
-
-  bool indicator1State = false;
-  bool indicator2State = false;
-  bool indicator1Blink = false;
-  bool indicator2Blink = false;
-
   uint8_t getnextAppNumber();
   void drawApp();
   void drawOverlays();
@@ -207,5 +199,12 @@ public:
   MatrixDisplayUiState *getUiState();
 
   int8_t update();
+
+  uint16_t indicator1Color = 63488;
+  uint16_t indicator2Color = 31;
+  bool indicator1State = false;
+  bool indicator2State = false;
+  bool indicator1Blink = false;
+  bool indicator2Blink = false;
 };
 #endif

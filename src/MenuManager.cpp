@@ -84,6 +84,7 @@ const char *dateFormat[] PROGMEM = {
     "%d/%m",    // 01/04
     "%m-%d-%y", // 04-01-22
 };
+
 int8_t dateFormatIndex;
 uint8_t dateFormatCount = 9;
 

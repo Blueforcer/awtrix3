@@ -212,12 +212,14 @@ Each property is optional; you do not need to send all.
 | --- | --- | --- | --- | --- |
 | `apptime` | number | Determines the duration an app is displayed in milliseconds. | Any positive integer value. | 7000 |
 | `transition` | number | The time the transition to the next app takes in milliseconds. | Any positive integer value. | 500 |
-| `textcolor` | string | A color in hexadecimal format. | Any valid 6-digit hexadecimal color value, e.g. "#FF0000" for red. | N/A |
+| `textcolor` | string / array of ints| A color in hexadecimal format. | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FF0000" for red. | N/A |
 | `fps` | number | Determines the frame rate at which the matrix is updated. | Any positive integer value. | 23 |
 | `brightness` | number | Determines the brightness of the matrix. | An integer between 0 and 255. | N/A |
-| `autobrightness` | boolean | Determines if automatic brightness control is active. | `true` or `false`. | N/A |
-| `autotransition` | boolean | Determines if automatic switching to the next app is active. | `true` or `false`. | N/A |
-
+| `auto_brightness` | boolean | Determines if automatic brightness control is active. | `true` or `false`. | N/A |
+| `auto_transition` | boolean | Determines if automatic switching to the next app is active. | `true` or `false`. | N/A |
+| `color_correction` | array of ints | Sets the color correction for the matrix | an array of RGB values | N/A |
+| `color_temperature` | array of ints | Sets the color temperature for the matrix | an array of RGB values | N/A |
+| `gamma` | float | Sets the gamma for the matrix | 2.5 | N/A |
 
 ## Timer
 

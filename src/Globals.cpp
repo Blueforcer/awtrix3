@@ -83,6 +83,18 @@ void loadDevSettings()
                 COLOR_CORRECTION.setRGB(r, g, b);
             }
         }
+
+        if (doc.containsKey("color_temperature"))
+        {
+            auto temperature = doc["color_temperature"];
+            if (temperature.is<JsonArray>() && temperature.size() == 3)
+            {
+                uint8_t r = temperature[0];
+                uint8_t g = temperature[1];
+                uint8_t b = temperature[2];
+                COLOR_TEMPERATURE.setRGB(r, g, b);
+            }
+        }
         file.close();
     }
 }
@@ -91,8 +103,9 @@ void loadSettings()
 {
     startLittleFS();
     Settings.begin("awtrix", false);
-    MATRIX_FPS = Settings.getUChar("FPS", 23);
-    BRIGHTNESS = Settings.getUChar("BRI", 120);
+    MATRIX_FPS = Settings.getUInt("FPS", 23);
+    BRIGHTNESS = Settings.getUInt("BRI", 120);
+
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", true);
     TEXTCOLOR_565 = Settings.getUInt("COL", 0xFFFF);
     AUTO_TRANSITION = Settings.getBool("TRANS", true);
@@ -124,8 +137,10 @@ void loadSettings()
 void saveSettings()
 {
     Settings.begin("awtrix", false);
-    Settings.putUChar("FPS", MATRIX_FPS);
-    Settings.putUChar("BRI", BRIGHTNESS);
+    Settings.putUInt("FPS", MATRIX_FPS);
+
+    Settings.putUInt("BRI", BRIGHTNESS);
+
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
     Settings.putBool("TRANS", AUTO_TRANSITION);
     Settings.putUInt("COL", TEXTCOLOR_565);
@@ -156,7 +171,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.49";
+const char *VERSION = "0.50";
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
@@ -187,16 +202,14 @@ String NTP_SERVER = "de.pool.ntp.org";
 String NTP_TZ = "CET-1CEST,M3.5.0,M10.5.0/3";
 bool HA_DISCOVERY = false;
 
-
-
 // Periphery
 String CURRENT_APP;
 float CURRENT_TEMP;
 bool IS_CELSIUS;
 float CURRENT_HUM;
 float CURRENT_LUX;
-uint8_t BRIGHTNESS = 120;
-uint8_t BRIGHTNESS_PERCENT;
+int BRIGHTNESS = 120;
+int BRIGHTNESS_PERCENT;
 #ifdef ULANZI
 uint8_t BATTERY_PERCENT;
 uint16_t BATTERY_RAW;
@@ -231,4 +244,5 @@ int MATRIX_LAYOUT = 0;
 bool UPDATE_AVAILABLE = false;
 long RECEIVED_MESSAGES;
 CRGB COLOR_CORRECTION;
+CRGB COLOR_TEMPERATURE;
 float GAMMA = 0;
