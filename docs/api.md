@@ -221,7 +221,7 @@ Each property is optional; you do not need to send all.
 | `color_temperature` | array of ints | Sets the color temperature for the matrix | an array of RGB values | N/A |
 | `gamma` | float | Sets the gamma for the matrix | 2.5 | N/A |
 | `time_format` | string | Sets the timeformat for the TimeApp | see below | N/A |
-| `fate_format` | string | Sets the dateformat for the DateApp | see below | N/A |
+| `date_format` | string | Sets the dateformat for the DateApp | see below | N/A |
 
 **Timeformats:**  
 ```bash  
