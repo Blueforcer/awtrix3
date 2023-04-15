@@ -505,6 +505,8 @@ void MQTTManager_::setCurrentApp(String value)
 {
     if (HA_DISCOVERY)
         curApp->setValue(value.c_str());
+
+    publish("currentApp", value.c_str());
 }
 
 void MQTTManager_::sendStats()
