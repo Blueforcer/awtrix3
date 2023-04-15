@@ -1250,14 +1250,14 @@ void DisplayManager_::setNewSettings(const char *json)
     TIME_PER_TRANSITION = doc.containsKey("TSPEED") ? doc["TSPEED"] : TIME_PER_TRANSITION;
     MATRIX_FPS = doc.containsKey("FPS") ? doc["FPS"] : MATRIX_FPS;
     BRIGHTNESS = doc.containsKey("BRI") ? doc["BRI"] : BRIGHTNESS;
-    START_ON_MONDAY = doc.containsKey("SOM") ? doc["SOM"] : START_ON_MONDAY;
+    START_ON_MONDAY = doc.containsKey("SOM") ? doc["SOM"].as<bool>() : START_ON_MONDAY;
     TIME_FORMAT = doc.containsKey("TFORMAT") ? doc["TFORMAT"].as<String>() : TIME_FORMAT;
     GAMMA = doc.containsKey("GAMMA") ? doc["GAMMA"].as<float>() : GAMMA;
     DATE_FORMAT = doc.containsKey("DFORMAT") ? doc["DFORMAT"].as<String>() : DATE_FORMAT;
-    AUTO_BRIGHTNESS = doc.containsKey("ABRI") ? doc["ABRI"] : AUTO_BRIGHTNESS;
-    AUTO_TRANSITION = doc.containsKey("ATRANS") ? doc["ATRANS"] : AUTO_TRANSITION;
-    UPPERCASE_LETTERS = doc.containsKey("UPPERCASE") ? doc["UPPERCASE"] : UPPERCASE_LETTERS;
-    SHOW_WEEKDAY = doc.containsKey("WD") ? doc["WD"] : SHOW_WEEKDAY;
+    AUTO_BRIGHTNESS = doc.containsKey("ABRI") ? doc["ABRI"].as<bool>() : AUTO_BRIGHTNESS;
+    AUTO_TRANSITION = doc.containsKey("ATRANS") ? doc["ATRANS"].as<bool>() : AUTO_TRANSITION;
+    UPPERCASE_LETTERS = doc.containsKey("UPPERCASE") ? doc["UPPERCASE"].as<bool>() : UPPERCASE_LETTERS;
+    SHOW_WEEKDAY = doc.containsKey("WD") ? doc["WD"].as<bool>() : SHOW_WEEKDAY;
     if (doc.containsKey("CCORRECTION"))
     {
         auto color = doc["CCORRECTION"];
