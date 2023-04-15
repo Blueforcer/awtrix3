@@ -239,7 +239,7 @@ Each property is optional; you do not need to send all.
 | `TFORMAT` | string | Sets the timeformat for the TimeApp | see below | N/A |
 | `DFORMAT` | string | Sets the dateformat for the DateApp | see below | N/A |
 | `SOM` | bool | Sets the start of the week to monday | true/false | true |
-| `BLOCKN` | bool | Blocks the physical navigation keys, but still sends the input to MQTT | true/false | false |
+| `BLOCKN` | bool | Blocks temporarily the physical navigation keys, but still sends the input to MQTT | true/false | false |
 
 
 **Timeformats:**  
