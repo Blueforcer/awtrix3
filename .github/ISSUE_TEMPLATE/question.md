@@ -4,15 +4,13 @@ about: Open an issue to ask something
 title: "[QUESTION]"
 labels: question
 assignees: ''
-
 ---
 
-<!-- Make sure to read the README before opening an issue. [https://xaviml.github.io/controllerx/faq](https://blueforcer.github.io/awtrix-light/#/README) -->
+<!-- Make sure to read the README (https://blueforcer.github.io/awtrix-light/#/README) before opening an issue. -->
 
 # Question
 
 Add here your question.
-
 
 ## Additional information
 
@@ -27,4 +25,5 @@ Add here your question.
 ```
 
 ## Additional context
+
 Add any other context about the problem here.

@@ -6,11 +6,12 @@ labels: bug
 assignees: ''
 ---
 
-<!-- Make sure to read the README before opening an issue. [https://xaviml.github.io/controllerx/faq](https://blueforcer.github.io/awtrix-light/#/README) -->
+<!-- Make sure to read the README (https://blueforcer.github.io/awtrix-light/#/README) before opening an issue. -->
 
 # Bug report
 
 ## Describe the bug
+
 Add a description of the bug. Detail the expected behaviour in contrast with the behaviour you're observing.
 
 ## Additional information
@@ -20,13 +21,15 @@ Add a description of the bug. Detail the expected behaviour in contrast with the
   - AWTRIX-LIGHT version: [ eg. v0.45 ]
 
 ## To Reproduce
+
 Steps to reproduce the behavior:
 
-
 ## Expected behavior
+
 A clear and concise description of what you expected to happen.
 
 ## Screenshots
+
 If applicable, add screenshots to help explain your problem.
 
 ## Logs
@@ -36,4 +39,5 @@ If applicable, add screenshots to help explain your problem.
 ```
 
 ## Additional context
+
 Add any other context about the problem here.
