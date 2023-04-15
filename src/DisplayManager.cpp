@@ -1258,6 +1258,7 @@ void DisplayManager_::setNewSettings(const char *json)
     AUTO_TRANSITION = doc.containsKey("ATRANS") ? doc["ATRANS"].as<bool>() : AUTO_TRANSITION;
     UPPERCASE_LETTERS = doc.containsKey("UPPERCASE") ? doc["UPPERCASE"].as<bool>() : UPPERCASE_LETTERS;
     SHOW_WEEKDAY = doc.containsKey("WD") ? doc["WD"].as<bool>() : SHOW_WEEKDAY;
+    BLOCK_NAVIGATION = doc.containsKey("BLOCKN") ? doc["BLOCKN"].as<bool>() : BLOCK_NAVIGATION;
     if (doc.containsKey("CCORRECTION"))
     {
         auto color = doc["CCORRECTION"];
@@ -1358,6 +1359,7 @@ void DisplayManager_::setNewSettings(const char *json)
     }
     applyAllSettings();
     saveSettings();
+    Serial.println(BLOCK_NAVIGATION);
 }
 
 String DisplayManager_::ledsAsJson()

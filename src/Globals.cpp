@@ -174,7 +174,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.53";
+const char *VERSION = "0.54";
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
@@ -250,5 +250,5 @@ CRGB COLOR_CORRECTION;
 CRGB COLOR_TEMPERATURE;
 uint16_t WDC_ACTIVE;
 uint16_t WDC_INACTIVE;
-
+bool BLOCK_NAVIGATION=false;
 float GAMMA = 0;

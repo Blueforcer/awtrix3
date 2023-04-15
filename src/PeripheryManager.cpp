@@ -99,33 +99,43 @@ PeripheryManager_ &PeripheryManager = PeripheryManager.getInstance();
 
 void left_button_pressed()
 {
+    if (!BLOCK_NAVIGATION)
+    {
 #ifndef ULANZI
-    PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
+        PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
 #endif
-    DisplayManager.leftButton();
-    MenuManager.leftButton();
+        DisplayManager.leftButton();
+        MenuManager.leftButton();
+    }
 }
 
 void right_button_pressed()
 {
+    if (!BLOCK_NAVIGATION)
+    {
 #ifndef ULANZI
-    PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
+        PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
 #endif
-    DisplayManager.rightButton();
-    MenuManager.rightButton();
+        DisplayManager.rightButton();
+        MenuManager.rightButton();
+    }
 }
 
 void select_button_pressed()
 {
+    if (!BLOCK_NAVIGATION)
+    {
 #ifndef ULANZI
-    PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
+        PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
 #endif
-    DisplayManager.selectButton();
-    MenuManager.selectButton();
+        DisplayManager.selectButton();
+        MenuManager.selectButton();
+    }
 }
 
 void select_button_pressed_long()
 {
+
     if (AP_MODE)
     {
 #ifndef ULANZI
@@ -136,7 +146,7 @@ void select_button_pressed_long()
         ESP.restart();
 #endif
     }
-    else
+    else if (!BLOCK_NAVIGATION)
     {
         DisplayManager.selectButtonLong();
         MenuManager.selectButtonLong();
@@ -145,13 +155,16 @@ void select_button_pressed_long()
 
 void select_button_double()
 {
-    if (MATRIX_OFF)
+    if (!BLOCK_NAVIGATION)
     {
-        DisplayManager.setPower(true);
-    }
-    else
-    {
-        DisplayManager.setPower(false);
+        if (MATRIX_OFF)
+        {
+            DisplayManager.setPower(true);
+        }
+        else
+        {
+            DisplayManager.setPower(false);
+        }
     }
 }
 

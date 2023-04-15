@@ -84,7 +84,7 @@ extern uint16_t WDC_INACTIVE;
 extern float GAMMA;
 void loadSettings();
 void saveSettings();
-
+extern bool BLOCK_NAVIGATION;
 
 
 #endif // Globals_H

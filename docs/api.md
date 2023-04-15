@@ -208,13 +208,6 @@ In this example,
 - The "bat" app is inactive and will be removed,   
 - and the "github" app is active and should be displayed in position 4.  
 
-## Add timer  
- create custom apps or notifications to display your own text and icons.
- have a look at [this section](custom)
-
-| Topic | URL | Payload/Body |HTTP method |
-| --- | --- | --- |--- |
-| `[PREFIX]/custom/[appname]` |`http://[IP]/api/notify/dismiss` | empty payload/body | POST |
 
 
 ## Change Settings  
@@ -246,6 +239,7 @@ Each property is optional; you do not need to send all.
 | `TFORMAT` | string | Sets the timeformat for the TimeApp | see below | N/A |
 | `DFORMAT` | string | Sets the dateformat for the DateApp | see below | N/A |
 | `SOM` | bool | Sets the start of the week to monday | true/false | true |
+| `BLOCKN` | bool | Blocks the physical navigation keys, but still sends the input to MQTT | true/false | false |
 
 
 **Timeformats:**  
