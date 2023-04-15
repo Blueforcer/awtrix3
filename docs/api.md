@@ -245,7 +245,7 @@ Each property is optional; you do not need to send all.
 | `GAMMA` | float | Sets the gamma for the matrix | 2.5 | N/A |
 | `TFORMAT` | string | Sets the timeformat for the TimeApp | see below | N/A |
 | `DFORMAT` | string | Sets the dateformat for the DateApp | see below | N/A |
-| `SOM` | bool | Sets the start of the week to sunday | true/false | false |
+| `SOM` | bool | Sets the start of the week to monday | true/false | true |
 
 
 **Timeformats:**  
