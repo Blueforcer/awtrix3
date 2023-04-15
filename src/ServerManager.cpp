@@ -59,6 +59,7 @@ void ServerManager_::setup()
         mws.addOption("Subnet", NET_SN);
         mws.addOption("Primary DNS", NET_PDNS);
         mws.addOption("Secondary DNS", NET_SDNS);
+        mws.addOption("Automatic Update Check", UPDATE_CHECK);
         mws.addOptionBox("MQTT");
         mws.addOption("Broker", MQTT_HOST);
         mws.addOption("Port", MQTT_PORT);
@@ -197,6 +198,7 @@ void ServerManager_::loadSettings()
         NET_SN = doc["Subnet"].as<String>();
         NET_PDNS = doc["Primary DNS"].as<String>();
         NET_SDNS = doc["Secondary DNS"].as<String>();
+        UPDATE_CHECK = doc["Automatic Update Check"];
         file.close();
         DisplayManager.applyAllSettings();
         Serial.println(F("Configuration loaded"));

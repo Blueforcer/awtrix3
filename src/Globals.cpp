@@ -198,6 +198,7 @@ String NET_GW = "192.168.178.1";
 String NET_SN = "255.255.255.0";
 String NET_PDNS = "8.8.8.8";
 String NET_SDNS = "1.1.1.1";
+bool UPDATE_CHECK = true;
 int TIME_PER_APP = 7000;
 uint8_t MATRIX_FPS = 23;
 int TIME_PER_TRANSITION = 400;

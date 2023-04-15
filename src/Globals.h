@@ -33,6 +33,7 @@ extern String NET_GW;
 extern String NET_SN;
 extern String NET_PDNS;
 extern String NET_SDNS;
+extern bool UPDATE_CHECK;
 extern int TIME_PER_APP;
 extern uint8_t MATRIX_FPS;
 extern int TIME_PER_TRANSITION;
