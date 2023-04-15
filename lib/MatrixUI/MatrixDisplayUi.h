@@ -174,7 +174,7 @@ public:
   void setApps(const std::vector<std::pair<String, AppCallback>> &appPairs);
 
   // Overlay
-
+  void forceResetState();
   /**
    * Add overlays drawing functions that are draw independent of the Apps
    */

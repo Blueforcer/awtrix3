@@ -230,18 +230,23 @@ Each property is optional; you do not need to send all.
 
 | Key | Type | Description | Value Range | Default |
 | --- | --- | --- | --- | --- |
-| `apptime` | number | Determines the duration an app is displayed in milliseconds. | Any positive integer value. | 7000 |
-| `transition` | number | The time the transition to the next app takes in milliseconds. | Any positive integer value. | 500 |
-| `textcolor` | string / array of ints| A color in hexadecimal format. | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FF0000" for red. | N/A |
-| `fps` | number | Determines the frame rate at which the matrix is updated. | Any positive integer value. | 23 |
-| `brightness` | number | Determines the brightness of the matrix. | An integer between 0 and 255. | N/A |
-| `auto_brightness` | boolean | Determines if automatic brightness control is active. | `true` or `false`. | N/A |
-| `auto_transition` | boolean | Determines if automatic switching to the next app is active. | `true` or `false`. | N/A |
-| `color_correction` | array of ints | Sets the color correction for the matrix | an array of RGB values | N/A |
-| `color_temperature` | array of ints | Sets the color temperature for the matrix | an array of RGB values | N/A |
-| `gamma` | float | Sets the gamma for the matrix | 2.5 | N/A |
-| `timeformat` | string | Sets the timeformat for the TimeApp | see below | N/A |
-| `dateformat` | string | Sets the dateformat for the DateApp | see below | N/A |
+| `ATIME` | number | Determines the duration an app is displayed in milliseconds. | Any positive integer value. | 7000 |
+| `TSPEED` | number | The time the transition to the next app takes in milliseconds. | Any positive integer value. | 500 |
+| `TCOL` | string / array of ints| Sets the textcolor | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FF0000" for red. | N/A |
+| `WD` | bool | Enable or disable the weekday display | true/false | true |
+| `WDCA` | string / array of ints| Sets the active weekday color | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FF0000" for red. | N/A |
+| `WDCI` | string / array of ints| Sets the inactive weekday color | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FFFF" for red. | N/A |
+| `FPS` | number | Determines the frame rate at which the matrix is updated. | Any positive integer value. | 23 |
+| `BRI` | number | Determines the brightness of the matrix. | An integer between 0 and 255. | N/A |
+| `ABRI` | boolean | Determines if automatic brightness control is active. | `true` or `false`. | N/A |
+| `ATRANS` | boolean | Determines if automatic switching to the next app is active. | `true` or `false`. | N/A |
+| `CCORRECTION` | array of ints | Sets the color correction for the matrix | an array of RGB values | N/A |
+| `CTEMP` | array of ints | Sets the color temperature for the matrix | an array of RGB values | N/A |
+| `GAMMA` | float | Sets the gamma for the matrix | 2.5 | N/A |
+| `TFORMAT` | string | Sets the timeformat for the TimeApp | see below | N/A |
+| `DFORMAT` | string | Sets the dateformat for the DateApp | see below | N/A |
+| `SOM` | bool | Sets the start of the week to sunday | true/false | false |
+
 
 **Timeformats:**  
 ```bash  

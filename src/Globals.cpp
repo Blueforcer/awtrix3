@@ -105,12 +105,14 @@ void loadSettings()
     Settings.begin("awtrix", false);
     MATRIX_FPS = Settings.getUInt("FPS", 23);
     BRIGHTNESS = Settings.getUInt("BRI", 120);
-
-    AUTO_BRIGHTNESS = Settings.getBool("ABRI", true);
-    TEXTCOLOR_565 = Settings.getUInt("COL", 0xFFFF);
-    AUTO_TRANSITION = Settings.getBool("TRANS", true);
+    AUTO_BRIGHTNESS = Settings.getBool("ABRI", false);
+    TEXTCOLOR_565 = Settings.getUInt("TCOL", 0xFFFF);
+    WDC_ACTIVE = Settings.getUInt("WDCA", 0xFFFF);
+    WDC_INACTIVE = Settings.getUInt("WDCI", 0x6B6D);
+    AUTO_TRANSITION = Settings.getBool("ATRANS", true);
+    SHOW_WEEKDAY = Settings.getBool("WD", true);
     TIME_PER_TRANSITION = Settings.getUInt("TSPEED", 400);
-    TIME_PER_APP = Settings.getUInt("ADUR", 7000);
+    TIME_PER_APP = Settings.getUInt("ATIME", 7000);
     TIME_FORMAT = Settings.getString("TFORMAT", "%H:%M:%S");
     DATE_FORMAT = Settings.getString("DFORMAT", "%d.%m.%y");
     START_ON_MONDAY = Settings.getBool("SOM", true);
@@ -138,14 +140,15 @@ void saveSettings()
 {
     Settings.begin("awtrix", false);
     Settings.putUInt("FPS", MATRIX_FPS);
-
     Settings.putUInt("BRI", BRIGHTNESS);
-
+    Settings.putBool("WD", SHOW_WEEKDAY);
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
-    Settings.putBool("TRANS", AUTO_TRANSITION);
-    Settings.putUInt("COL", TEXTCOLOR_565);
+    Settings.putBool("ATRANS", AUTO_TRANSITION);
+    Settings.putUInt("TCOL", TEXTCOLOR_565);
+    Settings.putUInt("WDCA", WDC_ACTIVE);
+    Settings.putUInt("WDCI", WDC_INACTIVE);
     Settings.putUInt("TSPEED", TIME_PER_TRANSITION);
-    Settings.putUInt("ADUR", TIME_PER_APP);
+    Settings.putUInt("ATIME", TIME_PER_APP);
     Settings.putString("TFORMAT", TIME_FORMAT);
     Settings.putString("DFORMAT", DATE_FORMAT);
     Settings.putBool("SOM", START_ON_MONDAY);
@@ -171,7 +174,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.51";
+const char *VERSION = "0.52";
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
@@ -232,7 +235,7 @@ bool AP_MODE;
 bool MATRIX_OFF;
 bool TIMER_ACTIVE;
 bool ALARM_ACTIVE;
-uint16_t TEXTCOLOR_565 = 0xFFFF;
+uint16_t TEXTCOLOR_565;
 bool SOUND_ACTIVE;
 String BOOT_SOUND = "";
 int TEMP_DECIMAL_PLACES = 0;
@@ -245,4 +248,7 @@ bool UPDATE_AVAILABLE = false;
 long RECEIVED_MESSAGES;
 CRGB COLOR_CORRECTION;
 CRGB COLOR_TEMPERATURE;
+uint16_t WDC_ACTIVE;
+uint16_t WDC_INACTIVE;
+
 float GAMMA = 0;

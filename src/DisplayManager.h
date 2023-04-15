@@ -63,18 +63,22 @@ public:
     void setMatrixLayout(int layout);
     void setAppTime(uint16_t duration);
     String getAppsAsJson();
-    String getStat();
+    String getStats();
+    String getSettings();
     void setPower(bool state);
     void powerStateParse(const char *json);
     void setIndicator1Color(uint16_t color);
     void setIndicator1State(bool state);
     void setIndicator2Color(uint16_t color);
     void setIndicator2State(bool state);
+    void reorderApps(const String &jsonString);
     void gammaCorrection();
     void indicatorParser(uint8_t indicator, const char *json);
     void showSleepAnimation();
     void showCurtainEffect();
     void sendAppLoop();
+    String ledsAsJson();
+    String getAppsWithIcon();
 };
 
 extern DisplayManager_ &DisplayManager;

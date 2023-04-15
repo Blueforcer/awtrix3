@@ -105,5 +105,4 @@ void loop()
   {
     MQTTManager.tick();
   }
-
 }

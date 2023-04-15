@@ -79,6 +79,8 @@ extern bool UPDATE_AVAILABLE;
 extern long RECEIVED_MESSAGES;
 extern CRGB COLOR_CORRECTION;
 extern CRGB COLOR_TEMPERATURE;
+extern uint16_t WDC_ACTIVE;
+extern uint16_t WDC_INACTIVE;
 extern float GAMMA;
 void loadSettings();
 void saveSettings();

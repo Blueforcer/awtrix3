@@ -557,7 +557,7 @@ void MQTTManager_::sendStats()
     {
     }
 
-    publish(StatsTopic, DisplayManager.getStat().c_str());
+    publish(StatsTopic, DisplayManager.getStats().c_str());
 }
 
 void MQTTManager_::sendButton(byte btn, bool state)

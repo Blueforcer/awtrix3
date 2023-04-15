@@ -86,7 +86,7 @@ Notification notify;
 
 std::vector<std::pair<String, AppCallback>> Apps;
 
-CustomApp *getCustomAppById(String name)
+CustomApp *getCustomAppByName(String name)
 {
     return customApps.count(name) ? &customApps[name] : nullptr;
 }
@@ -154,11 +154,11 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     {
         if (i == (timeInfo->tm_wday + 6 + dayOffset) % 7)
         {
-            matrix->drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, matrix->Color(200, 200, 200));
+            matrix->drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, WDC_ACTIVE);
         }
         else
         {
-            matrix->drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, matrix->Color(100, 100, 100));
+            matrix->drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, WDC_INACTIVE);
         }
     }
 }
@@ -182,11 +182,11 @@ void DateApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     {
         if (i == (timeInfo->tm_wday + 6 + dayOffset) % 7)
         {
-            matrix->drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, matrix->Color(200, 200, 200));
+            matrix->drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, WDC_ACTIVE);
         }
         else
         {
-            matrix->drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, matrix->Color(100, 100, 100));
+            matrix->drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, WDC_INACTIVE);
         }
     }
 }
@@ -312,7 +312,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     }
 
     // Get custom App by ID
-    CustomApp *ca = getCustomAppById(name);
+    CustomApp *ca = getCustomAppByName(name);
 
     // Abort if custom App not found
     if (ca == nullptr)

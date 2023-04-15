@@ -89,14 +89,20 @@ void ServerManager_::setup()
                        { DisplayManager.updateAppVector(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/switch", HTTP_POST, []()
                        { DisplayManager.switchToApp(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
-        mws.addHandler("/api/loop", HTTP_GET, []()
-                       { mws.webserver->sendContent(DisplayManager.getAppsAsJson()); });
+        mws.addHandler("/api/apps", HTTP_GET, []()
+                       { mws.webserver->send_P(200, "application/json", DisplayManager.getAppsWithIcon().c_str()); });
         mws.addHandler("/api/settings", HTTP_POST, []()
                        { DisplayManager.setNewSettings(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/reorder", HTTP_POST, []()
+                       { DisplayManager.reorderApps(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+        mws.addHandler("/api/settings", HTTP_GET, []()
+                       { mws.webserver->send_P(200, "application/json", DisplayManager.getSettings().c_str()); });
         mws.addHandler("/api/custom", HTTP_POST, []()
                        { DisplayManager.generateCustomPage(mws.webserver->arg("name"),mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/stats", HTTP_GET, []()
-                       { mws.webserver->sendContent(DisplayManager.getStat()); });
+                       { mws.webserver->send_P(200, "application/json", DisplayManager.getStats().c_str()); });
+        mws.addHandler("/api/screen", HTTP_GET, []()
+                       { mws.webserver->send_P(200, "application/json", DisplayManager.ledsAsJson().c_str()); });
         mws.addHandler("/api/indicator1", HTTP_POST, []()
                        { DisplayManager.indicatorParser(1,mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/indicator2", HTTP_POST, []()

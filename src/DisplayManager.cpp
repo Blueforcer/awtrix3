@@ -105,7 +105,8 @@ void DisplayManager_::applyAllSettings()
     ui->setTimePerApp(TIME_PER_APP);
     ui->setTimePerTransition(TIME_PER_TRANSITION);
 
-    setBrightness(BRIGHTNESS);
+    if (!AUTO_BRIGHTNESS)
+        setBrightness(BRIGHTNESS);
     setTextColor(TEXTCOLOR_565);
     setAutoTransition(AUTO_TRANSITION);
 }
@@ -774,81 +775,6 @@ void DisplayManager_::switchToApp(const char *json)
         ui->transitionToApp(index);
 }
 
-void DisplayManager_::setNewSettings(const char *json)
-{
-    DynamicJsonDocument doc(512);
-    DeserializationError error = deserializeJson(doc, json);
-    if (error)
-        return;
-
-    if (doc.containsKey("textcolor"))
-    {
-        auto color = doc["textcolor"];
-        if (color.is<String>())
-        {
-            TEXTCOLOR_565 = hexToRgb565(color.as<String>());
-        }
-        else if (color.is<JsonArray>() && color.size() == 3)
-        {
-            uint8_t r = color[0];
-            uint8_t g = color[1];
-            uint8_t b = color[2];
-            TEXTCOLOR_565 = (r << 11) | (g << 5) | b;
-        }
-    }
-
-    TIME_PER_APP = doc.containsKey("apptime") ? doc["apptime"] : TIME_PER_APP;
-    TIME_PER_TRANSITION = doc.containsKey("transition") ? doc["transition"] : TIME_PER_TRANSITION;
-    MATRIX_FPS = doc.containsKey("fps") ? doc["fps"] : MATRIX_FPS;
-    BRIGHTNESS = doc.containsKey("brightness") ? doc["brightness"] : BRIGHTNESS;
-    TIME_FORMAT = doc.containsKey("timeformat") ? doc["timeformat"].as<String>() : TIME_FORMAT;
-    GAMMA = doc.containsKey("gamma") ? doc["gamma"].as<float>() : GAMMA;
-    DATE_FORMAT = doc.containsKey("dateformat") ? doc["dateformat"].as<String>() : DATE_FORMAT;
-    AUTO_BRIGHTNESS = doc.containsKey("auto_brightness") ? doc["autobrightness"] : AUTO_BRIGHTNESS;
-    AUTO_TRANSITION = doc.containsKey("auto_transition") ? doc["autotransition"] : AUTO_TRANSITION;
-    UPPERCASE_LETTERS = doc.containsKey("uppercase") ? doc["uppercase"] : UPPERCASE_LETTERS;
-    if (doc.containsKey("color_correction"))
-    {
-        auto color = doc["color_correction"];
-        if (color.is<String>())
-        {
-            COLOR_CORRECTION = hexToRgb565(color.as<String>());
-        }
-        else if (color.is<JsonArray>() && color.size() == 3)
-        {
-            uint8_t r = color[0];
-            uint8_t g = color[1];
-            uint8_t b = color[2];
-            COLOR_CORRECTION = (r << 11) | (g << 5) | b;
-        }
-        if (COLOR_CORRECTION)
-        {
-            FastLED.setCorrection(COLOR_CORRECTION);
-        }
-    }
-    if (doc.containsKey("color_temperature"))
-    {
-        auto temperature = doc["color_temperature"];
-        if (temperature.is<String>())
-        {
-            COLOR_CORRECTION = hexToRgb565(temperature.as<String>());
-        }
-        else if (temperature.is<JsonArray>() && temperature.size() == 3)
-        {
-            uint8_t r = temperature[0];
-            uint8_t g = temperature[1];
-            uint8_t b = temperature[2];
-            COLOR_TEMPERATURE = (r << 11) | (g << 5) | b;
-        }
-        if (COLOR_TEMPERATURE)
-        {
-            FastLED.setTemperature(COLOR_TEMPERATURE);
-        }
-    }
-    applyAllSettings();
-    saveSettings();
-}
-
 void DisplayManager_::drawProgressBar(int cur, int total)
 {
     matrix->clear();
@@ -1015,7 +941,7 @@ void DisplayManager_::updateAppVector(const char *json)
     saveSettings();
 }
 
-String DisplayManager_::getStat()
+String DisplayManager_::getStats()
 {
     StaticJsonDocument<256> doc;
     char buffer[5];
@@ -1036,6 +962,8 @@ String DisplayManager_::getStat()
     doc[SignalStrengthKey] = WiFi.RSSI();
     doc[UpdateKey] = UPDATE_AVAILABLE;
     doc["messages"] = RECEIVED_MESSAGES;
+    doc["version"] = VERSION;
+    doc["app"] = CURRENT_APP;
     String jsonString;
     return serializeJson(doc, jsonString), jsonString;
 }
@@ -1069,17 +997,12 @@ void DisplayManager_::setMatrixLayout(int layout)
 
 String DisplayManager_::getAppsAsJson()
 {
-    // Create a JSON object to hold the app positions and names
     DynamicJsonDocument doc(1024);
     JsonObject appsObject = doc.to<JsonObject>();
-
-    // Add each app position and name to the object
     for (size_t i = 0; i < Apps.size(); i++)
     {
         appsObject[Apps[i].first] = i;
     }
-
-    // Serialize the JSON object to a string and return it
     String json;
     serializeJson(appsObject, json);
     return json;
@@ -1289,4 +1212,218 @@ void DisplayManager_::gammaCorrection()
 void DisplayManager_::sendAppLoop()
 {
     MQTTManager.publish("stats/loop", getAppsAsJson().c_str());
+}
+
+String DisplayManager_::getSettings()
+{
+    StaticJsonDocument<256> doc;
+    doc["FPS"] = MATRIX_FPS;
+    doc["ABRI"] = AUTO_BRIGHTNESS;
+    doc["BRI"] = BRIGHTNESS;
+    doc["ATRANS"] = AUTO_TRANSITION;
+    doc["TCOL"] = TEXTCOLOR_565;
+    doc["TSPEED"] = TIME_PER_TRANSITION;
+    doc["ATIME"] = TIME_PER_APP;
+    doc["TFORMAT"] = TIME_FORMAT;
+    doc["DFORMAT"] = DATE_FORMAT;
+    doc["SOM"] = START_ON_MONDAY;
+    doc["CEL"] = IS_CELSIUS;
+    doc["MAT"] = MATRIX_LAYOUT;
+    doc["SOUND"] = SOUND_ACTIVE;
+    doc["GAMMA"] = GAMMA;
+    doc["UPPERCASE"] = GAMMA;
+    doc["CCORRECTION"] = COLOR_CORRECTION.raw;
+    doc["CTEMP"] = COLOR_TEMPERATURE.raw;
+    String jsonString;
+    return serializeJson(doc, jsonString), jsonString;
+}
+
+void DisplayManager_::setNewSettings(const char *json)
+{
+    Serial.println(json);
+    DynamicJsonDocument doc(512);
+    DeserializationError error = deserializeJson(doc, json);
+    if (error)
+        return;
+
+    TIME_PER_APP = doc.containsKey("ATIME") ? doc["ATIME"] : TIME_PER_APP;
+    TIME_PER_TRANSITION = doc.containsKey("TSPEED") ? doc["TSPEED"] : TIME_PER_TRANSITION;
+    MATRIX_FPS = doc.containsKey("FPS") ? doc["FPS"] : MATRIX_FPS;
+    BRIGHTNESS = doc.containsKey("BRI") ? doc["BRI"] : BRIGHTNESS;
+    START_ON_MONDAY = doc.containsKey("SOM") ? doc["SOM"] : START_ON_MONDAY;
+    TIME_FORMAT = doc.containsKey("TFORMAT") ? doc["TFORMAT"].as<String>() : TIME_FORMAT;
+    GAMMA = doc.containsKey("GAMMA") ? doc["GAMMA"].as<float>() : GAMMA;
+    DATE_FORMAT = doc.containsKey("DFORMAT") ? doc["DFORMAT"].as<String>() : DATE_FORMAT;
+    AUTO_BRIGHTNESS = doc.containsKey("ABRI") ? doc["ABRI"] : AUTO_BRIGHTNESS;
+    AUTO_TRANSITION = doc.containsKey("ATRANS") ? doc["ATRANS"] : AUTO_TRANSITION;
+    UPPERCASE_LETTERS = doc.containsKey("UPPERCASE") ? doc["UPPERCASE"] : UPPERCASE_LETTERS;
+    SHOW_WEEKDAY = doc.containsKey("WD") ? doc["WD"] : SHOW_WEEKDAY;
+    if (doc.containsKey("CCORRECTION"))
+    {
+        auto color = doc["CCORRECTION"];
+        if (color.is<String>())
+        {
+            COLOR_CORRECTION = hexToRgb565(color.as<String>());
+        }
+        else if (color.is<JsonArray>() && color.size() == 3)
+        {
+            uint8_t r = color[0];
+            uint8_t g = color[1];
+            uint8_t b = color[2];
+            COLOR_CORRECTION = (r << 11) | (g << 5) | b;
+        }
+        if (COLOR_CORRECTION)
+        {
+            FastLED.setCorrection(COLOR_CORRECTION);
+        }
+    }
+    if (doc.containsKey("CTEMP"))
+    {
+        auto temperature = doc["CTEMP"];
+        if (temperature.is<String>())
+        {
+            COLOR_TEMPERATURE = hexToRgb565(temperature.as<String>());
+        }
+        else if (temperature.is<JsonArray>() && temperature.size() == 3)
+        {
+            uint8_t r = temperature[0];
+            uint8_t g = temperature[1];
+            uint8_t b = temperature[2];
+            COLOR_TEMPERATURE = (r << 11) | (g << 5) | b;
+        }
+        if (COLOR_TEMPERATURE)
+        {
+            FastLED.setTemperature(COLOR_TEMPERATURE);
+        }
+    }
+    if (doc.containsKey("WDCA"))
+    {
+        auto temperature = doc["WDCA"];
+        if (temperature.is<String>())
+        {
+            WDC_ACTIVE = hexToRgb565(temperature.as<String>());
+        }
+        else if (temperature.is<JsonArray>() && temperature.size() == 3)
+        {
+            uint8_t r = temperature[0];
+            uint8_t g = temperature[1];
+            uint8_t b = temperature[2];
+            WDC_ACTIVE = (r << 11) | (g << 5) | b;
+        }
+    }
+    if (doc.containsKey("WDCI"))
+    {
+        auto temperature = doc["WDCI"];
+        if (temperature.is<String>())
+        {
+            WDC_INACTIVE = hexToRgb565(temperature.as<String>());
+        }
+        else if (temperature.is<JsonArray>() && temperature.size() == 3)
+        {
+            uint8_t r = temperature[0];
+            uint8_t g = temperature[1];
+            uint8_t b = temperature[2];
+            WDC_INACTIVE = (r << 11) | (g << 5) | b;
+        }
+    }
+    if (doc.containsKey("WDCA"))
+    {
+        auto temperature = doc["WDCA"];
+        if (temperature.is<String>())
+        {
+            WDC_ACTIVE = hexToRgb565(temperature.as<String>());
+        }
+        else if (temperature.is<JsonArray>() && temperature.size() == 3)
+        {
+            uint8_t r = temperature[0];
+            uint8_t g = temperature[1];
+            uint8_t b = temperature[2];
+            WDC_ACTIVE = (r << 11) | (g << 5) | b;
+        }
+    }
+    if (doc.containsKey("TCOL"))
+    {
+        auto temperature = doc["TCOL"];
+        if (temperature.is<String>())
+        {
+            TEXTCOLOR_565 = hexToRgb565(temperature.as<String>());
+        }
+        else if (temperature.is<JsonArray>() && temperature.size() == 3)
+        {
+            uint8_t r = temperature[0];
+            uint8_t g = temperature[1];
+            uint8_t b = temperature[2];
+            TEXTCOLOR_565 = (r << 11) | (g << 5) | b;
+        }
+    }
+    applyAllSettings();
+    saveSettings();
+}
+
+String DisplayManager_::ledsAsJson()
+{
+    StaticJsonDocument<JSON_ARRAY_SIZE(MATRIX_WIDTH * MATRIX_HEIGHT)> jsonDoc;
+    JsonArray jsonColors = jsonDoc.to<JsonArray>();
+    for (int y = 0; y < MATRIX_HEIGHT; y++)
+    {
+        for (int x = 0; x < MATRIX_WIDTH; x++)
+        {
+            int index = matrix->XY(x, y);
+            int r = leds[index].r;
+            int g = leds[index].g;
+            int b = leds[index].b;
+            int color = (r << 16) | (g << 8) | b;
+            jsonColors.add(color);
+        }
+    }
+    String jsonString;
+    serializeJson(jsonColors, jsonString);
+    return jsonString;
+}
+
+String DisplayManager_::getAppsWithIcon()
+{
+    DynamicJsonDocument jsonDocument(1024);
+    JsonArray jsonArray = jsonDocument.to<JsonArray>();
+    for (const auto &app : Apps)
+    {
+        JsonObject appObject = jsonArray.createNestedObject();
+        appObject["name"] = app.first;
+
+        CustomApp *customApp = getCustomAppByName(app.first);
+        if (customApp != nullptr)
+        {
+            appObject["icon"] = customApp->icon.name();
+        }
+    }
+    String jsonString;
+    serializeJson(jsonArray, jsonString);
+    return jsonString;
+}
+
+void DisplayManager_::reorderApps(const String &jsonString)
+{
+    StaticJsonDocument<1024> jsonDocument;
+    DeserializationError error = deserializeJson(jsonDocument, jsonString);
+    if (error)
+    {
+        return;
+    }
+
+    JsonArray jsonArray = jsonDocument.as<JsonArray>();
+    std::vector<std::pair<String, AppCallback>> reorderedApps;
+    for (const String &appName : jsonArray)
+    {
+        for (const auto &app : Apps)
+        {
+            if (app.first == appName)
+            {
+                reorderedApps.push_back(app);
+                break;
+            }
+        }
+    }
+    Apps = reorderedApps;
+    ui->setApps(Apps);
+    ui->forceResetState();
 }

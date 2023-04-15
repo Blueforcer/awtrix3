@@ -328,6 +328,14 @@ void MatrixDisplayUi::resetState()
   }
 }
 
+void MatrixDisplayUi::forceResetState()
+{
+    this->state.lastUpdate = 0;
+    this->state.ticksSinceLastStateSwitch = 0;
+    this->state.appState = FIXED;
+    this->state.currentApp = 0;
+}
+
 void MatrixDisplayUi::drawOverlays()
 {
   for (uint8_t i = 0; i < this->overlayCount; i++)
