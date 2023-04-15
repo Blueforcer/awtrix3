@@ -77,6 +77,10 @@ void UpdateManager_::updateFirmware()
 
 bool UpdateManager_::checkUpdate(bool withScreen)
 {
+    if (UPDATE_CHECK == false)
+    {
+        return false;
+    }
     if (withScreen)
     {
         DisplayManager.clear();
@@ -153,5 +157,8 @@ void checkUpdateNoReturn()
 
 void UpdateManager_::setup()
 {
-    UpdateTicker.attach(3600, checkUpdateNoReturn);
+    if (UPDATE_CHECK == true)
+    {
+        UpdateTicker.attach(3600, checkUpdateNoReturn);
+    }
 }
