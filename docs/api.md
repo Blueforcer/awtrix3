@@ -240,6 +240,7 @@ Each property is optional; you do not need to send all.
 | `DFORMAT` | string | Sets the dateformat for the DateApp | see below | N/A |
 | `SOM` | bool | Sets the start of the week to monday | true/false | true |
 | `BLOCKN` | bool | Blocks temporarily the physical navigation keys, but still sends the input to MQTT | true/false | false |
+| `UPPERCASE` | bool | Shows text in uppercase | true/false | true |
 
 
 **Timeformats:**  
