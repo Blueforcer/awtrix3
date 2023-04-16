@@ -127,4 +127,7 @@ extern const char HumKey[];
 extern const char UpTimeKey[];
 extern const char SignalStrengthKey[];
 extern const char UpdateKey[];
+extern const char MessagesKey[];
+extern const char VersionKey[];
+extern const char RamKey[];
 #endif

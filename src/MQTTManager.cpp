@@ -13,33 +13,17 @@ WiFiClient espClient;
 HADevice device;
 HAMqtt mqtt(espClient, device, 25);
 
-unsigned long reconnectTimer = 0;
-const unsigned long reconnectInterval = 30000; // 30 Sekunden
-
-HALight *Matrix = nullptr;
-HALight *Indikator1 = nullptr;
-HALight *Indikator2 = nullptr;
+HALight *Matrix, *Indikator1, *Indikator2 = nullptr;
 HASelect *BriMode = nullptr;
-HAButton *dismiss = nullptr;
-HAButton *nextApp = nullptr;
-HAButton *prevApp = nullptr;
+HAButton *dismiss, *nextApp, *prevApp, *doUpdate = nullptr;
 HASwitch *transition = nullptr;
-HASensor *curApp = nullptr;
 #ifdef ULANZI
 HASensor *battery = nullptr;
 #endif
-HASensor *temperature = nullptr;
-HASensor *humidity = nullptr;
-HASensor *illuminance = nullptr;
-HASensor *uptime = nullptr;
-HASensor *strength = nullptr;
-HASensor *version = nullptr;
-HASensor *ram = nullptr;
-HABinarySensor *btnleft = nullptr;
-HABinarySensor *btnmid = nullptr;
-HABinarySensor *btnright = nullptr;
-HABinarySensor *update = nullptr;
-HAButton *doUpdate = nullptr;
+HASensor *temperature, *humidity, *illuminance, *uptime, *strength, *version, *ram, *curApp = nullptr;
+HABinarySensor *btnleft, *btnmid, *btnright, *update = nullptr;
+
+char matID[40], ind1ID[40], ind2ID[40], briID[40], btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], updateID[40], doUpdateID[40], batID[40];
 
 // The getter for the instantiated singleton instance
 MQTTManager_ &MQTTManager_::getInstance()
@@ -145,10 +129,12 @@ void onBrightnessCommand(uint8_t brightness, HALight *sender)
 
 void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
 {
+    DEBUG_PRINTF("MQTT message received at topic %s", topic);
     String strTopic = String(topic);
     char *payloadCopy = new char[length + 1];
     memcpy(payloadCopy, payload, length);
     payloadCopy[length] = '\0';
+    DEBUG_PRINTF("Payload:  %s", payloadCopy);
     ++RECEIVED_MESSAGES;
     if (strTopic.equals(MQTT_PREFIX + "/notify"))
     {
@@ -235,7 +221,15 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
-    else if (strTopic.startsWith(MQTT_PREFIX + "/custom"))
+
+    if (strTopic.equals(MQTT_PREFIX + "/reboot"))
+    {
+        ESP.restart();
+        delete[] payloadCopy;
+        return;
+    }
+
+    if (strTopic.startsWith(MQTT_PREFIX + "/custom"))
     {
         String topic_str = topic;
         String prefix = MQTT_PREFIX + "/custom/";
@@ -248,10 +242,12 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
+    DEBUG_PRINTLN(F("Unknown MQTT command!"));
 }
 
 void onMqttConnected()
 {
+    DEBUG_PRINTLN(F("MQTT Connected"));
     String prefix = MQTT_PREFIX;
     const char *topics[] PROGMEM = {
         "/brightness",
@@ -270,13 +266,14 @@ void onMqttConnected()
         "/indicator1",
         "/indicator2",
         "/timeformat",
-        "/dateformat"};
+        "/dateformat",
+        "/reboot"};
     for (const char *topic : topics)
     {
+        DEBUG_PRINTF("Subscribe to topic %s", topic);
         String fullTopic = prefix + topic;
         mqtt.subscribe(fullTopic.c_str());
     }
-    Serial.println(F("MQTT Connected"));
 }
 
 void connect()
@@ -286,27 +283,21 @@ void connect()
 
     if (MQTT_USER == "" || MQTT_PASS == "")
     {
-        Serial.println(F("Connecting to MQTT w/o login"));
+        DEBUG_PRINTLN(F("Connecting to MQTT w/o login"));
         mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, nullptr, nullptr, MQTT_PREFIX.c_str());
     }
     else
     {
-        Serial.println(F("Connecting to MQTT with login"));
+        DEBUG_PRINTLN(F("Connecting to MQTT with login"));
         mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, MQTT_USER.c_str(), MQTT_PASS.c_str(), MQTT_PREFIX.c_str());
     }
 }
-
-char matID[40], ind1ID[40], ind2ID[40], briID[40];
-char btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], updateID[40], doUpdateID[40];
-#ifdef ULANZI
-char batID[40];
-#endif
 
 void MQTTManager_::setup()
 {
     if (HA_DISCOVERY)
     {
-        Serial.println(F("Starting Homeassistant discorvery"));
+        DEBUG_PRINTLN(F("Starting Homeassistant discorvery"));
 
         uint8_t mac[6];
         WiFi.macAddress(mac);
@@ -501,12 +492,13 @@ void MQTTManager_::publish(const char *topic, const char *payload)
     mqtt.publish(result, payload, false);
 }
 
-void MQTTManager_::setCurrentApp(String value)
+void MQTTManager_::setCurrentApp(String appName)
 {
+    DEBUG_PRINTF("Publish current app %s", appName);
     if (HA_DISCOVERY)
-        curApp->setValue(value.c_str());
+        curApp->setValue(appName.c_str());
 
-    publish("currentApp", value.c_str());
+    publish("currentApp", appName.c_str());
 }
 
 void MQTTManager_::sendStats()

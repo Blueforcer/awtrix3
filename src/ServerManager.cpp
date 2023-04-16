@@ -13,7 +13,6 @@
 
 WebServer server(80);
 FSWebServer mws(LittleFS, server);
-bool FSOPEN;
 
 // The getter for the instantiated singleton instance
 ServerManager_ &ServerManager_::getInstance()
@@ -48,8 +47,7 @@ void ServerManager_::setup()
     }
     myIP = mws.startWiFi(15000, uniqueID, "12345678");
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
-    Serial.println(myIP.toString());
-    Serial.println(isConnected);
+    DEBUG_PRINTF("My IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
     if (isConnected)
     {
         mws.addOptionBox("Network");
@@ -112,14 +110,16 @@ void ServerManager_::setup()
             UpdateManager.updateFirmware(); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/power", HTTP_POST, []()
                        { DisplayManager.powerStateParse(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
-        Serial.println("Webserver loaded");
+        mws.addHandler("/api/reboot", HTTP_POST, []()
+                       { mws.webserver->send(200,"OK"); delay(200); ESP.restart(); });
+        DEBUG_PRINTLN(F("Webserver loaded"));
     }
     mws.addHandler("/version", HTTP_GET, versionHandler);
     mws.begin();
 
     if (!MDNS.begin(uniqueID))
     {
-        Serial.println("Error starting mDNS");
+        DEBUG_PRINTLN(F("Error starting mDNS"));
         return;
     }
 
@@ -199,10 +199,10 @@ void ServerManager_::loadSettings()
         NET_SDNS = doc["Secondary DNS"].as<String>();
         file.close();
         DisplayManager.applyAllSettings();
-        Serial.println(F("Configuration loaded"));
+        DEBUG_PRINTLN(F("Webserver configuration loaded"));
         return;
     }
     else
-        Serial.println(F("Configuration file not exist"));
+        DEBUG_PRINTLN(F("Webserver configuration file not exist"));
     return;
 }

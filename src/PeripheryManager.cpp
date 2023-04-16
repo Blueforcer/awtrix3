@@ -106,6 +106,7 @@ void left_button_pressed()
 #endif
         DisplayManager.leftButton();
         MenuManager.leftButton();
+        DEBUG_PRINTLN(F("Left button clicked"));
     }
 }
 
@@ -118,6 +119,7 @@ void right_button_pressed()
 #endif
         DisplayManager.rightButton();
         MenuManager.rightButton();
+        DEBUG_PRINTLN(F("Right button clicked"));
     }
 }
 
@@ -130,6 +132,7 @@ void select_button_pressed()
 #endif
         DisplayManager.selectButton();
         MenuManager.selectButton();
+        DEBUG_PRINTLN(F("Select button clicked"));
     }
 }
 
@@ -150,11 +153,13 @@ void select_button_pressed_long()
     {
         DisplayManager.selectButtonLong();
         MenuManager.selectButtonLong();
+        DEBUG_PRINTLN(F("Select button pressed long"));
     }
 }
 
 void select_button_double()
 {
+    DEBUG_PRINTLN(F("Select button double pressed"));
     if (!BLOCK_NAVIGATION)
     {
         if (MATRIX_OFF)
@@ -170,8 +175,13 @@ void select_button_double()
 
 void PeripheryManager_::playBootSound()
 {
+    DEBUG_PRINTLN(F("Playing bootsound"));
     if (!SOUND_ACTIVE)
+    {
+        DEBUG_PRINTLN(F("Sound output disabled"));
         return;
+    }
+
     if (BOOT_SOUND == "")
     {
 #ifdef ULANZI
@@ -219,6 +229,7 @@ void PeripheryManager_::playFromFile(String file)
 {
     if (!SOUND_ACTIVE)
         return;
+    DEBUG_PRINTLN(F("Playing RTTTL sound file"));
 #ifdef ULANZI
     Melody melody = MelodyFactory.loadRtttlFile(file);
     player.playAsync(melody);
@@ -241,6 +252,7 @@ bool PeripheryManager_::isPlaying()
 
 void PeripheryManager_::setup()
 {
+    DEBUG_PRINTLN(F("Setup periphery"));
     startTime = millis();
     pinMode(LDR_PIN, INPUT);
 #ifdef AWTRIX_UPGRADE
@@ -328,7 +340,7 @@ void PeripheryManager_::checkAlarms()
         DeserializationError error = deserializeJson(doc, file);
         if (error)
         {
-            Serial.println(F("Failed to read Alarm file"));
+            DEBUG_PRINTLN(F("Failed to read Alarm file"));
             return;
         }
         JsonArray alarms = doc["alarms"];

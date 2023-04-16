@@ -24,7 +24,6 @@ void FSWebServer::addHandler(const Uri &uri, HTTPMethod method, WebServerClass::
     webserver->on(uri, method, fn);
 }
 
-
 void FSWebServer::onNotFound(WebServerClass::THandlerFunction fn)
 {
     webserver->onNotFound(fn);
@@ -115,10 +114,10 @@ bool FSWebServer::begin(const char *path)
     // OTA update via webbrowser
     m_httpUpdater.setup(webserver);
 
-#ifdef ESP32
     webserver->enableCrossOrigin(true);
-#endif
-    webserver->setContentLength(50);
+    webserver->enableCORS(true);
+
+    webserver->setContentLength(1024);
     webserver->begin();
 
     return true;

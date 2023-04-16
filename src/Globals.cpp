@@ -2,9 +2,7 @@
 #include "Preferences.h"
 #include <WiFi.h>
 #include <ArduinoJson.h>
-
 #include <LittleFS.h>
-
 Preferences Settings;
 
 char *getID()
@@ -13,21 +11,24 @@ char *getID()
     WiFi.macAddress(mac);
     char *macStr = new char[24];
     snprintf(macStr, 24, "awtrix_%02x%02x%02x", mac[3], mac[4], mac[5]);
+    DEBUG_PRINTLN(F("Starting filesystem"));
     return macStr;
 }
 
 void startLittleFS()
 {
+    DEBUG_PRINTLN(F("Starting filesystem"));
     if (LittleFS.begin())
     {
 #ifdef ULANZI
         LittleFS.mkdir("/MELODIES");
 #endif
         LittleFS.mkdir("/ICONS");
+        DEBUG_PRINTLN(F("Filesystem started"));
     }
     else
     {
-        Serial.println("ERROR on mounting LittleFS. It will be formmatted!");
+        DEBUG_PRINTLN(F("Filesystem currupt. Formating..."));
         LittleFS.format();
         ESP.restart();
     }
@@ -35,7 +36,7 @@ void startLittleFS()
 
 void loadDevSettings()
 {
-    Serial.println("loadSettings");
+    DEBUG_PRINTLN("Loading Devsettings");
     if (LittleFS.exists("/dev.json"))
     {
         File file = LittleFS.open("/dev.json", "r");
@@ -43,9 +44,11 @@ void loadDevSettings()
         DeserializationError error = deserializeJson(doc, file);
         if (error)
         {
-            Serial.println(F("Failed to read dev settings"));
+            DEBUG_PRINTLN(F("Failed to read dev settings"));
             return;
         }
+
+        DEBUG_PRINTF("%i dev settings found", doc.size());
 
         if (doc.containsKey("bootsound"))
         {
@@ -60,6 +63,11 @@ void loadDevSettings()
         if (doc.containsKey("uppercase"))
         {
             UPPERCASE_LETTERS = doc["uppercase"].as<bool>();
+        }
+
+        if (doc.containsKey("update_check"))
+        {
+            UPDATE_CHECK = doc["update_check"].as<bool>();
         }
 
         if (doc.containsKey("temp_dec_places"))
@@ -97,11 +105,16 @@ void loadDevSettings()
         }
         file.close();
     }
+    else
+    {
+        DEBUG_PRINTLN("Devsettings not found");
+    }
 }
 
 void loadSettings()
 {
     startLittleFS();
+    DEBUG_PRINTLN(F("Loading Usersettings"));
     Settings.begin("awtrix", false);
     MATRIX_FPS = Settings.getUInt("FPS", 23);
     BRIGHTNESS = Settings.getUInt("BRI", 120);
@@ -138,6 +151,7 @@ void loadSettings()
 
 void saveSettings()
 {
+    DEBUG_PRINTLN(F("Saving usersettings"));
     Settings.begin("awtrix", false);
     Settings.putUInt("FPS", MATRIX_FPS);
     Settings.putUInt("BRI", BRIGHTNESS);
@@ -174,13 +188,12 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.54";
+const char *VERSION = "0.55";
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
 String MQTT_PASS;
 String MQTT_PREFIX;
-String CITY = "Berlin,de";
 bool IO_BROKER = false;
 bool NET_STATIC = false;
 bool SHOW_TIME = true;
@@ -250,5 +263,6 @@ CRGB COLOR_CORRECTION;
 CRGB COLOR_TEMPERATURE;
 uint16_t WDC_ACTIVE;
 uint16_t WDC_INACTIVE;
-bool BLOCK_NAVIGATION=false;
+bool BLOCK_NAVIGATION = false;
+bool UPDATE_CHECK = false;
 float GAMMA = 0;

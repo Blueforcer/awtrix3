@@ -9,12 +9,7 @@ With HTTP, make GET request to `http://[IP]/api/stats`
   
 | Topic | URL | Payload/Body | HTTP method |  
 | --- | --- | --- | --- |  
-| `[PREFIX]/power` | `http://[IP]/api/power` | `{"state":value}` | POST |  
-
-
-Valid values are:  
-- `0` => off  
-- `1` => on  
+| `[PREFIX]/power` | `http://[IP]/api/power` | true/false or 1/0 | POST |  
 
 
 ## Colored indicators     
@@ -43,6 +38,7 @@ You can also send a one-time notification with the same JSON format. Simply send
 | Topic | URL |  Payload/Body | Query parameters | HTTP method |
 | --- | --- | --- | --- | --- |
 | `[PREFIX]/custom/[appname]` |`http://[IP]/api/custom` | JSON | name = [appname] | POST |
+| `[PREFIX]/notify` |`http://[IP]/notify` | JSON | - | POST |
 
 
 ### JSON Properties
@@ -63,6 +59,8 @@ All keys are optional, so you can send just the properties you want to use.
 | `sound` | string | The filename of your RTTTL ringtone file (without extension). | |
 | `pushIcon` | number | 0 = Icon doesn't move. 1 = Icon moves with text and will not appear again. 2 = Icon moves with text but appears again when the text starts to scroll again. | 0 |
 | `bar` | array of integers | draws a bargraph. Without icon maximum 16 values, with icon 11 values |  |
+| `line` | array of integers | draws a linechart. Without icon maximum 16 values, with icon 11 values |  |
+| `autoscale` | boolean | enables or disables autoscaling for bar and linechart | true |
 | `lifetime` | integer | Removes the custom app when there is no update after the given time in seconds | 0 |
 | `textCase` | integer | Changes the Uppercase setting. 0=global setting, 1=forces uppercase; 2=shows as it sent. | 0 |
 | `textOffset` | integer | Sets an offset for the x position of a starting text. | 0 |
@@ -307,3 +305,10 @@ You can start the update with update button in HA or:
 | Topic | URL | Payload/Body | HTTP Header | HTTP method |  
 | --- | --- | --- | --- | --- |  
 | `[PREFIX]/doupdate` |`http://[IP]/api/doupdate` | JSON | empty payload/body | POST |  
+  
+  
+## Reboot Awtrix    
+  
+| Topic | URL | Payload/Body | HTTP method |  
+| --- | --- | --- | --- |  
+| `[PREFIX]/reboot` | `http://[IP]/api/reboot` | - | POST |  

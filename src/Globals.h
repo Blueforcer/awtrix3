@@ -3,6 +3,23 @@
 #include <Arduino.h>
 #include <FastLED.h>
 
+#define DEBUG
+
+#ifdef DEBUG
+#define DEBUG_PRINTLN(x) Serial.print(__func__); Serial.print(": "); Serial.println(x)
+ #define DEBUG_PRINTF(format, ...) { \
+    String formattedMessage = String(__func__) + ": "; \
+    Serial.print(formattedMessage); \
+    Serial.printf(format, ##__VA_ARGS__); \
+    Serial.println(); \
+  }
+#else
+  #define DEBUG_PRINTLN(x)
+  #define DEBUG_PRINTF(format, ...)
+#endif
+
+//#define configASSERT(x) if((x) == 0) {printf("ASSERTION FAILED at line %d in file %s.\n", __LINE__, __FILE__); taskDISABLE_INTERRUPTS(); for(;;);}
+
 extern const char *uniqueID;
 extern const char *VERSION;
 extern IPAddress local_IP;
@@ -15,7 +32,6 @@ extern uint16_t MQTT_PORT;
 extern String MQTT_USER;
 extern String MQTT_PASS;
 extern String MQTT_PREFIX;
-extern String CITY;
 extern bool IO_BROKER;
 extern bool NET_STATIC;
 extern bool SHOW_TIME;
@@ -85,6 +101,6 @@ extern float GAMMA;
 void loadSettings();
 void saveSettings();
 extern bool BLOCK_NAVIGATION;
-
+extern bool UPDATE_CHECK;
 
 #endif // Globals_H

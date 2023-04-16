@@ -46,7 +46,9 @@ struct CustomApp
     int16_t iconPosition = 0;
     bool iconWasPushed = false;
     int barData[16] = {0};
+    int lineData[16] = {0};
     int barSize;
+    int lineSize;
     long lastUpdate;
     int16_t lifetime;
     std::vector<uint16_t> colors;
@@ -76,7 +78,9 @@ struct Notification
     int16_t iconPosition = 0;
     bool iconWasPushed = false;
     int barData[16] = {0};
+    int lineData[16] = {0};
     int barSize;
+    int lineSize;
     std::vector<uint16_t> colors;
     std::vector<String> fragments;
     uint8_t textOffset;
@@ -364,6 +368,10 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     {
         DisplayManager.drawBarChart(x, y, ca->barData, ca->barSize, hasIcon, ca->color);
     }
+    else if (ca->lineSize > 0)
+    {
+        DisplayManager.drawLineChart(x, y, ca->lineData, ca->lineSize, hasIcon, ca->color);
+    }
     else
     {
         if ((ca->repeat > 0) && (getTextWidth(ca->text.c_str(), ca->textCase) > availableWidth) && (state->appState == FIXED))
@@ -425,12 +433,11 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 }
             }
         }
-        int16_t textX = (hasIcon) ? ((24 - getTextWidth(ca->text.c_str(), ca->textCase)) / 2) + 9 + ca->textOffset : ((32 - getTextWidth(ca->text.c_str(), ca->textCase)) / 2);
-        matrix->setTextColor(ca->color);
+
+        int16_t textX = hasIcon ? ((24 - textWidth) / 2) + 9 : ((32 - textWidth) / 2);
         if (noScrolling)
         {
             ca->repeat = -1; // Disable repeat if text is too short for scrolling
-            // Display text with rainbow effect if enabled
 
             if (!ca->fragments.empty())
             {
@@ -444,6 +451,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             }
             else
             {
+              
                 if (ca->rainbow)
                 {
                     DisplayManager.HSVtext(x + textX, 6 + y, ca->text.c_str(), false, ca->textCase);
@@ -451,6 +459,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 else
                 {
                     // Display text
+                    matrix->setTextColor(ca->color);
                     DisplayManager.printText(x + textX, y + 6, ca->text.c_str(), false, ca->textCase);
                 }
             }
@@ -475,6 +484,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 }
                 else
                 {
+                    matrix->setTextColor(ca->color);
                     DisplayManager.printText(x + ca->scrollposition, 6 + y, ca->text.c_str(), false, ca->textCase);
                 }
             }
@@ -579,6 +589,10 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
     if (notify.barSize > 0)
     {
         DisplayManager.drawBarChart(0, 0, notify.barData, notify.barSize, hasIcon, notify.color);
+    }
+    else if (notify.lineSize > 0)
+    {
+        DisplayManager.drawLineChart(0, 0, notify.lineData, notify.lineSize, hasIcon, notify.color);
     }
     else
     {
@@ -856,76 +870,6 @@ void CApp20(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
 {
     String name = getAppNameByFunction(CApp20);
     ShowCustomApp(name, matrix, state, x, y, firstFrame, lastFrame, gifPlayer);
-}
-
-const uint16_t *getWeatherIcon(int code)
-{
-    switch (code)
-    {
-    case 1:
-        return icon_475;
-        break;
-
-    default:
-        return icon_475;
-        break;
-    }
-}
-
-void WeatherApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame)
-{
-    if (notify.flag)
-        return;
-    CURRENT_APP = "Weather";
-    DisplayManager.getInstance().resetTextColor();
-    matrix->drawRGBBitmap(x, y, getWeatherIcon(WEATHER_CODE), 8, 8);
-    String text = WEATHER_TEMP + "°" + WEATHER_HUM + "%";
-    uint16_t textWidth = getTextWidth(text.c_str(), 0);
-    int16_t textX = ((23 - textWidth) / 2);
-    matrix->setCursor(textX + 11, 6 + y);
-    matrix->print(utf8ascii(text));
-}
-
-void getWeatherData()
-{
-    Serial.println("UPDATE");
-    String weatherUrl = "https://wttr.in/" + CITY + "?format=p1";
-    if ((WiFi.status() == WL_CONNECTED))
-    {
-        HTTPClient http;
-        http.begin(weatherUrl);
-        http.setTimeout(5000);
-        int httpCode = http.GET();
-
-        if (httpCode > 0)
-        {
-            String payload = http.getString();
-            int temperatureIndex = payload.indexOf("temperature_celsius{forecast=\"current\"}");
-            int humIndex = payload.indexOf("humidity_percentage{forecast=\"current\"}");
-            int weatherCodeIndex = payload.indexOf("weather_code{forecast=\"current\"}");
-
-            if (temperatureIndex >= 0 && weatherCodeIndex >= 0)
-            {
-                int tempEndIndex = payload.indexOf('\n', temperatureIndex);
-                int codeEndIndex = payload.indexOf('\n', weatherCodeIndex);
-                int humEndIndex = payload.indexOf('\n', humIndex);
-                String temperatureValue = payload.substring(temperatureIndex + 40, tempEndIndex);
-                String humValue = payload.substring(humIndex + 40, humEndIndex);
-                String weatherCodeValue = payload.substring(weatherCodeIndex + 33, codeEndIndex);
-
-                WEATHER_TEMP = temperatureValue;
-                WEATHER_HUM = humValue;
-                WEATHER_CODE = weatherCodeValue.toInt();
-            }
-        }
-        http.end();
-    }
-}
-
-void StartAppUpdater()
-{
-    // downloader.attach(60,getWeatherData);
-    // getWeatherData();
 }
 
 OverlayCallback overlays[] = {MenuApp, NotifyApp, AlarmApp, TimerApp};

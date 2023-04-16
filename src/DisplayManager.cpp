@@ -307,24 +307,79 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
         customApp.sound = "";
     }
 
+    bool autoscale = true;
+    if (doc.containsKey("autoscale"))
+    {
+        autoscale = doc["autoscale"].as<bool>();
+    }
+
     if (doc.containsKey("bar"))
     {
         JsonArray barData = doc["bar"];
         int i = 0;
+        int maximum = 0;
         for (JsonVariant v : barData)
         {
             if (i >= 16)
             {
                 break;
             }
-            customApp.barData[i] = v.as<int>();
+            int d = v.as<int>();
+            if (d > maximum)
+            {
+                maximum = d;
+            }
+            customApp.barData[i] = d;
             i++;
         }
         customApp.barSize = i;
+
+        if (autoscale)
+        {
+            for (int j = 0; j < customApp.barSize; j++)
+            {
+                customApp.barData[j] = map(customApp.barData[j], 0, maximum, 0, 8);
+            }
+        }
     }
     else
     {
         customApp.barSize = 0;
+    }
+
+    if (doc.containsKey("line"))
+    {
+        JsonArray lineData = doc["line"];
+        int i = 0;
+        int maximum = 0;
+        for (JsonVariant v : lineData)
+        {
+            if (i >= 16)
+            {
+                break;
+            }
+            int d = v.as<int>();
+            if (d > maximum)
+            {
+                maximum = d;
+            }
+            customApp.lineData[i] = d;
+            i++;
+        }
+        customApp.lineSize = i;
+
+        // Autoscaling
+        if (autoscale)
+        {
+            for (int j = 0; j < customApp.lineSize; j++)
+            {
+                customApp.lineData[j] = map(customApp.lineData[j], 0, maximum, 0, 8);
+            }
+        }
+    }
+    else
+    {
+        customApp.lineSize = 0;
     }
 
     customApp.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : 0;
@@ -372,8 +427,6 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
     {
         customApp.text = "";
     }
-
-    Serial.println(customApp.text);
 
     if (currentCustomApp != name)
     {
@@ -447,24 +500,79 @@ void DisplayManager_::generateNotification(const char *json)
 #endif
     }
 
+    bool autoscale = true;
+    if (doc.containsKey("autoscale"))
+    {
+        autoscale = doc["autoscale"].as<bool>();
+    }
+
     if (doc.containsKey("bar"))
     {
         JsonArray barData = doc["bar"];
         int i = 0;
+        int maximum = 0;
         for (JsonVariant v : barData)
         {
             if (i >= 16)
             {
                 break;
             }
-            notify.barData[i] = v.as<int>();
+            int d = v.as<int>();
+            if (d > maximum)
+            {
+                maximum = d;
+            }
+            notify.barData[i] = d;
             i++;
         }
         notify.barSize = i;
+
+        if (autoscale)
+        {
+            for (int j = 0; j < notify.barSize; j++)
+            {
+                notify.barData[j] = map(notify.barData[j], 0, maximum, 0, 8);
+            }
+        }
     }
     else
     {
         notify.barSize = 0;
+    }
+
+    if (doc.containsKey("line"))
+    {
+        JsonArray lineData = doc["line"];
+        int i = 0;
+        int maximum = 0;
+        for (JsonVariant v : lineData)
+        {
+            if (i >= 16)
+            {
+                break;
+            }
+            int d = v.as<int>();
+            if (d > maximum)
+            {
+                maximum = d;
+            }
+            notify.lineData[i] = d;
+            i++;
+        }
+        notify.lineSize = i;
+
+        // Autoscaling
+        if (autoscale)
+        {
+            for (int j = 0; j < notify.lineSize; j++)
+            {
+                notify.lineData[j] = map(notify.lineData[j], 0, maximum, 0, 8);
+            }
+        }
+    }
+    else
+    {
+        notify.lineSize = 0;
     }
 
     if (doc.containsKey("color"))
@@ -682,13 +790,19 @@ void DisplayManager_::rightButton()
 void DisplayManager_::nextApp()
 {
     if (!MenuManager.inMenu)
+    {
+        DEBUG_PRINTLN(F("Switching to next app"));
         ui->nextApp();
+    }
 }
 
 void DisplayManager_::previousApp()
 {
     if (!MenuManager.inMenu)
+    {
+        DEBUG_PRINTLN(F("Switching to previous app"));
         ui->previousApp();
+    }
 }
 
 void snozzeTimerCallback()
@@ -808,26 +922,8 @@ void DisplayManager_::drawMenuIndicator(int cur, int total, uint16_t color)
     }
 }
 
-void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint16_t color)
+void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int newData[], byte dataSize, bool withIcon, uint16_t color)
 {
-    int maximum = 0;
-    int newData[dataSize];
-
-    for (int i = 0; i < dataSize; i++)
-    {
-        int d = data[i];
-        if (d > maximum)
-        {
-            maximum = d;
-        }
-    }
-
-    for (int i = 0; i < dataSize; i++)
-    {
-        int d = data[i];
-        newData[i] = map(d, 0, maximum, 0, 8);
-    }
-
     int barWidth;
     if (withIcon)
     {
@@ -846,6 +942,21 @@ void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte 
         int barHeight = newData[i];
         int y1 = min(8 - barHeight, 7);
         matrix->fillRect(x1, y1 + y, barWidth, barHeight, color);
+    }
+}
+
+void DisplayManager_::drawLineChart(int16_t x, int16_t y, const int newData[], byte dataSize, bool withIcon, uint16_t color)
+{
+    int startX = withIcon ? 9 : 0;
+    int lastX = x + startX;
+    int lastY = y + 8 - newData[0];
+    for (int i = 1; i < dataSize; i++)
+    {
+        int x1 = x + startX + (32 - startX) / (dataSize - 1) * i;
+        int y1 = y + 8 - newData[i];
+        matrix->drawLine(lastX, lastY, x1, y1, color);
+        lastX = x1;
+        lastY = y1;
     }
 }
 
@@ -878,8 +989,15 @@ std::pair<String, AppCallback> getNativeAppByName(const String &appName)
 
 void DisplayManager_::updateAppVector(const char *json)
 {
+    DEBUG_PRINTLN(F("New apps vector received"));
+    DEBUG_PRINTLN(json);
     StaticJsonDocument<512> doc; // Erhöhen Sie die Größe des Dokuments bei Bedarf
-    deserializeJson(doc, json);
+    DeserializationError error = deserializeJson(doc, json);
+    if (error)
+    {
+        DEBUG_PRINTLN(F("Failed to parse json"));
+        return;
+    }
 
     JsonArray appArray;
     if (doc.is<JsonObject>())
@@ -952,7 +1070,7 @@ String DisplayManager_::getStats()
     snprintf(buffer, 5, "%.0f", CURRENT_LUX);
     doc[LuxKey] = buffer;
     doc[LDRRawKey] = LDR_RAW;
-    doc["ram"] = ESP.getFreeHeap();
+    doc[RamKey] = ESP.getFreeHeap();
     doc[BrightnessKey] = BRIGHTNESS;
     snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
     doc[TempKey] = buffer;
@@ -961,9 +1079,8 @@ String DisplayManager_::getStats()
     doc[UpTimeKey] = PeripheryManager.readUptime();
     doc[SignalStrengthKey] = WiFi.RSSI();
     doc[UpdateKey] = UPDATE_AVAILABLE;
-    doc["messages"] = RECEIVED_MESSAGES;
-    doc["version"] = VERSION;
-    doc["app"] = CURRENT_APP;
+    doc[MessagesKey] = RECEIVED_MESSAGES;
+    doc[VersionKey] = VERSION;
     String jsonString;
     return serializeJson(doc, jsonString), jsonString;
 }
@@ -976,6 +1093,7 @@ void DisplayManager_::setAppTime(uint16_t duration)
 void DisplayManager_::setMatrixLayout(int layout)
 {
     delete matrix; // Free memory from the current matrix object
+    DEBUG_PRINTF("Set matrix layout to %i", layout);
     switch (layout)
     {
     case 0:
@@ -1008,17 +1126,9 @@ String DisplayManager_::getAppsAsJson()
     return json;
 }
 
-void DisplayManager_::powerStateParse(const char *json)
+void DisplayManager_::powerStateParse(const char *state)
 {
-    DynamicJsonDocument doc(128);
-    DeserializationError error = deserializeJson(doc, json);
-    if (error)
-        return;
-    if (doc.containsKey("state"))
-    {
-        bool state = doc["state"].as<bool>();
-        setPower(state);
-    }
+    setPower((strcmp(state, "true") == 0 || strcmp(state, "1") == 0) ? true : false);
 }
 
 void DisplayManager_::showSleepAnimation()
@@ -1240,7 +1350,8 @@ String DisplayManager_::getSettings()
 
 void DisplayManager_::setNewSettings(const char *json)
 {
-    Serial.println(json);
+    DEBUG_PRINTLN(F("Got new settings:"));
+    DEBUG_PRINTLN(json);
     DynamicJsonDocument doc(512);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
@@ -1261,42 +1372,56 @@ void DisplayManager_::setNewSettings(const char *json)
     BLOCK_NAVIGATION = doc.containsKey("BLOCKN") ? doc["BLOCKN"].as<bool>() : BLOCK_NAVIGATION;
     if (doc.containsKey("CCORRECTION"))
     {
-        auto color = doc["CCORRECTION"];
-        if (color.is<String>())
+        auto colorValue = doc["CCORRECTION"];
+        if (colorValue.is<String>())
         {
-            COLOR_CORRECTION = hexToRgb565(color.as<String>());
+            String hexColor = colorValue.as<String>();
+            uint32_t rgbColor = strtoul(hexColor.c_str(), NULL, 16);
+            uint8_t r = (rgbColor >> 16) & 0xFF;
+            uint8_t g = (rgbColor >> 8) & 0xFF;
+            uint8_t b = rgbColor & 0xFF;
+            COLOR_CORRECTION.setRGB(r, g, b);
         }
-        else if (color.is<JsonArray>() && color.size() == 3)
+        else if (colorValue.is<JsonArray>() && colorValue.size() == 3)
         {
-            uint8_t r = color[0];
-            uint8_t g = color[1];
-            uint8_t b = color[2];
-            COLOR_CORRECTION = (r << 11) | (g << 5) | b;
+            uint8_t r = colorValue[0];
+            uint8_t g = colorValue[1];
+            uint8_t b = colorValue[2];
+            COLOR_CORRECTION.setRGB(r, g, b);
         }
+
         if (COLOR_CORRECTION)
         {
             FastLED.setCorrection(COLOR_CORRECTION);
         }
     }
+
     if (doc.containsKey("CTEMP"))
     {
-        auto temperature = doc["CTEMP"];
-        if (temperature.is<String>())
+        auto colorValue = doc["CTEMP"];
+        if (colorValue.is<String>())
         {
-            COLOR_TEMPERATURE = hexToRgb565(temperature.as<String>());
+            String hexColor = colorValue.as<String>();
+            uint32_t rgbColor = strtoul(hexColor.c_str(), NULL, 16);
+            uint8_t r = (rgbColor >> 16) & 0xFF;
+            uint8_t g = (rgbColor >> 8) & 0xFF;
+            uint8_t b = rgbColor & 0xFF;
+            COLOR_TEMPERATURE.setRGB(r, g, b);
         }
-        else if (temperature.is<JsonArray>() && temperature.size() == 3)
+        else if (colorValue.is<JsonArray>() && colorValue.size() == 3)
         {
-            uint8_t r = temperature[0];
-            uint8_t g = temperature[1];
-            uint8_t b = temperature[2];
-            COLOR_TEMPERATURE = (r << 11) | (g << 5) | b;
+            uint8_t r = colorValue[0];
+            uint8_t g = colorValue[1];
+            uint8_t b = colorValue[2];
+            COLOR_TEMPERATURE.setRGB(r, g, b);
         }
+
         if (COLOR_TEMPERATURE)
         {
             FastLED.setTemperature(COLOR_TEMPERATURE);
         }
     }
+
     if (doc.containsKey("WDCA"))
     {
         auto temperature = doc["WDCA"];
@@ -1359,7 +1484,6 @@ void DisplayManager_::setNewSettings(const char *json)
     }
     applyAllSettings();
     saveSettings();
-    Serial.println(BLOCK_NAVIGATION);
 }
 
 String DisplayManager_::ledsAsJson()

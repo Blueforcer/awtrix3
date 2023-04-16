@@ -125,3 +125,6 @@ const char HumKey[] PROGMEM = {"hum"};
 const char UpTimeKey[] PROGMEM = {"uptime"};
 const char SignalStrengthKey[] PROGMEM = {"wifi_signal"};
 const char UpdateKey[] PROGMEM = {"up_available"};
+const char MessagesKey[] PROGMEM = {"messages"};
+const char VersionKey[] PROGMEM = {"version"};
+const char RamKey[] PROGMEM = {"ram"};

@@ -67,7 +67,6 @@ void setup()
   ServerManager.loadSettings();
   DisplayManager.setup();
   DisplayManager.HSVtext(9, 6, VERSION, true, 0);
-
   PeripheryManager.playBootSound();
   xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 0);
   ServerManager.setup();
@@ -84,14 +83,12 @@ void setup()
       DisplayManager.HSVtext(x, 6, ("AWTRIX   " + ServerManager.myIP.toString()).c_str(), true, 0);
       x -= 0.18;
     }
-    // BeaconScanner.setup();
   }
   else
   {
     AP_MODE = true;
     StopTask = true;
   }
-
   delay(200);
   DisplayManager.setBrightness(BRIGHTNESS);
 }
