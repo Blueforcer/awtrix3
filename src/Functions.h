@@ -31,7 +31,6 @@ const uint8_t PROGMEM gamma8[] = {
   215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255 };
 
 
-
 CRGB applyGammaCorrection(const CRGB& color) {
   CRGB correctedColor;
   correctedColor.r = pgm_read_byte(&gamma8[color.r]);
@@ -50,7 +49,7 @@ uint32_t hsvToRgb(uint8_t h, uint8_t s, uint8_t v)
            (rgb.b >> 3);
 }
 
-uint16_t hexToRgb565(String hexValue)
+uint16_t hexToRgb565(String hexValue, uint16_t defaultColor)
 {
     hexValue.replace("#", "");
     uint8_t r = strtol(hexValue.substring(0, 2).c_str(), NULL, 16);
@@ -58,10 +57,30 @@ uint16_t hexToRgb565(String hexValue)
     uint8_t b = strtol(hexValue.substring(4, 6).c_str(), NULL, 16);
     if ((errno == ERANGE) || (r > 255) || (g > 255) || (b > 255))
     {
-        return 0xFFFF;
+        return defaultColor;
     }
     uint16_t color = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
     return color;
+}
+
+
+uint16_t getColorFromJsonVariant(JsonVariant colorVariant, uint16_t defaultColor)
+{
+    if (colorVariant.is<String>())
+    {
+        return hexToRgb565(colorVariant.as<String>(),defaultColor);
+    }
+    else if (colorVariant.is<JsonArray>() && colorVariant.size() == 3)
+    {
+        uint8_t r = colorVariant[0];
+        uint8_t g = colorVariant[1];
+        uint8_t b = colorVariant[2];
+        return (r << 11) | (g << 5) | b;
+    }
+    else
+    {
+        return defaultColor;
+    }
 }
 
 uint16_t getTextWidth(const char *text, byte textCase)

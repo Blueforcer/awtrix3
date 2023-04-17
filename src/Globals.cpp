@@ -55,6 +55,11 @@ void loadDevSettings()
             BOOT_SOUND = doc["bootsound"].as<String>();
         }
 
+        if (doc.containsKey("sensor_reading"))
+        {
+            SENSOR_READING = doc["sensor_reading"].as<bool>();
+        }
+
         if (doc.containsKey("matrix"))
         {
             MATRIX_LAYOUT = doc["matrix"];
@@ -188,7 +193,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.55";
+const char *VERSION = "0.56";
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
@@ -266,3 +271,4 @@ uint16_t WDC_INACTIVE;
 bool BLOCK_NAVIGATION = false;
 bool UPDATE_CHECK = false;
 float GAMMA = 0;
+bool SENSOR_READING = true;

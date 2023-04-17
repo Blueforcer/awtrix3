@@ -256,7 +256,8 @@ bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, s
         uint16_t color;
         if (fragmentObj.containsKey("c"))
         {
-            color = hexToRgb565(fragmentObj["c"].as<String>());
+            auto fragColor = doc["color"];
+            color = getColorFromJsonVariant(fragColor, standardColor);
         }
         else
         {
@@ -305,6 +306,28 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
     else
     {
         customApp.sound = "";
+    }
+
+    customApp.progress = doc.containsKey("progress") ? doc["progress"].as<int>() : -1;
+
+    if (doc.containsKey("progressC"))
+    {
+        auto progressC = doc["progressC"];
+        customApp.pColor = getColorFromJsonVariant(progressC, matrix->Color(0, 255, 0));
+    }
+    else
+    {
+        customApp.pColor = matrix->Color(0, 255, 0);
+    }
+
+    if (doc.containsKey("progressBC"))
+    {
+        auto progressBC = doc["progressBC"];
+        customApp.pbColor = getColorFromJsonVariant(progressBC, matrix->Color(255, 255, 255));
+    }
+    else
+    {
+        customApp.pbColor = matrix->Color(255, 255, 255);
     }
 
     bool autoscale = true;
@@ -396,21 +419,7 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
     if (doc.containsKey("color"))
     {
         auto color = doc["color"];
-        if (color.is<String>())
-        {
-            customApp.color = hexToRgb565(color.as<String>());
-        }
-        else if (color.is<JsonArray>() && color.size() == 3)
-        {
-            uint8_t r = color[0];
-            uint8_t g = color[1];
-            uint8_t b = color[2];
-            customApp.color = (r << 11) | (g << 5) | b;
-        }
-        else
-        {
-            customApp.color = TEXTCOLOR_565;
-        }
+        customApp.color = getColorFromJsonVariant(color, TEXTCOLOR_565);
     }
     else
     {
@@ -479,6 +488,29 @@ void DisplayManager_::generateNotification(const char *json)
 {
     StaticJsonDocument<1024> doc;
     deserializeJson(doc, json);
+
+    notify.progress = doc.containsKey("progress") ? doc["progress"].as<int>() : -1;
+
+    if (doc.containsKey("progressC"))
+    {
+        auto progressC = doc["progressC"];
+        notify.pColor = getColorFromJsonVariant(progressC, matrix->Color(0, 255, 0));
+    }
+    else
+    {
+        notify.pColor = matrix->Color(0, 255, 0);
+    }
+
+    if (doc.containsKey("progressBC"))
+    {
+        auto progressBC = doc["progressBC"];
+        notify.pbColor = getColorFromJsonVariant(progressBC, matrix->Color(255, 255, 255));
+    }
+    else
+    {
+        notify.pbColor = matrix->Color(255, 255, 255);
+    }
+
     notify.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
     notify.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint16_t>() : -1;
     notify.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
@@ -578,21 +610,7 @@ void DisplayManager_::generateNotification(const char *json)
     if (doc.containsKey("color"))
     {
         auto color = doc["color"];
-        if (color.is<String>())
-        {
-            notify.color = hexToRgb565(color.as<String>());
-        }
-        else if (color.is<JsonArray>() && color.size() == 3)
-        {
-            uint8_t r = color[0];
-            uint8_t g = color[1];
-            uint8_t b = color[2];
-            notify.color = (r << 11) | (g << 5) | b;
-        }
-        else
-        {
-            notify.color = TEXTCOLOR_565;
-        }
+        notify.color = getColorFromJsonVariant(color, TEXTCOLOR_565);
     }
     else
     {
@@ -611,7 +629,6 @@ void DisplayManager_::generateNotification(const char *json)
     }
 
     notify.flag = true;
-    showGif = false;
 
     if (doc.containsKey("icon"))
     {
@@ -677,12 +694,14 @@ void DisplayManager_::loadNativeApps()
     // Update the "date" app at position 1
     updateApp("date", DateApp, SHOW_DATE, 1);
 
-    // Update the "temp" app at position 2
-    updateApp("temp", TempApp, SHOW_TEMP, 2);
+    if (SENSOR_READING)
+    {
+        // Update the "temp" app at position 2
+        updateApp("temp", TempApp, SHOW_TEMP, 2);
 
-    // Update the "hum" app at position 3
-    updateApp("hum", HumApp, SHOW_HUM, 3);
-
+        // Update the "hum" app at position 3
+        updateApp("hum", HumApp, SHOW_HUM, 3);
+    }
 #ifdef ULANZI
     // Update the "bat" app at position 4
     updateApp("bat", BatApp, SHOW_BAT, 4);
@@ -889,17 +908,14 @@ void DisplayManager_::switchToApp(const char *json)
         ui->transitionToApp(index);
 }
 
-void DisplayManager_::drawProgressBar(int cur, int total)
+void DisplayManager_::drawProgressBar(int16_t x, int16_t y, int progress, uint16_t pColor, uint16_t pbColor)
 {
-    matrix->clear();
-    int progress = (cur * 100) / total;
-    char progressStr[5];
-    snprintf(progressStr, 5, "%d%%", progress);
-    printText(0, 6, progressStr, true, false);
-    int leds_for_progress = (progress * MATRIX_WIDTH * MATRIX_HEIGHT) / 100;
-    matrix->drawFastHLine(0, 7, MATRIX_WIDTH, matrix->Color(100, 100, 100));
-    matrix->drawFastHLine(0, 7, leds_for_progress / MATRIX_HEIGHT, matrix->Color(0, 255, 0));
-    matrix->show();
+    int available_length = 32 - x;
+    int leds_for_progress = (progress * available_length) / 100;
+    matrix->drawFastHLine(x, y, available_length, pbColor);
+    Serial.println(leds_for_progress);
+    if (leds_for_progress > 0)
+        matrix->drawFastHLine(x, y, leds_for_progress, pColor);
 }
 
 void DisplayManager_::drawMenuIndicator(int cur, int total, uint16_t color)
@@ -924,35 +940,35 @@ void DisplayManager_::drawMenuIndicator(int cur, int total, uint16_t color)
 
 void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int newData[], byte dataSize, bool withIcon, uint16_t color)
 {
-    int barWidth;
-    if (withIcon)
-    {
-        barWidth = ((32 - 9) / (dataSize)-1);
-    }
-    else
-    {
-        barWidth = (32 / (dataSize)-1);
-    }
-
+    int availableWidth = withIcon ? (32 - 9) : 32;
+    int gap = 1;
+    int totalGapsWidth = (dataSize - 1) * gap;
+    int barWidth = (availableWidth - totalGapsWidth) / dataSize;
     int startX = withIcon ? 9 : 0;
 
     for (int i = 0; i < dataSize; i++)
     {
-        int x1 = x + startX + (barWidth + 1) * i;
+        int x1 = x + startX + i * (barWidth + gap);
         int barHeight = newData[i];
-        int y1 = min(8 - barHeight, 7);
-        matrix->fillRect(x1, y1 + y, barWidth, barHeight, color);
+        int y1 = (barHeight > 0) ? (8 - barHeight) : 8;
+
+        if (barHeight > 0)
+        {
+            matrix->fillRect(x1, y1 + y, barWidth, barHeight, color);
+        }
     }
 }
 
 void DisplayManager_::drawLineChart(int16_t x, int16_t y, const int newData[], byte dataSize, bool withIcon, uint16_t color)
 {
+    int availableWidth = withIcon ? (32 - 9) : 32;
     int startX = withIcon ? 9 : 0;
+    float xStep = static_cast<float>(availableWidth) / static_cast<float>(dataSize - 1);
     int lastX = x + startX;
     int lastY = y + 8 - newData[0];
     for (int i = 1; i < dataSize; i++)
     {
-        int x1 = x + startX + (32 - startX) / (dataSize - 1) * i;
+        int x1 = x + startX + static_cast<int>(xStep * i);
         int y1 = y + 8 - newData[i];
         matrix->drawLine(lastX, lastY, x1, y1, color);
         lastX = x1;
@@ -1072,10 +1088,13 @@ String DisplayManager_::getStats()
     doc[LDRRawKey] = LDR_RAW;
     doc[RamKey] = ESP.getFreeHeap();
     doc[BrightnessKey] = BRIGHTNESS;
-    snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
-    doc[TempKey] = buffer;
-    snprintf(buffer, 5, "%.0f", CURRENT_HUM);
-    doc[HumKey] = buffer;
+    if (SENSOR_READING)
+    {
+        snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
+        doc[TempKey] = buffer;
+        snprintf(buffer, 5, "%.0f", CURRENT_HUM);
+        doc[HumKey] = buffer;
+    }
     doc[UpTimeKey] = PeripheryManager.readUptime();
     doc[SignalStrengthKey] = WiFi.RSSI();
     doc[UpdateKey] = UPDATE_AVAILABLE;
@@ -1220,64 +1239,31 @@ void DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
     if (doc.containsKey("color"))
     {
         auto color = doc["color"];
-        if (color.is<String>())
-        {
-            uint16_t col = hexToRgb565(color.as<String>());
 
-            if (col > 0)
+        uint16_t col = getColorFromJsonVariant(color, TEXTCOLOR_565);
+
+        if (col > 0)
+        {
+            if (indicator == 1)
             {
-                if (indicator == 1)
-                {
-                    ui->setIndicator1State(true);
-                    ui->setIndicator1Color(col);
-                }
-                else
-                {
-                    ui->setIndicator2State(true);
-                    ui->setIndicator2Color(col);
-                }
+                ui->setIndicator1State(true);
+                ui->setIndicator1Color(col);
             }
             else
             {
-                if (indicator == 1)
-                {
-                    ui->setIndicator1State(false);
-                }
-                else
-                {
-                    ui->setIndicator2State(false);
-                }
+                ui->setIndicator2State(true);
+                ui->setIndicator2Color(col);
             }
         }
-        else if (color.is<JsonArray>() && color.size() == 3)
+        else
         {
-            uint8_t r = color[0];
-            uint8_t g = color[1];
-            uint8_t b = color[2];
-
-            if (r == 0 && g == 0 && b == 0)
+            if (indicator == 1)
             {
-                if (indicator == 1)
-                {
-                    ui->setIndicator1State(false);
-                }
-                else
-                {
-                    ui->setIndicator2State(false);
-                }
+                ui->setIndicator1State(false);
             }
             else
             {
-                if (indicator == 1)
-                {
-                    ui->setIndicator1State(true);
-                    ui->setIndicator1Color((r << 11) | (g << 5) | b);
-                }
-                else
-                {
-                    ui->setIndicator2State(true);
-                    ui->setIndicator2Color((r << 11) | (g << 5) | b);
-                }
+                ui->setIndicator2State(false);
             }
         }
     }
@@ -1424,63 +1410,19 @@ void DisplayManager_::setNewSettings(const char *json)
 
     if (doc.containsKey("WDCA"))
     {
-        auto temperature = doc["WDCA"];
-        if (temperature.is<String>())
-        {
-            WDC_ACTIVE = hexToRgb565(temperature.as<String>());
-        }
-        else if (temperature.is<JsonArray>() && temperature.size() == 3)
-        {
-            uint8_t r = temperature[0];
-            uint8_t g = temperature[1];
-            uint8_t b = temperature[2];
-            WDC_ACTIVE = (r << 11) | (g << 5) | b;
-        }
+        auto WDCA = doc["WDCA"];
+        WDC_ACTIVE = getColorFromJsonVariant(WDCA, matrix->Color(255, 255, 255));
     }
     if (doc.containsKey("WDCI"))
     {
-        auto temperature = doc["WDCI"];
-        if (temperature.is<String>())
-        {
-            WDC_INACTIVE = hexToRgb565(temperature.as<String>());
-        }
-        else if (temperature.is<JsonArray>() && temperature.size() == 3)
-        {
-            uint8_t r = temperature[0];
-            uint8_t g = temperature[1];
-            uint8_t b = temperature[2];
-            WDC_INACTIVE = (r << 11) | (g << 5) | b;
-        }
+        auto WDCI = doc["WDCI"];
+        WDC_INACTIVE = getColorFromJsonVariant(WDCI, matrix->Color(120, 120, 120));
     }
-    if (doc.containsKey("WDCA"))
-    {
-        auto temperature = doc["WDCA"];
-        if (temperature.is<String>())
-        {
-            WDC_ACTIVE = hexToRgb565(temperature.as<String>());
-        }
-        else if (temperature.is<JsonArray>() && temperature.size() == 3)
-        {
-            uint8_t r = temperature[0];
-            uint8_t g = temperature[1];
-            uint8_t b = temperature[2];
-            WDC_ACTIVE = (r << 11) | (g << 5) | b;
-        }
-    }
+
     if (doc.containsKey("TCOL"))
     {
-        auto temperature = doc["TCOL"];
-        if (temperature.is<String>())
-        {
-            TEXTCOLOR_565 = hexToRgb565(temperature.as<String>());
-        }
-        else if (temperature.is<JsonArray>() && temperature.size() == 3)
-        {
-            uint8_t r = temperature[0];
-            uint8_t g = temperature[1];
-            uint8_t b = temperature[2];
-            TEXTCOLOR_565 = (r << 11) | (g << 5) | b;
-        }
+        auto TCOL = doc["TCOL"];
+        TEXTCOLOR_565 = getColorFromJsonVariant(TCOL, matrix->Color(255, 255, 255));
     }
     applyAllSettings();
     saveSettings();

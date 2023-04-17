@@ -49,22 +49,28 @@ All keys are optional, so you can send just the properties you want to use.
 | Key | Type | Description | Default |
 | --- | ---- | ----------- | ------- |
 | `text` | string | The text to display on the app. | N/A |
-| `icon` | string | The icon ID or filename (without extension) to display on the app. | N/A |
-| `repeat` | number | Sets how many times the text should be scrolled through the matrix before the app ends. | 1 |
+| `textCase` | integer | Changes the Uppercase setting. 0=global setting, 1=forces uppercase; 2=shows as it sent. | 0 |
+| `textOffset` | integer | Sets an offset for the x position of a starting text. | 0 |
+| `color` | string or array of integers | The text, bar or line color | |
 | `rainbow` | boolean | Fades each letter in the text differently through the entire RGB spectrum. | false |
+| `icon` | string | The icon ID or filename (without extension) to display on the app. | N/A |
+| `pushIcon` | number | 0 = Icon doesn't move. 1 = Icon moves with text and will not appear again. 2 = Icon moves with text but appears again when the text starts to scroll again. | 0 |
+| `repeat` | number | Sets how many times the text should be scrolled through the matrix before the app ends. | 1 |
 | `duration` | number | Sets how long the app or notification should be displayed. | 5 |
-| `color` | string | A color hex string for the text color, or an array of R,G,B values | "#FFFFFF" or [255,255,0] |
+| `lifetime` | integer | Removes the custom app when there is no update after the given time in seconds | 0 |
 | `hold` | boolean | Set it to true, to hold your **notification** on top until you press the middle button or dismiss it via HomeAssistant. This key only belongs to notification. | false |
 | `sound` | string | The filename of your RTTTL ringtone file (without extension). | N/A |
-| `pushIcon` | number | 0 = Icon doesn't move. 1 = Icon moves with text and will not appear again. 2 = Icon moves with text but appears again when the text starts to scroll again. | 0 |
 | `bar` | array of integers | draws a bargraph. Without icon maximum 16 values, with icon 11 values | N/A |
 | `line` | array of integers | draws a linechart. Without icon maximum 16 values, with icon 11 values | N/A |
 | `autoscale` | boolean | enables or disables autoscaling for bar and linechart | true |
-| `lifetime` | integer | Removes the custom app when there is no update after the given time in seconds | 0 |
-| `textCase` | integer | Changes the Uppercase setting. 0=global setting, 1=forces uppercase; 2=shows as it sent. | 0 |
-| `textOffset` | integer | Sets an offset for the x position of a starting text. | 0 |
+| `progress` | integer | Shows a progressbar. Value can be 0-100 | -1 |
+| `progressC` | string or array of integers  | The color of the progressbar | -1 |
+| `progressBC` | string or array of integers  | The color of the progressbar background | -1 |
 | `pos` | number | defines the position of your custompage in the loop, starting at 0 for the first position. This will only apply with your first push. You cant change the position afterwards with [this function](api?id=addremove-and-rearange-apps) | N/A |
-
+  
+Color values can have a hex string or an array of R,G,B values:  
+`"#FFFFFF" or [255,255,0]`  
+  
 ### Example
 
 Here's an example JSON object to display the text "Hello, AWTRIX Light!" with the icon name "1", in rainbow colors, for 10 seconds:

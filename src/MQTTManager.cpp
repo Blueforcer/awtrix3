@@ -427,6 +427,7 @@ void MQTTManager_::setup()
         sprintf(verID, HAverID, macStr);
         version = new HASensor(verID);
         version->setName(HAverName);
+        version->setValue(VERSION);
 
         sprintf(sigID, HAsigID, macStr);
         strength = new HASensor(sigID);
@@ -511,11 +512,14 @@ void MQTTManager_::sendStats()
         battery->setValue(buffer);
 
 #endif
-        snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
-        temperature->setValue(buffer);
 
-        snprintf(buffer, 5, "%.0f", CURRENT_HUM);
-        humidity->setValue(buffer);
+        if (SENSOR_READING)
+        {
+            snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
+            temperature->setValue(buffer);
+            snprintf(buffer, 5, "%.0f", CURRENT_HUM);
+            humidity->setValue(buffer);
+        }
 
         snprintf(buffer, 5, "%.0f", CURRENT_LUX);
         illuminance->setValue(buffer);
@@ -542,7 +546,7 @@ void MQTTManager_::sendStats()
         itoa(freeHeapBytes, rambuffer, 10);
         ram->setValue(rambuffer);
         uptime->setValue(PeripheryManager.readUptime());
-        version->setValue(VERSION);
+
         transition->setState(AUTO_TRANSITION, false);
 
         update->setState(UPDATE_AVAILABLE, false);

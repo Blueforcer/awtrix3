@@ -38,7 +38,13 @@ void update_finished()
 
 void update_progress(int cur, int total)
 {
-    DisplayManager.drawProgressBar(cur, total);
+    DisplayManager.clear();
+    int progress = (cur * 100) / total;
+    char progressStr[5];
+    snprintf(progressStr, 5, "%d%%", progress);
+    DisplayManager.printText(0, 6, progressStr, true, false);
+    DisplayManager.drawProgressBar(0, 7, progress, 0xCE59, 0x07E0);
+    DisplayManager.show();
 }
 
 void update_error(int err)

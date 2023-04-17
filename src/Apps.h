@@ -54,6 +54,9 @@ struct CustomApp
     std::vector<uint16_t> colors;
     std::vector<String> fragments;
     uint8_t textOffset;
+    int progress = -1;
+    uint16_t pColor;
+    uint16_t pbColor;
 };
 
 String currentCustomApp;
@@ -84,6 +87,9 @@ struct Notification
     std::vector<uint16_t> colors;
     std::vector<String> fragments;
     uint8_t textOffset;
+    int progress = -1;
+    uint16_t pColor;
+    uint16_t pbColor;
 };
 
 Notification notify;
@@ -451,7 +457,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             }
             else
             {
-              
+
                 if (ca->rainbow)
                 {
                     DisplayManager.HSVtext(x + textX, 6 + y, ca->text.c_str(), false, ca->textCase);
@@ -530,6 +536,12 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             // matrix->drawLine(8 + x + ca->iconPosition, 0 + y, 8 + x + ca->iconPosition, 7 + y, 0);
         }
     }
+
+    if (ca->progress > -1)
+    {
+        DisplayManager.drawProgressBar((hasIcon ? 9 : 0), 7 + y, ca->progress, ca->pColor, ca->pbColor);
+    }
+
     // Reset text color
     DisplayManager.getInstance().resetTextColor();
 }
@@ -744,6 +756,11 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
         {
             // matrix->drawLine(8 + notify.iconPosition, 0, 8 + notify.iconPosition, 7, 0);
         }
+    }
+
+    if (notify.progress > -1)
+    {
+        DisplayManager.drawProgressBar((hasIcon ? 9 : 0), 7, notify.progress, notify.pColor, notify.pbColor);
     }
 
     // Reset text color after displaying notification

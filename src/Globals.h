@@ -102,5 +102,5 @@ void loadSettings();
 void saveSettings();
 extern bool BLOCK_NAVIGATION;
 extern bool UPDATE_CHECK;
-
+extern bool SENSOR_READING;
 #endif // Globals_H
