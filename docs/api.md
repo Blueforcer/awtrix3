@@ -68,6 +68,7 @@ All keys are optional, so you can send just the properties you want to use.
 | `progressBC` | string or array of integers  | The color of the progressbar background | -1 |
 | `pos` | number | defines the position of your custompage in the loop, starting at 0 for the first position. This will only apply with your first push. You cant change the position afterwards with [this function](api?id=addremove-and-rearange-apps) | N/A |
   
+  
 Color values can have a hex string or an array of R,G,B values:  
 `"#FFFFFF" or [255,255,0]`  
   
