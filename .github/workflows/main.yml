@@ -38,7 +38,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade platformio
 
-      - name: Install jo
+      - name: Install jq
         run: sudo apt-get -y install jq
 
       - name: Extract version number

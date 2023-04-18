@@ -4,10 +4,9 @@ about: Suggest an idea for this project
 title: "[FEATURE REQUEST]"
 labels: feature request
 assignees: ''
-
 ---
 
-<!-- Make sure to read the README before opening an issue. [https://xaviml.github.io/controllerx/faq](https://blueforcer.github.io/awtrix-light/#/README) -->
+<!-- Make sure to read the README (https://blueforcer.github.io/awtrix-light/#/README) before opening an issue. -->
 
 # Feature Request
 
