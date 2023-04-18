@@ -198,8 +198,10 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
     }
     if (strTopic.equals(MQTT_PREFIX + "/doupdate"))
     {
-        if (UPDATE_AVAILABLE)
+        if (UpdateManager.checkUpdate(true))
+        {
             UpdateManager.updateFirmware();
+        }
         delete[] payloadCopy;
         return;
     }
@@ -221,14 +223,12 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
-
     if (strTopic.equals(MQTT_PREFIX + "/reboot"))
     {
         ESP.restart();
         delete[] payloadCopy;
         return;
     }
-
     if (strTopic.startsWith(MQTT_PREFIX + "/custom"))
     {
         String topic_str = topic;

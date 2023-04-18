@@ -106,8 +106,10 @@ void ServerManager_::setup()
         mws.addHandler("/api/indicator2", HTTP_POST, []()
                        { DisplayManager.indicatorParser(2,mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/doupdate", HTTP_POST, []()
-                       { if (UPDATE_AVAILABLE)
-            UpdateManager.updateFirmware(); mws.webserver->send(200,"OK"); });
+                       {  mws.webserver->send(200,"OK"); if (UpdateManager.checkUpdate(true))
+            {
+                UpdateManager.updateFirmware();
+            } });
         mws.addHandler("/api/power", HTTP_POST, []()
                        { DisplayManager.powerStateParse(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/reboot", HTTP_POST, []()

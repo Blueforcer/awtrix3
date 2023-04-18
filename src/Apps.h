@@ -56,6 +56,7 @@ struct CustomApp
     uint8_t textOffset;
     int progress = -1;
     uint16_t pColor;
+    uint16_t background = 0;
     uint16_t pbColor;
 };
 
@@ -89,6 +90,7 @@ struct Notification
     uint8_t textOffset;
     int progress = -1;
     uint16_t pColor;
+    uint16_t background = 0;
     uint16_t pbColor;
 };
 
@@ -351,7 +353,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     currentCustomApp = name;
 
     bool hasIcon = ca->icon;
-
+    matrix->fillRect(x, y, 32, 8, ca->background);
     // Calculate text and available width
     uint16_t textWidth = 0;
     if (!ca->fragments.empty())
@@ -578,7 +580,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
     bool hasIcon = notify.icon;
 
     // Clear the matrix display
-    matrix->fillRect(0, 0, 32, 8, 0);
+    matrix->fillRect(0, 0, 32, 8, notify.background);
 
     // Calculate text and available width
     uint16_t textWidth = 0;

@@ -256,7 +256,7 @@ bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, s
         uint16_t color;
         if (fragmentObj.containsKey("c"))
         {
-            auto fragColor = doc["color"];
+            auto fragColor = fragmentObj["c"];
             color = getColorFromJsonVariant(fragColor, standardColor);
         }
         else
@@ -309,6 +309,12 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
     }
 
     customApp.progress = doc.containsKey("progress") ? doc["progress"].as<int>() : -1;
+
+    if (doc.containsKey("background"))
+    {
+        auto background = doc["background"];
+        customApp.background = getColorFromJsonVariant(background, 0);
+    }
 
     if (doc.containsKey("progressC"))
     {
@@ -509,6 +515,12 @@ void DisplayManager_::generateNotification(const char *json)
     else
     {
         notify.pbColor = matrix->Color(255, 255, 255);
+    }
+
+    if (doc.containsKey("background"))
+    {
+        auto background = doc["background"];
+        notify.background = getColorFromJsonVariant(background, 0);
     }
 
     notify.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
@@ -739,7 +751,6 @@ void DisplayManager_::setup()
 
 void checkLifetime()
 {
-    // Sammeln Sie die Namen der zu entfernenden Apps
     std::vector<String> appsToRemove;
 
     for (auto it = customApps.begin(); it != customApps.end(); ++it)
@@ -752,7 +763,6 @@ void checkLifetime()
         }
     }
 
-    // Entfernen Sie die gesammelten Apps nach der Schleife
     for (const String &appName : appsToRemove)
     {
         removeCustomAppFromApps(appName, false);
@@ -1381,7 +1391,6 @@ void DisplayManager_::setNewSettings(const char *json)
             FastLED.setCorrection(COLOR_CORRECTION);
         }
     }
-
     if (doc.containsKey("CTEMP"))
     {
         auto colorValue = doc["CTEMP"];
@@ -1407,7 +1416,6 @@ void DisplayManager_::setNewSettings(const char *json)
             FastLED.setTemperature(COLOR_TEMPERATURE);
         }
     }
-
     if (doc.containsKey("WDCA"))
     {
         auto WDCA = doc["WDCA"];
@@ -1418,7 +1426,6 @@ void DisplayManager_::setNewSettings(const char *json)
         auto WDCI = doc["WDCI"];
         WDC_INACTIVE = getColorFromJsonVariant(WDCI, matrix->Color(120, 120, 120));
     }
-
     if (doc.containsKey("TCOL"))
     {
         auto TCOL = doc["TCOL"];
