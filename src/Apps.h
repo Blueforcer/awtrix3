@@ -572,7 +572,15 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
         notify.iconWasPushed = false;
         notify.iconPosition = 0;
         notify.scrollDelay = 0;
-        DisplayManager.showGif = false;
+        notify.background = 0;
+        notify.repeat = -1;
+        notify.hold = false;
+        notify.textCase = 0;
+        notify.pushIcon = 0;
+        notify.barSize = 0;
+        notify.lineSize = 0;
+        notify.textOffset = 0;
+        notify.progress = -1;
         return;
     }
 
