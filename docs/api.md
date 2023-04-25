@@ -58,7 +58,6 @@ All keys are optional, so you can send just the properties you want to use.
 | `pushIcon` | number | 0 = Icon doesn't move. 1 = Icon moves with text and will not appear again. 2 = Icon moves with text but appears again when the text starts to scroll again. | 0 |
 | `repeat` | number | Sets how many times the text should be scrolled through the matrix before the app ends. | 1 |
 | `duration` | number | Sets how long the app or notification should be displayed. | 5 |
-| `lifetime` | integer | Removes the custom app when there is no update after the given time in seconds | 0 |
 | `hold` | boolean | Set it to true, to hold your **notification** on top until you press the middle button or dismiss it via HomeAssistant. This key only belongs to notification. | false |
 | `sound` | string | The filename of your RTTTL ringtone file (without extension). | N/A |
 | `bar` | array of integers | draws a bargraph. Without icon maximum 16 values, with icon 11 values | N/A |
