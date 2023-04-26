@@ -20,7 +20,6 @@ Ticker downloader;
 
 tm timeInfo;
 uint16_t nativeAppsCount;
-uint16_t customPagesCount;
 
 int WEATHER_CODE;
 String WEATHER_TEMP;

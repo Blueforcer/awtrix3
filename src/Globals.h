@@ -6,9 +6,16 @@
 #define DEBUG
 
 #ifdef DEBUG
-#define DEBUG_PRINTLN(x) Serial.print(__func__); Serial.print(": "); Serial.println(x)
- #define DEBUG_PRINTF(format, ...) { \
-    String formattedMessage = String(__func__) + ": "; \
+#define DEBUG_PRINTLN(x) { \
+ Serial.print("["); \
+    Serial.print(millis()); \
+    Serial.print("] ["); \
+    Serial.print(__func__); \
+    Serial.print("]: "); \
+    Serial.println(x); \
+  }
+#define DEBUG_PRINTF(format, ...) { \
+    String formattedMessage = "["+String(millis()) + "] [" + String(__func__) + "]: "; \
     Serial.print(formattedMessage); \
     Serial.printf(format, ##__VA_ARGS__); \
     Serial.println(); \
@@ -18,7 +25,7 @@
   #define DEBUG_PRINTF(format, ...)
 #endif
 
-//#define configASSERT(x) if((x) == 0) {printf("ASSERTION FAILED at line %d in file %s.\n", __LINE__, __FILE__); taskDISABLE_INTERRUPTS(); for(;;);}
+#define configASSERT(x) if((x) == 0) {printf("ASSERTION FAILED at line %d in file %s.\n", __LINE__, __FILE__); taskDISABLE_INTERRUPTS(); for(;;);}
 
 extern const char *uniqueID;
 extern const char *VERSION;

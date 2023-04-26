@@ -203,20 +203,27 @@ void pushCustomApp(String name, int position)
 {
     if (customApps.count(name) == 0)
     {
-        ++customPagesCount;
-        void (*customApps[20])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool, GifPlayer *) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};
+        void (*customAppArray[20])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool, GifPlayer *) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};
+
+        int customAppIndex = customApps.size();
+
+        if (customAppIndex >= 20)
+        {
+            DEBUG_PRINTLN("Error adding custom app -> Maximum number of custom apps reached");
+            return;
+        }
 
         if (position < 0) // Insert at the end of the vector
         {
-            Apps.push_back(std::make_pair(name, customApps[customPagesCount]));
+            Apps.push_back(std::make_pair(name, customAppArray[customAppIndex]));
         }
         else if (position < Apps.size()) // Insert at a specific position
         {
-            Apps.insert(Apps.begin() + position, std::make_pair(name, customApps[customPagesCount]));
+            Apps.insert(Apps.begin() + position, std::make_pair(name, customAppArray[customAppIndex]));
         }
         else // Invalid position, Insert at the end of the vector
         {
-            Apps.push_back(std::make_pair(name, customApps[customPagesCount]));
+            Apps.push_back(std::make_pair(name, customAppArray[customAppIndex]));
         }
 
         ui->setApps(Apps); // Add Apps
@@ -224,15 +231,41 @@ void pushCustomApp(String name, int position)
     }
 }
 
+
 void removeCustomAppFromApps(const String &name, bool setApps)
 {
+    if (name.length() == 0)
+    {
+        DEBUG_PRINTLN("Error removing app -> Empty name");
+        return;
+    }
+
     auto it = std::find_if(Apps.begin(), Apps.end(), [&name](const std::pair<String, AppCallback> &appPair)
                            { return appPair.first == name; });
+    if (it == Apps.end())
+    {
+        DEBUG_PRINTLN("Error removing " + name + " -> App not found");
+        return;
+    }
+
+    if (!it->second)
+    {
+        DEBUG_PRINTLN("Error removing " + name + " -> Invalid AppCallback");
+        return;
+    }
 
     Apps.erase(it);
-    customApps.erase(customApps.find(name));
+
+    auto customIt = customApps.find(name);
+    if (customIt != customApps.end())
+    {
+        customApps.erase(customIt);
+    }
+
     if (setApps)
+    {
         ui->setApps(Apps);
+    }
 }
 
 bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, std::vector<String> &fragments, uint16_t standardColor)
@@ -240,11 +273,11 @@ bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, s
     colors.clear();
     fragments.clear();
 
-    StaticJsonDocument<512> doc;
+    DynamicJsonDocument doc(3096);
     DeserializationError error = deserializeJson(doc, jsonText);
-
     if (error)
     {
+        doc.clear();
         return false;
     }
 
@@ -279,7 +312,7 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
         return;
     }
 
-    DynamicJsonDocument doc(1024);
+    DynamicJsonDocument doc(3096);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
@@ -492,8 +525,13 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
 
 void DisplayManager_::generateNotification(const char *json)
 {
-    StaticJsonDocument<1024> doc;
-    deserializeJson(doc, json);
+    DynamicJsonDocument doc(3096);
+    DeserializationError error = deserializeJson(doc, json);
+    if (error)
+    {
+        doc.clear();
+        return;
+    }
 
     notify.progress = doc.containsKey("progress") ? doc["progress"].as<int>() : -1;
 
@@ -751,11 +789,22 @@ void DisplayManager_::setup()
 
 void checkLifetime()
 {
+    if (customApps.empty())
+    {
+        return;
+    }
+
     std::vector<String> appsToRemove;
 
     for (auto it = customApps.begin(); it != customApps.end(); ++it)
     {
-        CustomApp &app = it->second;
+        auto appIt = customApps.find(it->first);
+        if (appIt == customApps.end())
+        {
+            continue;
+        }
+
+        CustomApp &app = appIt->second;
         if (app.lifetime > 0 && (millis() - app.lastUpdate) / 1000 >= app.lifetime)
         {
             String appName = it->first;
@@ -765,10 +814,15 @@ void checkLifetime()
 
     for (const String &appName : appsToRemove)
     {
+        DEBUG_PRINTLN("Removing " + appName + " -> Lifetime over");
         removeCustomAppFromApps(appName, false);
     }
-    if (appsToRemove.size() > 0)
+
+    if (!appsToRemove.empty())
+    {
+        DEBUG_PRINTLN("Set new Apploop");
         ui->setApps(Apps);
+    }
 }
 
 void DisplayManager_::tick()
@@ -783,13 +837,15 @@ void DisplayManager_::tick()
         if (ui->getUiState()->appState == IN_TRANSITION && !appIsSwitching)
         {
             appIsSwitching = true;
-            checkLifetime();
+             checkLifetime();
         }
         else if (ui->getUiState()->appState == FIXED && appIsSwitching)
         {
             appIsSwitching = false;
             MQTTManager.setCurrentApp(CURRENT_APP);
             setAppTime(TIME_PER_APP);
+           
+          
         }
     }
 }
@@ -912,10 +968,11 @@ void DisplayManager_::switchToApp(const char *json)
     if (error)
         return;
     String name = doc["name"].as<String>();
-    bool fast = doc["fast"] | false;
     int index = findAppIndexByName(name);
-    if (index > -1)
-        ui->transitionToApp(index);
+    if (index > -1){
+         DEBUG_PRINTLN("Switching to App " + name);
+          ui->transitionToApp(index);
+    }       
 }
 
 void DisplayManager_::drawProgressBar(int16_t x, int16_t y, int progress, uint16_t pColor, uint16_t pbColor)
@@ -923,7 +980,6 @@ void DisplayManager_::drawProgressBar(int16_t x, int16_t y, int progress, uint16
     int available_length = 32 - x;
     int leds_for_progress = (progress * available_length) / 100;
     matrix->drawFastHLine(x, y, available_length, pbColor);
-    Serial.println(leds_for_progress);
     if (leds_for_progress > 0)
         matrix->drawFastHLine(x, y, leds_for_progress, pColor);
 }

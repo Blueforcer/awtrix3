@@ -49,7 +49,7 @@ EasyButton button_left(BUTTON_UP_PIN);
 EasyButton button_right(BUTTON_DOWN_PIN);
 EasyButton button_select(BUTTON_SELECT_PIN);
 #ifdef ULANZI
-MelodyPlayer player(BUZZER_PIN, LOW);
+MelodyPlayer player(BUZZER_PIN, 1,LOW);
 #else
 class Mp3Notify
 {

@@ -96,6 +96,7 @@ void MatrixDisplayUi::setAppAnimation(AnimationDirection dir)
 
 void MatrixDisplayUi::setApps(const std::vector<std::pair<String, AppCallback>> &appPairs)
 {
+
   delete[] AppFunctions;
   AppCount = appPairs.size();
   AppFunctions = new AppCallback[AppCount];
@@ -330,10 +331,10 @@ void MatrixDisplayUi::resetState()
 
 void MatrixDisplayUi::forceResetState()
 {
-    this->state.lastUpdate = 0;
-    this->state.ticksSinceLastStateSwitch = 0;
-    this->state.appState = FIXED;
-    this->state.currentApp = 0;
+  this->state.lastUpdate = 0;
+  this->state.ticksSinceLastStateSwitch = 0;
+  this->state.appState = FIXED;
+  this->state.currentApp = 0;
 }
 
 void MatrixDisplayUi::drawOverlays()

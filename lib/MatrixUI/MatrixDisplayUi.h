@@ -103,7 +103,6 @@ private:
   // Bookeeping for update
   uint8_t updateInterval = 33;
 
-  uint8_t getnextAppNumber();
   void drawApp();
   void drawOverlays();
   void tick();
@@ -118,6 +117,7 @@ public:
    */
   void init();
 
+  uint8_t getnextAppNumber();
   /**
    * Configure the internal used target FPS
    */

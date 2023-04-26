@@ -21,9 +21,9 @@ HASwitch *transition = nullptr;
 HASensor *battery = nullptr;
 #endif
 HASensor *temperature, *humidity, *illuminance, *uptime, *strength, *version, *ram, *curApp = nullptr;
-HABinarySensor *btnleft, *btnmid, *btnright, *update = nullptr;
+HABinarySensor *btnleft, *btnmid, *btnright = nullptr;
 
-char matID[40], ind1ID[40], ind2ID[40], briID[40], btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], updateID[40], doUpdateID[40], batID[40];
+char matID[40], ind1ID[40], ind2ID[40], briID[40], btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], doUpdateID[40], batID[40];
 
 // The getter for the instantiated singleton instance
 MQTTManager_ &MQTTManager_::getInstance()
@@ -225,7 +225,15 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
     }
     if (strTopic.equals(MQTT_PREFIX + "/reboot"))
     {
+        DEBUG_PRINTLN("REBOOT COMMAND RECEIVED")
+        delay(1000);
         ESP.restart();
+        delete[] payloadCopy;
+        return;
+    }
+    if (strTopic.equals(MQTT_PREFIX + "/sound"))
+    {
+        PeripheryManager.playFromFile(String(payloadCopy));
         delete[] payloadCopy;
         return;
     }
@@ -240,6 +248,7 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
 
         DisplayManager.generateCustomPage(topic_str, payloadCopy);
         delete[] payloadCopy;
+        DEBUG_PRINTLN("Customapp request proceed");
         return;
     }
     DEBUG_PRINTLN(F("Unknown MQTT command!"));
@@ -267,13 +276,16 @@ void onMqttConnected()
         "/indicator2",
         "/timeformat",
         "/dateformat",
-        "/reboot"};
+        "/reboot",
+        "/sound"};
     for (const char *topic : topics)
     {
         DEBUG_PRINTF("Subscribe to topic %s", topic);
         String fullTopic = prefix + topic;
         mqtt.subscribe(fullTopic.c_str());
     }
+    if (HA_DISCOVERY)
+        version->setValue(VERSION);
 }
 
 void connect()
@@ -297,7 +309,7 @@ void MQTTManager_::setup()
 {
     if (HA_DISCOVERY)
     {
-        DEBUG_PRINTLN(F("Starting Homeassistant discorvery"));
+        DEBUG_PRINTLN(F("Starting Homeassistant discovery"));
 
         uint8_t mac[6];
         WiFi.macAddress(mac);
@@ -352,10 +364,10 @@ void MQTTManager_::setup()
 
         sprintf(briID, HAbriID, macStr);
         BriMode = new HASelect(briID);
-        BriMode->setOptions(HAbriOptions); // use semicolons as separator of options
+        BriMode->setOptions(HAbriOptions);
         BriMode->onCommand(onSelectCommand);
-        BriMode->setIcon(HAbriIcon); // optional
-        BriMode->setName(HAbriName); // optional
+        BriMode->setIcon(HAbriIcon);
+        BriMode->setName(HAbriName);
         BriMode->setState(AUTO_BRIGHTNESS, true);
 
         sprintf(btnAID, HAbtnaID, macStr);
@@ -427,7 +439,6 @@ void MQTTManager_::setup()
         sprintf(verID, HAverID, macStr);
         version = new HASensor(verID);
         version->setName(HAverName);
-        version->setValue(VERSION);
 
         sprintf(sigID, HAsigID, macStr);
         strength = new HASensor(sigID);
@@ -444,12 +455,6 @@ void MQTTManager_::setup()
         sprintf(btnLID, HAbtnLID, macStr);
         btnleft = new HABinarySensor(btnLID);
         btnleft->setName(HAbtnLName);
-
-        sprintf(updateID, HAupdateID, macStr);
-        update = new HABinarySensor(updateID);
-        update->setIcon(HAupdateIcon);
-        update->setName(HAupdateName);
-        update->setDeviceClass(HAupdateClass);
 
         sprintf(btnMID, HAbtnMID, macStr);
         btnmid = new HABinarySensor(btnMID);
@@ -495,7 +500,7 @@ void MQTTManager_::publish(const char *topic, const char *payload)
 
 void MQTTManager_::setCurrentApp(String appName)
 {
-    DEBUG_PRINTF("Publish current app %s", appName);
+    DEBUG_PRINTF("Publish current app %s", appName.c_str());
     if (HA_DISCOVERY)
         curApp->setValue(appName.c_str());
 
@@ -549,7 +554,7 @@ void MQTTManager_::sendStats()
 
         transition->setState(AUTO_TRANSITION, false);
 
-        update->setState(UPDATE_AVAILABLE, false);
+        // update->setState(UPDATE_AVAILABLE, false);
     }
     else
     {

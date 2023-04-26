@@ -185,20 +185,20 @@ String MenuManager_::menutext()
         switch (appsIndex)
         {
         case 0:
-            DisplayManager.drawBMP(0, 0, get_icon(13), 8, 8);
+            DisplayManager.drawBMP(0, 0, icon_13, 8, 8);
             return SHOW_TIME ? "ON" : "OFF";
         case 1:
-            DisplayManager.drawBMP(0, 0, get_icon(1158), 8, 8);
+            DisplayManager.drawBMP(0, 0, icon_1158, 8, 8);
             return SHOW_DATE ? "ON" : "OFF";
         case 2:
-            DisplayManager.drawBMP(0, 0, get_icon(234), 8, 8);
+            DisplayManager.drawBMP(0, 0, icon_234, 8, 8);
             return SHOW_TEMP ? "ON" : "OFF";
         case 3:
-            DisplayManager.drawBMP(0, 0, get_icon(2075), 8, 8);
+            DisplayManager.drawBMP(0, 0, icon_2075, 8, 8);
             return SHOW_HUM ? "ON" : "OFF";
 #ifdef ULANZI
         case 4:
-            DisplayManager.drawBMP(0, 0, get_icon(1486), 8, 8);
+            DisplayManager.drawBMP(0, 0, icon_1486, 8, 8);
             return SHOW_BAT ? "ON" : "OFF";
 #endif
         default:
