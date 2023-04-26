@@ -20,6 +20,7 @@ enum MenuState
     BrightnessMenu,
     FPSMenu,
     ColorMenu,
+    ClockColorMenu,
     SwitchMenu,
     TspeedMenu,
     AppTimeMenu,
@@ -40,6 +41,7 @@ const char *menuItems[] PROGMEM = {
     "BRIGHT",
     "FPS",
     "COLOR",
+    "C-COLOR",
     "SWITCH",
     "T-SPEED",
     "APPTIME",
@@ -56,7 +58,7 @@ const char *menuItems[] PROGMEM = {
 
 int8_t menuIndex = 0;
 #ifdef ULANZI
-uint8_t menuItemCount = 13;
+uint8_t menuItemCount = 14;
 #else
 uint8_t menuItemCount = 14;
 #endif
@@ -120,6 +122,7 @@ uint16_t textColors[] PROGMEM = {
     0xFBC0}; // Pink
 
 uint8_t currentColor;
+uint8_t currentClockColor;
 
 MenuManager_ &MenuManager_::getInstance()
 {
@@ -148,6 +151,10 @@ String MenuManager_::menutext()
         DisplayManager.drawMenuIndicator(currentColor, sizeof(textColors) / sizeof(textColors[0]), 0xFBC0);
         DisplayManager.setTextColor(textColors[currentColor]);
         return "0x" + String(textColors[currentColor], HEX);
+    case ClockColorMenu:
+        DisplayManager.drawMenuIndicator(currentClockColor, sizeof(textColors) / sizeof(textColors[0]), 0xFBC0);
+        DisplayManager.setTextColor(textColors[currentClockColor]);
+        return "0x" + String(textColors[currentClockColor], HEX);
     case SwitchMenu:
         return AUTO_TRANSITION ? "ON" : "OFF";
     case SoundMenu:
@@ -239,6 +246,9 @@ void MenuManager_::rightButton()
     case ColorMenu:
         currentColor = (currentColor + 1) % (sizeof(textColors) / sizeof(textColors[0]));
         break;
+    case ClockColorMenu:
+        currentClockColor = (currentClockColor + 1) % (sizeof(textColors) / sizeof(textColors[0]));
+        break;
     case SwitchMenu:
         AUTO_TRANSITION = !AUTO_TRANSITION;
         break;
@@ -306,6 +316,9 @@ void MenuManager_::leftButton()
     case ColorMenu:
         currentColor = (currentColor + sizeof(textColors) / sizeof(textColors[0]) - 1) % (sizeof(textColors) / sizeof(textColors[0]));
         break;
+    case ClockColorMenu:
+        currentClockColor = (currentClockColor + sizeof(textColors) / sizeof(textColors[0]) - 1) % (sizeof(textColors) / sizeof(textColors[0]));
+        break;
     case SwitchMenu:
         AUTO_TRANSITION = !AUTO_TRANSITION;
         break;
@@ -367,38 +380,41 @@ void MenuManager_::selectButton()
             currentState = ColorMenu;
             break;
         case 3:
-            currentState = SwitchMenu;
+            currentState = ClockColorMenu;
             break;
         case 4:
-            currentState = TspeedMenu;
+            currentState = SwitchMenu;
             break;
         case 5:
-            currentState = AppTimeMenu;
+            currentState = TspeedMenu;
             break;
         case 6:
-            currentState = TimeFormatMenu;
+            currentState = AppTimeMenu;
             break;
         case 7:
-            currentState = DateFormatMenu;
+            currentState = TimeFormatMenu;
             break;
         case 8:
-            currentState = WeekdayMenu;
+            currentState = DateFormatMenu;
             break;
         case 9:
-            currentState = TempMenu;
+            currentState = WeekdayMenu;
             break;
         case 10:
-            currentState = Appmenu;
+            currentState = TempMenu;
             break;
         case 11:
-            currentState = SoundMenu;
+            currentState = Appmenu;
             break;
         case 12:
+            currentState = SoundMenu;
+            break;
+        case 13:
 #ifndef ULANZI
             currentState = VolumeMenu;
             break;
 #endif          
-        case 13:
+        case 14:
             if (UpdateManager.checkUpdate(true))
             {
                 UpdateManager.updateFirmware();
@@ -461,6 +477,10 @@ void MenuManager_::selectButtonLong()
             break;
         case ColorMenu:
             TEXTCOLOR_565 = textColors[currentColor];
+            saveSettings();
+            break;
+        case ClockColorMenu:
+            CLOCKCOLOR_565 = textColors[currentClockColor];
             saveSettings();
             break;
         case MainMenu:

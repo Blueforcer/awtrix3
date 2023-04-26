@@ -84,6 +84,7 @@ extern bool MATRIX_OFF;
 extern String ALARM_SOUND;
 extern String TIMER_SOUND;
 extern uint16_t TEXTCOLOR_565;
+extern uint16_t CLOCKCOLOR_565;
 extern uint8_t SNOOZE_TIME;
 extern bool AUTO_TRANSITION;
 extern String TIME_FORMAT;

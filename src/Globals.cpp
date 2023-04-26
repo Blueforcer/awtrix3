@@ -125,6 +125,7 @@ void loadSettings()
     BRIGHTNESS = Settings.getUInt("BRI", 120);
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", false);
     TEXTCOLOR_565 = Settings.getUInt("TCOL", 0xFFFF);
+    CLOCKCOLOR_565 = Settings.getUInt("CCOL", 0xFFFF);
     WDC_ACTIVE = Settings.getUInt("WDCA", 0xFFFF);
     WDC_INACTIVE = Settings.getUInt("WDCI", 0x6B6D);
     AUTO_TRANSITION = Settings.getBool("ATRANS", true);
@@ -164,6 +165,7 @@ void saveSettings()
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
     Settings.putBool("ATRANS", AUTO_TRANSITION);
     Settings.putUInt("TCOL", TEXTCOLOR_565);
+    Settings.putUInt("CCOL", CLOCKCOLOR_565);
     Settings.putUInt("WDCA", WDC_ACTIVE);
     Settings.putUInt("WDCI", WDC_INACTIVE);
     Settings.putUInt("TSPEED", TIME_PER_TRANSITION);
@@ -254,6 +256,7 @@ bool MATRIX_OFF;
 bool TIMER_ACTIVE;
 bool ALARM_ACTIVE;
 uint16_t TEXTCOLOR_565;
+uint16_t CLOCKCOLOR_565;
 bool SOUND_ACTIVE;
 String BOOT_SOUND = "";
 int TEMP_DECIMAL_PLACES = 0;

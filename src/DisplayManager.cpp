@@ -114,6 +114,13 @@ void DisplayManager_::applyAllSettings()
 void DisplayManager_::resetTextColor()
 {
     matrix->setTextColor(TEXTCOLOR_565);
+
+}
+
+void DisplayManager_::resetClockColor()
+{
+    matrix->setTextColor(CLOCKCOLOR_565);
+
 }
 
 void DisplayManager_::clearMatrix()
@@ -1384,6 +1391,7 @@ String DisplayManager_::getSettings()
     doc["BRI"] = BRIGHTNESS;
     doc["ATRANS"] = AUTO_TRANSITION;
     doc["TCOL"] = TEXTCOLOR_565;
+    doc["CCOL"] = CLOCKCOLOR_565;
     doc["TSPEED"] = TIME_PER_TRANSITION;
     doc["ATIME"] = TIME_PER_APP;
     doc["TFORMAT"] = TIME_FORMAT;
@@ -1486,6 +1494,11 @@ void DisplayManager_::setNewSettings(const char *json)
     {
         auto TCOL = doc["TCOL"];
         TEXTCOLOR_565 = getColorFromJsonVariant(TCOL, matrix->Color(255, 255, 255));
+    }
+    if (doc.containsKey("CCOL"))
+    {
+        auto CCOL = doc["CCOL"];
+        CLOCKCOLOR_565 = getColorFromJsonVariant(CCOL, matrix->Color(255, 255, 255));
     }
     applyAllSettings();
     saveSettings();

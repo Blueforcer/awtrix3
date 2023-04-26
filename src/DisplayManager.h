@@ -41,6 +41,7 @@ public:
     void previousApp();
     void leftButton();
     void resetTextColor();
+    void resetClockColor();
     void gererateTimer(String);
     void clearMatrix();
     void selectButton();

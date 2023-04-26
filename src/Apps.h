@@ -131,7 +131,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     if (notify.flag)
         return;
     CURRENT_APP = "Time";
-    DisplayManager.getInstance().resetTextColor();
+    DisplayManager.getInstance().resetClockColor();
     time_t now = time(nullptr);
     struct tm *timeInfo;
     timeInfo = localtime(&now);
