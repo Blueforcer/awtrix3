@@ -131,7 +131,16 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     if (notify.flag)
         return;
     CURRENT_APP = "Time";
-    DisplayManager.getInstance().resetTextColor();
+
+    if (TIME_COLOR > 0)
+    {
+        matrix->setTextColor(TIME_COLOR);
+    }
+    else
+    {
+        DisplayManager.getInstance().resetTextColor();
+    }
+
     time_t now = time(nullptr);
     struct tm *timeInfo;
     timeInfo = localtime(&now);
@@ -179,7 +188,14 @@ void DateApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     if (notify.flag)
         return;
     CURRENT_APP = "Date";
-    DisplayManager.getInstance().resetTextColor();
+    if (DATE_COLOR > 0)
+    {
+        matrix->setTextColor(DATE_COLOR);
+    }
+    else
+    {
+        DisplayManager.getInstance().resetTextColor();
+    }
     time_t now = time(nullptr);
     struct tm *timeInfo;
     timeInfo = localtime(&now);
@@ -207,7 +223,14 @@ void TempApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     if (notify.flag)
         return;
     CURRENT_APP = "Temperature";
-    DisplayManager.getInstance().resetTextColor();
+    if (TEMP_COLOR > 0)
+    {
+        matrix->setTextColor(TEMP_COLOR);
+    }
+    else
+    {
+        DisplayManager.getInstance().resetTextColor();
+    }
     matrix->drawRGBBitmap(x, y, icon_234, 8, 8);
 
     if (TEMP_DECIMAL_PLACES > 0)
@@ -233,11 +256,18 @@ void HumApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     if (notify.flag)
         return;
     CURRENT_APP = "Humidity";
-    DisplayManager.getInstance().resetTextColor();
+    if (HUM_COLOR > 0)
+    {
+        matrix->setTextColor(HUM_COLOR);
+    }
+    else
+    {
+        DisplayManager.getInstance().resetTextColor();
+    }
     matrix->drawRGBBitmap(x, y + 1, icon_2075, 8, 8);
     matrix->setCursor(14 + x, 6 + y);
-    int humidity = CURRENT_HUM; // Humidity without decimal places
-    matrix->print(humidity);    // Output humidity
+    int humidity = CURRENT_HUM; 
+    matrix->print(humidity);
     matrix->print("%");
 }
 
@@ -247,7 +277,14 @@ void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     if (notify.flag)
         return;
     CURRENT_APP = "Battery";
-    DisplayManager.getInstance().resetTextColor();
+    if (BAT_COLOR > 0)
+    {
+        matrix->setTextColor(BAT_COLOR);
+    }
+    else
+    {
+        DisplayManager.getInstance().resetTextColor();
+    }
     matrix->drawRGBBitmap(x, y, icon_1486, 8, 8);
     matrix->setCursor(14 + x, 6 + y);
     matrix->print(BATTERY_PERCENT); // Ausgabe des Ladezustands
@@ -899,4 +936,5 @@ void CApp20(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
 }
 
 OverlayCallback overlays[] = {MenuApp, NotifyApp, AlarmApp, TimerApp};
+void (*customAppCallbacks[20])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool, GifPlayer *) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};
 #endif

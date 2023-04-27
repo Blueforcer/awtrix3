@@ -22,3 +22,4 @@ The JSON object has the following properties:
 | `gamma` |float | Sets the gamma of the matrix | `2.5` |
 | `update_check` | boolean | Enables searchfunction for new version every 1 hour. This could cause in loop stack overflow! | `false` |
 | `sensor_reading` | boolean | Enables or disables the reading of the Temp&Hum sensor | `true` |
+| `rotate_screen` | boolean | Rotates the screen upside down | `false` |

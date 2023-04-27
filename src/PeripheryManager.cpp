@@ -49,7 +49,7 @@ EasyButton button_left(BUTTON_UP_PIN);
 EasyButton button_right(BUTTON_DOWN_PIN);
 EasyButton button_select(BUTTON_SELECT_PIN);
 #ifdef ULANZI
-MelodyPlayer player(BUZZER_PIN, 1,LOW);
+MelodyPlayer player(BUZZER_PIN, 1, LOW);
 #else
 class Mp3Notify
 {
@@ -263,8 +263,19 @@ void PeripheryManager_::setup()
     button_left.begin();
     button_right.begin();
     button_select.begin();
-    button_left.onPressed(left_button_pressed);
-    button_right.onPressed(right_button_pressed);
+
+    if (ROTATE_SCREEN)
+    {
+        Serial.println("Button rotation");
+        button_left.onPressed(right_button_pressed);
+        button_right.onPressed(left_button_pressed);
+    }
+    else
+    {
+        button_left.onPressed(left_button_pressed);
+        button_right.onPressed(right_button_pressed);
+    }
+
     button_select.onPressed(select_button_pressed);
     button_select.onPressedFor(1000, select_button_pressed_long);
     button_select.onSequence(2, 300, select_button_double);

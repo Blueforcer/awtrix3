@@ -3,6 +3,7 @@
 #include <WiFi.h>
 #include <ArduinoJson.h>
 #include <LittleFS.h>
+
 Preferences Settings;
 
 char *getID()
@@ -80,6 +81,11 @@ void loadDevSettings()
             TEMP_DECIMAL_PLACES = doc["temp_dec_places"].as<int>();
         }
 
+        if (doc.containsKey("rotate_screen"))
+        {
+            ROTATE_SCREEN = doc["rotate_screen"].as<bool>();
+        }
+
         if (doc.containsKey("gamma"))
         {
             GAMMA = doc["gamma"].as<float>();
@@ -108,6 +114,7 @@ void loadDevSettings()
                 COLOR_TEMPERATURE.setRGB(r, g, b);
             }
         }
+
         file.close();
     }
     else
@@ -125,6 +132,13 @@ void loadSettings()
     BRIGHTNESS = Settings.getUInt("BRI", 120);
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", false);
     TEXTCOLOR_565 = Settings.getUInt("TCOL", 0xFFFF);
+
+    TIME_COLOR = Settings.getUInt("TIME_COL", 0);
+    DATE_COLOR = Settings.getUInt("DATE_COL", 0);
+    TEMP_COLOR = Settings.getUInt("TEMP_COL", 0);
+    HUM_COLOR = Settings.getUInt("HUM_COL", 0);
+    BAT_COLOR = Settings.getUInt("BAT_COL", 0);
+
     WDC_ACTIVE = Settings.getUInt("WDCA", 0xFFFF);
     WDC_INACTIVE = Settings.getUInt("WDCI", 0x6B6D);
     AUTO_TRANSITION = Settings.getBool("ATRANS", true);
@@ -164,6 +178,13 @@ void saveSettings()
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
     Settings.putBool("ATRANS", AUTO_TRANSITION);
     Settings.putUInt("TCOL", TEXTCOLOR_565);
+
+    Settings.putUInt("TIME_COL", TIME_COLOR);
+    Settings.putUInt("DATE_COL", DATE_COLOR);
+    Settings.putUInt("TEMP_COL", TEMP_COLOR);
+    Settings.putUInt("HUM_COL", HUM_COLOR);
+    Settings.putUInt("BAT_COL", BAT_COLOR);
+
     Settings.putUInt("WDCA", WDC_ACTIVE);
     Settings.putUInt("WDCI", WDC_INACTIVE);
     Settings.putUInt("TSPEED", TIME_PER_TRANSITION);
@@ -193,7 +214,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.57";
+const char *VERSION = "0.58";
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
@@ -272,3 +293,10 @@ bool BLOCK_NAVIGATION = false;
 bool UPDATE_CHECK = false;
 float GAMMA = 0;
 bool SENSOR_READING = true;
+bool ROTATE_SCREEN = false;
+
+uint16_t TIME_COLOR = 0;
+uint16_t DATE_COLOR = 0;
+uint16_t BAT_COLOR = 0;
+uint16_t TEMP_COLOR = 0;
+uint16_t HUM_COLOR = 0;

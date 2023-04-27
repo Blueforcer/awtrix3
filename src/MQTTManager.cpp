@@ -233,7 +233,7 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
     }
     if (strTopic.equals(MQTT_PREFIX + "/sound"))
     {
-        PeripheryManager.playFromFile(String(payloadCopy));
+        PeripheryManager.playFromFile("/MELODIES/" + String(payloadCopy) + ".txt");
         delete[] payloadCopy;
         return;
     }
@@ -244,11 +244,10 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         if (topic_str.startsWith(prefix))
         {
             topic_str = topic_str.substring(prefix.length());
+            DisplayManager.generateCustomPage(topic_str, payloadCopy);
         }
 
-        DisplayManager.generateCustomPage(topic_str, payloadCopy);
         delete[] payloadCopy;
-        DEBUG_PRINTLN("Customapp request proceed");
         return;
     }
     DEBUG_PRINTLN(F("Unknown MQTT command!"));
@@ -284,8 +283,8 @@ void onMqttConnected()
         String fullTopic = prefix + topic;
         mqtt.subscribe(fullTopic.c_str());
     }
-    if (HA_DISCOVERY)
-        version->setValue(VERSION);
+
+       
 }
 
 void connect()
@@ -553,7 +552,7 @@ void MQTTManager_::sendStats()
         uptime->setValue(PeripheryManager.readUptime());
 
         transition->setState(AUTO_TRANSITION, false);
-
+        version->setValue(VERSION);
         // update->setState(UPDATE_AVAILABLE, false);
     }
     else

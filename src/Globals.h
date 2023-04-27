@@ -110,4 +110,12 @@ void saveSettings();
 extern bool BLOCK_NAVIGATION;
 extern bool UPDATE_CHECK;
 extern bool SENSOR_READING;
+extern bool ROTATE_SCREEN;
+
+extern uint16_t TIME_COLOR;
+extern uint16_t DATE_COLOR;
+extern uint16_t BAT_COLOR;
+extern uint16_t TEMP_COLOR;
+extern uint16_t HUM_COLOR;
+
 #endif // Globals_H

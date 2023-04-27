@@ -203,11 +203,29 @@ void pushCustomApp(String name, int position)
 {
     if (customApps.count(name) == 0)
     {
-        void (*customAppArray[20])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, bool, bool, GifPlayer *) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};
+        int availableCallbackIndex = -1;
 
-        int customAppIndex = customApps.size();
+        for (int i = 0; i < 20; ++i)
+        {
+            bool callbackUsed = false;
 
-        if (customAppIndex >= 20)
+            for (const auto &appPair : Apps)
+            {
+                if (appPair.second == customAppCallbacks[i])
+                {
+                    callbackUsed = true;
+                    break;
+                }
+            }
+
+            if (!callbackUsed)
+            {
+                availableCallbackIndex = i;
+                break;
+            }
+        }
+
+        if (availableCallbackIndex == -1)
         {
             DEBUG_PRINTLN("Error adding custom app -> Maximum number of custom apps reached");
             return;
@@ -215,15 +233,15 @@ void pushCustomApp(String name, int position)
 
         if (position < 0) // Insert at the end of the vector
         {
-            Apps.push_back(std::make_pair(name, customAppArray[customAppIndex]));
+            Apps.push_back(std::make_pair(name, customAppCallbacks[availableCallbackIndex]));
         }
         else if (position < Apps.size()) // Insert at a specific position
         {
-            Apps.insert(Apps.begin() + position, std::make_pair(name, customAppArray[customAppIndex]));
+            Apps.insert(Apps.begin() + position, std::make_pair(name, customAppCallbacks[availableCallbackIndex]));
         }
         else // Invalid position, Insert at the end of the vector
         {
-            Apps.push_back(std::make_pair(name, customAppArray[customAppIndex]));
+            Apps.push_back(std::make_pair(name, customAppCallbacks[availableCallbackIndex]));
         }
 
         ui->setApps(Apps); // Add Apps
@@ -231,41 +249,16 @@ void pushCustomApp(String name, int position)
     }
 }
 
-
 void removeCustomAppFromApps(const String &name, bool setApps)
 {
-    if (name.length() == 0)
-    {
-        DEBUG_PRINTLN("Error removing app -> Empty name");
-        return;
-    }
-
     auto it = std::find_if(Apps.begin(), Apps.end(), [&name](const std::pair<String, AppCallback> &appPair)
                            { return appPair.first == name; });
-    if (it == Apps.end())
-    {
-        DEBUG_PRINTLN("Error removing " + name + " -> App not found");
-        return;
-    }
-
-    if (!it->second)
-    {
-        DEBUG_PRINTLN("Error removing " + name + " -> Invalid AppCallback");
-        return;
-    }
 
     Apps.erase(it);
-
-    auto customIt = customApps.find(name);
-    if (customIt != customApps.end())
-    {
-        customApps.erase(customIt);
-    }
-
+    customApps.erase(customApps.find(name));
     if (setApps)
-    {
         ui->setApps(Apps);
-    }
+    DisplayManager.getInstance().setAutoTransition(true);
 }
 
 bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, std::vector<String> &fragments, uint16_t standardColor)
@@ -273,11 +266,11 @@ bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, s
     colors.clear();
     fragments.clear();
 
-    DynamicJsonDocument doc(3096);
+    StaticJsonDocument<2048> doc;
     DeserializationError error = deserializeJson(doc, jsonText);
+
     if (error)
     {
-        doc.clear();
         return false;
     }
 
@@ -312,7 +305,7 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
         return;
     }
 
-    DynamicJsonDocument doc(3096);
+    StaticJsonDocument<2048> doc;
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
@@ -525,13 +518,8 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
 
 void DisplayManager_::generateNotification(const char *json)
 {
-    DynamicJsonDocument doc(3096);
-    DeserializationError error = deserializeJson(doc, json);
-    if (error)
-    {
-        doc.clear();
-        return;
-    }
+    StaticJsonDocument<2048> doc;
+    deserializeJson(doc, json);
 
     notify.progress = doc.containsKey("progress") ? doc["progress"].as<int>() : -1;
 
@@ -738,27 +726,19 @@ void DisplayManager_::loadNativeApps()
         }
     };
 
-    // Update the "time" app at position 0
     updateApp("time", TimeApp, SHOW_TIME, 0);
-
-    // Update the "date" app at position 1
     updateApp("date", DateApp, SHOW_DATE, 1);
 
     if (SENSOR_READING)
     {
-        // Update the "temp" app at position 2
         updateApp("temp", TempApp, SHOW_TEMP, 2);
-
-        // Update the "hum" app at position 3
         updateApp("hum", HumApp, SHOW_HUM, 3);
     }
 #ifdef ULANZI
-    // Update the "bat" app at position 4
     updateApp("bat", BatApp, SHOW_BAT, 4);
 #endif
 
     ui->setApps(Apps);
-
     setAutoTransition(true);
 }
 
@@ -769,6 +749,7 @@ void DisplayManager_::setup()
 
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
     setMatrixLayout(MATRIX_LAYOUT);
+    matrix->setRotation(ROTATE_SCREEN ? 90 : 0);
     if (COLOR_CORRECTION)
     {
         FastLED.setCorrection(COLOR_CORRECTION);
@@ -787,41 +768,32 @@ void DisplayManager_::setup()
     ui->init();
 }
 
-void checkLifetime()
+void checkLifetime(uint8_t pos)
 {
     if (customApps.empty())
     {
         return;
     }
 
-    std::vector<String> appsToRemove;
-
-    for (auto it = customApps.begin(); it != customApps.end(); ++it)
+    if (pos >= Apps.size())
     {
-        auto appIt = customApps.find(it->first);
-        if (appIt == customApps.end())
-        {
-            continue;
-        }
+        pos = 0;
+    }
 
+    String appName = Apps[pos].first;
+    auto appIt = customApps.find(appName);
+
+    if (appIt != customApps.end())
+    {
         CustomApp &app = appIt->second;
         if (app.lifetime > 0 && (millis() - app.lastUpdate) / 1000 >= app.lifetime)
         {
-            String appName = it->first;
-            appsToRemove.push_back(appName);
+            DEBUG_PRINTLN("Removing " + appName + " -> Lifetime over");
+            removeCustomAppFromApps(appName, false);
+
+            DEBUG_PRINTLN("Set new Apploop");
+            ui->setApps(Apps);
         }
-    }
-
-    for (const String &appName : appsToRemove)
-    {
-        DEBUG_PRINTLN("Removing " + appName + " -> Lifetime over");
-        removeCustomAppFromApps(appName, false);
-    }
-
-    if (!appsToRemove.empty())
-    {
-        DEBUG_PRINTLN("Set new Apploop");
-        ui->setApps(Apps);
     }
 }
 
@@ -837,15 +809,13 @@ void DisplayManager_::tick()
         if (ui->getUiState()->appState == IN_TRANSITION && !appIsSwitching)
         {
             appIsSwitching = true;
-             checkLifetime();
         }
         else if (ui->getUiState()->appState == FIXED && appIsSwitching)
         {
             appIsSwitching = false;
             MQTTManager.setCurrentApp(CURRENT_APP);
             setAppTime(TIME_PER_APP);
-           
-          
+            checkLifetime(ui->getnextAppNumber());
         }
     }
 }
@@ -968,11 +938,10 @@ void DisplayManager_::switchToApp(const char *json)
     if (error)
         return;
     String name = doc["name"].as<String>();
+    bool fast = doc["fast"] | false;
     int index = findAppIndexByName(name);
-    if (index > -1){
-         DEBUG_PRINTLN("Switching to App " + name);
-          ui->transitionToApp(index);
-    }       
+    if (index > -1)
+        ui->transitionToApp(index);
 }
 
 void DisplayManager_::drawProgressBar(int16_t x, int16_t y, int progress, uint16_t pColor, uint16_t pbColor)
@@ -980,6 +949,7 @@ void DisplayManager_::drawProgressBar(int16_t x, int16_t y, int progress, uint16
     int available_length = 32 - x;
     int leds_for_progress = (progress * available_length) / 100;
     matrix->drawFastHLine(x, y, available_length, pbColor);
+    Serial.println(leds_for_progress);
     if (leds_for_progress > 0)
         matrix->drawFastHLine(x, y, leds_for_progress, pColor);
 }
@@ -1073,7 +1043,7 @@ void DisplayManager_::updateAppVector(const char *json)
 {
     DEBUG_PRINTLN(F("New apps vector received"));
     DEBUG_PRINTLN(json);
-    StaticJsonDocument<512> doc; // Erhöhen Sie die Größe des Dokuments bei Bedarf
+    StaticJsonDocument<2048> doc;
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
@@ -1487,6 +1457,36 @@ void DisplayManager_::setNewSettings(const char *json)
         auto TCOL = doc["TCOL"];
         TEXTCOLOR_565 = getColorFromJsonVariant(TCOL, matrix->Color(255, 255, 255));
     }
+
+    if (doc.containsKey("TIME_COL"))
+    {
+        auto TIME_COL = doc["TIME_COL"];
+        TIME_COLOR = getColorFromJsonVariant(TIME_COL, TEXTCOLOR_565);
+    }
+
+    if (doc.containsKey("DATE_COL"))
+    {
+        auto DATE_COL = doc["DATE_COL"];
+        DATE_COLOR = getColorFromJsonVariant(DATE_COL, TEXTCOLOR_565);
+    }
+
+    if (doc.containsKey("TEMP_COL"))
+    {
+        auto TEMP_COL = doc["TEMP_COL"];
+        TEMP_COLOR = getColorFromJsonVariant(TEMP_COL, TEXTCOLOR_565);
+    }
+
+    if (doc.containsKey("HUM_COL"))
+    {
+        auto HUM_COL = doc["HUM_COL"];
+        HUM_COLOR = getColorFromJsonVariant(HUM_COL, TEXTCOLOR_565);
+    }
+
+    if (doc.containsKey("BAT_COL"))
+    {
+        auto BAT_COL = doc["BAT_COL"];
+        BAT_COLOR = getColorFromJsonVariant(BAT_COL, TEXTCOLOR_565);
+    }
     applyAllSettings();
     saveSettings();
 }
@@ -1534,7 +1534,7 @@ String DisplayManager_::getAppsWithIcon()
 
 void DisplayManager_::reorderApps(const String &jsonString)
 {
-    StaticJsonDocument<1024> jsonDocument;
+    StaticJsonDocument<2048> jsonDocument;
     DeserializationError error = deserializeJson(jsonDocument, jsonString);
     if (error)
     {
