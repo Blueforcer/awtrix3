@@ -20,6 +20,7 @@ Plays a RTTTL sound from the MELODIES folder.
 | --- | --- | --- | --- |  
 | `[PREFIX]/sound` | `http://[IP]/api/sound` | name of the RTTTL file without extension | POST |  
   
+
 ## Colored indicators     
 
 A colored indicator is like a small notification sign wich will be shown on the upper right or lower right corner.  
