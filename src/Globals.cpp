@@ -300,3 +300,8 @@ uint16_t DATE_COLOR = 0;
 uint16_t BAT_COLOR = 0;
 uint16_t TEMP_COLOR = 0;
 uint16_t HUM_COLOR = 0;
+
+
+bool WEB_AUTH = false;
+String WEB_USER = "admin";
+String WEB_PASS = "admin";

@@ -38,6 +38,19 @@ void saveHandler()
     webRequest->send(200);
 }
 
+void authenticationHandler() {
+    WebServerClass *webRequest = mws.getRequest();
+
+    if (WEB_AUTH && WEB_USER && WEB_PASS) {
+        if (!server.authenticate(WEB_USER.c_str(), WEB_PASS.c_str())) {
+            return server.requestAuthentication();
+        }
+    }
+    
+    webRequest->sendHeader("Location", "/");
+    webRequest->send(301, "text/html", "/");
+}
+
 void ServerManager_::setup()
 {
     if (!local_IP.fromString(NET_IP) || !gateway.fromString(NET_GW) || !subnet.fromString(NET_SN) || !primaryDNS.fromString(NET_PDNS) || !secondaryDNS.fromString(NET_SDNS))
@@ -73,6 +86,11 @@ void ServerManager_::setup()
         mws.addHTML(custom_html, "icon_html");
         mws.addCSS(custom_css);
         mws.addJavascript(custom_script);
+        mws.addOptionBox("Authentication");
+        mws.addOption("Enable", WEB_AUTH);
+        mws.addOption("Auth Username", WEB_USER);
+        mws.addOption("Auth Password", WEB_PASS);
+        mws.addHandler("/auth", HTTP_GET, authenticationHandler);
         mws.addHandler("/save", HTTP_POST, saveHandler);
          mws.addHandler("/api/sound", HTTP_POST, []()
                        { PeripheryManager.playFromFile("/MELODIES/" + mws.webserver->arg("plain") + ".txt"); mws.webserver->send(200,"OK"); });
@@ -134,8 +152,15 @@ void ServerManager_::setup()
 }
 
 void ServerManager_::tick()
-{
+{  
+    WebServerClass *webRequest = mws.getRequest();
     mws.run();
+    if (WEB_AUTH && WEB_USER && WEB_PASS) {
+        if (!server.authenticate(WEB_USER.c_str(), WEB_PASS.c_str())) {
+            webRequest->sendHeader("Location", "/auth");
+            webRequest->send(307, "text/html", "/auth");
+        }
+    }
 }
 
 uint16_t stringToColor(const String &str)
@@ -202,6 +227,9 @@ void ServerManager_::loadSettings()
         NET_SN = doc["Subnet"].as<String>();
         NET_PDNS = doc["Primary DNS"].as<String>();
         NET_SDNS = doc["Secondary DNS"].as<String>();
+        WEB_AUTH = doc["Auth Enable"].as<String>();
+        WEB_USER = doc["Auth Username"].as<String>();
+        WEB_PASS = doc["Auth Password"].as<String>();
         file.close();
         DisplayManager.applyAllSettings();
         DEBUG_PRINTLN(F("Webserver configuration loaded"));

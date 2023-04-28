@@ -118,4 +118,8 @@ extern uint16_t BAT_COLOR;
 extern uint16_t TEMP_COLOR;
 extern uint16_t HUM_COLOR;
 
+extern bool WEB_AUTH;
+extern String WEB_USER;
+extern String WEB_PASS;
+
 #endif // Globals_H
