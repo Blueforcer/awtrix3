@@ -93,7 +93,7 @@ Here's an example JSON object to display the text "Hello, AWTRIX Light!" with th
 ```
   
 ### Drawing Instructions  
-?> Pease note: Depending on the amount of objects, the RAM usage can be very high. This could cause freezes or reboots.  
+!> Pease note: Depending on the amount of objects, the RAM usage can be very high. This could cause freezes or reboots.  
  It's important to be mindful of the number of objects and the complexity of the drawing instructions to avoid performance issues.  
   
 Each drawing instruction is an object with a required command key `c` and additional keys depending on the command:  
