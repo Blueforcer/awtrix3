@@ -15,6 +15,7 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <Ticker.h>
+#include <ArduinoJson.h>
 
 Ticker downloader;
 
@@ -27,6 +28,7 @@ String WEATHER_HUM;
 
 struct CustomApp
 {
+    std::vector<String> drawInstructions;
     int16_t scrollposition = 0;
     int16_t scrollDelay = 0;
     String text;
@@ -64,6 +66,7 @@ std::map<String, CustomApp> customApps;
 
 struct Notification
 {
+    std::vector<String> drawInstructions;
     int16_t scrollposition = 34;
     int16_t scrollDelay = 0;
     String text;
@@ -266,7 +269,7 @@ void HumApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     }
     matrix->drawRGBBitmap(x, y + 1, icon_2075, 8, 8);
     matrix->setCursor(14 + x, 6 + y);
-    int humidity = CURRENT_HUM; 
+    int humidity = CURRENT_HUM;
     matrix->print(humidity);
     matrix->print("%");
 }
@@ -368,8 +371,9 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         return;
     }
 
+    
     // reset custom App properties if last frame
-    if (lastFrame)
+    if (firstFrame)
     {
         ca->iconWasPushed = false;
         ca->scrollposition = 9 + ca->textOffset;
@@ -390,6 +394,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 
     bool hasIcon = ca->icon;
     matrix->fillRect(x, y, 32, 8, ca->background);
+
     // Calculate text and available width
     uint16_t textWidth = 0;
     if (!ca->fragments.empty())
@@ -495,7 +500,6 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             }
             else
             {
-
                 if (ca->rainbow)
                 {
                     DisplayManager.HSVtext(x + textX, 6 + y, ca->text.c_str(), false, ca->textCase);
@@ -545,9 +549,9 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 ++ca->iconPosition;
             }
 
-            if (ca->scrollposition < 8 && !ca->iconWasPushed)
+            if (ca->scrollposition < 9 && !ca->iconWasPushed)
             {
-                ca->iconPosition = ca->scrollposition - 8;
+                ca->iconPosition = ca->scrollposition - 9;
 
                 if (ca->iconPosition <= -9)
                 {
@@ -559,7 +563,6 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         // Display animated GIF if enabled and App is fixed, since we have only one gifplayer instance, it looks weird when 2 apps want to draw a different gif
         if (ca->isGif)
         {
-
             gifPlayer->playGif(x + ca->iconPosition, y, &ca->icon);
         }
         else
@@ -571,8 +574,13 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         // Draw vertical line if text is scrolling
         if (!noScrolling)
         {
-            // matrix->drawLine(8 + x + ca->iconPosition, 0 + y, 8 + x + ca->iconPosition, 7 + y, 0);
+            matrix->drawLine(8 + x + ca->iconPosition, 0 + y, 8 + x + ca->iconPosition, 7 + y, 0);
         }
+    }
+
+    if (ca->drawInstructions.size() > 0)
+    {
+        DisplayManager.processDrawInstructions(x, y, ca->drawInstructions);
     }
 
     if (ca->progress > -1)
@@ -617,6 +625,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
         notify.lineSize = 0;
         notify.textOffset = 0;
         notify.progress = -1;
+        notify.drawInstructions.clear();
         return;
     }
 
@@ -773,7 +782,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
                 ++notify.iconPosition;
             }
 
-            if (notify.scrollposition < 8 && !notify.iconWasPushed)
+            if (notify.scrollposition < 9 && !notify.iconWasPushed)
             {
                 notify.iconPosition = notify.scrollposition - 9;
 
@@ -800,13 +809,18 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
         // Display icon divider line if text is scrolling
         if (!noScrolling)
         {
-            // matrix->drawLine(8 + notify.iconPosition, 0, 8 + notify.iconPosition, 7, 0);
+            matrix->drawLine(8 + notify.iconPosition, 0, 8 + notify.iconPosition, 7, 0);
         }
     }
 
     if (notify.progress > -1)
     {
         DisplayManager.drawProgressBar((hasIcon ? 9 : 0), 7, notify.progress, notify.pColor, notify.pbColor);
+    }
+
+    if (notify.drawInstructions.size() > 0)
+    {
+        DisplayManager.processDrawInstructions(0, 0, notify.drawInstructions);
     }
 
     // Reset text color after displaying notification

@@ -76,6 +76,7 @@ All keys are optional, so you can send just the properties you want to use.
 | `progressC` | string or array of integers  | The color of the progressbar | -1 |
 | `progressBC` | string or array of integers  | The color of the progressbar background | -1 |
 | `pos` | number | defines the position of your custompage in the loop, starting at 0 for the first position. This will only apply with your first push. This function is experimental | N/A |  
+| `draw` | array of objects | Array of drawing instructions. Each object represents a drawing command. | See the drawing instructions below |
 
 Color values can have a hex string or an array of R,G,B values:  
 `"#FFFFFF" or [255,255,0]`  
@@ -89,6 +90,57 @@ Here's an example JSON object to display the text "Hello, AWTRIX Light!" with th
   "text": "Hello!",
   "rainbow": true,
   "duration": 10
+}
+```
+  
+### Drawing Instructions  
+?> Pease note: Depending on the amount of objects, the RAM usage can be very high. This could cause freezes or reboots.  
+ It's important to be mindful of the number of objects and the complexity of the drawing instructions to avoid performance issues.  
+  
+Each drawing instruction is an object with a required command key `c` and additional keys depending on the command:  
+  
+| Command | Additional Keys | Description |
+| ------- | --------------- | ----------- |
+| `dp` | `x`, `y`, `cl` | Draw a pixel at position (`x`, `y`) with color `cl` |
+| `dl` | `x0`, `y0`, `x1`, `y1`, `cl` | Draw a line from (`x0`, `y0`) to (`x1`, `y1`) with color `cl` |
+| `dr` | `x`, `y`, `w`, `h`, `cl` | Draw a rectangle with top-left corner at (`x`, `y`), width `w`, height `h`, and color `cl` |
+| `df` | `x`, `y`, `w`, `h`, `cl` | Draw a filled rectangle with top-left corner at (`x`, `y`), width `w`, height `h`, and color `cl` |
+| `dc` | `x`, `y`, `r`, `cl` | Draw a circle with center at (`x`, `y`), radius `r`, and color `cl` |
+| `dfc` | `x`, `y`, `r`, `cl` | Draw a filled circle with center at (`x`, `y`), radius `r`, and color `cl` |
+| `dt` | `x`, `y`, `t`, `cl` | Draw text `t` with top-left corner at (`x`, `y`) and color `cl` |
+  
+Color values can be a hex string or an array of R, G, B values:  
+`"#FFFFFF" or [255, 255, 0]`  
+  
+### Example  
+  
+Here's an example JSON object to draw a red circle, a blue rectangle, and the text "Hello" in green:  
+  
+```json
+{ "draw": [
+    {
+      "c": "dc",
+      "x": 28,
+      "y": 4,
+      "r": 3,
+      "cl": "#FF0000"
+    },
+    {
+      "c": "dr",
+      "x": 20,
+      "y": 4,
+      "w": 4,
+      "h": 4,
+      "cl": "#0000FF"
+    },
+    {
+      "c": "dt",
+      "x": 0,
+      "y": 0,
+      "t": "Hello",
+      "cl": "#00FF00"
+    }
+  ]
 }
 ```
 

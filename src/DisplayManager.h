@@ -1,8 +1,12 @@
 #ifndef DisplayManager_h
 #define DisplayManager_h
 
+
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <LittleFS.h>
+#include <vector>
+
 
 class DisplayManager_
 {
@@ -78,6 +82,7 @@ public:
     void showSleepAnimation();
     void showCurtainEffect();
     void sendAppLoop();
+    void processDrawInstructions(int16_t x, int16_t y, const std::vector<String> &drawInstructions);
     String ledsAsJson();
     String getAppsWithIcon();
 };

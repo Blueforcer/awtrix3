@@ -1,10 +1,10 @@
 #include <DisplayManager.h>
 #include <FastLED_NeoMatrix.h>
+
 #include "MatrixDisplayUi.h"
 #include <TJpg_Decoder.h>
 #include "icons.h"
 #include "Globals.h"
-#include <ArduinoJson.h>
 #include "PeripheryManager.h"
 #include "MQTTManager.h"
 #include "GifPlayer.h"
@@ -301,7 +301,6 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
     if (strcmp(json, "") == 0 && customApps.count(name))
     {
         removeCustomAppFromApps(name, true);
-        showGif = false;
         return;
     }
 
@@ -309,7 +308,6 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
-        showGif = false;
         doc.clear();
         return;
     }
@@ -437,6 +435,18 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
         customApp.lineSize = 0;
     }
 
+    customApp.drawInstructions.clear();
+    if (doc.containsKey("draw"))
+    {
+        JsonArray instructions = doc["draw"];
+        for (JsonObject instruction : instructions)
+        {
+            String instructionStr;
+            serializeJson(instruction, instructionStr);
+            customApp.drawInstructions.push_back(instructionStr);
+        }
+    }
+
     customApp.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : 0;
     int pos = doc.containsKey("pos") ? doc["pos"].as<uint8_t>() : -1;
     customApp.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
@@ -547,6 +557,18 @@ void DisplayManager_::generateNotification(const char *json)
     {
         auto background = doc["background"];
         notify.background = getColorFromJsonVariant(background, 0);
+    }
+    notify.flag = true;
+    notify.drawInstructions.clear();
+    if (doc.containsKey("draw"))
+    {
+        JsonArray instructions = doc["draw"];
+        for (JsonObject instruction : instructions)
+        {
+            String instructionStr;
+            serializeJson(instruction, instructionStr);
+            notify.drawInstructions.push_back(instructionStr);
+        }
     }
 
     notify.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
@@ -665,8 +687,6 @@ void DisplayManager_::generateNotification(const char *json)
     {
         notify.text = "";
     }
-
-    notify.flag = true;
 
     if (doc.containsKey("icon"))
     {
@@ -929,6 +949,7 @@ void DisplayManager_::gererateTimer(String Payload)
     time_t futureTime = mktime(&futureTimeinfo);
     int interval = difftime(futureTime, now) * 1000;
     TimerTicker.once_ms(interval, timerCallback);
+    
 }
 
 void DisplayManager_::switchToApp(const char *json)
@@ -1557,4 +1578,72 @@ void DisplayManager_::reorderApps(const String &jsonString)
     Apps = reorderedApps;
     ui->setApps(Apps);
     ui->forceResetState();
+}
+
+void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, const std::vector<String> &drawInstructions)
+{
+    for (const String &instructionStr : drawInstructions)
+    {
+        StaticJsonDocument<128> instructionDoc;
+        deserializeJson(instructionDoc, instructionStr);
+        JsonObject instruction = instructionDoc.as<JsonObject>();
+
+        String command = instruction["c"].as<String>();
+        Serial.println(command);
+        auto cl = instruction["cl"];
+        uint16_t color = getColorFromJsonVariant(cl, TEXTCOLOR_565);
+        if (command == "dp")
+        {
+            int x = instruction["x"].as<int>();
+            int y = instruction["y"].as<int>();
+            matrix->drawPixel(x + xOffset, y + yOffset, color);
+        }
+        else if (command == "dl")
+        {
+            int x0 = instruction["x0"].as<int>();
+            int y0 = instruction["y0"].as<int>();
+            int x1 = instruction["x1"].as<int>();
+            int y1 = instruction["y1"].as<int>();
+            matrix->drawLine(x0 + xOffset, y0 + yOffset, x1 + xOffset, y1 + yOffset, color);
+        }
+        else if (command == "dr")
+        {
+            int x = instruction["x"].as<int>();
+            int y = instruction["y"].as<int>();
+            int w = instruction["w"].as<int>();
+            int h = instruction["h"].as<int>();
+            matrix->drawRect(x + xOffset, y + yOffset, w, h, color);
+        }
+        else if (command == "df")
+        {
+            int x = instruction["x"].as<int>();
+            int y = instruction["y"].as<int>();
+            int w = instruction["w"].as<int>();
+            int h = instruction["h"].as<int>();
+            matrix->fillRect(x + xOffset, y + yOffset, w, h, color);
+        }
+        else if (command == "dc")
+        {
+            int x = instruction["x"].as<int>();
+            int y = instruction["y"].as<int>();
+            int r = instruction["r"].as<int>();
+            matrix->drawCircle(x + xOffset, y + yOffset, r, color);
+        }
+        else if (command == "dfc")
+        {
+            int x = instruction["x"].as<int>();
+            int y = instruction["y"].as<int>();
+            int r = instruction["r"].as<int>();
+            matrix->fillCircle(x + xOffset, y + yOffset, r, color);
+        }
+        else if (command == "dt")
+        {
+            int x = instruction["x"].as<int>();
+            int y = instruction["y"].as<int>();
+            String text = instruction["t"].as<String>();
+            matrix->setCursor(x + xOffset, y + yOffset + 5);
+            matrix->setTextColor(color);
+            matrix->print(text);
+        }
+    }
 }

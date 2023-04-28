@@ -293,10 +293,20 @@ void PeripheryManager_::setup()
 
 void PeripheryManager_::tick()
 {
-    MQTTManager.sendButton(0, button_left.read());
-    MQTTManager.sendButton(1, button_select.read());
-    MQTTManager.sendButton(2, button_right.read());
+    if (ROTATE_SCREEN)
+    {
+        MQTTManager.sendButton(2, button_left.read());
 
+        MQTTManager.sendButton(0, button_right.read());
+    }
+    else
+    {
+        MQTTManager.sendButton(0, button_left.read());
+
+        MQTTManager.sendButton(2, button_right.read());
+    }
+
+    MQTTManager.sendButton(1, button_select.read());
     unsigned long currentMillis_BatTempHum = millis();
     if (currentMillis_BatTempHum - previousMillis_BatTempHum >= interval_BatTempHum)
     {

@@ -25,7 +25,6 @@
   #define DEBUG_PRINTF(format, ...)
 #endif
 
-#define configASSERT(x) if((x) == 0) {printf("ASSERTION FAILED at line %d in file %s.\n", __LINE__, __FILE__); taskDISABLE_INTERRUPTS(); for(;;);}
 
 extern const char *uniqueID;
 extern const char *VERSION;

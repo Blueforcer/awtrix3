@@ -70,6 +70,7 @@ void setup()
   delay(500);
   xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 0);
   ServerManager.setup();
+  //PeripheryManager.playBootSound();
   if (ServerManager.isConnected)
   {
     MQTTManager.setup();
