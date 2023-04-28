@@ -20,7 +20,6 @@ Plays a RTTTL sound from the MELODIES folder.
 | --- | --- | --- | --- |  
 | `[PREFIX]/sound` | `http://[IP]/api/sound` | name of the RTTTL file without extension | POST |  
   
-  
 ## Colored indicators     
 
 A colored indicator is like a small notification sign wich will be shown on the upper right or lower right corner.  
@@ -108,6 +107,7 @@ Each drawing instruction is an object with a required command key `c` and additi
 | `dc` | `x`, `y`, `r`, `cl` | Draw a circle with center at (`x`, `y`), radius `r`, and color `cl` |
 | `dfc` | `x`, `y`, `r`, `cl` | Draw a filled circle with center at (`x`, `y`), radius `r`, and color `cl` |
 | `dt` | `x`, `y`, `t`, `cl` | Draw text `t` with top-left corner at (`x`, `y`) and color `cl` |
+
   
 Color values can be a hex string or an array of R, G, B values:  
 `"#FFFFFF" or [255, 255, 0]`  
