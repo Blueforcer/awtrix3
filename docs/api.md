@@ -47,7 +47,7 @@ You can also send a one-time notification with the same JSON format. Simply send
 | Topic | URL |  Payload/Body | Query parameters | HTTP method |
 | --- | --- | --- | --- | --- |
 | `[PREFIX]/custom/[appname]` |`http://[IP]/api/custom` | JSON | name = [appname] | POST |
-| `[PREFIX]/notify` |`http://[IP]/notify` | JSON | - | POST |
+| `[PREFIX]/notify` |`http://[IP]/api/notify` | JSON | - | POST |
 
 
 ### JSON Properties
