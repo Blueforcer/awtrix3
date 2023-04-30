@@ -91,14 +91,14 @@ bool UpdateManager_::checkUpdate(bool withScreen)
     }
 
     String payload;
-    int httpCode = -1; // Setzen Sie den Standardwert auf einen ungültigen HTTP-Code
+    int httpCode = -1; // set the default value to a invalid http code
     String fwurl = "";
     fwurl += URL_fw_Version;
     fwurl += "?";
     fwurl += String(rand());
     DEBUG_PRINTLN(F("Check firmwareversion"));
 
-    static WiFiClientSecure client; // Statische Variable
+    static WiFiClientSecure client; // static variable
 
     client.setCACert(rootCACertificate);
     HTTPClient https;

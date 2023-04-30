@@ -12,7 +12,6 @@ class DisplayManager_
 {
 private:
     // The pins the buttons are connected to
-
     DisplayManager_() = default;
 
 #ifdef ULANZI

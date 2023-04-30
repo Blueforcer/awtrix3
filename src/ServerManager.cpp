@@ -74,8 +74,13 @@ void ServerManager_::setup()
         mws.addCSS(custom_css);
         mws.addJavascript(custom_script);
         mws.addHandler("/save", HTTP_POST, saveHandler);
+#ifdef ULANZI        
         mws.addHandler("/api/sound", HTTP_POST, []()
                        { PeripheryManager.playFromFile("/MELODIES/" + mws.webserver->arg("plain") + ".txt"); mws.webserver->send(200,"OK"); });
+#else
+        mws.addHandler("/api/sound", HTTP_POST, []()
+                       { PeripheryManager.playFromFile(mws.webserver->arg("plain")); mws.webserver->send(200,"OK"); });
+#endif
         mws.addHandler("/api/notify", HTTP_POST, []()
                        { DisplayManager.generateNotification(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/nextapp", HTTP_POST, []()

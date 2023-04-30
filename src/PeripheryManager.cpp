@@ -229,11 +229,12 @@ void PeripheryManager_::playFromFile(String file)
 {
     if (!SOUND_ACTIVE)
         return;
-    DEBUG_PRINTLN(F("Playing RTTTL sound file"));
 #ifdef ULANZI
+    DEBUG_PRINTLN(F("Playing RTTTL sound file"));
     Melody melody = MelodyFactory.loadRtttlFile(file);
     player.playAsync(melody);
 #else
+    DEBUG_PRINTLN(F("Playing MP3 sound file"));
     dfmp3.playMp3FolderTrack(file.toInt());
 #endif
 }
@@ -315,14 +316,15 @@ void PeripheryManager_::tick()
         uint16_t ADCVALUE = analogRead(BATTERY_PIN);
         BATTERY_PERCENT = min((int)map(ADCVALUE, 475, 665, 0, 100), 100);
         BATTERY_RAW = ADCVALUE;
-
+#endif
         if (SENSOR_READING)
         {
+#ifdef ULANZI            
             sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
             CURRENT_TEMP -= 9.0;
 #else
-        CURRENT_TEMP = bme280.readTemperature();
-        CURRENT_HUM = bme280.readHumidity();
+            CURRENT_TEMP = bme280.readTemperature();
+            CURRENT_HUM = bme280.readHumidity();
 #endif
         }
         // checkAlarms();

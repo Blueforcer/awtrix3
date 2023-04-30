@@ -23,7 +23,10 @@ HASensor *battery = nullptr;
 HASensor *temperature, *humidity, *illuminance, *uptime, *strength, *version, *ram, *curApp = nullptr;
 HABinarySensor *btnleft, *btnmid, *btnright = nullptr;
 
-char matID[40], ind1ID[40], ind2ID[40], briID[40], btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], doUpdateID[40], batID[40];
+char matID[40], ind1ID[40], ind2ID[40], briID[40], btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], doUpdateID[40];
+#ifdef ULANZI
+char batID[40];
+#endif
 
 // The getter for the instantiated singleton instance
 MQTTManager_ &MQTTManager_::getInstance()
@@ -233,7 +236,11 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
     }
     if (strTopic.equals(MQTT_PREFIX + "/sound"))
     {
+#ifdef ULANZI        
         PeripheryManager.playFromFile("/MELODIES/" + String(payloadCopy) + ".txt");
+#else
+        PeripheryManager.playFromFile(String(payloadCopy));
+#endif
         delete[] payloadCopy;
         return;
     }
@@ -514,9 +521,7 @@ void MQTTManager_::sendStats()
 #ifdef ULANZI
         snprintf(buffer, 5, "%d", BATTERY_PERCENT);
         battery->setValue(buffer);
-
 #endif
-
         if (SENSOR_READING)
         {
             snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
