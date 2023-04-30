@@ -209,7 +209,7 @@ void MatrixDisplayUi::tick()
       // Revert manuelControll
       if (this->state.manuelControll)
       {
-        this->state.appTransitionDirection = this->lastTransitionDirection;
+        this->state.appTransitionDirection = 1;
         this->state.manuelControll = false;
       }
       if (this->state.ticksSinceLastStateSwitch >= this->ticksPerApp)

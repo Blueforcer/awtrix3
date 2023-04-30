@@ -239,11 +239,11 @@ void PeripheryManager_::parseSound(const char *json)
 
 void PeripheryManager_::playFromFile(String file)
 {
-
     if (!SOUND_ACTIVE)
         return;
-    DEBUG_PRINTLN(F("Playing RTTTL sound file"));
+
 #ifdef ULANZI
+    DEBUG_PRINTLN(F("Playing RTTTL sound file"));
     Melody melody = MelodyFactory.loadRtttlFile("/MELODIES/" + String(file) + ".txt");
     player.playAsync(melody);
 #else
@@ -268,7 +268,7 @@ void PeripheryManager_::setup()
     DEBUG_PRINTLN(F("Setup periphery"));
     startTime = millis();
     pinMode(LDR_PIN, INPUT);
-#ifdef awtrix2_upgrade
+#ifndef ULANZI
     dfmp3.begin();
     delay(100);
     setVolume(VOLUME);

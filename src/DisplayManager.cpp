@@ -796,6 +796,26 @@ void DisplayManager_::setup()
     ui->init();
 }
 
+void ResetCustomApps()
+{
+    if (customApps.empty())
+    {
+        return;
+    }
+
+    for (auto it = customApps.begin(); it != customApps.end(); ++it)
+    {
+        CustomApp &app = it->second;
+        if (app.name != currentCustomApp)
+        {
+            app.iconWasPushed = false;
+            app.scrollposition = (app.icon ? 9 : 0) + app.textOffset;
+            app.iconPosition = 0;
+            app.scrollDelay = 0;
+        }
+    }
+}
+
 void checkLifetime(uint8_t pos)
 {
     if (customApps.empty())
@@ -853,6 +873,7 @@ void DisplayManager_::tick()
             MQTTManager.setCurrentApp(CURRENT_APP);
             setAppTime(TIME_PER_APP);
             checkLifetime(ui->getnextAppNumber());
+            ResetCustomApps();
         }
     }
 
@@ -1172,6 +1193,7 @@ void DisplayManager_::updateAppVector(const char *json)
         {
             if (appIt != Apps.end())
             {
+                
                 Apps.erase(appIt);
             }
         }

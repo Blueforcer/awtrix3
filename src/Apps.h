@@ -371,16 +371,6 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         return;
     }
 
-    
-    // reset custom App properties if last frame
-    if (firstFrame)
-    {
-        ca->iconWasPushed = false;
-        ca->scrollposition = 9 + ca->textOffset;
-        ca->iconPosition = 0;
-        ca->scrollDelay = 0;
-    }
-
     if (!DisplayManager.appIsSwitching)
     {
         if (ca->duration > 0)
@@ -436,8 +426,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         {
             if (ca->scrollposition <= -textWidth)
             {
-                ca->scrollDelay = 0;
-                ca->scrollposition = 9 + ca->textOffset;
+
                 if (ca->iconWasPushed && ca->pushIcon == 2)
                 {
                     ca->iconWasPushed = false;
@@ -453,6 +442,8 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 {
                     ++ca->currentRepeat;
                 }
+                ca->scrollDelay = 0;
+                ca->scrollposition = 9 + ca->textOffset;
             }
         }
 
@@ -460,7 +451,8 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         {
             if ((ca->scrollDelay > MATRIX_FPS * 1.2) || ((hasIcon ? ca->textOffset + 9 : ca->textOffset) > 31))
             {
-                --ca->scrollposition;
+                if (state->appState == FIXED)
+                    --ca->scrollposition;
             }
             else
             {
@@ -546,7 +538,8 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         {
             if (ca->iconPosition < 0 && ca->iconWasPushed == false && ca->scrollposition > 8)
             {
-                ++ca->iconPosition;
+                if (state->appState == FIXED)
+                    ++ca->iconPosition;
             }
 
             if (ca->scrollposition < 9 && !ca->iconWasPushed)

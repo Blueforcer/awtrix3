@@ -51,8 +51,10 @@ void onButtonCommand(HAButton *sender)
     }
     else if (sender == doUpdate)
     {
-        if (UPDATE_AVAILABLE)
+        if (UpdateManager.checkUpdate(true))
+        {
             UpdateManager.updateFirmware();
+        }
     }
 }
 
