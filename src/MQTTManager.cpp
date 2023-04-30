@@ -244,18 +244,7 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
     }
     if (strTopic.equals(MQTT_PREFIX + "/sound"))
     {
-        StaticJsonDocument<128> doc;
-        DeserializationError error = deserializeJson(doc, payload);
-        if (error)
-        {
-            DEBUG_PRINTLN(F("Failed to parse json"));
-            return;
-        }
-        if (doc.containsKey("sound"))
-        {
-            PeripheryManager.playFromFile(doc["sound"].as<String>());
-        }
-
+        PeripheryManager.parseSound(payloadCopy);
         delete[] payloadCopy;
         return;
     }

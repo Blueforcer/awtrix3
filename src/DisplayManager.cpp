@@ -1276,6 +1276,22 @@ String DisplayManager_::getAppsAsJson()
     return json;
 }
 
+void DisplayManager_::powerStateParse(const char *json)
+{
+    StaticJsonDocument<128> doc;
+    DeserializationError error = deserializeJson(doc, json);
+    if (error)
+    {
+        DEBUG_PRINTLN(F("Failed to parse json"));
+        return;
+    }
+
+    if (doc.containsKey("power"))
+    {
+        bool power = doc["power"].as<bool>();
+        setPower(power);
+    }
+}
 
 void DisplayManager_::showSleepAnimation()
 {

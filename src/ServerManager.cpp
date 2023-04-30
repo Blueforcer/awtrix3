@@ -75,7 +75,7 @@ void ServerManager_::setup()
         mws.addJavascript(custom_script);
         mws.addHandler("/save", HTTP_POST, saveHandler);
         mws.addHandler("/api/sound", HTTP_POST, []()
-                       { PeripheryManager.playFromFile(mws.webserver->arg("plain")); mws.webserver->send(200,"OK"); });
+                       { PeripheryManager.parseSound(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/notify", HTTP_POST, []()
                        { DisplayManager.generateNotification(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
         mws.addHandler("/api/nextapp", HTTP_POST, []()

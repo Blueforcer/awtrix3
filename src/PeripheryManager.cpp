@@ -221,8 +221,25 @@ void PeripheryManager_::setVolume(uint8_t vol)
 }
 #endif
 
+void PeripheryManager_::parseSound(const char *json)
+{
+
+    StaticJsonDocument<128> doc;
+    DeserializationError error = deserializeJson(doc, json);
+    if (error)
+    {
+        DEBUG_PRINTLN(F("Failed to parse json"));
+        return;
+    }
+    if (doc.containsKey("sound"))
+    {
+        playFromFile(doc["sound"].as<String>());
+    }
+}
+
 void PeripheryManager_::playFromFile(String file)
 {
+
     if (!SOUND_ACTIVE)
         return;
     DEBUG_PRINTLN(F("Playing RTTTL sound file"));

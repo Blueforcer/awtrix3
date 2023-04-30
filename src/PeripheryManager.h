@@ -36,6 +36,7 @@ public:
     void tick();
     void playBootSound();
     void playFromFile(String file);
+    void parseSound(const char *json);
     bool isPlaying();
     void stopSound();
 #ifndef ULANZI
