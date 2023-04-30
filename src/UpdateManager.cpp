@@ -13,7 +13,7 @@
 #ifdef ULANZI
 #define URL_fw_Bin "https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/ulanzi_flasher/firmware/firmware.bin"
 #else
-#define URL_fw_Bin "https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/awtrix_flasher/firmware/firmware.bin"
+#define URL_fw_Bin "https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/awtrix2_flasher/firmware/firmware.bin"
 #endif
 
 Ticker UpdateTicker;
