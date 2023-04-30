@@ -9,7 +9,7 @@ With HTTP, make GET request to `http://[IP]/api/stats`
   
 | Topic | URL | Payload/Body | HTTP method |  
 | --- | --- | --- | --- |  
-| `[PREFIX]/power` | `http://[IP]/api/power` | {"power":true} | POST |  
+| `[PREFIX]/power` | `http://[IP]/api/power` | {"power":true} or {"power":false}  | POST |  
 
 
 ## Play a sound
@@ -18,7 +18,7 @@ Plays a RTTTL sound from the MELODIES folder.
     
 | Topic | URL | Payload/Body | HTTP method |  
 | --- | --- | --- | --- |  
-| `[PREFIX]/sound` | `http://[IP]/api/sound` | name of the RTTTL file without extension | POST |  
+| `[PREFIX]/sound` | `http://[IP]/api/sound` | {"sound":"alarm"} | POST |  
   
 
 ## Colored indicators     
