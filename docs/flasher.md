@@ -11,4 +11,4 @@ If you flash your Ulanzi Clock the first time you need to check "erase".
 
 ## Awtrix 2.0 controller upgrade (with ESP32 D1 mini)  
 
-[filename](awtrix_flasher/index.html ':include :type=iframe')
+[filename](awtrix2_flasher/index.html ':include :type=iframe')
