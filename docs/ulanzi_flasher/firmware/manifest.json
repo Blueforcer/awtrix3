@@ -21,7 +21,7 @@
           "offset": 57344
         },
         {
-          "path": "firmware.bin",
+          "path": "ulanzi_firmware.bin",
           "offset": 65536
         }
       ]

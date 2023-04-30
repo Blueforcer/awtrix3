@@ -21,7 +21,7 @@
           "offset": 57344
         },
         {
-          "path": "firmware.bin",
+          "path": "awtrix2_upgrade_firmware.bin",
           "offset": 65536
         }
       ]
