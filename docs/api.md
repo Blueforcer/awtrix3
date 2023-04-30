@@ -167,7 +167,6 @@ Simply send an array of your fragments, containing `"t"` as your textfragment an
   
 ## Delete a custom app
 To delete a custom app simply send a empty payload/body to the same topic/url.
-You can also use [this API](api?id=addremove-and-rearange-apps)
 
 ## Dismiss Notification  
 Dismiss a notification which was set to "hold"=true.
