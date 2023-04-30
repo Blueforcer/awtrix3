@@ -56,10 +56,10 @@ jobs:
         run: pio run --environment awtrix2_upgrade
 
       - name: Copy firmware for ulanzi to output directory
-        run: cp .pio/build/ulanzi/firmware.bin docs/flasher/firmware/ulanzi_firmware.bin
+        run: cp .pio/build/ulanzi/firmware.bin docs/ulanzi_flasher/firmware/firmware.bin
 
       - name: Copy firmware for awtrix2_upgrade to output directory
-        run: cp .pio/build/awtrix2_upgrade/firmware.bin docs/flasher/firmware/awtrix2_upgrade_firmware.bin
+        run: cp .pio/build/awtrix2_upgrade/firmware.bin docs/awtrix2_flasher/firmware/firmware.bin
 
       - name: Create new manifest.json
         run: cat docs/flasher/firmware/manifest.json | jq '.version="${{ steps.version_number.outputs.firmware_version }}"' > docs/flasher/firmware/new-manifest.json
