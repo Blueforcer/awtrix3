@@ -13,6 +13,7 @@
   - [Alarm clock](alarm.md)
   - [Icons](icons.md)
   - [Sounds](sounds.md)
+  - [Artnet](artnet.md)
   - [Hidden features](dev.md)
 
 - API
