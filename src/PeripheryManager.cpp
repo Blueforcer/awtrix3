@@ -268,7 +268,7 @@ void PeripheryManager_::setup()
     DEBUG_PRINTLN(F("Setup periphery"));
     startTime = millis();
     pinMode(LDR_PIN, INPUT);
-#ifdef AWTRIX_UPGRADE
+#ifdef awtrix2_upgrade
     dfmp3.begin();
     delay(100);
     setVolume(VOLUME);
