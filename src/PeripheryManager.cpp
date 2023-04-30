@@ -197,11 +197,7 @@ void PeripheryManager_::playBootSound()
     }
     else
     {
-#ifdef ULANZI
-        playFromFile("/MELODIES/" + BOOT_SOUND + ".txt");
-#else
         playFromFile(BOOT_SOUND);
-#endif
     }
 }
 
@@ -231,7 +227,7 @@ void PeripheryManager_::playFromFile(String file)
         return;
     DEBUG_PRINTLN(F("Playing RTTTL sound file"));
 #ifdef ULANZI
-    Melody melody = MelodyFactory.loadRtttlFile(file);
+    Melody melody = MelodyFactory.loadRtttlFile("/MELODIES/" + String(file) + ".txt");
     player.playAsync(melody);
 #else
     dfmp3.playMp3FolderTrack(file.toInt());
@@ -315,14 +311,15 @@ void PeripheryManager_::tick()
         uint16_t ADCVALUE = analogRead(BATTERY_PIN);
         BATTERY_PERCENT = min((int)map(ADCVALUE, 475, 665, 0, 100), 100);
         BATTERY_RAW = ADCVALUE;
-
+#endif
         if (SENSOR_READING)
         {
+#ifdef ULANZI
             sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
             CURRENT_TEMP -= 9.0;
 #else
-        CURRENT_TEMP = bme280.readTemperature();
-        CURRENT_HUM = bme280.readHumidity();
+            CURRENT_TEMP = bme280.readTemperature();
+            CURRENT_HUM = bme280.readHumidity();
 #endif
         }
         // checkAlarms();

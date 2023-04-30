@@ -116,5 +116,5 @@ extern uint16_t DATE_COLOR;
 extern uint16_t BAT_COLOR;
 extern uint16_t TEMP_COLOR;
 extern uint16_t HUM_COLOR;
-
+extern bool ARTNET_MODE;
 #endif // Globals_H

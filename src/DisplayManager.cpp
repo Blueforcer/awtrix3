@@ -16,10 +16,22 @@
 #include "Dictionary.h"
 #include <set>
 #include "GifPlayer.h"
+#include <ArtnetWifi.h>
 
 Ticker AlarmTicker;
 Ticker TimerTicker;
 
+unsigned long lastArtnetStatusTime = 0;
+const int numberOfChannels = 256 * 3;
+// Artnet settings
+ArtnetWifi artnet;
+const int startUniverse = 0; // CHANGE FOR YOUR SETUP most software this is 1, some software send out artnet first universe as 0.
+
+// Check if we got all universes
+const int maxUniverses = numberOfChannels / 512 + ((numberOfChannels % 512) ? 1 : 0);
+bool universesReceived[maxUniverses];
+bool sendFrame = 1;
+int previousDataLength = 0;
 #ifdef ULANZI
 #define MATRIX_PIN 32
 #else
@@ -585,11 +597,7 @@ void DisplayManager_::generateNotification(const char *json)
     notify.scrollDelay = 0;
     if (doc.containsKey("sound"))
     {
-#ifdef ULANZI
-        PeripheryManager.playFromFile("/MELODIES/" + doc["sound"].as<String>() + ".txt");
-#else
         PeripheryManager.playFromFile(doc["sound"].as<String>());
-#endif
     }
 
     bool autoscale = true;
@@ -817,11 +825,19 @@ void checkLifetime(uint8_t pos)
     }
 }
 
+uint8_t received_packets = 0;
+bool universe1_complete = false;
+bool universe2_complete = false;
+
 void DisplayManager_::tick()
 {
     if (AP_MODE)
     {
         HSVtext(2, 6, "AP MODE", true, 1);
+    }
+    else if (ARTNET_MODE)
+    {
+        // handled by the DMXFrame callback
     }
     else
     {
@@ -832,12 +848,71 @@ void DisplayManager_::tick()
         }
         else if (ui->getUiState()->appState == FIXED && appIsSwitching)
         {
+
             appIsSwitching = false;
             MQTTManager.setCurrentApp(CURRENT_APP);
             setAppTime(TIME_PER_APP);
             checkLifetime(ui->getnextAppNumber());
         }
     }
+
+    uint16_t ArtnetStatus = artnet.read();
+    if (ArtnetStatus > 0)
+    {
+        lastArtnetStatusTime = millis();
+        ARTNET_MODE = true;
+    }
+    else if (millis() - lastArtnetStatusTime > 1000)
+    {
+        ARTNET_MODE = false;
+    }
+}
+
+void onDmxFrame(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t *data)
+{
+    sendFrame = 1;
+    // set brightness of the whole strip
+    if (universe == 10)
+    {
+        matrix->setBrightness(data[0]);
+        matrix->show();
+    }
+
+    // Store which universe has got in
+    if ((universe - startUniverse) < maxUniverses)
+        universesReceived[universe - startUniverse] = 1;
+
+    for (int i = 0; i < maxUniverses; i++)
+    {
+        if (universesReceived[i] == 0)
+        {
+            // Serial.println("Broke");
+            sendFrame = 0;
+            break;
+        }
+    }
+
+    // read universe and put into the right part of the display buffer
+    for (int i = 0; i < length / 3; i++)
+    {
+        int led = i + (universe - startUniverse) * (previousDataLength / 3);
+        if (led < 256)
+            matrix->drawPixel(led % matrix->width(), led / matrix->width(), matrix->Color(data[i * 3], data[i * 3 + 1], data[i * 3 + 2]));
+    }
+    previousDataLength = length;
+
+    if (sendFrame)
+    {
+        matrix->show();
+        // Reset universeReceived to 0
+        memset(universesReceived, 0, maxUniverses);
+    }
+}
+
+void DisplayManager_::startE131()
+{
+    artnet.begin();
+    artnet.setArtDmxCallback(onDmxFrame);
 }
 
 void DisplayManager_::clear()
@@ -949,7 +1024,6 @@ void DisplayManager_::gererateTimer(String Payload)
     time_t futureTime = mktime(&futureTimeinfo);
     int interval = difftime(futureTime, now) * 1000;
     TimerTicker.once_ms(interval, timerCallback);
-    
 }
 
 void DisplayManager_::switchToApp(const char *json)
@@ -1202,10 +1276,6 @@ String DisplayManager_::getAppsAsJson()
     return json;
 }
 
-void DisplayManager_::powerStateParse(const char *state)
-{
-    setPower((strcmp(state, "true") == 0 || strcmp(state, "1") == 0) ? true : false);
-}
 
 void DisplayManager_::showSleepAnimation()
 {

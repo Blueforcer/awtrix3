@@ -76,6 +76,7 @@ void setup()
     MQTTManager.setup();
     DisplayManager.loadNativeApps();
     UpdateManager.setup();
+    DisplayManager.startE131();
     StopTask = true;
     float x = 4;
     while (x >= -85)

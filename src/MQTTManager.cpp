@@ -207,7 +207,18 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
     }
     if (strTopic.equals(MQTT_PREFIX + "/power"))
     {
-        DisplayManager.powerStateParse(payloadCopy);
+        StaticJsonDocument<128> doc;
+        DeserializationError error = deserializeJson(doc, payload);
+        if (error)
+        {
+            DEBUG_PRINTLN(F("Failed to parse json"));
+            return;
+        }
+        if (doc.containsKey("power"))
+        {
+            DisplayManager.setPower(doc["power"].as<bool>());
+        }
+
         delete[] payloadCopy;
         return;
     }
@@ -233,7 +244,18 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
     }
     if (strTopic.equals(MQTT_PREFIX + "/sound"))
     {
-        PeripheryManager.playFromFile("/MELODIES/" + String(payloadCopy) + ".txt");
+        StaticJsonDocument<128> doc;
+        DeserializationError error = deserializeJson(doc, payload);
+        if (error)
+        {
+            DEBUG_PRINTLN(F("Failed to parse json"));
+            return;
+        }
+        if (doc.containsKey("sound"))
+        {
+            PeripheryManager.playFromFile(doc["sound"].as<String>());
+        }
+
         delete[] payloadCopy;
         return;
     }
@@ -283,8 +305,6 @@ void onMqttConnected()
         String fullTopic = prefix + topic;
         mqtt.subscribe(fullTopic.c_str());
     }
-
-       
 }
 
 void connect()

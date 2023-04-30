@@ -9,7 +9,7 @@ With HTTP, make GET request to `http://[IP]/api/stats`
   
 | Topic | URL | Payload/Body | HTTP method |  
 | --- | --- | --- | --- |  
-| `[PREFIX]/power` | `http://[IP]/api/power` | true/false or 1/0 | POST |  
+| `[PREFIX]/power` | `http://[IP]/api/power` | {"power":true} | POST |  
 
 
 ## Play a sound

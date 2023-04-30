@@ -300,3 +300,4 @@ uint16_t DATE_COLOR = 0;
 uint16_t BAT_COLOR = 0;
 uint16_t TEMP_COLOR = 0;
 uint16_t HUM_COLOR = 0;
+bool ARTNET_MODE;

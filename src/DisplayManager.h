@@ -85,6 +85,7 @@ public:
     void processDrawInstructions(int16_t x, int16_t y, const std::vector<String> &drawInstructions);
     String ledsAsJson();
     String getAppsWithIcon();
+    void startE131();
 };
 
 extern DisplayManager_ &DisplayManager;
