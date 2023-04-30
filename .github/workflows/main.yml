@@ -52,14 +52,14 @@ jobs:
       - name: Run PlatformIO for ulanzi
         run: pio run --environment ulanzi
 
-      - name: Run PlatformIO for awtrix_upgrade
-        run: pio run --environment awtrix_upgrade
+      - name: Run PlatformIO for awtrix2_upgrade
+        run: pio run --environment awtrix2_upgrade
 
       - name: Copy firmware for ulanzi to output directory
         run: cp .pio/build/ulanzi/firmware.bin docs/flasher/firmware/ulanzi_firmware.bin
 
-      - name: Copy firmware for awtrix_upgrade to output directory
-        run: cp .pio/build/awtrix_upgrade/firmware.bin docs/flasher/firmware/awtrix_upgrade_firmware.bin
+      - name: Copy firmware for awtrix2_upgrade to output directory
+        run: cp .pio/build/awtrix2_upgrade/firmware.bin docs/flasher/firmware/awtrix2_upgrade_firmware.bin
 
       - name: Create new manifest.json
         run: cat docs/flasher/firmware/manifest.json | jq '.version="${{ steps.version_number.outputs.firmware_version }}"' > docs/flasher/firmware/new-manifest.json
@@ -73,11 +73,11 @@ jobs:
           name: ulanzi_firmware
           path: .pio/build/ulanzi/firmware.bin
 
-      - name: Upload awtrix_upgrade firmware as artifact
+      - name: Upload awtrix2_upgrade firmware as artifact
         uses: actions/upload-artifact@v2
         with:
-          name: awtrix_upgrade_firmware
-          path: .pio/build/awtrix_upgrade/firmware.bin
+          name: awtrix2_upgrade_firmware
+          path: .pio/build/awtrix2_upgrade/firmware.bin
 
       - name: Create Release
         id: create_release
@@ -101,15 +101,15 @@ jobs:
           asset_name: ulanzi_firmware.bin
           asset_content_type: application/octet-stream
 
-      - name: Upload awtrix_upgrade Release Asset
-        id: upload-awtrix_upgrade-release-asset
+      - name: Upload awtrix2_upgrade Release Asset
+        id: upload-awtrix2_upgrade-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: .pio/build/awtrix_upgrade/firmware.bin
-          asset_name: awtrix_upgrade_firmware.bin
+          asset_path: .pio/build/awtrix2_upgrade/firmware.bin
+          asset_name: awtrix2_upgrade_firmware.bin
           asset_content_type: application/octet-stream
 
       - name: Commit
