@@ -64,7 +64,7 @@ Starting is easy as 1-2-3
 </a>
 
 # Community  
-Join the discord channel with over 1500 Users  
+Join the discord channel with over 1800 Users  
 https://discord.gg/cyBCpdx  
 
 # Support  
