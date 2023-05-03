@@ -25,7 +25,7 @@ AWTRIX Light is an open‑source custom firmware for the [Ulanzi Smart Pixel clo
 
 AWL meant to be a companion for your smarthome like HomeAssistant, IOBroker, NodeRed and so on.    
 Even if you don't have a Smarthome system, but would like to experiment with NodeRed or N8N, you are still welcome to join us.  
-There are many users who are willing to help you!  
+Our discord community with over 1800 people, are willing to help you!  
 
 It is ready to use straight out of the box, with time, date, temperature, and humidity pages pre-installed. You don't need to do anything other than turning it on to start using these features.    
 
