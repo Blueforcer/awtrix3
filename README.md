@@ -56,7 +56,11 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
 
 Starting is easy as 1-2-3
 [with the documentation](https://blueforcer.github.io/awtrix-light/)
-
+  
+# Support  
+If you like my work, please consider supporting the project.  
+https://github.com/sponsors/Blueforcer  
+  
 # Contributors 
 <a href="https://github.com/Blueforcer/awtrix-light/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=Blueforcer/awtrix-light" />
@@ -65,10 +69,6 @@ Starting is easy as 1-2-3
 # Community  
 Join the discord channel with over 1800 Users  
 https://discord.gg/cyBCpdx  
-
-# Support  
-If you like my work, please consider supporting the project.  
-https://github.com/sponsors/Blueforcer  
 
 # Disclaimer
 This open-source software is not affiliated with or endorsed by the company Ulanzi in any way. Use of the software is at your own risk and discretion, and i assume no liability for any potential damages or issues that may arise from using the software. It is important to be aware that using this open-source software comes without direct support or guarantees from the company Ulanzi.
