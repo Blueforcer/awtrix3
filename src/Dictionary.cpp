@@ -15,7 +15,7 @@ const char State1[] PROGMEM = {"1"};
 const char HAmanufacturer[] PROGMEM = {"Blueforcer"};
 const char HAmodel[] PROGMEM = {"AWTRIX Light"};
 const char HAmatID[] PROGMEM = {"%s_mat"};
-const char HAmatIcon[] PROGMEM = {"mdi:lightbulb"};
+const char HAmatIcon[] PROGMEM = {"mdi:clock-digital"};
 const char HAmatName[] PROGMEM = {"Matrix"};
 
 const char HAi1ID[] PROGMEM = {"%s_ind1"};
@@ -76,7 +76,7 @@ const char HAverName[] PROGMEM = {"Version"};
 
 const char HAtransID[] PROGMEM = {"%s_tra"};
 const char HAtransName[] PROGMEM = {"Transition"};
-const char HAtransIcon[] PROGMEM = {"mdi:swap-vertical"};
+const char HAtransIcon[] PROGMEM = {"mdi:swap-horizontal"};
 
 const char HAupdateID[] PROGMEM = {"%s_upd"};
 const char HAupdateName[] PROGMEM = {"Update"};
@@ -99,15 +99,18 @@ const char HAupClass[] PROGMEM = {"duration"};
 
 const char HAbtnLID[] PROGMEM = {"%s_btnL"};
 const char HAbtnLName[] PROGMEM = {"Button left"};
+const char HAtransIcon[] PROGMEM = {"mdi:chevron-left-box-outline"};
 
 const char HAbtnMID[] PROGMEM = {"%s_btnM"};
 const char HAbtnMName[] PROGMEM = {"Button select"};
+const char HAtransIcon[] PROGMEM = {"mdi:circle-box-outline"};
 
 const char HAbtnRID[] PROGMEM = {"%s_btnR"};
 const char HAbtnRName[] PROGMEM = {"Button right"};
+const char HAtransIcon[] PROGMEM = {"mdi:chevron-right-box-outline"};
 
 const char HAramRID[] PROGMEM = {"%s_ram"};
-const char HAramIcon[] PROGMEM = {"mdi:application-cog"};
+const char HAramIcon[] PROGMEM = {"mdi:memory"};
 const char HAramName[] PROGMEM = {"Free ram"};
 const char HAramClass[] PROGMEM = {"data_size"};
 const char HAramUnit[] PROGMEM = {"B"};
