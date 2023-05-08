@@ -173,7 +173,7 @@ Dismiss a notification which was set to "hold"=true.
 
 | Topic | URL | Payload/Body | HTTP method |
 | --- | --- | --- | --- |
-| `[PREFIX]/custom/[appname]` |`http://[IP]/api/notify/dismiss` | empty payload/body | POST |
+| `[PREFIX]/notify/dismiss` |`http://[IP]/api/notify/dismiss` | empty payload/body | POST |
 
 ## Switch Apps
 Switch to next or previous app.
