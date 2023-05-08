@@ -99,15 +99,15 @@ const char HAupClass[] PROGMEM = {"duration"};
 
 const char HAbtnLID[] PROGMEM = {"%s_btnL"};
 const char HAbtnLName[] PROGMEM = {"Button left"};
-const char HAtransIcon[] PROGMEM = {"mdi:chevron-left-box-outline"};
+const char HAbtnLIcon[] PROGMEM = {"mdi:chevron-left-box-outline"};
 
 const char HAbtnMID[] PROGMEM = {"%s_btnM"};
 const char HAbtnMName[] PROGMEM = {"Button select"};
-const char HAtransIcon[] PROGMEM = {"mdi:circle-box-outline"};
+const char HAbtnMIcon[] PROGMEM = {"mdi:circle-box-outline"};
 
 const char HAbtnRID[] PROGMEM = {"%s_btnR"};
 const char HAbtnRName[] PROGMEM = {"Button right"};
-const char HAtransIcon[] PROGMEM = {"mdi:chevron-right-box-outline"};
+const char HAbtnRIcon[] PROGMEM = {"mdi:chevron-right-box-outline"};
 
 const char HAramRID[] PROGMEM = {"%s_ram"};
 const char HAramIcon[] PROGMEM = {"mdi:memory"};
