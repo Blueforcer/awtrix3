@@ -82,10 +82,12 @@ public:
     void showSleepAnimation();
     void showCurtainEffect();
     void sendAppLoop();
-    void processDrawInstructions(int16_t x, int16_t y, const std::vector<String> &drawInstructions);
+    void processDrawInstructions(int16_t x, int16_t y, String &drawInstructions);
     String ledsAsJson();
     String getAppsWithIcon();
     void startE131();
+    void parseCustomPage(const String &name, const char *json);
+    void moodlight(const char *json);
 };
 
 extern DisplayManager_ &DisplayManager;

@@ -114,7 +114,7 @@ bool FSWebServer::begin(const char *path)
     // OTA update via webbrowser
     m_httpUpdater.setup(webserver);
 
-    webserver->enableCrossOrigin(true);
+
     webserver->enableCORS(true);
 
     webserver->setContentLength(1024);
@@ -605,7 +605,7 @@ void FSWebServer::replyOK()
 
 void FSWebServer::replyToCLient(int msg_type = 0, const char *msg = "")
 {
-    webserver->sendHeader("Access-Control-Allow-Origin", "*");
+    //webserver->sendHeader("Access-Control-Allow-Origin", "*");
     switch (msg_type)
     {
     case OK:

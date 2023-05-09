@@ -79,9 +79,9 @@ void MatrixDisplayUi::setsetAutoTransitionBackwards()
   this->state.appTransitionDirection = -1;
   this->lastTransitionDirection = -1;
 }
-void MatrixDisplayUi::setTimePerApp(uint16_t time)
+void MatrixDisplayUi::setTimePerApp(long time)
 {
-  this->ticksPerApp = (int)((float)time / (float)updateInterval);
+  this->ticksPerApp = time / (long)updateInterval;
 }
 void MatrixDisplayUi::setTimePerTransition(uint16_t time)
 {

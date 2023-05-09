@@ -236,6 +236,12 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
+     if (strTopic.equals(MQTT_PREFIX + "/moodlight"))
+    {
+        DisplayManager.moodlight(payloadCopy);
+        delete[] payloadCopy;
+        return;
+    }
     if (strTopic.equals(MQTT_PREFIX + "/reboot"))
     {
         DEBUG_PRINTLN("REBOOT COMMAND RECEIVED")
@@ -257,7 +263,7 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         if (topic_str.startsWith(prefix))
         {
             topic_str = topic_str.substring(prefix.length());
-            DisplayManager.generateCustomPage(topic_str, payloadCopy);
+            DisplayManager.parseCustomPage(topic_str, payloadCopy);
         }
 
         delete[] payloadCopy;
@@ -289,12 +295,14 @@ void onMqttConnected()
         "/timeformat",
         "/dateformat",
         "/reboot",
+        "/moodlight",
         "/sound"};
     for (const char *topic : topics)
     {
         DEBUG_PRINTF("Subscribe to topic %s", topic);
         String fullTopic = prefix + topic;
         mqtt.subscribe(fullTopic.c_str());
+        delay(30);
     }
 }
 

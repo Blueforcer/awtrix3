@@ -55,7 +55,7 @@ extern String NET_GW;
 extern String NET_SN;
 extern String NET_PDNS;
 extern String NET_SDNS;
-extern int TIME_PER_APP;
+extern long TIME_PER_APP;
 extern uint8_t MATRIX_FPS;
 extern int TIME_PER_TRANSITION;
 extern String NTP_SERVER;
@@ -117,4 +117,5 @@ extern uint16_t BAT_COLOR;
 extern uint16_t TEMP_COLOR;
 extern uint16_t HUM_COLOR;
 extern bool ARTNET_MODE;
+extern bool MOODLIGHT_MODE;
 #endif // Globals_H

@@ -246,7 +246,7 @@ void MenuManager_::rightButton()
         TIME_PER_TRANSITION = min(1200, TIME_PER_TRANSITION + 100);
         break;
     case AppTimeMenu:
-        TIME_PER_APP = min(30000, TIME_PER_APP + 1000);
+        TIME_PER_APP = min(static_cast<long>(30000), TIME_PER_APP + 1000);
         break;
     case TimeFormatMenu:
         timeFormatIndex = (timeFormatIndex + 1) % timeFormatCount;
@@ -313,7 +313,7 @@ void MenuManager_::leftButton()
         TIME_PER_TRANSITION = max(200, TIME_PER_TRANSITION - 100);
         break;
     case AppTimeMenu:
-        TIME_PER_APP = max(1000, TIME_PER_APP - 1000);
+        TIME_PER_APP = max(static_cast<long>(1000), TIME_PER_APP - 1000);
         break;
     case TimeFormatMenu:
         timeFormatIndex = (timeFormatIndex == 0) ? timeFormatCount - 1 : timeFormatIndex - 1;

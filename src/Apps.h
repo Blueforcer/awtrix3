@@ -28,7 +28,7 @@ String WEATHER_HUM;
 
 struct CustomApp
 {
-    std::vector<String> drawInstructions;
+    String drawInstructions;
     int16_t scrollposition = 0;
     int16_t scrollDelay = 0;
     String text;
@@ -66,7 +66,7 @@ std::map<String, CustomApp> customApps;
 
 struct Notification
 {
-    std::vector<String> drawInstructions;
+    String drawInstructions;
     int16_t scrollposition = 34;
     int16_t scrollDelay = 0;
     String text;
@@ -300,7 +300,7 @@ void MenuApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *
     if (!MenuManager.inMenu)
         return;
     matrix->fillScreen(0);
-    DisplayManager.printText(0, 6, utf8ascii(MenuManager.menutext()).c_str(), true, true);
+    DisplayManager.printText(0, 6, utf8ascii(MenuManager.menutext()).c_str(), true, 2);
 }
 
 void AlarmApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
@@ -571,7 +571,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         }
     }
 
-    if (ca->drawInstructions.size() > 0)
+    if (ca->drawInstructions.length() > 0)
     {
         DisplayManager.processDrawInstructions(x, y, ca->drawInstructions);
     }
@@ -811,7 +811,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
         DisplayManager.drawProgressBar((hasIcon ? 9 : 0), 7, notify.progress, notify.pColor, notify.pbColor);
     }
 
-    if (notify.drawInstructions.size() > 0)
+    if (notify.drawInstructions.length() > 0)
     {
         DisplayManager.processDrawInstructions(0, 0, notify.drawInstructions);
     }

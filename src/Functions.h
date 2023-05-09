@@ -31,6 +31,37 @@ const uint8_t PROGMEM gamma8[] = {
   215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255 };
 
 
+CRGB kelvinToRGB(int kelvin) {
+  float temperature = kelvin / 100.0;
+  float red, green, blue;
+
+  if (temperature <= 66) {
+    red = 255;
+    green = temperature;
+    green = 99.4708025861 * log(green) - 161.1195681661;
+  } else {
+    red = temperature - 60;
+    red = 329.698727446 * pow(red, -0.1332047592);
+    green = temperature - 60;
+    green = 288.1221695283 * pow(green, -0.0755148492);
+  }
+
+  if (temperature >= 66) {
+    blue = 255;
+  } else if (temperature <= 19) {
+    blue = 0;
+  } else {
+    blue = temperature - 10;
+    blue = 138.5177312231 * log(blue) - 305.0447927307;
+  }
+
+  red = constrain(red, 0, 255);
+  green = constrain(green, 0, 255);
+  blue = constrain(blue, 0, 255);
+
+  return CRGB((uint8_t)red, (uint8_t)green, (uint8_t)blue);
+}
+
 CRGB applyGammaCorrection(const CRGB& color) {
   CRGB correctedColor;
   correctedColor.r = pgm_read_byte(&gamma8[color.r]);
@@ -68,20 +99,32 @@ uint16_t getColorFromJsonVariant(JsonVariant colorVariant, uint16_t defaultColor
 {
     if (colorVariant.is<String>())
     {
-        return hexToRgb565(colorVariant.as<String>(),defaultColor);
+        return hexToRgb565(colorVariant.as<String>(), defaultColor);
     }
-    else if (colorVariant.is<JsonArray>() && colorVariant.size() == 3)
+    else if (colorVariant.is<JsonArray>())
     {
-        uint8_t r = colorVariant[0];
-        uint8_t g = colorVariant[1];
-        uint8_t b = colorVariant[2];
-        return (r << 11) | (g << 5) | b;
+        JsonArray colorArray = colorVariant.as<JsonArray>();
+        if (colorArray.size() == 3) // RGB
+        {
+            uint8_t r = colorArray[0];
+            uint8_t g = colorArray[1];
+            uint8_t b = colorArray[2];
+            return (r << 11) | (g << 5) | b;
+        }
+        else if (colorArray.size() == 4 && colorArray[0] == "HSV") // HSV
+        {
+            uint8_t h = colorArray[1];
+            uint8_t s = colorArray[2];
+            uint8_t v = colorArray[3];
+            CRGB rgb;
+            hsv2rgb_spectrum(CHSV(h, s, v), rgb);
+            return (rgb.red << 11) | (rgb.green << 5) | rgb.blue;
+        }
     }
-    else
-    {
-        return defaultColor;
-    }
+
+    return defaultColor;
 }
+
 
 uint16_t getTextWidth(const char *text, byte textCase)
 {

@@ -49,8 +49,6 @@ CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
 FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
 MatrixDisplayUi *ui = new MatrixDisplayUi(matrix);
 
-uint8_t lastBrightness;
-
 DisplayManager_ &DisplayManager_::getInstance()
 {
     static DisplayManager_ instance;
@@ -263,11 +261,34 @@ void pushCustomApp(String name, int position)
 
 void removeCustomAppFromApps(const String &name, bool setApps)
 {
-    auto it = std::find_if(Apps.begin(), Apps.end(), [&name](const std::pair<String, AppCallback> &appPair)
-                           { return appPair.first == name; });
+    // Remove apps from Apps list
+    auto it = Apps.begin();
+    while (it != Apps.end())
+    {
+        if (it->first.startsWith(name))
+        {
+            it = Apps.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
 
-    Apps.erase(it);
-    customApps.erase(customApps.find(name));
+    // Remove apps from customApps map
+    auto mapIt = customApps.begin();
+    while (mapIt != customApps.end())
+    {
+        if (mapIt->first.startsWith(name))
+        {
+            mapIt = customApps.erase(mapIt);
+        }
+        else
+        {
+            ++mapIt;
+        }
+    }
+
     if (setApps)
         ui->setApps(Apps);
     DisplayManager.getInstance().setAutoTransition(true);
@@ -308,15 +329,47 @@ bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, s
     return true;
 }
 
-void DisplayManager_::generateCustomPage(const String &name, const char *json)
+void DisplayManager_::parseCustomPage(const String &name, const char *json)
 {
-    if (strcmp(json, "") == 0 && customApps.count(name))
+
+    if (strcmp(json, "") == 0)
     {
         removeCustomAppFromApps(name, true);
         return;
     }
+    DynamicJsonDocument doc(4096);
+    DeserializationError error = deserializeJson(doc, json);
+    if (error)
+    {
+        doc.clear();
+        return;
+    }
 
-    StaticJsonDocument<2048> doc;
+    if (doc.is<JsonObject>())
+    {
+        generateCustomPage(name, json);
+    }
+    else if (doc.is<JsonArray>())
+    {
+        JsonArray customPagesArray = doc.as<JsonArray>();
+        int cpIndex = 0;
+        for (JsonVariant customPage : customPagesArray)
+        {
+            JsonObject customPageObject = customPage.as<JsonObject>();
+            String customPageJson;
+            serializeJson(customPageObject, customPageJson);
+            generateCustomPage(name + String(cpIndex), customPageJson.c_str());
+            ++cpIndex;
+        }
+    }
+
+    doc.clear();
+}
+
+void DisplayManager_::generateCustomPage(const String &name, const char *json)
+{
+
+    DynamicJsonDocument doc(2048);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
@@ -447,16 +500,13 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
         customApp.lineSize = 0;
     }
 
-    customApp.drawInstructions.clear();
     if (doc.containsKey("draw"))
     {
-        JsonArray instructions = doc["draw"];
-        for (JsonObject instruction : instructions)
-        {
-            String instructionStr;
-            serializeJson(instruction, instructionStr);
-            customApp.drawInstructions.push_back(instructionStr);
-        }
+        customApp.drawInstructions = doc["draw"].as<String>();
+    }
+    else
+    {
+        customApp.drawInstructions = "";
     }
 
     customApp.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : 0;
@@ -571,16 +621,14 @@ void DisplayManager_::generateNotification(const char *json)
         notify.background = getColorFromJsonVariant(background, 0);
     }
     notify.flag = true;
-    notify.drawInstructions.clear();
+
     if (doc.containsKey("draw"))
     {
-        JsonArray instructions = doc["draw"];
-        for (JsonObject instruction : instructions)
-        {
-            String instructionStr;
-            serializeJson(instruction, instructionStr);
-            notify.drawInstructions.push_back(instructionStr);
-        }
+        notify.drawInstructions = doc["draw"].as<String>();
+    }
+    else
+    {
+        notify.drawInstructions = "";
     }
 
     notify.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
@@ -858,6 +906,9 @@ void DisplayManager_::tick()
     else if (ARTNET_MODE)
     {
         // handled by the DMXFrame callback
+    }
+    else if (MOODLIGHT_MODE)
+    {
     }
     else
     {
@@ -1193,7 +1244,7 @@ void DisplayManager_::updateAppVector(const char *json)
         {
             if (appIt != Apps.end())
             {
-                
+
                 Apps.erase(appIt);
             }
         }
@@ -1304,7 +1355,7 @@ void DisplayManager_::powerStateParse(const char *json)
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
-        DEBUG_PRINTLN(F("Failed to parse json"));
+        setPower((strcmp(json, "true") == 0 || strcmp(json, "1") == 0) ? true : false);
         return;
     }
 
@@ -1508,7 +1559,15 @@ void DisplayManager_::setNewSettings(const char *json)
     if (error)
         return;
 
-    TIME_PER_APP = doc.containsKey("ATIME") ? doc["ATIME"] : TIME_PER_APP;
+    if (doc.containsKey("ATIME"))
+    {
+        int atime = doc["ATIME"].as<int>();
+        TIME_PER_APP = atime * 1000;
+    }
+    else
+    {
+        TIME_PER_APP = TIME_PER_APP;
+    }
     TIME_PER_TRANSITION = doc.containsKey("TSPEED") ? doc["TSPEED"] : TIME_PER_TRANSITION;
     MATRIX_FPS = doc.containsKey("FPS") ? doc["FPS"] : MATRIX_FPS;
     BRIGHTNESS = doc.containsKey("BRI") ? doc["BRI"] : BRIGHTNESS;
@@ -1688,70 +1747,141 @@ void DisplayManager_::reorderApps(const String &jsonString)
     ui->forceResetState();
 }
 
-void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, const std::vector<String> &drawInstructions)
+void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, String &drawInstructions)
 {
-    for (const String &instructionStr : drawInstructions)
-    {
-        StaticJsonDocument<128> instructionDoc;
-        deserializeJson(instructionDoc, instructionStr);
-        JsonObject instruction = instructionDoc.as<JsonObject>();
+    StaticJsonDocument<512> doc;
+    DeserializationError error = deserializeJson(doc, drawInstructions);
 
-        String command = instruction["c"].as<String>();
-        Serial.println(command);
-        auto cl = instruction["cl"];
-        uint16_t color = getColorFromJsonVariant(cl, TEXTCOLOR_565);
-        if (command == "dp")
+    if (error)
+    {
+        Serial.println("Error parsing JSON draw instructions");
+        return;
+    }
+
+    if (!doc.is<JsonArray>())
+    {
+        Serial.println("Invalid JSON draw instructions format");
+        return;
+    }
+
+    JsonArray instructions = doc.as<JsonArray>();
+    for (JsonObject instruction : instructions)
+    {
+        for (auto kvp : instruction)
         {
-            int x = instruction["x"].as<int>();
-            int y = instruction["y"].as<int>();
-            matrix->drawPixel(x + xOffset, y + yOffset, color);
-        }
-        else if (command == "dl")
-        {
-            int x0 = instruction["x0"].as<int>();
-            int y0 = instruction["y0"].as<int>();
-            int x1 = instruction["x1"].as<int>();
-            int y1 = instruction["y1"].as<int>();
-            matrix->drawLine(x0 + xOffset, y0 + yOffset, x1 + xOffset, y1 + yOffset, color);
-        }
-        else if (command == "dr")
-        {
-            int x = instruction["x"].as<int>();
-            int y = instruction["y"].as<int>();
-            int w = instruction["w"].as<int>();
-            int h = instruction["h"].as<int>();
-            matrix->drawRect(x + xOffset, y + yOffset, w, h, color);
-        }
-        else if (command == "df")
-        {
-            int x = instruction["x"].as<int>();
-            int y = instruction["y"].as<int>();
-            int w = instruction["w"].as<int>();
-            int h = instruction["h"].as<int>();
-            matrix->fillRect(x + xOffset, y + yOffset, w, h, color);
-        }
-        else if (command == "dc")
-        {
-            int x = instruction["x"].as<int>();
-            int y = instruction["y"].as<int>();
-            int r = instruction["r"].as<int>();
-            matrix->drawCircle(x + xOffset, y + yOffset, r, color);
-        }
-        else if (command == "dfc")
-        {
-            int x = instruction["x"].as<int>();
-            int y = instruction["y"].as<int>();
-            int r = instruction["r"].as<int>();
-            matrix->fillCircle(x + xOffset, y + yOffset, r, color);
-        }
-        else if (command == "dt")
-        {
-            int x = instruction["x"].as<int>();
-            int y = instruction["y"].as<int>();
-            String text = instruction["t"].as<String>();
-            matrix->setCursor(x + xOffset, y + yOffset + 5);
-            matrix->setTextColor(color);
-            matrix->print(text);
+            String command = kvp.key().c_str();
+
+            JsonArray params = kvp.value().as<JsonArray>();
+            if (command == "dp")
+            {
+                int x = params[0].as<int>();
+                int y = params[1].as<int>();
+                auto color1 = params[2];
+                uint16_t color = getColorFromJsonVariant(color1, TEXTCOLOR_565);
+                matrix->drawPixel(x + xOffset, y + yOffset, color);
+            }
+            else if (command == "dl")
+            {
+                int x0 = params[0].as<int>();
+                int y0 = params[1].as<int>();
+                int x1 = params[2].as<int>();
+                int y1 = params[3].as<int>();
+                auto color2 = params[4];
+                uint16_t color = getColorFromJsonVariant(color2, TEXTCOLOR_565);
+                matrix->drawLine(x0 + xOffset, y0 + yOffset, x1 + xOffset, y1 + yOffset, color);
+            }
+            else if (command == "dr")
+            {
+                int x = params[0].as<int>();
+                int y = params[1].as<int>();
+                int w = params[2].as<int>();
+                int h = params[3].as<int>();
+                auto color3 = params[4];
+                uint16_t color = getColorFromJsonVariant(color3, TEXTCOLOR_565);
+                matrix->drawRect(x + xOffset, y + yOffset, w, h, color);
+            }
+            else if (command == "df")
+            {
+                int x = params[0].as<int>();
+                int y = params[1].as<int>();
+                int w = params[2].as<int>();
+                int h = params[3].as<int>();
+                auto color4 = params[4];
+                uint16_t color = getColorFromJsonVariant(color4, TEXTCOLOR_565);
+                matrix->fillRect(x + xOffset, y + yOffset, w, h, color);
+            }
+            else if (command == "dc")
+            {
+                int x = params[0].as<int>();
+                int y = params[1].as<int>();
+                int r = params[2].as<int>();
+                auto color5 = params[3];
+                uint16_t color = getColorFromJsonVariant(color5, TEXTCOLOR_565);
+                matrix->drawCircle(x + xOffset, y + yOffset, r, color);
+            }
+            else if (command == "dfc")
+            {
+                int x = params[0].as<int>();
+                int y = params[1].as<int>();
+                int r = params[2].as<int>();
+                auto color6 = params[3];
+                uint16_t color = getColorFromJsonVariant(color6, TEXTCOLOR_565);
+                matrix->fillCircle(x + xOffset, y + yOffset, r, color);
+            }
+            else if (command == "dt")
+            {
+                int x = params[0].as<int>();
+                int y = params[1].as<int>();
+                String text = params[2].as<String>();
+                auto color7 = params[3];
+                uint16_t color = getColorFromJsonVariant(color7, TEXTCOLOR_565);
+                matrix->setCursor(x + xOffset, y + yOffset + 5);
+                matrix->setTextColor(color);
+                matrix->print(text);
+            }
         }
     }
+}
+
+void DisplayManager_::moodlight(const char *json)
+{
+    if (strcmp(json, "") == 0)
+    {
+        MOODLIGHT_MODE = false;
+        return;
+    }
+
+    DynamicJsonDocument doc(512);
+    DeserializationError error = deserializeJson(doc, json);
+    if (error)
+        return;
+
+    int brightness = doc["brightness"] | BRIGHTNESS;
+    matrix->setBrightness(brightness);
+
+    if (doc.containsKey("kelvin"))
+    {
+        int kelvin = doc["kelvin"];
+        CRGB color;
+        color = kelvinToRGB(kelvin);
+        color.nscale8(brightness);
+        for (int i = 0; i < 256; i++)
+        {
+            leds[i] = color;
+        }
+    }
+    else if (doc.containsKey("color"))
+    {
+        auto c = doc["color"];
+        uint16_t color565 = getColorFromJsonVariant(c, TEXTCOLOR_565);
+        matrix->fillScreen(color565);
+    }
+    else
+    {
+        return;
+    }
+
+    MOODLIGHT_MODE = true;
+
+    matrix->show();
 }

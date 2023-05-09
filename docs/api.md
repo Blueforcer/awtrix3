@@ -20,6 +20,24 @@ Plays a RTTTL sound from the MELODIES folder.
 | --- | --- | --- | --- |  
 | `[PREFIX]/sound` | `http://[IP]/api/sound` | {"sound":"alarm"} | POST |  
   
+## Moodlight  
+Allows to set the whole matrix to a custom color.  
+  
+| Topic | URL | Payload/Body | HTTP method |  
+| --- | --- | --- | --- |  
+| `[PREFIX]/moodlight` | `http://[IP]/api/moodlight` | see below | POST | 
+  
+Possible moodlight options:  
+```json
+{"brightness":200,"kelvin":2300}  
+```
+```json
+{"brightness":200,"color":[155,38,182]}  
+```
+```json
+{"brightness":200,"color":"#FF00FF"}  
+```
+  
 
 ## Colored indicators     
 
@@ -93,58 +111,37 @@ Here's an example JSON object to display the text "Hello, AWTRIX Light!" with th
 }
 ```
   
-### Drawing Instructions  
-!> Pease note: Depending on the amount of objects, the RAM usage can be very high. This could cause freezes or reboots.  
- It's important to be mindful of the number of objects and the complexity of the drawing instructions to avoid performance issues.  
+### Drawing Instructions
+!> Please note: Depending on the number of objects, the RAM usage can be very high. This could cause freezes or reboots.
+It's important to be mindful of the number of objects and the complexity of the drawing instructions to avoid performance issues.  
   
-Each drawing instruction is an object with a required command key `c` and additional keys depending on the command:  
+Each drawing instruction is an object with a required command key and an array of values depending on the command:  
   
-| Command | Additional Keys | Description |
-| ------- | --------------- | ----------- |
-| `dp` | `x`, `y`, `cl` | Draw a pixel at position (`x`, `y`) with color `cl` |
-| `dl` | `x0`, `y0`, `x1`, `y1`, `cl` | Draw a line from (`x0`, `y0`) to (`x1`, `y1`) with color `cl` |
-| `dr` | `x`, `y`, `w`, `h`, `cl` | Draw a rectangle with top-left corner at (`x`, `y`), width `w`, height `h`, and color `cl` |
-| `df` | `x`, `y`, `w`, `h`, `cl` | Draw a filled rectangle with top-left corner at (`x`, `y`), width `w`, height `h`, and color `cl` |
-| `dc` | `x`, `y`, `r`, `cl` | Draw a circle with center at (`x`, `y`), radius `r`, and color `cl` |
-| `dfc` | `x`, `y`, `r`, `cl` | Draw a filled circle with center at (`x`, `y`), radius `r`, and color `cl` |
-| `dt` | `x`, `y`, `t`, `cl` | Draw text `t` with top-left corner at (`x`, `y`) and color `cl` |
-
+| Command | Array Values         | Description |
+| ------- | -------------------- | ----------- |
+| `dp`    | `[x, y, cl]`         | Draw a pixel at position (`x`, `y`) with color `cl` |
+| `dl`    | `[x0, y0, x1, y1, cl]` | Draw a line from (`x0`, `y0`) to (`x1`, `y1`) with color `cl` |
+| `dr`    | `[x, y, w, h, cl]`   | Draw a rectangle with top-left corner at (`x`, `y`), width `w`, height `h`, and color `cl` |
+| `df`    | `[x, y, w, h, cl]`   | Draw a filled rectangle with top-left corner at (`x`, `y`), width `w`, height `h`, and color `cl` |
+| `dc`    | `[x, y, r, cl]`      | Draw a circle with center at (`x`, `y`), radius `r`, and color `cl` |
+| `dfc`   | `[x, y, r, cl]`      | Draw a filled circle with center at (`x`, `y`), radius `r`, and color `cl` |
+| `dt`    | `[x, y, t, cl]`      | Draw text `t` with top-left corner at (`x`, `y`) and color `cl` |
   
-Color values can be a hex string or an array of R, G, B values:  
-`"#FFFFFF" or [255, 255, 0]`  
+Color values can be a hex string or an array of R, G, B values:    
+`"#FFFFFF" or [255, 255, 0]`    
   
-### Example  
+### Example    
   
 Here's an example JSON object to draw a red circle, a blue rectangle, and the text "Hello" in green:  
   
-```json
-{ "draw": [
-    {
-      "c": "dc",
-      "x": 28,
-      "y": 4,
-      "r": 3,
-      "cl": "#FF0000"
-    },
-    {
-      "c": "dr",
-      "x": 20,
-      "y": 4,
-      "w": 4,
-      "h": 4,
-      "cl": "#0000FF"
-    },
-    {
-      "c": "dt",
-      "x": 0,
-      "y": 0,
-      "t": "Hello",
-      "cl": "#00FF00"
-    }
-  ]
-}
-```
-
+```json   
+{"draw":[  
+ {"dc": [28, 4, 3, "#FF0000"]},  
+ {"dr": [20, 4, 4, 4, "#0000FF"]},  
+ {"dt": [0, 0, "Hello", "#00FF00"]}  
+]}  
+```    
+  
 ### Display a text in colored fragments
 You can display a text where you allowed to colorize fragments of the text.  
 Simply send an array of your fragments, containing `"t"` as your textfragment and `"c"` for the color hex value`.  

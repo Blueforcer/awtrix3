@@ -82,7 +82,7 @@ private:
   AnimationDirection appAnimationDirection = SLIDE_DOWN;
   int8_t lastTransitionDirection = 1;
 
-  uint16_t ticksPerApp = 151;       // ~ 5000ms at 30 FPS
+  long ticksPerApp = 151;       // ~ 5000ms at 30 FPS
   uint16_t ticksPerTransition = 15; // ~  500ms at 30 FPS
 
   bool setAutoTransition = true;
@@ -142,7 +142,7 @@ public:
   /**
    *  Set the approx. time a app is displayed
    */
-  void setTimePerApp(uint16_t time);
+  void setTimePerApp(long time);
 
   /**
    * Set the approx. time a transition will take

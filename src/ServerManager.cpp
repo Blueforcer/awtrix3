@@ -75,48 +75,50 @@ void ServerManager_::setup()
         mws.addJavascript(custom_script);
         mws.addHandler("/save", HTTP_POST, saveHandler);
         mws.addHandler("/api/sound", HTTP_POST, []()
-                       { PeripheryManager.parseSound(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+                       { PeripheryManager.parseSound(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"text/plain","OK"); });
+        mws.addHandler("/api/moodlight", HTTP_POST, []()
+                       { DisplayManager.moodlight(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"text/plain","OK"); });
         mws.addHandler("/api/notify", HTTP_POST, []()
-                       { DisplayManager.generateNotification(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.generateNotification(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"text/plain","OK"); });
         mws.addHandler("/api/nextapp", HTTP_POST, []()
-                       { DisplayManager.nextApp(); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.nextApp(); mws.webserver->send(200,"text/plain","OK"); });
         mws.addHandler("/api/previousapp", HTTP_POST, []()
-                       { DisplayManager.previousApp(); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.previousApp(); mws.webserver->send(200,"text/plain","OK"); });
         mws.addHandler("/api/timer", HTTP_POST, []()
-                       { DisplayManager.gererateTimer(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.gererateTimer(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"text/plain","OK"); });
         mws.addHandler("/api/notify/dismiss", HTTP_POST, []()
-                       { DisplayManager.dismissNotify(); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.dismissNotify(); mws.webserver->send(200,"text/plain","OK"); });
         mws.addHandler("/api/apps", HTTP_POST, []()
-                       { DisplayManager.updateAppVector(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.updateAppVector(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"text/plain","OK"); });
         mws.addHandler("/api/switch", HTTP_POST, []()
-                       { DisplayManager.switchToApp(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.switchToApp(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"text/plain","OK"); });
         mws.addHandler("/api/apps", HTTP_GET, []()
                        { mws.webserver->send_P(200, "application/json", DisplayManager.getAppsWithIcon().c_str()); });
         mws.addHandler("/api/settings", HTTP_POST, []()
-                       { DisplayManager.setNewSettings(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.setNewSettings(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"text/plain","OK"); });
         mws.addHandler("/api/reorder", HTTP_POST, []()
-                       { DisplayManager.reorderApps(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.reorderApps(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"text/plain","OK"); });
         mws.addHandler("/api/settings", HTTP_GET, []()
                        { mws.webserver->send_P(200, "application/json", DisplayManager.getSettings().c_str()); });
         mws.addHandler("/api/custom", HTTP_POST, []()
-                       { DisplayManager.generateCustomPage(mws.webserver->arg("name"),mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.generateCustomPage(mws.webserver->arg("name"),mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"text/plain","OK"); });
         mws.addHandler("/api/stats", HTTP_GET, []()
                        { mws.webserver->send_P(200, "application/json", DisplayManager.getStats().c_str()); });
         mws.addHandler("/api/screen", HTTP_GET, []()
                        { mws.webserver->send_P(200, "application/json", DisplayManager.ledsAsJson().c_str()); });
         mws.addHandler("/api/indicator1", HTTP_POST, []()
-                       { DisplayManager.indicatorParser(1,mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.indicatorParser(1,mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"text/plain","OK"); });
         mws.addHandler("/api/indicator2", HTTP_POST, []()
-                       { DisplayManager.indicatorParser(2,mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.indicatorParser(2,mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"text/plain","OK"); });
         mws.addHandler("/api/doupdate", HTTP_POST, []()
-                       {  mws.webserver->send(200,"OK"); if (UpdateManager.checkUpdate(true))
+                       {  mws.webserver->send(200,"text/plain","OK"); if (UpdateManager.checkUpdate(true))
             {
                 UpdateManager.updateFirmware();
             } });
         mws.addHandler("/api/power", HTTP_POST, []()
-                       { DisplayManager.powerStateParse(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"OK"); });
+                       { DisplayManager.powerStateParse(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,"text/plain","OK"); });
         mws.addHandler("/api/reboot", HTTP_POST, []()
-                       { mws.webserver->send(200,"OK"); delay(200); ESP.restart(); });
+                       { mws.webserver->send(200,"text/plain","OK"); delay(200); ESP.restart(); });
         DEBUG_PRINTLN(F("Webserver loaded"));
     }
     mws.addHandler("/version", HTTP_GET, versionHandler);

@@ -81,11 +81,12 @@ const unsigned long interval_LDR = 100;
 int total = 0;
 unsigned long startTime;
 
-const int LDRReadings = 10;
+const int LDRReadings = 1000;
 int TotalLDRReadings[LDRReadings];
 float sampleSum = 0.0;
 float sampleAverage = 0.0;
 float brightnessPercent = 0.0;
+int lastBrightness = 0;
 
 // The getter for the instantiated singleton instance
 PeripheryManager_ &PeripheryManager_::getInstance()
@@ -228,7 +229,7 @@ void PeripheryManager_::parseSound(const char *json)
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
-        DEBUG_PRINTLN(F("Failed to parse json"));
+        playFromFile(String(json));
         return;
     }
     if (doc.containsKey("sound"))
