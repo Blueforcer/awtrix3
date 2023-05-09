@@ -22,6 +22,7 @@ Plays a RTTTL sound from the MELODIES folder.
   
 ## Moodlight  
 Allows to set the whole matrix to a custom color.  
+Send empty payload to disable moodlight.  
   
 | Topic | URL | Payload/Body | HTTP method |  
 | --- | --- | --- | --- |  
@@ -110,6 +111,7 @@ Here's an example JSON object to display the text "Hello, AWTRIX Light!" with th
   "duration": 10
 }
 ```
+
   
 ### Drawing Instructions
 !> Please note: Depending on the number of objects, the RAM usage can be very high. This could cause freezes or reboots.
@@ -140,8 +142,12 @@ Here's an example JSON object to draw a red circle, a blue rectangle, and the te
  {"dr": [20, 4, 4, 4, "#0000FF"]},  
  {"dt": [0, 0, "Hello", "#00FF00"]}  
 ]}  
-```    
-  
+```  
+
+### Send multiple custompage at once  
+This allows you to send multiple custompage at once. Instead of a single custompage object, you can send an array of objects. like`
+
+
 ### Display a text in colored fragments
 You can display a text where you allowed to colorize fragments of the text.  
 Simply send an array of your fragments, containing `"t"` as your textfragment and `"c"` for the color hex value`.  
