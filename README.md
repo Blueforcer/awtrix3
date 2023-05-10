@@ -60,6 +60,8 @@ Starting is easy as 1-2-3
 # Support  
 If you like my work, please consider supporting the project.  
 https://github.com/sponsors/Blueforcer  
+https://www.buymeacoffee.com/blueforcer  
+https://www.paypal.me/blueforcer  
   
 # Contributors 
 <a href="https://github.com/Blueforcer/awtrix-light/graphs/contributors">
