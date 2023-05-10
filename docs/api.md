@@ -23,7 +23,9 @@ Plays a RTTTL sound from the MELODIES folder.
 
 ## Moodlight  
 Allows to set the whole matrix to a custom color.  
+  
 !> This function causes much higher current draw and heat, because every pixel is lit. Keep calm with the brightness value!  
+  
 Send empty payload to disable moodlight.  
   
 | Topic | URL | Payload/Body | HTTP method |  
