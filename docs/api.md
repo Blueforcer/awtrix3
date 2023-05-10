@@ -35,11 +35,11 @@ Send empty payload to disable moodlight.
 
 Possible moodlight options:  
 ```json
-{"brightness":200,"kelvin":2300}  
+{"brightness":170,"kelvin":2300}  
 or
-{"brightness":200,"color":[155,38,182]}  
+{"brightness":170,"color":[155,38,182]}  
 or
-{"brightness":200,"color":"#FF00FF"}  
+{"brightness":170,"color":"#FF00FF"}  
 ```
   
 
