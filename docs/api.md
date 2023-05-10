@@ -22,7 +22,7 @@ Plays a RTTTL sound from the MELODIES folder.
   
 
 ## Moodlight  
-Allows to set the whole matrix to a custom color.  
+Allows to set the whole matrix to a custom color or temperature.  
   
 !> This function causes much higher current draw and heat, because every pixel is lit. Keep calm with the brightness value!  
   
