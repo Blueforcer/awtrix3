@@ -28,8 +28,7 @@ Send empty payload to disable moodlight.
 | Topic | URL | Payload/Body | HTTP method |  
 | --- | --- | --- | --- |  
 | `[PREFIX]/moodlight` | `http://[IP]/api/moodlight` | see below | POST |  
-   
-   
+  
 Possible moodlight options:  
 ```json
 {"brightness":200,"kelvin":2300}  
