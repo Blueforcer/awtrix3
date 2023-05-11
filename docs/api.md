@@ -271,15 +271,15 @@ Each property is optional; you do not need to send all.
   
 **Dateformats:**  
 ```bash  
-%d.%m.%y     01.04.22  
-%d.%m        01.04  
-%y-%m-%d     22-04-01  
-%m-%d        04-01  
-%m/%d/%y     04/01/22  
-%m/%d        04/01  
-%d/%m/%y     01/04/22  
-%d/%m        01/04  
-%m-%d-%y     04-01-22  
+%d.%m.%y     16.04.22  
+%d.%m        16.04  
+%y-%m-%d     22-04-16  
+%m-%d        04-16  
+%m/%d/%y     04/16/22  
+%m/%d        04/16  
+%d/%m/%y     16/04/22  
+%d/%m        16/04  
+%m-%d-%y     04-16-22  
 ```  
   
 ## Timer
