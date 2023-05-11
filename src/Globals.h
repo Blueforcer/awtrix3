@@ -2,7 +2,7 @@
 #define GLOBALS_H
 #include <Arduino.h>
 #include <FastLED.h>
-
+ 
 #define DEBUG
 
 #ifdef DEBUG
