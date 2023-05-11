@@ -4,7 +4,7 @@
 #include <ServerManager.h>
 #include <DisplayManager.h>
 #include <PeripheryManager.h>
-//#include <update.h>
+// #include <update.h>
 #include <icons.h>
 #include <UpdateManager.h>
 
@@ -50,7 +50,7 @@ const char *menuItems[] PROGMEM = {
     "APPS",
     "SOUND",
 #ifndef ULANZI
-    "VOLUME"   ,
+    "VOLUME",
 #endif
     "UPDATE"};
 
@@ -88,19 +88,8 @@ const char *dateFormat[] PROGMEM = {
 int8_t dateFormatIndex;
 uint8_t dateFormatCount = 9;
 
-const char *appsItems[][2] PROGMEM = {
-    {"13", "time"},
-    {"1158", "date"},
-    {"234", "temp"},
-#ifdef ULANZI
-    {"2075", "hum"},
-    {"1486", "bat"}};
-#else
-    {"2075", "hum"}};
-#endif
-
 int8_t appsIndex;
-uint8_t appsCount = 5;
+uint8_t appsCount = 6;
 
 MenuState currentState = MainMenu;
 
@@ -200,6 +189,9 @@ String MenuManager_::menutext()
         case 4:
             DisplayManager.drawBMP(0, 0, icon_1486, 8, 8);
             return SHOW_BAT ? "ON" : "OFF";
+        case 5:
+            DisplayManager.drawBMP(0, 0, eyes, 8, 8);
+            return SHOW_EYES ? "ON" : "OFF";
 #endif
         default:
             break;
@@ -339,7 +331,7 @@ void MenuManager_::leftButton()
             VOLUME_PERCENT = 100;
         else
             VOLUME_PERCENT--;
-#endif        
+#endif
     default:
         break;
     }
@@ -397,7 +389,7 @@ void MenuManager_::selectButton()
 #ifndef ULANZI
             currentState = VolumeMenu;
             break;
-#endif          
+#endif
         case 13:
             if (UpdateManager.checkUpdate(true))
             {
@@ -436,6 +428,9 @@ void MenuManager_::selectButton()
             SHOW_BAT = !SHOW_BAT;
             break;
 #endif
+        case 5:
+            SHOW_EYES = !SHOW_EYES;
+            break;
         default:
             break;
         }
@@ -492,7 +487,7 @@ void MenuManager_::selectButtonLong()
             saveSettings();
             break;
 #ifndef ULANZI
-        case VolumeMenu:            
+        case VolumeMenu:
             VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
             PeripheryManager.setVolume(VOLUME);
             saveSettings();

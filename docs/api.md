@@ -54,7 +54,7 @@ A colored indicator is like a small notification sign wich will be shown on the 
 
 Instead of a RGB array you can also sent HEX color strings like `{"color":"#32a852"}`  
 Send the color black  `{"color":[0,0,0]}` or `{"color":"0"}` or a empty payload/body to hide the indicators.    
-Optionally you can make the indicator blinking by adding the key `"blink":true/false`.   
+Optionally you can make the indicator blinking by adding the key `"blink"` with a value of the blinking interval in milliseconds.   
   
 ## Custom Apps and Notifications
 With AWTRIX Light, you can create custom apps or notifications to display your own text and icons.  
@@ -214,8 +214,9 @@ Built-in app names are:
 - `date`
 - `temp`
 - `hum`
-- `bat`
-
+- `bat`  
+- `eyes`
+  
 For custom apps, use the name you set in the topic or http request header.  
 In MQTT for example, if `[PREFIX]/custom/test` is your topic, then `test` is the name.
 

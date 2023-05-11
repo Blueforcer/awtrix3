@@ -150,6 +150,7 @@ void loadSettings()
     START_ON_MONDAY = Settings.getBool("SOM", true);
     IS_CELSIUS = Settings.getBool("CEL", true);
     SHOW_TIME = Settings.getBool("TIM", true);
+    SHOW_EYES = Settings.getBool("EYE", true);
     SHOW_DATE = Settings.getBool("DAT", true);
     SHOW_TEMP = Settings.getBool("TEMP", true);
     SHOW_HUM = Settings.getBool("HUM", true);
@@ -194,6 +195,7 @@ void saveSettings()
     Settings.putBool("SOM", START_ON_MONDAY);
     Settings.putBool("CEL", IS_CELSIUS);
     Settings.putBool("TIM", SHOW_TIME);
+    Settings.putBool("EYE", SHOW_EYES);
     Settings.putBool("DAT", SHOW_DATE);
     Settings.putBool("TEMP", SHOW_TEMP);
     Settings.putBool("HUM", SHOW_HUM);
@@ -214,7 +216,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.61";
+const char *VERSION = "0.62";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -224,6 +226,7 @@ String MQTT_PREFIX;
 bool IO_BROKER = false;
 bool NET_STATIC = false;
 bool SHOW_TIME = true;
+bool SHOW_EYES = true;
 bool SHOW_DATE = true;
 bool SHOW_WEATHER = true;
 #ifdef ULANZI

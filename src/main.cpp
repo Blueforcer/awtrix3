@@ -70,13 +70,13 @@ void setup()
   delay(500);
   xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 0);
   ServerManager.setup();
-  //PeripheryManager.playBootSound();
+  // PeripheryManager.playBootSound();
   if (ServerManager.isConnected)
   {
     MQTTManager.setup();
     DisplayManager.loadNativeApps();
     UpdateManager.setup();
-    DisplayManager.startE131();
+    DisplayManager.startArtnet();
     StopTask = true;
     float x = 4;
     while (x >= -85)

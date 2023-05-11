@@ -1,12 +1,10 @@
 #ifndef DisplayManager_h
 #define DisplayManager_h
 
-
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 #include <vector>
-
 
 class DisplayManager_
 {
@@ -66,7 +64,7 @@ public:
     void drawLineChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint16_t color);
     void updateAppVector(const char *json);
     void setMatrixLayout(int layout);
-    void setAppTime(uint16_t duration);
+    void setAppTime(long duration);
     String getAppsAsJson();
     String getStats();
     String getSettings();
@@ -85,7 +83,7 @@ public:
     void processDrawInstructions(int16_t x, int16_t y, String &drawInstructions);
     String ledsAsJson();
     String getAppsWithIcon();
-    void startE131();
+    void startArtnet();
     void parseCustomPage(const String &name, const char *json);
     void moodlight(const char *json);
 };

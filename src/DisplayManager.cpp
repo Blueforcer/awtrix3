@@ -332,7 +332,7 @@ bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, s
 void DisplayManager_::parseCustomPage(const String &name, const char *json)
 {
 
-    if (strcmp(json, "") == 0)
+    if ((strcmp(json, "") == 0) || (strcmp(json, "{}") == 0))
     {
         removeCustomAppFromApps(name, true);
         return;
@@ -369,7 +369,7 @@ void DisplayManager_::parseCustomPage(const String &name, const char *json)
 void DisplayManager_::generateCustomPage(const String &name, const char *json)
 {
 
-    DynamicJsonDocument doc(2048);
+    DynamicJsonDocument doc(4096);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
@@ -590,7 +590,7 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
 
 void DisplayManager_::generateNotification(const char *json)
 {
-    StaticJsonDocument<2048> doc;
+    StaticJsonDocument<4096> doc;
     deserializeJson(doc, json);
 
     notify.progress = doc.containsKey("progress") ? doc["progress"].as<int>() : -1;
@@ -814,6 +814,8 @@ void DisplayManager_::loadNativeApps()
     updateApp("bat", BatApp, SHOW_BAT, 4);
 #endif
 
+    updateApp("eyes", EyesApp, SHOW_EYES, 5);
+
     ui->setApps(Apps);
     setAutoTransition(true);
 }
@@ -836,9 +838,10 @@ void DisplayManager_::setup()
     }
     gif.setMatrix(matrix);
     ui->setAppAnimation(SLIDE_DOWN);
+
+    ui->setTargetFPS(MATRIX_FPS);
     ui->setTimePerApp(TIME_PER_APP);
     ui->setTimePerTransition(TIME_PER_TRANSITION);
-    ui->setTargetFPS(MATRIX_FPS);
     ui->setOverlays(overlays, 4);
     setAutoTransition(AUTO_TRANSITION);
     ui->init();
@@ -909,6 +912,7 @@ void DisplayManager_::tick()
     }
     else if (MOODLIGHT_MODE)
     {
+        // handled by the moodlight function
     }
     else
     {
@@ -928,15 +932,18 @@ void DisplayManager_::tick()
         }
     }
 
-    uint16_t ArtnetStatus = artnet.read();
-    if (ArtnetStatus > 0)
+    if (!AP_MODE)
     {
-        lastArtnetStatusTime = millis();
-        ARTNET_MODE = true;
-    }
-    else if (millis() - lastArtnetStatusTime > 1000)
-    {
-        ARTNET_MODE = false;
+        uint16_t ArtnetStatus = artnet.read();
+        if (ArtnetStatus > 0)
+        {
+            lastArtnetStatusTime = millis();
+            ARTNET_MODE = true;
+        }
+        else if (millis() - lastArtnetStatusTime > 1000)
+        {
+            ARTNET_MODE = false;
+        }
     }
 }
 
@@ -981,7 +988,7 @@ void onDmxFrame(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t *d
     }
 }
 
-void DisplayManager_::startE131()
+void DisplayManager_::startArtnet()
 {
     artnet.begin();
     artnet.setArtDmxCallback(onDmxFrame);
@@ -1185,6 +1192,10 @@ std::pair<String, AppCallback> getNativeAppByName(const String &appName)
     {
         return std::make_pair("time", TimeApp);
     }
+    if (appName == "eyes")
+    {
+        return std::make_pair("eyes", EyesApp);
+    }
     else if (appName == "date")
     {
         return std::make_pair("date", DateApp);
@@ -1277,6 +1288,8 @@ void DisplayManager_::updateAppVector(const char *json)
     // Set the updated apps vector in the UI and save settings
     ui->setApps(Apps);
     saveSettings();
+    sendAppLoop();
+    setAutoTransition(AUTO_TRANSITION);
 }
 
 String DisplayManager_::getStats()
@@ -1308,7 +1321,7 @@ String DisplayManager_::getStats()
     return serializeJson(doc, jsonString), jsonString;
 }
 
-void DisplayManager_::setAppTime(uint16_t duration)
+void DisplayManager_::setAppTime(long duration)
 {
     ui->setTimePerApp(duration);
 }
@@ -1488,22 +1501,22 @@ void DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
     {
         if (indicator == 1)
         {
-            ui->setIndicator1Blink(doc["blink"].as<bool>());
+            ui->setIndicator1Blink(doc["blink"].as<int>());
         }
         else
         {
-            ui->setIndicator2Blink(doc["blink"].as<bool>());
+            ui->setIndicator2Blink(doc["blink"].as<int>());
         }
     }
     else
     {
         if (indicator == 1)
         {
-            ui->setIndicator1Blink(false);
+            ui->setIndicator1Blink(0);
         }
         else
         {
-            ui->setIndicator2Blink(false);
+            ui->setIndicator2Blink(0);
         }
     }
     MQTTManager.setIndicatorState(1, ui->indicator1State, ui->indicator1Color);
@@ -1561,7 +1574,7 @@ void DisplayManager_::setNewSettings(const char *json)
 
     if (doc.containsKey("ATIME"))
     {
-        int atime = doc["ATIME"].as<int>();
+        long atime = doc["ATIME"].as<int>();
         TIME_PER_APP = atime * 1000;
     }
     else
@@ -1749,7 +1762,7 @@ void DisplayManager_::reorderApps(const String &jsonString)
 
 void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, String &drawInstructions)
 {
-    StaticJsonDocument<512> doc;
+    StaticJsonDocument<4096> doc;
     DeserializationError error = deserializeJson(doc, drawInstructions);
 
     if (error)
@@ -1821,9 +1834,9 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
             }
             else if (command == "dfc")
             {
-                int x = params[0].as<int>();
-                int y = params[1].as<int>();
-                int r = params[2].as<int>();
+                double x = params[0].as<double>();
+                double y = params[1].as<double>();
+                double r = params[2].as<double>();
                 auto color6 = params[3];
                 uint16_t color = getColorFromJsonVariant(color6, TEXTCOLOR_565);
                 matrix->fillCircle(x + xOffset, y + yOffset, r, color);
@@ -1838,6 +1851,30 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
                 matrix->setCursor(x + xOffset, y + yOffset + 5);
                 matrix->setTextColor(color);
                 matrix->print(text);
+            }
+            else if (command == "db")
+            {
+                int x = params[0].as<int>();
+                int y = params[1].as<int>();
+                int w = params[2].as<int>();
+                int h = params[3].as<int>();
+
+                // Create an array to hold the color data
+                uint16_t bitmap[w * h];
+
+                // Assume that params[4] is a JsonArray
+                JsonArray colorArray = params[4].as<JsonArray>();
+
+                // Load the color data into the array
+                int i = 0;
+                for (JsonVariant v : colorArray)
+                {
+                    bitmap[i] = v.as<uint16_t>();
+                    i++;
+                }
+
+                // Draw the bitmap
+                matrix->drawRGBBitmap(x + xOffset, y + yOffset, bitmap, w, h);
             }
         }
     }

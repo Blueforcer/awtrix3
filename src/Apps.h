@@ -16,7 +16,7 @@
 #include <HTTPClient.h>
 #include <Ticker.h>
 #include <ArduinoJson.h>
-
+#include "LookingEyes.h"
 Ticker downloader;
 
 tm timeInfo;
@@ -583,6 +583,79 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 
     // Reset text color
     DisplayManager.getInstance().resetTextColor();
+}
+
+static unsigned long lastTime = 0;
+void EyesApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
+{
+    if (blinkCountdown < sizeof(blinkIndex) / sizeof(blinkIndex[0]) - 1)
+    {
+        matrix->drawRGBBitmap(6 + x, 0 + y, eye[blinkIndex[blinkCountdown]], 8, 8);
+        matrix->drawRGBBitmap(18 + x, 0 + y, eye[blinkIndex[blinkCountdown]], 8, 8);
+    }
+    else
+    {
+        matrix->drawRGBBitmap(6 + x, 0 + y, eye[0], 8, 8);
+        matrix->drawRGBBitmap(18 + x, 0 + y, eye[0], 8, 8);
+    }
+
+    blinkCountdown--;
+    if (blinkCountdown == 0)
+    {
+        blinkCountdown = random(20, 250);
+    }
+
+    if (gazeCountdown <= gazeFrames)
+    {
+        gazeCountdown--;
+        matrix->fillRect(newX - (dX * gazeCountdown / gazeFrames) + 6 + x, newY - (dY * gazeCountdown / gazeFrames) + y, 2, 2, 0);
+        matrix->fillRect(newX - (dX * gazeCountdown / gazeFrames) + 18 + x, newY - (dY * gazeCountdown / gazeFrames) + y, 2, 2, 0);
+        if (gazeCountdown == 0)
+        {
+            eyeX = newX;
+            eyeY = newY;
+            do
+            {
+                switch (PET_MOOD)
+                {
+                case 0:
+                    newX = random(0, 6);
+                    newY = random(0, 6);
+                    dX = newX - 4;
+                    dY = newY - 4;
+                    break;
+                case 1:
+                    newX = random(0, 7);
+                    newY = random(0, 7);
+                    dX = newX - 3;
+                    dY = newY - 3;
+                    break;
+                case 2:
+                    newX = random(1, 7);
+                    newY = random(1, 4);
+                    dX = newX - 3;
+                    dY = newY - 3;
+                    break;
+                case 3:
+                    newX = random(0, 7);
+                    newY = random(3, 7);
+                    dX = newX - 3;
+                    dY = newY - 3;
+                    break;
+                }
+            } while (((dX * dX + dY * dY) <= 3));
+            dX = newX - eyeX;
+            dY = newY - eyeY;
+            gazeFrames = random(5, 9);
+            gazeCountdown = random(gazeFrames, 60);
+        }
+    }
+    else
+    {
+        gazeCountdown--;
+        matrix->fillRect(eyeX + 6 + x, eyeY + y, 2, 2, 0);
+        matrix->fillRect(eyeX + 18 + x, eyeY + y, 2, 2, 0);
+    }
 }
 
 void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)

@@ -55,7 +55,7 @@ void MatrixDisplayUi::setTargetFPS(uint8_t fps)
 
   // Calculate new ticksPerApp
   float changeRatio = oldInterval / (float)this->updateInterval;
-  this->ticksPerApp *= changeRatio;
+  // this->ticksPerApp *= changeRatio;
   this->ticksPerTransition *= changeRatio;
 }
 
@@ -81,7 +81,7 @@ void MatrixDisplayUi::setsetAutoTransitionBackwards()
 }
 void MatrixDisplayUi::setTimePerApp(long time)
 {
-  this->ticksPerApp = time / (long)updateInterval;
+  this->ticksPerApp = time / updateInterval;
 }
 void MatrixDisplayUi::setTimePerTransition(uint16_t time)
 {
@@ -242,6 +242,7 @@ void MatrixDisplayUi::drawIndicators()
     matrix->drawPixel(30, 0, indicator1Color);
     matrix->drawPixel(31, 1, indicator1Color);
   }
+  
   if (indicator2State && !indicator2Blink)
   {
     matrix->drawPixel(31, 7, indicator2Color);
@@ -249,20 +250,21 @@ void MatrixDisplayUi::drawIndicators()
     matrix->drawPixel(30, 7, indicator2Color);
   }
 
-  if (indicator1State && indicator1Blink && (millis() % 1000) < 500)
+  if (indicator1State && indicator1Blink && (millis() % (2 * indicator1Blink)) < indicator1Blink)
   {
     matrix->drawPixel(31, 0, indicator1Color);
     matrix->drawPixel(30, 0, indicator1Color);
     matrix->drawPixel(31, 1, indicator1Color);
   }
 
-  if (indicator2State && indicator2Blink && (millis() % 1000) < 500)
+  if (indicator2State && indicator2Blink && (millis() % (2 * indicator2Blink)) < indicator2Blink)
   {
     matrix->drawPixel(31, 7, indicator2Color);
     matrix->drawPixel(31, 6, indicator2Color);
     matrix->drawPixel(30, 7, indicator2Color);
   }
 }
+
 
 void MatrixDisplayUi::drawApp()
 {
@@ -372,12 +374,12 @@ void MatrixDisplayUi::setIndicator2State(bool state)
   this->indicator2State = state;
 }
 
-void MatrixDisplayUi::setIndicator1Blink(bool blink)
+void MatrixDisplayUi::setIndicator1Blink(int blink)
 {
   this->indicator1Blink = blink;
 }
 
-void MatrixDisplayUi::setIndicator2Blink(bool blink)
+void MatrixDisplayUi::setIndicator2Blink(int blink)
 {
   this->indicator2Blink = blink;
 }

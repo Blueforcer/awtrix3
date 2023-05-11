@@ -68,7 +68,6 @@ void onSwitchCommand(bool state, HASwitch *sender)
 
 void onSelectCommand(int8_t index, HASelect *sender)
 {
-
     sender->setState(index); // report the selected option back to the HA panel
     switch (index)
     {
@@ -80,7 +79,6 @@ void onSelectCommand(int8_t index, HASelect *sender)
         AUTO_BRIGHTNESS = true;
         break;
     }
-
     saveSettings();
 }
 
@@ -236,7 +234,7 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
-     if (strTopic.equals(MQTT_PREFIX + "/moodlight"))
+    if (strTopic.equals(MQTT_PREFIX + "/moodlight"))
     {
         DisplayManager.moodlight(payloadCopy);
         delete[] payloadCopy;

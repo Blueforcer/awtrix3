@@ -28,12 +28,10 @@
 #ifndef MatrixDisplayUi_h
 #define MatrixDisplayUi_h
 
-
 #include <Arduino.h>
 #include "FastLED_NeoMatrix.h"
 #include "GifPlayer.h"
 #include "DisplayManager.h"
-
 
 #ifndef DEBUG_MatrixDisplayUi
 #define DEBUG_MatrixDisplayUi(...)
@@ -56,7 +54,7 @@ struct MatrixDisplayUiState
 {
 
   u_int64_t lastUpdate = 0;
-  uint16_t ticksSinceLastStateSwitch = 0;
+  long ticksSinceLastStateSwitch = 0;
 
   AppState appState = FIXED;
   uint8_t currentApp = 0;
@@ -82,7 +80,7 @@ private:
   AnimationDirection appAnimationDirection = SLIDE_DOWN;
   int8_t lastTransitionDirection = 1;
 
-  long ticksPerApp = 151;       // ~ 5000ms at 30 FPS
+  long ticksPerApp = 151;           // ~ 5000ms at 30 FPS
   uint16_t ticksPerTransition = 15; // ~  500ms at 30 FPS
 
   bool setAutoTransition = true;
@@ -100,7 +98,7 @@ private:
   MatrixDisplayUiState state;
 
   // Bookeeping for update
-  uint8_t updateInterval = 33;
+  long updateInterval = 33;
 
   void drawApp();
   void drawOverlays();
@@ -154,8 +152,8 @@ public:
   void setIndicator2Color(uint16_t color);
   void setIndicator2State(bool state);
 
-  void setIndicator1Blink(bool Blink);
-  void setIndicator2Blink(bool Blink);
+  void setIndicator1Blink(int Blink);
+  void setIndicator2Blink(int Blink);
 
   void drawIndicators();
   // Customize indicator position and style
@@ -203,7 +201,7 @@ public:
   uint16_t indicator2Color = 31;
   bool indicator1State = false;
   bool indicator2State = false;
-  bool indicator1Blink = false;
-  bool indicator2Blink = false;
+  int indicator1Blink = 0;
+  int indicator2Blink = 0;
 };
 #endif
