@@ -68,10 +68,10 @@ jobs:
         run: mv docs/ulanzi_flasher/firmware/new-manifest.json docs/ulanzi_flasher/firmware/manifest.json
 
       - name: Create new manifest.json for awtrix2_upgrade
-        run: cat docs/awtrix2_upgrade/firmware/manifest.json | jq '.version="${{ steps.version_number.outputs.firmware_version }}"' > docs/awtrix2_upgrade/firmware/new-manifest.json
+        run: cat docs/awtrix2_flasher/firmware/manifest.json | jq '.version="${{ steps.version_number.outputs.firmware_version }}"' > docs/awtrix2_flasher/firmware/new-manifest.json
       
       - name: Override previous manifest.json for awtrix2_upgrade
-        run: mv docs/awtrix2_upgrade/firmware/new-manifest.json docs/awtrix2_upgrade/firmware/manifest.json
+        run: mv docs/awtrix2_flasher/firmware/new-manifest.json docs/awtrix2_flasher/firmware/manifest.json
 
       - name: Upload ulanzi firmware as artifact
         uses: actions/upload-artifact@v2
