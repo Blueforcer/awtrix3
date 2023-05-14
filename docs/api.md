@@ -55,7 +55,47 @@ A colored indicator is like a small notification sign wich will be shown on the 
 Instead of a RGB array you can also sent HEX color strings like `{"color":"#32a852"}`  
 Send the color black  `{"color":[0,0,0]}` or `{"color":"0"}` or a empty payload/body to hide the indicators.    
 Optionally you can make the indicator blinking by adding the key `"blink"` with a value of the blinking interval in milliseconds.   
-  
+
+## Apps 
+
+
+### Installed Applications
+
+To query all installed applications both default and custom use the following:
+
+| Topic | URL | Payload/Body | HTTP method |  
+| --- | --- | --- | --- |  
+| `[PREFIX]/api/apps` | `http://[IP]/api/apps` |  | GET |
+
+
+### Application Control
+
+You are also able to control the showing of installed applications
+
+| Topic | Payload/Body |
+| --- | --- | 
+| `[PREFIX]/api/apps` | `[JSON_OBJECT]` | 
+
+
+#### JSON_OBJECT
+
+
+| Key | Type | Description |
+| --- | ---- | ----------- |
+| `name` | string | The name of an application such as: `time`,`date`,`hum`,`bat`,`eyes` or a custom application |
+| `show` | boolean | `true` to display an application and `false` to hide it
+
+### Example
+
+To hide both the `eyes` application and a custom application named `stock_ticker`:
+
+```json
+[ 
+  {"name":"eyes","show":false},
+  {"name":"stock_ticker","show":false},
+]
+```
+
 ## Custom Apps and Notifications
 With AWTRIX Light, you can create custom apps or notifications to display your own text and icons.  
   
