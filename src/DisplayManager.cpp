@@ -757,13 +757,13 @@ void DisplayManager_::generateNotification(const char *json)
         {
             newNotification.isGif = false;
             newNotification.icon = LittleFS.open("/ICONS/" + iconFileName + ".jpg");
-            return;
+           
         }
         else if (LittleFS.exists("/ICONS/" + iconFileName + ".gif"))
         {
             newNotification.isGif = true;
             newNotification.icon = LittleFS.open("/ICONS/" + iconFileName + ".gif");
-            return;
+          
         }
         else
         {
