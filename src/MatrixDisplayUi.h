@@ -149,11 +149,15 @@ public:
 
   void setIndicator1Color(uint16_t color);
   void setIndicator1State(bool state);
+  void setIndicator1Blink(int Blink);
+
   void setIndicator2Color(uint16_t color);
   void setIndicator2State(bool state);
-
-  void setIndicator1Blink(int Blink);
   void setIndicator2Blink(int Blink);
+
+  void setIndicator3Color(uint16_t color);
+  void setIndicator3State(bool state);
+  void setIndicator3Blink(int Blink);
 
   void drawIndicators();
   // Customize indicator position and style
@@ -199,9 +203,14 @@ public:
 
   uint16_t indicator1Color = 63488;
   uint16_t indicator2Color = 31;
+  uint16_t indicator3Color = 65504;
+
   bool indicator1State = false;
   bool indicator2State = false;
+  bool indicator3State = false;
+
   int indicator1Blink = 0;
   int indicator2Blink = 0;
+  int indicator3Blink = 0;
 };
 #endif

@@ -74,6 +74,8 @@ public:
     void setIndicator1State(bool state);
     void setIndicator2Color(uint16_t color);
     void setIndicator2State(bool state);
+    void setIndicator3Color(uint16_t color);
+    void setIndicator3State(bool state);
     void reorderApps(const String &jsonString);
     void gammaCorrection();
     void indicatorParser(uint8_t indicator, const char *json);

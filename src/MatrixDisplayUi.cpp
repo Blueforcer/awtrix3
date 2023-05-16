@@ -236,19 +236,6 @@ void MatrixDisplayUi::tick()
 
 void MatrixDisplayUi::drawIndicators()
 {
-  if (indicator1State && !indicator1Blink)
-  {
-    matrix->drawPixel(31, 0, indicator1Color);
-    matrix->drawPixel(30, 0, indicator1Color);
-    matrix->drawPixel(31, 1, indicator1Color);
-  }
-  
-  if (indicator2State && !indicator2Blink)
-  {
-    matrix->drawPixel(31, 7, indicator2Color);
-    matrix->drawPixel(31, 6, indicator2Color);
-    matrix->drawPixel(30, 7, indicator2Color);
-  }
 
   if (indicator1State && indicator1Blink && (millis() % (2 * indicator1Blink)) < indicator1Blink)
   {
@@ -259,12 +246,37 @@ void MatrixDisplayUi::drawIndicators()
 
   if (indicator2State && indicator2Blink && (millis() % (2 * indicator2Blink)) < indicator2Blink)
   {
-    matrix->drawPixel(31, 7, indicator2Color);
-    matrix->drawPixel(31, 6, indicator2Color);
-    matrix->drawPixel(30, 7, indicator2Color);
+    matrix->drawPixel(31, 3, indicator2Color);
+    matrix->drawPixel(31, 4, indicator2Color);
+  }
+
+  if (indicator3State && indicator3Blink && (millis() % (2 * indicator3Blink)) < indicator3Blink)
+  {
+    matrix->drawPixel(31, 7, indicator3Color);
+    matrix->drawPixel(31, 6, indicator3Color);
+    matrix->drawPixel(30, 7, indicator3Color);
+  }
+
+  if (indicator1State && !indicator1Blink)
+  {
+    matrix->drawPixel(31, 0, indicator1Color);
+    matrix->drawPixel(30, 0, indicator1Color);
+    matrix->drawPixel(31, 1, indicator1Color);
+  }
+
+  if (indicator2State && !indicator2Blink)
+  {
+    matrix->drawPixel(31, 3, indicator2Color);
+    matrix->drawPixel(31, 4, indicator2Color);
+  }
+
+  if (indicator3State && !indicator3Blink)
+  {
+    matrix->drawPixel(31, 7, indicator3Color);
+    matrix->drawPixel(31, 6, indicator3Color);
+    matrix->drawPixel(30, 7, indicator3Color);
   }
 }
-
 
 void MatrixDisplayUi::drawApp()
 {
@@ -364,6 +376,13 @@ void MatrixDisplayUi::setIndicator1State(bool state)
   this->indicator1State = state;
 }
 
+void MatrixDisplayUi::setIndicator1Blink(int blink)
+{
+  this->indicator1Blink = blink;
+}
+
+
+
 void MatrixDisplayUi::setIndicator2Color(uint16_t color)
 {
   this->indicator2Color = color;
@@ -374,12 +393,24 @@ void MatrixDisplayUi::setIndicator2State(bool state)
   this->indicator2State = state;
 }
 
-void MatrixDisplayUi::setIndicator1Blink(int blink)
-{
-  this->indicator1Blink = blink;
-}
-
 void MatrixDisplayUi::setIndicator2Blink(int blink)
 {
   this->indicator2Blink = blink;
+}
+
+
+
+void MatrixDisplayUi::setIndicator3Color(uint16_t color)
+{
+  this->indicator3Color = color;
+}
+
+void MatrixDisplayUi::setIndicator3State(bool state)
+{
+  this->indicator3State = state;
+}
+
+void MatrixDisplayUi::setIndicator3Blink(int blink)
+{
+  this->indicator3Blink = blink;
 }

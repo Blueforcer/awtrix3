@@ -23,8 +23,12 @@ const char HAi1Icon[] PROGMEM = {"mdi:arrow-top-right-thick"};
 const char HAi1Name[] PROGMEM = {"Indicator 1"};
 
 const char HAi2ID[] PROGMEM = {"%s_ind2"};
-const char HAi2Icon[] PROGMEM = {"mdi:arrow-bottom-right-thick"};
+const char HAi2Icon[] PROGMEM = {"mdi:arrow-right-thick"};
 const char HAi2Name[] PROGMEM = {"Indicator 2"};
+
+const char HAi3ID[] PROGMEM = {"%s_ind3"};
+const char HAi3Icon[] PROGMEM = {"mdi:arrow-bottom-right-thick"};
+const char HAi3Name[] PROGMEM = {"Indicator 3"};
 
 const char HAbriID[] PROGMEM = {"%s_bri"};
 const char HAbriIcon[] PROGMEM = {"mdi:brightness-auto"};

@@ -588,6 +588,8 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 static unsigned long lastTime = 0;
 void EyesApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
 {
+
+    CURRENT_APP = "Eyes";
     if (blinkCountdown < sizeof(blinkIndex) / sizeof(blinkIndex[0]) - 1)
     {
         matrix->drawRGBBitmap(6 + x, 0 + y, eye[blinkIndex[blinkCountdown]], 8, 8);

@@ -13,7 +13,7 @@ WiFiClient espClient;
 HADevice device;
 HAMqtt mqtt(espClient, device, 25);
 
-HALight *Matrix, *Indikator1, *Indikator2 = nullptr;
+HALight *Matrix, *Indikator1, *Indikator2, *Indikator3 = nullptr;
 HASelect *BriMode = nullptr;
 HAButton *dismiss, *nextApp, *prevApp, *doUpdate = nullptr;
 HASwitch *transition = nullptr;
@@ -23,7 +23,7 @@ HASensor *battery = nullptr;
 HASensor *temperature, *humidity, *illuminance, *uptime, *strength, *version, *ram, *curApp = nullptr;
 HABinarySensor *btnleft, *btnmid, *btnright = nullptr;
 
-char matID[40], ind1ID[40], ind2ID[40], briID[40], btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], doUpdateID[40], batID[40];
+char matID[40], ind1ID[40], ind2ID[40], ind3ID[40], briID[40], btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], doUpdateID[40], batID[40];
 
 // The getter for the instantiated singleton instance
 MQTTManager_ &MQTTManager_::getInstance()
@@ -97,6 +97,10 @@ void onRGBColorCommand(HALight::RGBColor color, HALight *sender)
     {
         DisplayManager.setIndicator2Color(((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F));
     }
+    else if (sender == Indikator3)
+    {
+        DisplayManager.setIndicator3Color(((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F));
+    }
     sender->setRGBColor(color); // report color back to the Home Assistant
 }
 
@@ -109,10 +113,16 @@ void onStateCommand(bool state, HALight *sender)
     else if (sender == Indikator1)
     {
         DisplayManager.setIndicator1State(state);
+        Serial.println("I1");
     }
     else if (sender == Indikator2)
     {
         DisplayManager.setIndicator2State(state);
+    }
+    else if (sender == Indikator3)
+    {
+        Serial.println("I3");
+        DisplayManager.setIndicator3State(state);
     }
     sender->setState(state);
 }
@@ -196,6 +206,7 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
+
     if (strTopic.equals(MQTT_PREFIX + "/doupdate"))
     {
         if (UpdateManager.checkUpdate(true))
@@ -205,6 +216,7 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
+
     if (strTopic.equals(MQTT_PREFIX + "/power"))
     {
         StaticJsonDocument<128> doc;
@@ -222,24 +234,35 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
+
     if (strTopic.equals(MQTT_PREFIX + "/indicator1"))
     {
         DisplayManager.indicatorParser(1, payloadCopy);
         delete[] payloadCopy;
         return;
     }
+
     if (strTopic.equals(MQTT_PREFIX + "/indicator2"))
     {
         DisplayManager.indicatorParser(2, payloadCopy);
         delete[] payloadCopy;
         return;
     }
+
+    if (strTopic.equals(MQTT_PREFIX + "/indicator3"))
+    {
+        DisplayManager.indicatorParser(3, payloadCopy);
+        delete[] payloadCopy;
+        return;
+    }
+
     if (strTopic.equals(MQTT_PREFIX + "/moodlight"))
     {
         DisplayManager.moodlight(payloadCopy);
         delete[] payloadCopy;
         return;
     }
+
     if (strTopic.equals(MQTT_PREFIX + "/reboot"))
     {
         DEBUG_PRINTLN("REBOOT COMMAND RECEIVED")
@@ -248,12 +271,14 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
+
     if (strTopic.equals(MQTT_PREFIX + "/sound"))
     {
         PeripheryManager.parseSound(payloadCopy);
         delete[] payloadCopy;
         return;
     }
+
     if (strTopic.startsWith(MQTT_PREFIX + "/custom"))
     {
         String topic_str = topic;
@@ -290,6 +315,7 @@ void onMqttConnected()
         "/power",
         "/indicator1",
         "/indicator2",
+        "/indicator3",
         "/timeformat",
         "/dateformat",
         "/reboot",
@@ -377,6 +403,13 @@ void MQTTManager_::setup()
         Indikator2->setName(HAi2Name);
         Indikator2->onStateCommand(onStateCommand);
         Indikator2->onRGBColorCommand(onRGBColorCommand);
+
+        sprintf(ind3ID, HAi3ID, macStr);
+        Indikator3 = new HALight(ind3ID, HALight::RGBFeature);
+        Indikator3->setIcon(HAi3Icon);
+        Indikator3->setName(HAi3Name);
+        Indikator3->onStateCommand(onStateCommand);
+        Indikator3->onRGBColorCommand(onRGBColorCommand);
 
         sprintf(briID, HAbriID, macStr);
         BriMode = new HASelect(briID);
@@ -640,6 +673,10 @@ void MQTTManager_::setIndicatorState(uint8_t indicator, bool state, uint16_t col
         case 2:
             Indikator2->setRGBColor(c);
             Indikator2->setState(state);
+            break;
+        case 3:
+            Indikator3->setRGBColor(c);
+            Indikator3->setState(state);
             break;
         default:
             break;

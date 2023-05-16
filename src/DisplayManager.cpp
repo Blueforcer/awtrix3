@@ -1432,6 +1432,7 @@ void DisplayManager_::setIndicator1State(bool state)
     ui->setIndicator1State(state);
 }
 
+
 void DisplayManager_::setIndicator2Color(uint16_t color)
 {
     ui->setIndicator2Color(color);
@@ -1442,20 +1443,37 @@ void DisplayManager_::setIndicator2State(bool state)
     ui->setIndicator2State(state);
 }
 
+void DisplayManager_::setIndicator3Color(uint16_t color)
+{
+    ui->setIndicator3Color(color);
+}
+
+void DisplayManager_::setIndicator3State(bool state)
+{
+    ui->setIndicator3State(state);
+}
+
 void DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
 {
 
     if (strcmp(json, "") == 0)
     {
-        if (indicator == 1)
+        switch (indicator)
         {
+        case 1:
             ui->setIndicator1State(false);
             MQTTManager.setIndicatorState(1, ui->indicator1State, ui->indicator1Color);
-        }
-        else
-        {
+            break;
+        case 2:
             ui->setIndicator2State(false);
             MQTTManager.setIndicatorState(2, ui->indicator2State, ui->indicator2Color);
+            break;
+        case 3:
+            ui->setIndicator3State(false);
+            MQTTManager.setIndicatorState(3, ui->indicator3State, ui->indicator3Color);
+            break;
+        default:
+            break;
         }
         return;
     }
@@ -1473,54 +1491,78 @@ void DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
 
         if (col > 0)
         {
-            if (indicator == 1)
+            switch (indicator)
             {
+            case 1:
                 ui->setIndicator1State(true);
                 ui->setIndicator1Color(col);
-            }
-            else
-            {
+                break;
+            case 2:
                 ui->setIndicator2State(true);
                 ui->setIndicator2Color(col);
+                break;
+            case 3:
+                ui->setIndicator3State(true);
+                ui->setIndicator3Color(col);
+                break;
+            default:
+                break;
             }
         }
         else
         {
-            if (indicator == 1)
+            switch (indicator)
             {
+            case 1:
                 ui->setIndicator1State(false);
-            }
-            else
-            {
+                break;
+            case 2:
                 ui->setIndicator2State(false);
+                break;
+            case 3:
+                ui->setIndicator3State(false);
+                break;
+            default:
+                break;
             }
         }
     }
 
     if (doc.containsKey("blink"))
     {
-        if (indicator == 1)
+        switch (indicator)
         {
+        case 1:
             ui->setIndicator1Blink(doc["blink"].as<int>());
-        }
-        else
-        {
+            break;
+        case 2:
             ui->setIndicator2Blink(doc["blink"].as<int>());
+            break;
+        case 3:
+            ui->setIndicator3Blink(doc["blink"].as<int>());
+            break;
+        default:
+            break;
         }
     }
     else
     {
-        if (indicator == 1)
+        switch (indicator)
         {
+        case 1:
             ui->setIndicator1Blink(0);
-        }
-        else
-        {
+            break;
+        case 2:
             ui->setIndicator2Blink(0);
+            break;
+        case 3:
+            ui->setIndicator3Blink(0);
+            break;
+        default:
+            break;
         }
     }
-    MQTTManager.setIndicatorState(1, ui->indicator1State, ui->indicator1Color);
-    // MQTTManager.setIndicatorState(2, ui->indicator2State, ui->indicator2Color);
+    MQTTManager.setIndicatorState(indicator, ui->indicator1State, ui->indicator1Color);
 }
 
 void DisplayManager_::gammaCorrection()
