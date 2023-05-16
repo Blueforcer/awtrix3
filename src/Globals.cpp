@@ -216,7 +216,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.63";
+const char *VERSION = "0.64";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;

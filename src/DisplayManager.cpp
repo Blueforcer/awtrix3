@@ -591,58 +591,64 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
 void DisplayManager_::generateNotification(const char *json)
 {
     StaticJsonDocument<4096> doc;
-    deserializeJson(doc, json);
+    DeserializationError error = deserializeJson(doc, json);
+    if (error)
+    {
+        doc.clear();
+        return;
+    }
 
-    notify.progress = doc.containsKey("progress") ? doc["progress"].as<int>() : -1;
+    Notification newNotification;
+
+    newNotification.progress = doc.containsKey("progress") ? doc["progress"].as<int>() : -1;
 
     if (doc.containsKey("progressC"))
     {
         auto progressC = doc["progressC"];
-        notify.pColor = getColorFromJsonVariant(progressC, matrix->Color(0, 255, 0));
+        newNotification.pColor = getColorFromJsonVariant(progressC, matrix->Color(0, 255, 0));
     }
     else
     {
-        notify.pColor = matrix->Color(0, 255, 0);
+        newNotification.pColor = matrix->Color(0, 255, 0);
     }
 
     if (doc.containsKey("progressBC"))
     {
         auto progressBC = doc["progressBC"];
-        notify.pbColor = getColorFromJsonVariant(progressBC, matrix->Color(255, 255, 255));
+        newNotification.pbColor = getColorFromJsonVariant(progressBC, matrix->Color(255, 255, 255));
     }
     else
     {
-        notify.pbColor = matrix->Color(255, 255, 255);
+        newNotification.pbColor = matrix->Color(255, 255, 255);
     }
 
     if (doc.containsKey("background"))
     {
         auto background = doc["background"];
-        notify.background = getColorFromJsonVariant(background, 0);
+        newNotification.background = getColorFromJsonVariant(background, 0);
     }
-    notify.flag = true;
 
     if (doc.containsKey("draw"))
     {
-        notify.drawInstructions = doc["draw"].as<String>();
+        newNotification.drawInstructions = doc["draw"].as<String>();
     }
     else
     {
-        notify.drawInstructions = "";
+        newNotification.drawInstructions = "";
     }
 
-    notify.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
-    notify.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint16_t>() : -1;
-    notify.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
-    notify.hold = doc.containsKey("hold") ? doc["hold"].as<bool>() : false;
-    notify.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
-    notify.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
-    notify.textOffset = doc.containsKey("textOffset") ? doc["textOffset"] : 0;
-    notify.startime = millis();
-    notify.scrollposition = 9 + notify.textOffset;
-    notify.iconWasPushed = false;
-    notify.iconPosition = 0;
-    notify.scrollDelay = 0;
+    newNotification.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
+    newNotification.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint16_t>() : -1;
+    newNotification.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
+    newNotification.hold = doc.containsKey("hold") ? doc["hold"].as<bool>() : false;
+    newNotification.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
+    newNotification.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
+    newNotification.textOffset = doc.containsKey("textOffset") ? doc["textOffset"] : 0;
+    newNotification.startime = millis();
+    newNotification.scrollposition = 9 + newNotification.textOffset;
+    newNotification.iconWasPushed = false;
+    newNotification.iconPosition = 0;
+    newNotification.scrollDelay = 0;
     if (doc.containsKey("sound"))
     {
         PeripheryManager.playFromFile(doc["sound"].as<String>());
@@ -670,22 +676,22 @@ void DisplayManager_::generateNotification(const char *json)
             {
                 maximum = d;
             }
-            notify.barData[i] = d;
+            newNotification.barData[i] = d;
             i++;
         }
-        notify.barSize = i;
+        newNotification.barSize = i;
 
         if (autoscale)
         {
-            for (int j = 0; j < notify.barSize; j++)
+            for (int j = 0; j < newNotification.barSize; j++)
             {
-                notify.barData[j] = map(notify.barData[j], 0, maximum, 0, 8);
+                newNotification.barData[j] = map(newNotification.barData[j], 0, maximum, 0, 8);
             }
         }
     }
     else
     {
-        notify.barSize = 0;
+        newNotification.barSize = 0;
     }
 
     if (doc.containsKey("line"))
@@ -704,44 +710,44 @@ void DisplayManager_::generateNotification(const char *json)
             {
                 maximum = d;
             }
-            notify.lineData[i] = d;
+            newNotification.lineData[i] = d;
             i++;
         }
-        notify.lineSize = i;
+        newNotification.lineSize = i;
 
         // Autoscaling
         if (autoscale)
         {
-            for (int j = 0; j < notify.lineSize; j++)
+            for (int j = 0; j < newNotification.lineSize; j++)
             {
-                notify.lineData[j] = map(notify.lineData[j], 0, maximum, 0, 8);
+                newNotification.lineData[j] = map(newNotification.lineData[j], 0, maximum, 0, 8);
             }
         }
     }
     else
     {
-        notify.lineSize = 0;
+        newNotification.lineSize = 0;
     }
 
     if (doc.containsKey("color"))
     {
         auto color = doc["color"];
-        notify.color = getColorFromJsonVariant(color, TEXTCOLOR_565);
+        newNotification.color = getColorFromJsonVariant(color, TEXTCOLOR_565);
     }
     else
     {
-        notify.color = TEXTCOLOR_565;
+        newNotification.color = TEXTCOLOR_565;
     }
 
     if (doc.containsKey("text"))
     {
         String text = utf8ascii(doc["text"].as<String>());
-        parseFragmentsText(text, notify.colors, notify.fragments, notify.color);
-        notify.text = text;
+        parseFragmentsText(text, newNotification.colors, newNotification.fragments, newNotification.color);
+        newNotification.text = text;
     }
     else
     {
-        notify.text = "";
+        newNotification.text = "";
     }
 
     if (doc.containsKey("icon"))
@@ -749,27 +755,29 @@ void DisplayManager_::generateNotification(const char *json)
         String iconFileName = doc["icon"].as<String>();
         if (LittleFS.exists("/ICONS/" + iconFileName + ".jpg"))
         {
-            notify.isGif = false;
-            notify.icon = LittleFS.open("/ICONS/" + iconFileName + ".jpg");
+            newNotification.isGif = false;
+            newNotification.icon = LittleFS.open("/ICONS/" + iconFileName + ".jpg");
             return;
         }
         else if (LittleFS.exists("/ICONS/" + iconFileName + ".gif"))
         {
-            notify.isGif = true;
-            notify.icon = LittleFS.open("/ICONS/" + iconFileName + ".gif");
+            newNotification.isGif = true;
+            newNotification.icon = LittleFS.open("/ICONS/" + iconFileName + ".gif");
             return;
         }
         else
         {
             fs::File nullPointer;
-            notify.icon = nullPointer;
+            newNotification.icon = nullPointer;
         }
     }
     else
     {
         fs::File nullPointer;
-        notify.icon = nullPointer;
+        newNotification.icon = nullPointer;
     }
+
+    notifications.push_back(newNotification);
 }
 
 void DisplayManager_::loadNativeApps()
@@ -1044,10 +1052,9 @@ void DisplayManager_::selectButton()
 {
     if (!MenuManager.inMenu)
     {
-        if (notify.flag && notify.hold)
-        {
-            DisplayManager.getInstance().dismissNotify();
-        }
+
+        DisplayManager.getInstance().dismissNotify();
+
         if (ALARM_ACTIVE && SNOOZE_TIME > 0)
         {
             PeripheryManager.stopSound();
@@ -1074,9 +1081,13 @@ void DisplayManager_::selectButtonLong()
 
 void DisplayManager_::dismissNotify()
 {
-    notify.hold = false;
-    notify.flag = false;
-    showGif = false;
+    if (!notifications.empty())
+    {
+        if (notifyFlag && notifications[0].hold)
+        {
+            notifications.erase(notifications.begin());
+        }
+    }
 }
 
 void timerCallback()
@@ -1431,7 +1442,6 @@ void DisplayManager_::setIndicator1State(bool state)
 {
     ui->setIndicator1State(state);
 }
-
 
 void DisplayManager_::setIndicator2Color(uint16_t color)
 {
