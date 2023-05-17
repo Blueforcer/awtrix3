@@ -87,9 +87,9 @@ The JSON object has the following properties,
 | `background` | string or array of integers | Sets a background color | |
 | `rainbow` | boolean | Fades each letter in the text differently through the entire RGB spectrum. | false |
 | `icon` | string | The icon ID or filename (without extension) to display on the app. | N/A |
-| `pushIcon` | number | 0 = Icon doesn't move. 1 = Icon moves with text and will not appear again. 2 = Icon moves with text but appears again when the text starts to scroll again. | 0 |
-| `repeat` | number | Sets how many times the text should be scrolled through the matrix before the app ends. | 1 |
-| `duration` | number | Sets how long the app or notification should be displayed. | 5 |
+| `pushIcon` | integer | 0 = Icon doesn't move. 1 = Icon moves with text and will not appear again. 2 = Icon moves with text but appears again when the text starts to scroll again. | 0 |
+| `repeat` | integer | Sets how many times the text should be scrolled through the matrix before the app ends. | 1 |
+| `duration` | integer | Sets how long the app or notification should be displayed. | 5 |
 | `hold` | boolean | Set it to true, to hold your **notification** on top until you press the middle button or dismiss it via HomeAssistant. This key only belongs to notification. | false |
 | `sound` | string | The filename of your RTTTL ringtone file (without extension). | N/A |
 | `bar` | array of integers | draws a bargraph. Without icon maximum 16 values, with icon 11 values | N/A |
@@ -98,7 +98,7 @@ The JSON object has the following properties,
 | `progress` | integer | Shows a progressbar. Value can be 0-100 | -1 |
 | `progressC` | string or array of integers  | The color of the progressbar | -1 |
 | `progressBC` | string or array of integers  | The color of the progressbar background | -1 |
-| `pos` | number | Defines the position of your custompage in the loop, starting at 0 for the first position. This will only apply with your first push. This function is experimental | N/A |  
+| `pos` | integer | Defines the position of your custompage in the loop, starting at 0 for the first position. This will only apply with your first push. This function is experimental | N/A |  
 | `draw` | array of objects | Array of drawing instructions. Each object represents a drawing command. | See the drawing instructions below |
 | `lifetime` | integer | Removes the custom app when there is no update after the given time in seconds | 0 |
 | `stack` | boolean | Defines if the **notification** will be stacked. false will immediately replace the current notification | true |
