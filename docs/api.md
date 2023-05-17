@@ -101,7 +101,7 @@ The JSON object has the following properties,
 | `pos` | number | Defines the position of your custompage in the loop, starting at 0 for the first position. This will only apply with your first push. This function is experimental | N/A |  
 | `draw` | array of objects | Array of drawing instructions. Each object represents a drawing command. | See the drawing instructions below |
 | `lifetime` | integer | Removes the custom app when there is no update after the given time in seconds | 0 |
-| `stack` | integer | Defines if the **notification** will be stacked. false will immediately replace the current notification | true |
+| `stack` | boolean | Defines if the **notification** will be stacked. false will immediately replace the current notification | true |
   
 Color values can have a hex string or an array of R,G,B values:  
 `"#FFFFFF" or [255,255,0]`  
