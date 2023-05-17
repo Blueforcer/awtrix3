@@ -381,6 +381,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     currentCustomApp = name;
 
     bool hasIcon = ca->icon;
+
     matrix->fillRect(x, y, 32, 8, ca->background);
 
     // Calculate text and available width
@@ -459,7 +460,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 {
                     if (ca->iconWasPushed && ca->pushIcon == 1)
                     {
-                        ca->scrollposition = 0 + notifications[0].textOffset;
+                        ca->scrollposition = 0 + ca->textOffset;
                     }
                     else
                     {
@@ -468,7 +469,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 }
                 else
                 {
-                    ca->scrollposition = 0 + notifications[0].textOffset;
+                    ca->scrollposition = 0 + ca->textOffset;
                 }
             }
         }

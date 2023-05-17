@@ -50,8 +50,8 @@ public:
     void setBrightness(int);
     void setTextColor(uint16_t color);
     void setFPS(uint8_t);
-    void generateNotification(const char *json);
-    void generateCustomPage(const String &name, const char *json);
+    bool generateNotification(const char *json);
+    bool generateCustomPage(const String &name, const char *json);
     void printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase);
     bool setAutoTransition(bool active);
     void switchToApp(const char *json);
@@ -78,7 +78,7 @@ public:
     void setIndicator3State(bool state);
     void reorderApps(const String &jsonString);
     void gammaCorrection();
-    void indicatorParser(uint8_t indicator, const char *json);
+    bool indicatorParser(uint8_t indicator, const char *json);
     void showSleepAnimation();
     void showCurtainEffect();
     void sendAppLoop();
@@ -86,8 +86,8 @@ public:
     String ledsAsJson();
     String getAppsWithIcon();
     void startArtnet();
-    void parseCustomPage(const String &name, const char *json);
-    void moodlight(const char *json);
+    bool parseCustomPage(const String &name, const char *json);
+    bool moodlight(const char *json);
 };
 
 extern DisplayManager_ &DisplayManager;

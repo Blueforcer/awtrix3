@@ -222,34 +222,43 @@ void PeripheryManager_::setVolume(uint8_t vol)
 }
 #endif
 
-void PeripheryManager_::parseSound(const char *json)
+bool PeripheryManager_::parseSound(const char *json)
 {
 
     StaticJsonDocument<128> doc;
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
-        playFromFile(String(json));
-        return;
+        return playFromFile(String(json));
     }
     if (doc.containsKey("sound"))
     {
-        playFromFile(doc["sound"].as<String>());
+        return playFromFile(doc["sound"].as<String>());
     }
 }
 
-void PeripheryManager_::playFromFile(String file)
+bool PeripheryManager_::playFromFile(String file)
 {
     if (!SOUND_ACTIVE)
-        return;
+        return true;
 
 #ifdef ULANZI
     DEBUG_PRINTLN(F("Playing RTTTL sound file"));
-    Melody melody = MelodyFactory.loadRtttlFile("/MELODIES/" + String(file) + ".txt");
-    player.playAsync(melody);
+    if (LittleFS.exists("/MELODIES/" + String(file) + ".txt"))
+    {
+        Melody melody = MelodyFactory.loadRtttlFile("/MELODIES/" + String(file) + ".txt");
+        player.playAsync(melody);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+
 #else
     dfmp3.playMp3FolderTrack(file.toInt());
 #endif
+    return true;
 }
 
 bool PeripheryManager_::isPlaying()

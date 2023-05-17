@@ -76,11 +76,11 @@ You can also send a one-time notification with the same JSON format. Simply send
 ### JSON Properties
 
 The JSON object has the following properties,  
-All keys are optional, so you can send just the properties you want to use.
+**All keys are optional**, so you can send just the properties you want to use.
 
 | Key | Type | Description | Default |
 | --- | ---- | ----------- | ------- |
-| `text` | string | The text to display on the app. | N/A |
+| `text` | string | The text to display. | N/A |
 | `textCase` | integer | Changes the Uppercase setting. 0=global setting, 1=forces uppercase; 2=shows as it sent. | 0 |
 | `textOffset` | integer | Sets an offset for the x position of a starting text. | 0 |
 | `color` | string or array of integers | The text, bar or line color | |
@@ -94,13 +94,14 @@ All keys are optional, so you can send just the properties you want to use.
 | `sound` | string | The filename of your RTTTL ringtone file (without extension). | N/A |
 | `bar` | array of integers | draws a bargraph. Without icon maximum 16 values, with icon 11 values | N/A |
 | `line` | array of integers | draws a linechart. Without icon maximum 16 values, with icon 11 values | N/A |
-| `autoscale` | boolean | enables or disables autoscaling for bar and linechart | true |
+| `autoscale` | boolean | Enables or disables autoscaling for bar and linechart | true |
 | `progress` | integer | Shows a progressbar. Value can be 0-100 | -1 |
 | `progressC` | string or array of integers  | The color of the progressbar | -1 |
 | `progressBC` | string or array of integers  | The color of the progressbar background | -1 |
-| `pos` | number | defines the position of your custompage in the loop, starting at 0 for the first position. This will only apply with your first push. This function is experimental | N/A |  
+| `pos` | number | Defines the position of your custompage in the loop, starting at 0 for the first position. This will only apply with your first push. This function is experimental | N/A |  
 | `draw` | array of objects | Array of drawing instructions. Each object represents a drawing command. | See the drawing instructions below |
 | `lifetime` | integer | Removes the custom app when there is no update after the given time in seconds | 0 |
+| `stack` | integer | Defines if the **notification** will be stacked. false will immediately replace the current notification | true |
   
 Color values can have a hex string or an array of R,G,B values:  
 `"#FFFFFF" or [255,255,0]`  
@@ -133,6 +134,7 @@ Each drawing instruction is an object with a required command key and an array o
 | `dc`    | `[x, y, r, cl]`      | Draw a circle with center at (`x`, `y`), radius `r`, and color `cl` |
 | `dfc`   | `[x, y, r, cl]`      | Draw a filled circle with center at (`x`, `y`), radius `r`, and color `cl` |
 | `dt`    | `[x, y, t, cl]`      | Draw text `t` with top-left corner at (`x`, `y`) and color `cl` |
+| `db`    | `[x, y, w, h, [bmp]]`    | Draws a RGB565 bitmap array `[bmp]` with top-left corner at (`x`, `y`) and size of (`w`, `h`) |
   
 Color values can be a hex string or an array of R, G, B values:    
 `"#FFFFFF" or [255, 255, 0]`    

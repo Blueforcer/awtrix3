@@ -329,25 +329,25 @@ bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, s
     return true;
 }
 
-void DisplayManager_::parseCustomPage(const String &name, const char *json)
+bool DisplayManager_::parseCustomPage(const String &name, const char *json)
 {
 
     if ((strcmp(json, "") == 0) || (strcmp(json, "{}") == 0))
     {
         removeCustomAppFromApps(name, true);
-        return;
+        return true;
     }
     DynamicJsonDocument doc(4096);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
         doc.clear();
-        return;
+        return false;
     }
 
     if (doc.is<JsonObject>())
     {
-        generateCustomPage(name, json);
+        return generateCustomPage(name, json);
     }
     else if (doc.is<JsonArray>())
     {
@@ -358,7 +358,8 @@ void DisplayManager_::parseCustomPage(const String &name, const char *json)
             JsonObject customPageObject = customPage.as<JsonObject>();
             String customPageJson;
             serializeJson(customPageObject, customPageJson);
-            generateCustomPage(name + String(cpIndex), customPageJson.c_str());
+            if (generateCustomPage(name + String(cpIndex), customPageJson.c_str()))
+                return false;
             ++cpIndex;
         }
     }
@@ -366,7 +367,7 @@ void DisplayManager_::parseCustomPage(const String &name, const char *json)
     doc.clear();
 }
 
-void DisplayManager_::generateCustomPage(const String &name, const char *json)
+bool DisplayManager_::generateCustomPage(const String &name, const char *json)
 {
 
     DynamicJsonDocument doc(4096);
@@ -374,7 +375,7 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
     if (error)
     {
         doc.clear();
-        return;
+        return false;
     }
 
     CustomApp customApp;
@@ -586,16 +587,17 @@ void DisplayManager_::generateCustomPage(const String &name, const char *json)
     pushCustomApp(name, pos - 1);
     customApps[name] = customApp;
     doc.clear();
+    return true;
 }
 
-void DisplayManager_::generateNotification(const char *json)
+bool DisplayManager_::generateNotification(const char *json)
 {
     StaticJsonDocument<4096> doc;
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
         doc.clear();
-        return;
+        return false;
     }
 
     Notification newNotification;
@@ -757,13 +759,11 @@ void DisplayManager_::generateNotification(const char *json)
         {
             newNotification.isGif = false;
             newNotification.icon = LittleFS.open("/ICONS/" + iconFileName + ".jpg");
-           
         }
         else if (LittleFS.exists("/ICONS/" + iconFileName + ".gif"))
         {
             newNotification.isGif = true;
             newNotification.icon = LittleFS.open("/ICONS/" + iconFileName + ".gif");
-          
         }
         else
         {
@@ -777,7 +777,25 @@ void DisplayManager_::generateNotification(const char *json)
         newNotification.icon = nullPointer;
     }
 
-    notifications.push_back(newNotification);
+    bool stack = doc.containsKey("stack") ? doc["stack"] : true;
+
+    if (stack)
+    {
+        notifications.push_back(newNotification);
+    }
+    else
+    {
+        if (notifications.empty())
+        {
+            notifications.push_back(newNotification);
+        }
+        else
+        {
+            notifications[0] = newNotification;
+        }
+    }
+    doc.clear();
+    return true;
 }
 
 void DisplayManager_::loadNativeApps()
@@ -1463,7 +1481,7 @@ void DisplayManager_::setIndicator3State(bool state)
     ui->setIndicator3State(state);
 }
 
-void DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
+bool DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
 {
 
     if (strcmp(json, "") == 0)
@@ -1485,13 +1503,13 @@ void DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
         default:
             break;
         }
-        return;
+        return true;
     }
 
     DynamicJsonDocument doc(128);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
-        return;
+        return false;
 
     if (doc.containsKey("color"))
     {
@@ -1573,6 +1591,7 @@ void DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
         }
     }
     MQTTManager.setIndicatorState(indicator, ui->indicator1State, ui->indicator1Color);
+    return true;
 }
 
 void DisplayManager_::gammaCorrection()
@@ -1932,18 +1951,18 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
     }
 }
 
-void DisplayManager_::moodlight(const char *json)
+bool DisplayManager_::moodlight(const char *json)
 {
     if (strcmp(json, "") == 0)
     {
         MOODLIGHT_MODE = false;
-        return;
+        return true;
     }
 
     DynamicJsonDocument doc(512);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
-        return;
+        return false;
 
     int brightness = doc["brightness"] | BRIGHTNESS;
     matrix->setBrightness(brightness);
@@ -1967,10 +1986,11 @@ void DisplayManager_::moodlight(const char *json)
     }
     else
     {
-        return;
+        return true;
     }
 
     MOODLIGHT_MODE = true;
 
     matrix->show();
+    return true;
 }
