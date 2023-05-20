@@ -239,7 +239,7 @@ Each property is optional; you do not need to send all.
 
 | Key | Type | Description | Value Range | Default |
 | --- | --- | --- | --- | --- |
-| `ATIME` | number | Determines the duration an app is displayed in seconds. | Any positive integer value. | 7000 |
+| `ATIME` | number | Determines the duration an app is displayed in seconds. | Any positive integer value. | 7 |
 | `TSPEED` | number | The time the transition to the next app takes in milliseconds. | Any positive integer value. | 500 |
 | `TCOL` | string / array of ints| Sets the textcolor | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FF0000" for red. | N/A |
 | `WD` | bool | Enable or disable the weekday display | true/false | true |
