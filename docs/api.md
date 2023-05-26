@@ -326,8 +326,7 @@ Here's an example JSON object to start a timer for 1 hour, 30 minutes, and 10 se
 ```
   
 ## Update  
-Awtrix searches for an update every 1 Hour. If a new one is found it will be published to HA and in the stats.  
-You can start the update with update button in HA or:   
+You can start the firmware update with update button in HA or:   
    
 | Topic | URL | Payload/Body | HTTP Header | HTTP method |  
 | --- | --- | --- | --- | --- |  
