@@ -290,8 +290,13 @@ Each property is optional; you do not need to send all.
   
 ## Timer
 
-With AWTRIX Light, you can set a timer using MQTT. Simply send a JSON object to the topic **[PREFIX]/timer** to start a timer. 
-
+With AWTRIX Light, you can set a timer using MQTT. 
+  
+| Topic | URL | Payload/Body | HTTP method |  
+| --- | --- | --- | --- |  
+| `[PREFIX]/timer` | `http://[IP]/api/timer` | see below | POST | 
+  
+  
 When the timer goes off, the display will show a notification, and you can dismiss the timer by pressing the middle button. 
 
 #### JSON Properties
