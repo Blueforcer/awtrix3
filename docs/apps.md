@@ -10,10 +10,16 @@ There are numerous benefits to this approach:
 - **Efficient resource management:** Save valuable flash memory space on the ESP module.
 - **Adaptability:** No need to rewrite the firmware if an API undergoes changes.
 
-
-
 You can use any system you like wich is able to build json strings and send them to a mqtt topic.
 
+## AWTRIX FLOWS
+I provide a hub for sharing and discovering AWTRIX Light automations. Enhance your AWTRIX Light experience, exchange ideas, and get inspired.  
+Lets bring our creative automations to life together!  
+https://flows.blueforcer.de/   
+  
+  
+
+## FLOW Example with Node-RED
 [Node-RED](https://nodered.org/) serves as an ideal software solution for creating these applications.  
 It is available as a standalone program or as a plugin for Home Assistant and ioBroker, allowing you to further enhance the capabilities of your AWTRIX Light system.
   
