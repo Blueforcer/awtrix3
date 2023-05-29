@@ -19,7 +19,7 @@ https://flows.blueforcer.de/
   
   
 
-## FLOW Example with Node-RED
+## Flow example with Node-RED
 [Node-RED](https://nodered.org/) serves as an ideal software solution for creating these applications.  
 It is available as a standalone program or as a plugin for Home Assistant and ioBroker, allowing you to further enhance the capabilities of your AWTRIX Light system.
     
