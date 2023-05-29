@@ -13,13 +13,13 @@ There are numerous benefits to this approach:
 You can use any system you like wich is able to build json strings and send them to a mqtt topic.
 
 ## AWTRIX FLOWS
-This is your go-to hub for sharing and discovering AWTRIX Light automations, also known as custom Apps for several services.
-Enhance your AWTRIX Light experience, exchange ideas, and get inspired. Lets bring our creative automations to life together!
-No login is necessary, neither for creating new flows. As a creator you will get a link with which you can always edit your flow. Keep it save!
-You can upload your icons to your flow, and user can copy them directly to their AWTRIX light with one click!
-New flows are regularly moderated.
+This is your go-to hub for sharing and discovering AWTRIX Light automations, also known as custom Apps for several services.  
+Enhance your AWTRIX Light experience, exchange ideas, and get inspired. Lets bring our creative automations to life together!  
+No login is necessary, neither for creating new flows. As a creator you will get a link with which you can always edit your flow. Keep it save!  
+You can upload your icons to your flow, and user can copy them directly to their AWTRIX light with one click!  
+New flows are regularly moderated.  
 https://flows.blueforcer.de/   
-   
+    
 
 ## Flow example with Node-RED
 [Node-RED](https://nodered.org/) serves as an ideal software solution for creating these applications.  
