@@ -1,7 +1,7 @@
 # Apps
 
 The AWTRIX Light system comes equipped with several built-in applications, including Time, Date, Temperature, Humidity, and Battery status.  
-As it is designed to integrate seamlessly with your smart home ecosystem, additional applications can be created using MQTT.
+As it is designed to integrate seamlessly with your smart home ecosystem, additional applications can be created using MQTT or HTTP requests.
 
 There are numerous benefits to this approach:
 
