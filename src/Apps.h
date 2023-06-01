@@ -93,6 +93,7 @@ struct Notification
     uint16_t pColor;
     uint16_t background = 0;
     uint16_t pbColor;
+    bool wakeup;
 };
 std::vector<Notification> notifications;
 bool notifyFlag = false;
@@ -675,6 +676,11 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
     // Set current app name
     CURRENT_APP = "Notification";
 
+    if (notifications[0].wakeup && MATRIX_OFF)
+    {
+        DisplayManager.setBrightness(BRIGHTNESS);
+    }
+
     // Check if notification duration has expired or if repeat count is 0 and hold is not enabled
     if ((((millis() - notifications[0].startime >= notifications[0].duration) && notifications[0].repeat == -1) || notifications[0].repeat == 0) && !notifications[0].hold)
     {
@@ -685,6 +691,10 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
             notifications[1].startime = millis();
         }
         notifications.erase(notifications.begin());
+        if (notifications[0].wakeup && MATRIX_OFF)
+        {
+            DisplayManager.setBrightness(0);
+        }
         return;
     }
 

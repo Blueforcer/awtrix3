@@ -20,10 +20,10 @@ HASwitch *transition = nullptr;
 #ifdef ULANZI
 HASensor *battery = nullptr;
 #endif
-HASensor *temperature, *humidity, *illuminance, *uptime, *strength, *version, *ram, *curApp = nullptr;
+HASensor *temperature, *humidity, *illuminance, *uptime, *strength, *version, *ram, *curApp, *myOwnID = nullptr;
 HABinarySensor *btnleft, *btnmid, *btnright = nullptr;
 
-char matID[40], ind1ID[40], ind2ID[40], ind3ID[40], briID[40], btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], doUpdateID[40], batID[40];
+char matID[40], ind1ID[40], ind2ID[40], ind3ID[40], briID[40], btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], doUpdateID[40], batID[40], myID[40];
 
 // The getter for the instantiated singleton instance
 MQTTManager_ &MQTTManager_::getInstance()
@@ -328,6 +328,8 @@ void onMqttConnected()
         mqtt.subscribe(fullTopic.c_str());
         delay(30);
     }
+    if (HA_DISCOVERY)
+        myOwnID->setValue(MQTT_PREFIX.c_str());
 }
 
 void connect()
@@ -440,6 +442,11 @@ void MQTTManager_::setup()
         curApp = new HASensor(appID);
         curApp->setIcon(HAappIcon);
         curApp->setName(HAappName);
+
+        sprintf(myID, HAIDID, macStr);
+        myOwnID = new HASensor(myID);
+        myOwnID->setIcon(HAIDIcon);
+        myOwnID->setName(HAIDName);
 
         sprintf(btnBID, HAbtnbID, macStr);
         nextApp = new HAButton(btnBID);

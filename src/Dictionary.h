@@ -51,6 +51,10 @@ extern const char HAappID[];
 extern const char HAappIcon[];
 extern const char HAappName[];
 
+extern const char HAIDID[];
+extern const char HAIDIcon[];
+extern const char HAIDName[];
+
 extern const char HAtempID[];
 extern const char HAtempIcon[];
 extern const char HAtempName[];

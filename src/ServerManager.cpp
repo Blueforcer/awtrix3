@@ -78,8 +78,17 @@ void addHandler()
                    { DisplayManager.dismissNotify(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/apps", HTTP_POST, []()
                    { DisplayManager.updateAppVector(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
-    mws.addHandler("/api/switch", HTTP_POST, []()
-                   { DisplayManager.switchToApp(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
+    mws.addHandler(
+        "/api/switch", HTTP_POST, []()
+        {
+        if (DisplayManager.switchToApp(mws.webserver->arg("plain").c_str()))
+        {
+            mws.webserver->send(200, F("text/plain"), F("OK"));
+        }
+        else
+        {
+            mws.webserver->send(500, F("text/plain"), F("FAILED"));
+        } });
     mws.addHandler("/api/apps", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getAppsWithIcon().c_str()); });
     mws.addHandler("/api/settings", HTTP_POST, []()
@@ -138,11 +147,13 @@ void ServerManager_::setup()
     {
         WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS);
     }
+    WiFi.setHostname(uniqueID); // define hostname
     myIP = mws.startWiFi(15000, uniqueID, "12345678");
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
     DEBUG_PRINTF("My IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
     if (isConnected)
     {
+
         mws.addOptionBox("Network");
         mws.addOption("Static IP", NET_STATIC);
         mws.addOption("Local IP", NET_IP);

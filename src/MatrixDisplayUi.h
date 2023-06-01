@@ -188,7 +188,7 @@ public:
   /**
    * Switch without transition to app `app`.
    */
-  void switchToApp(uint8_t app);
+  bool switchToApp(uint8_t app);
 
   /**
    * Transition to app `app`, when the `app` number is bigger than the current

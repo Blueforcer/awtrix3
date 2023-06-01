@@ -54,7 +54,7 @@ public:
     bool generateCustomPage(const String &name, const char *json);
     void printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase);
     bool setAutoTransition(bool active);
-    void switchToApp(const char *json);
+    bool switchToApp(const char *json);
     void setNewSettings(const char *json);
     void drawJPG(uint16_t x, uint16_t y, fs::File jpgFile);
     void drawProgressBar(int16_t x, int16_t y, int progress, uint16_t pColor, uint16_t pbColor);

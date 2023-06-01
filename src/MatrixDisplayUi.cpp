@@ -139,15 +139,16 @@ void MatrixDisplayUi::previousApp()
   }
 }
 
-void MatrixDisplayUi::switchToApp(uint8_t app)
+bool MatrixDisplayUi::switchToApp(uint8_t app)
 {
   if (app >= this->AppCount)
-    return;
+    return false;
   this->state.ticksSinceLastStateSwitch = 0;
   if (app == this->state.currentApp)
-    return;
+    return false;
   this->state.appState = FIXED;
   this->state.currentApp = app;
+  return true;
 }
 
 void MatrixDisplayUi::transitionToApp(uint8_t app)
@@ -381,8 +382,6 @@ void MatrixDisplayUi::setIndicator1Blink(int blink)
   this->indicator1Blink = blink;
 }
 
-
-
 void MatrixDisplayUi::setIndicator2Color(uint16_t color)
 {
   this->indicator2Color = color;
@@ -397,8 +396,6 @@ void MatrixDisplayUi::setIndicator2Blink(int blink)
 {
   this->indicator2Blink = blink;
 }
-
-
 
 void MatrixDisplayUi::setIndicator3Color(uint16_t color)
 {

@@ -51,6 +51,12 @@ const char HAappID[] PROGMEM = {"%s_app"};
 const char HAappIcon[] PROGMEM = {"mdi:apps"};
 const char HAappName[] PROGMEM = {"Current app"};
 
+
+const char HAIDID[] PROGMEM = {"%s_id"};
+const char HAIDIcon[] PROGMEM = {"mdi:id-card"};
+const char HAIDName[] PROGMEM = {"Device topic"};
+
+
 const char HAtempID[] PROGMEM = {"%s_temp"};
 const char HAtempIcon[] PROGMEM = {"mdi:thermometer"};
 const char HAtempName[] PROGMEM = {"Temperature"};

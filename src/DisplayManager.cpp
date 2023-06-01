@@ -59,7 +59,13 @@ DisplayManager_ &DisplayManager = DisplayManager.getInstance();
 
 void DisplayManager_::setBrightness(int bri)
 {
-    if (MATRIX_OFF && !ALARM_ACTIVE)
+    bool wakeup;
+    if (!notifications.empty())
+    {
+        wakeup = notifications[0].wakeup;
+    }
+
+    if (MATRIX_OFF && !ALARM_ACTIVE && !wakeup)
     {
         matrix->setBrightness(0);
     }
@@ -298,10 +304,8 @@ bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, s
 {
     colors.clear();
     fragments.clear();
-
     StaticJsonDocument<2048> doc;
     DeserializationError error = deserializeJson(doc, jsonText);
-
     if (error)
     {
         return false;
@@ -311,7 +315,7 @@ bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, s
 
     for (JsonObject fragmentObj : fragmentArray)
     {
-        String textFragment = fragmentObj["t"].as<String>();
+        String textFragment = utf8ascii(fragmentObj["t"].as<String>());
         uint16_t color;
         if (fragmentObj.containsKey("c"))
         {
@@ -331,7 +335,6 @@ bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, s
 
 bool DisplayManager_::parseCustomPage(const String &name, const char *json)
 {
-
     if ((strcmp(json, "") == 0) || (strcmp(json, "{}") == 0))
     {
         removeCustomAppFromApps(name, true);
@@ -347,6 +350,7 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json)
 
     if (doc.is<JsonObject>())
     {
+        DEBUG_PRINTLN("Single Page");
         return generateCustomPage(name, json);
     }
     else if (doc.is<JsonArray>())
@@ -355,25 +359,26 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json)
         int cpIndex = 0;
         for (JsonVariant customPage : customPagesArray)
         {
+            Serial.printf("Multiple Page: %i", cpIndex);
             JsonObject customPageObject = customPage.as<JsonObject>();
             String customPageJson;
             serializeJson(customPageObject, customPageJson);
-            if (generateCustomPage(name + String(cpIndex), customPageJson.c_str()))
-                return false;
+            generateCustomPage(name + String(cpIndex), customPageJson.c_str());
             ++cpIndex;
         }
     }
-
     doc.clear();
+    return true;
 }
 
 bool DisplayManager_::generateCustomPage(const String &name, const char *json)
 {
-
     DynamicJsonDocument doc(4096);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
+        DEBUG_PRINTLN("PARSING FAILED");
+        DEBUG_PRINTLN(error.c_str());
         doc.clear();
         return false;
     }
@@ -587,6 +592,7 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json)
     pushCustomApp(name, pos - 1);
     customApps[name] = customApp;
     doc.clear();
+    DEBUG_PRINTLN("PARSING FINISHED");
     return true;
 }
 
@@ -643,6 +649,7 @@ bool DisplayManager_::generateNotification(const char *json)
     newNotification.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint16_t>() : -1;
     newNotification.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
     newNotification.hold = doc.containsKey("hold") ? doc["hold"].as<bool>() : false;
+    newNotification.wakeup = doc.containsKey("wakeup") ? doc["wakeup"].as<bool>() : false;
     newNotification.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
     newNotification.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
     newNotification.textOffset = doc.containsKey("textOffset") ? doc["textOffset"] : 0;
@@ -651,10 +658,6 @@ bool DisplayManager_::generateNotification(const char *json)
     newNotification.iconWasPushed = false;
     newNotification.iconPosition = 0;
     newNotification.scrollDelay = 0;
-    if (doc.containsKey("sound"))
-    {
-        PeripheryManager.playFromFile(doc["sound"].as<String>());
-    }
 
     bool autoscale = true;
     if (doc.containsKey("autoscale"))
@@ -794,6 +797,15 @@ bool DisplayManager_::generateNotification(const char *json)
             notifications[0] = newNotification;
         }
     }
+
+    if (doc.containsKey("sound"))
+    {
+        if (!MATRIX_OFF || (MATRIX_OFF && newNotification.wakeup))
+        {
+            PeripheryManager.playFromFile(doc["sound"].as<String>());
+        }
+    }
+
     doc.clear();
     return true;
 }
@@ -1134,17 +1146,24 @@ void DisplayManager_::gererateTimer(String Payload)
     TimerTicker.once_ms(interval, timerCallback);
 }
 
-void DisplayManager_::switchToApp(const char *json)
+bool DisplayManager_::switchToApp(const char *json)
 {
     DynamicJsonDocument doc(512);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
-        return;
+        return false;
     String name = doc["name"].as<String>();
     bool fast = doc["fast"] | false;
     int index = findAppIndexByName(name);
     if (index > -1)
+    {
         ui->transitionToApp(index);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 void DisplayManager_::drawProgressBar(int16_t x, int16_t y, int progress, uint16_t pColor, uint16_t pbColor)
@@ -1250,10 +1269,11 @@ void DisplayManager_::updateAppVector(const char *json)
 {
     DEBUG_PRINTLN(F("New apps vector received"));
     DEBUG_PRINTLN(json);
-    StaticJsonDocument<2048> doc;
+    DynamicJsonDocument doc(2048);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
+        doc.clear();
         DEBUG_PRINTLN(F("Failed to parse json"));
         return;
     }
@@ -1319,11 +1339,12 @@ void DisplayManager_::updateAppVector(const char *json)
     saveSettings();
     sendAppLoop();
     setAutoTransition(AUTO_TRANSITION);
+    doc.clear();
 }
 
 String DisplayManager_::getStats()
 {
-    StaticJsonDocument<256> doc;
+    StaticJsonDocument<512> doc;
     char buffer[5];
 #ifdef ULANZI
     doc[BatKey] = BATTERY_PERCENT;
@@ -1346,6 +1367,9 @@ String DisplayManager_::getStats()
     doc[UpdateKey] = UPDATE_AVAILABLE;
     doc[MessagesKey] = RECEIVED_MESSAGES;
     doc[VersionKey] = VERSION;
+    doc[F("indicator1")] = ui->indicator1State;
+    doc[F("indicator2")] = ui->indicator2State;
+    doc[F("indicator3")] = ui->indicator3State;
     String jsonString;
     return serializeJson(doc, jsonString), jsonString;
 }

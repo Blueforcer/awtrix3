@@ -41,7 +41,7 @@ void loadDevSettings()
     if (LittleFS.exists("/dev.json"))
     {
         File file = LittleFS.open("/dev.json", "r");
-        DynamicJsonDocument doc(128);
+        DynamicJsonDocument doc(256);
         DeserializationError error = deserializeJson(doc, file);
         if (error)
         {
@@ -216,7 +216,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.66";
+const char *VERSION = "0.67";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
