@@ -69,7 +69,7 @@ https://www.paypal.me/blueforcer
 </a>
 
 # Community  
-Join the discord channel with over 1800 Users  
+Join the discord channel with over 2100 Users  
 https://discord.gg/cyBCpdx  
 
 # Disclaimer
