@@ -90,6 +90,13 @@ extern String TIME_FORMAT;
 extern String DATE_FORMAT;
 extern bool START_ON_MONDAY;
 extern bool IS_CELSIUS;
+#ifndef ULANZI    
+#define TEMP_SENSOR_TYPE_NONE 0
+#define TEMP_SENSOR_TYPE_BME280 1
+#define TEMP_SENSOR_TYPE_HTU21DF 2
+#define TEMP_SENSOR_TYPE_BMP280 3
+extern uint8_t TEMP_SENSOR_TYPE;
+#endif
 extern bool SOUND_ACTIVE;
 extern String BOOT_SOUND;
 extern int TEMP_DECIMAL_PLACES;
@@ -114,7 +121,9 @@ extern bool ROTATE_SCREEN;
 
 extern uint16_t TIME_COLOR;
 extern uint16_t DATE_COLOR;
+#ifdef ULANZI
 extern uint16_t BAT_COLOR;
+#endif
 extern uint16_t TEMP_COLOR;
 extern uint16_t HUM_COLOR;
 extern bool ARTNET_MODE;
