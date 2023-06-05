@@ -1674,7 +1674,9 @@ String DisplayManager_::getSettings()
     doc["DATE_COL"] = DATE_COLOR;
     doc["HUM_COL"] = HUM_COLOR;
     doc["TEMP_COL"] = TEMP_COLOR;
+#ifdef ULANZI    
     doc["BAT_COL"] = BAT_COLOR;
+#endif
 
     String jsonString;
     return serializeJson(doc, jsonString), jsonString;

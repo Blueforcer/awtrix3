@@ -142,10 +142,10 @@ void select_button_pressed()
 
 void select_button_pressed_long()
 {
-
     if (AP_MODE)
     {
 #ifndef ULANZI
+        PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
         ++MATRIX_LAYOUT;
         if (MATRIX_LAYOUT < 0)
             MATRIX_LAYOUT = 2;
@@ -155,6 +155,9 @@ void select_button_pressed_long()
     }
     else if (!BLOCK_NAVIGATION)
     {
+#ifndef ULANZI
+        PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
+#endif
         DisplayManager.selectButtonLong();
         if (!ALARM_ACTIVE)
             MenuManager.selectButtonLong();
@@ -167,6 +170,9 @@ void select_button_double()
     DEBUG_PRINTLN(F("Select button double pressed"));
     if (!BLOCK_NAVIGATION)
     {
+#ifndef ULANZI
+        PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
+#endif
         if (MATRIX_OFF)
         {
             DisplayManager.setPower(true);
@@ -260,6 +266,7 @@ bool PeripheryManager_::playFromFile(String file)
 #else
     DEBUG_PRINTLN(F("Playing MP3 file"));
     dfmp3.stop();
+    delay(50);
     dfmp3.playMp3FolderTrack(file.toInt());
 #endif
     return true;
