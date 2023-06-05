@@ -358,7 +358,7 @@ void MQTTManager_::setup()
         uint8_t mac[6];
         WiFi.macAddress(mac);
         char *macStr = new char[18 + 1];
-        snprintf(macStr, 24, "%02x%02x%02x", mac[3], mac[4], mac[5]);
+        snprintf(macStr, 18, "%02x%02x%02x", mac[3], mac[4], mac[5]);
         device.setUniqueId(mac, sizeof(mac));
         device.setName(uniqueID);
         device.setSoftwareVersion(VERSION);
