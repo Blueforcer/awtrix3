@@ -315,7 +315,7 @@ bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, s
 
     for (JsonObject fragmentObj : fragmentArray)
     {
-        String textFragment = utf8ascii(fragmentObj["t"].as<String>());
+        String textFragment = fragmentObj["t"].as<String>();
         uint16_t color;
         if (fragmentObj.containsKey("c"))
         {
@@ -805,7 +805,7 @@ bool DisplayManager_::generateNotification(const char *json)
             PeripheryManager.playFromFile(doc["sound"].as<String>());
         }
     }
-
+    MQTTManager.setCurrentApp("Notification");
     doc.clear();
     return true;
 }
@@ -1111,11 +1111,23 @@ void DisplayManager_::selectButtonLong()
 
 void DisplayManager_::dismissNotify()
 {
+
+    bool wakeup;
+
     if (!notifications.empty())
     {
         if (notifyFlag && notifications[0].hold)
         {
+            wakeup = notifications[0].wakeup;
             notifications.erase(notifications.begin());
+        }
+    }
+
+    if (notifications.empty())
+    {
+        if (wakeup && MATRIX_OFF)
+        {
+            DisplayManager.setBrightness(0);
         }
     }
 }
@@ -1300,11 +1312,11 @@ void DisplayManager_::updateAppVector(const char *json)
                                   { return app.first == appName; });
 
         std::pair<String, AppCallback> nativeApp = getNativeAppByName(appName);
+
         if (!show)
         {
             if (appIt != Apps.end())
             {
-
                 Apps.erase(appIt);
             }
         }
@@ -1636,7 +1648,7 @@ void DisplayManager_::sendAppLoop()
 
 String DisplayManager_::getSettings()
 {
-    StaticJsonDocument<256> doc;
+    StaticJsonDocument<512> doc;
     doc["FPS"] = MATRIX_FPS;
     doc["ABRI"] = AUTO_BRIGHTNESS;
     doc["BRI"] = BRIGHTNESS;
@@ -1648,12 +1660,22 @@ String DisplayManager_::getSettings()
     doc["DFORMAT"] = DATE_FORMAT;
     doc["SOM"] = START_ON_MONDAY;
     doc["CEL"] = IS_CELSIUS;
+    doc["BLOCKN"] = BLOCK_NAVIGATION;
     doc["MAT"] = MATRIX_LAYOUT;
     doc["SOUND"] = SOUND_ACTIVE;
     doc["GAMMA"] = GAMMA;
-    doc["UPPERCASE"] = GAMMA;
+    doc["UPPERCASE"] = UPPERCASE_LETTERS;
     doc["CCORRECTION"] = COLOR_CORRECTION.raw;
     doc["CTEMP"] = COLOR_TEMPERATURE.raw;
+    doc["WD"] = SHOW_WEEKDAY;
+    doc["WDCA"] = WDC_ACTIVE;
+    doc["WDCI"] = WDC_INACTIVE;
+    doc["TIME_COL"] = TIME_COLOR;
+    doc["DATE_COL"] = DATE_COLOR;
+    doc["HUM_COL"] = HUM_COLOR;
+    doc["TEMP_COL"] = TEMP_COLOR;
+    doc["BAT_COL"] = BAT_COLOR;
+
     String jsonString;
     return serializeJson(doc, jsonString), jsonString;
 }
@@ -1679,6 +1701,7 @@ void DisplayManager_::setNewSettings(const char *json)
     TIME_PER_TRANSITION = doc.containsKey("TSPEED") ? doc["TSPEED"] : TIME_PER_TRANSITION;
     MATRIX_FPS = doc.containsKey("FPS") ? doc["FPS"] : MATRIX_FPS;
     BRIGHTNESS = doc.containsKey("BRI") ? doc["BRI"] : BRIGHTNESS;
+    IS_CELSIUS = doc.containsKey("CEL") ? doc["CEL"] : IS_CELSIUS;
     START_ON_MONDAY = doc.containsKey("SOM") ? doc["SOM"].as<bool>() : START_ON_MONDAY;
     TIME_FORMAT = doc.containsKey("TFORMAT") ? doc["TFORMAT"].as<String>() : TIME_FORMAT;
     GAMMA = doc.containsKey("GAMMA") ? doc["GAMMA"].as<float>() : GAMMA;
@@ -1753,7 +1776,6 @@ void DisplayManager_::setNewSettings(const char *json)
         auto TCOL = doc["TCOL"];
         TEXTCOLOR_565 = getColorFromJsonVariant(TCOL, matrix->Color(255, 255, 255));
     }
-
     if (doc.containsKey("TIME_COL"))
     {
         auto TIME_COL = doc["TIME_COL"];
@@ -1945,7 +1967,7 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
                 uint16_t color = getColorFromJsonVariant(color7, TEXTCOLOR_565);
                 matrix->setCursor(x + xOffset, y + yOffset + 5);
                 matrix->setTextColor(color);
-                matrix->print(text);
+                matrix->print(utf8ascii(text));
             }
             else if (command == "db")
             {

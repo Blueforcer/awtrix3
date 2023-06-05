@@ -328,12 +328,17 @@ void onMqttConnected()
         mqtt.subscribe(fullTopic.c_str());
         delay(30);
     }
+    delay(200);
     if (HA_DISCOVERY)
+    {
         myOwnID->setValue(MQTT_PREFIX.c_str());
+        version->setValue(VERSION);
+    }
 }
 
 void connect()
 {
+    mqtt.setDataPrefix(MQTT_PREFIX.c_str());
     mqtt.onMessage(onMqttMessage);
     mqtt.onConnected(onMqttConnected);
 
@@ -609,7 +614,7 @@ void MQTTManager_::sendStats()
         uptime->setValue(PeripheryManager.readUptime());
 
         transition->setState(AUTO_TRANSITION, false);
-        version->setValue(VERSION);
+
         // update->setState(UPDATE_AVAILABLE, false);
     }
     else

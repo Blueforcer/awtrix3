@@ -41,7 +41,7 @@ void loadDevSettings()
     if (LittleFS.exists("/dev.json"))
     {
         File file = LittleFS.open("/dev.json", "r");
-        DynamicJsonDocument doc(256);
+        DynamicJsonDocument doc(1024);
         DeserializationError error = deserializeJson(doc, file);
         if (error)
         {
@@ -64,6 +64,16 @@ void loadDevSettings()
         if (doc.containsKey("matrix"))
         {
             MATRIX_LAYOUT = doc["matrix"];
+        }
+
+         if (doc.containsKey("temp_offset"))
+        {
+            TEMP_OFFSET = doc["temp_offset"];
+        }
+
+        if (doc.containsKey("hum_offset"))
+        {
+            HUM_OFFSET = doc["hum_offset"];
         }
 
         if (doc.containsKey("uppercase"))
@@ -216,7 +226,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.67";
+const char *VERSION = "0.68";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -256,10 +266,15 @@ float CURRENT_HUM;
 float CURRENT_LUX;
 int BRIGHTNESS = 120;
 int BRIGHTNESS_PERCENT;
+
 #ifdef ULANZI
+float TEMP_OFFSET = -9;
 uint8_t BATTERY_PERCENT;
 uint16_t BATTERY_RAW;
+#else
+float TEMP_OFFSET;
 #endif
+float HUM_OFFSET;
 uint16_t LDR_RAW;
 String TIME_FORMAT = "%H:%M:%S";
 String DATE_FORMAT = "%d.%m.%y";

@@ -371,7 +371,7 @@ const GFXglyph AwtrixFontGlyphs[] PROGMEM = {
     {467, 8, 1, 3, 0, -3}, /*[107]  0xAD softhyphen */
     {468, 8, 3, 4, 0, -5}, /*[108]  0xAE registered */
     {471, 8, 1, 4, 0, -5}, /*[109]  0xAF macron */
-    {472, 8, 3, 4, 0, -5}, /*[110]  0xB0 degree */
+    {472, 8, 3, 3, 0, -5}, /*[110]  0xB0 degree */
     {475, 8, 5, 4, 0, -5}, /*[111]  0xB1 plusminus */
     {480, 8, 3, 4, 0, -5}, /*[112]  0xB2 twosuperior */
     {483, 8, 3, 4, 0, -5}, /*[113]  0xB3 threesuperior */
