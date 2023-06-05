@@ -61,7 +61,7 @@ Optionally you can make the indicator blinking by adding the key `"blink"` with 
 With AWTRIX Light, you can create custom apps or notifications to display your own text and icons.  
   
 With MQTT simply send a JSON object to the topic `[PREFIX]/custom/[app]` where [app] is a the name of your app (without spaces).  
-With the HTTP API you have to set the appname in the request header  (`name = [appname]`)  
+With the HTTP API you have to set the appname in the query parameter  (`name = [appname]`)  
 To update a custom page, simply send a modified JSON object to the same endpoint. The display will be updated immediately.  
 
 You can also send a one-time notification with the same JSON format. Simply send your JSON object to `[PREFIX]/notify` or `http://[IP]/api/notify`.  

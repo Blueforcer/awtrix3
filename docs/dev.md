@@ -16,10 +16,12 @@ The JSON object has the following properties:
 | `bootsound` | string | Uses a custom melodie while booting |  |
 | `uppercase` | boolean | Print every character in uppercase | `true` |
 | `matrix` | int | Changes the matrix layout (0,1 or 2) | `0` |
-| `temp_dec_places` | int | Number of decimal places for temperature measurements | `0` |
 | `color_correction` | array of int | Sets the colorcorrection of the matrix | `[255,255,255]` |
 | `color_temperature` | array of int | Sets the colortemperature of the matrix | `[255,255,255]` |
 | `gamma` |float | Sets the gamma of the matrix | `2.5` |
 | `update_check` | boolean | Enables searchfunction for new version every 1 hour. This could cause in loop stack overflow! | `false` |
-| `sensor_reading` | boolean | Enables or disables the reading of the Temp&Hum sensor | `true` |
 | `rotate_screen` | boolean | Rotates the screen upside down | `false` |
+| `temp_dec_places` | int | Number of decimal places for temperature measurements | `0` |
+| `sensor_reading` | boolean | Enables or disables the reading of the Temp&Hum sensor | `true` |
+| `temp_offset` | float | Sets the offset for the internal temperature messurement | `-9` |
+| `hum_offset` | float | Sets the offset for the internal humidity messurement | `0` |

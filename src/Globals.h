@@ -72,6 +72,8 @@ extern String CURRENT_APP;
 extern uint8_t BATTERY_PERCENT;
 extern uint16_t BATTERY_RAW;
 #endif
+extern float TEMP_OFFSET;
+extern float HUM_OFFSET;
 extern int  BRIGHTNESS;
 extern int  BRIGHTNESS_PERCENT;
 extern String TEXTCOLOR;
@@ -118,6 +120,7 @@ extern bool BLOCK_NAVIGATION;
 extern bool UPDATE_CHECK;
 extern bool SENSOR_READING;
 extern bool ROTATE_SCREEN;
+
 
 extern uint16_t TIME_COLOR;
 extern uint16_t DATE_COLOR;

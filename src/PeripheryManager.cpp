@@ -156,7 +156,8 @@ void select_button_pressed_long()
     else if (!BLOCK_NAVIGATION)
     {
         DisplayManager.selectButtonLong();
-        MenuManager.selectButtonLong();
+        if (!ALARM_ACTIVE)
+            MenuManager.selectButtonLong();
         DEBUG_PRINTLN(F("Select button pressed long"));
     }
 }
@@ -357,7 +358,6 @@ void PeripheryManager_::tick()
         {
 #ifdef ULANZI
             sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
-            CURRENT_TEMP -= 9.0;
 #else
 			switch (TEMP_SENSOR_TYPE)
 			{
@@ -379,7 +379,10 @@ void PeripheryManager_::tick()
 				break;
 			}
 #endif
+            CURRENT_TEMP += TEMP_OFFSET;
+            CURRENT_HUM += HUM_OFFSET;
         }
+
         checkAlarms();
         MQTTManager.sendStats();
     }
