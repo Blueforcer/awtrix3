@@ -323,7 +323,7 @@ void PeripheryManager_::setup()
         DEBUG_PRINTLN(F("BME280 sensor detected"));
 		TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_BME280;
 	}
-    else if (bme280.begin(BMP280_ADDRESS) || bme280.begin(BMP280_ADDRESS_ALT))
+    else if (bmp280.begin(BMP280_ADDRESS) || bmp280.begin(BMP280_ADDRESS_ALT))
 	{
         DEBUG_PRINTLN(F("BMP280 sensor detected"));
 		TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_BMP280;
