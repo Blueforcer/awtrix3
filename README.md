@@ -74,7 +74,9 @@ Starting is easy as 1-2-3
 [with the documentation](https://blueforcer.github.io/awtrix-light/)
   
 # Support  
-If you like my work, please consider supporting the project.  
+If you want to support my work, I really appreciate your donation!
+All of the money will be allocated towards purchasing new hardware for testing purposes, software licenses, server costs, and a significant portion will also be set aside for dinners and trips with my wife and kids so that they can continue to endure the many hours I spend programming :) 
+  
 https://github.com/sponsors/Blueforcer  
 https://www.buymeacoffee.com/blueforcer  
 https://www.paypal.me/blueforcer  
