@@ -51,7 +51,7 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
   
 # AWTRIX Light flows  
 This is your go-to hub for sharing and discovering AWTRIX Light automations. Enhance your AWTRIX Light experience, exchange ideas, and get inspired.
-Lets bring our creative automations to life together!
+Lets bring our creative automations to life together!  
 https://flows.blueforcer.de/
   
 # Features
