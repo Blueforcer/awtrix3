@@ -27,7 +27,7 @@
  <img src="http://img.youtube.com/vi/Wr8fHErJI0o/mqdefault.jpg" alt="Watch the video" height="180" border="10" />
 </a>
   
-  Youtube videos from some awesome creators to have a quick first look.   
+  Youtube videos from some awesome creators to get a quick first look.   
 
   
 </div>  
