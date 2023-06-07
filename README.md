@@ -16,8 +16,16 @@
 ![Discord](https://img.shields.io/discord/546407049148366859?label=Discord&style=flat-square)
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=N0NKPJzGHuA" target="_blank">
- <img src="http://img.youtube.com/vi/N0NKPJzGHuA/mqdefault.jpg" alt="Watch the video" height="280" border="10" />
+ <img src="http://img.youtube.com/vi/N0NKPJzGHuA/mqdefault.jpg" alt="Watch the video" height="180" border="10" />
 </a>  
+  
+  <a href="http://www.youtube.com/watch?feature=player_embedded&v=BWf04wWOLHE" target="_blank">
+ <img src="http://img.youtube.com/vi/BWf04wWOLHE/mqdefault.jpg" alt="Watch the video" height="180" border="10" />
+</a>  
+  
+    <a href="http://www.youtube.com/watch?feature=player_embedded&v=Wr8fHErJI0o" target="_blank">
+ <img src="http://img.youtube.com/vi/Wr8fHErJI0o/mqdefault.jpg" alt="Watch the video" height="180" border="10" />
+</a>
 </div>  
 
 AWTRIX Light is an open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882) or as upgrade for the old AWTRIX 2 Mainboard.
