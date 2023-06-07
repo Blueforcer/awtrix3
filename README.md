@@ -29,7 +29,8 @@
   
 </div>  
   
-  
+<br>  
+<br>  
 **AWTRIX Light is an open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882) or as upgrade for the old AWTRIX 2 Mainboard.**
 
 AWL meant to be a companion for your smarthome like HomeAssistant, IOBroker, FHEM, NodeRed and so on.    
