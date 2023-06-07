@@ -48,7 +48,12 @@ Just send all your customapps from your smarthome via MQTT and update it in real
 The powerful icon system bring your ideas to life and enjoy a hassle-free experience   
 
 Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 and Awtrix Light and experience the difference today! 
-
+  
+# AWTRIX Light flows  
+This is your go-to hub for sharing and discovering AWTRIX Light automations. Enhance your AWTRIX Light experience, exchange ideas, and get inspired.
+Lets bring our creative automations to life together!
+https://flows.blueforcer.de/
+  
 # Features
 - Easy to setup
 - Online flasher
