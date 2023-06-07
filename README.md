@@ -55,6 +55,7 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
 - Add customapps without recompiling straight from your Smarthome.
 - Notification support
 - Animated icons
+- Fullscreen animations
 - Custom icons without recompiling
 - Easy to use icon system
 - Powerful MQTT commands
