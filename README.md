@@ -94,6 +94,9 @@ https://www.paypal.me/blueforcer
 # Community  
 Join the discord channel with over 2100 Users  
 https://discord.gg/cyBCpdx  
-
+  
+# Commercial cooperations  
+For any commercial usage, contact me at awtrix@blueforcer.de
+  
 # Disclaimer
 This open-source software is not affiliated with or endorsed by the company Ulanzi in any way. Use of the software is at your own risk and discretion, and i assume no liability for any potential damages or issues that may arise from using the software. It is important to be aware that using this open-source software comes without direct support or guarantees from the company Ulanzi.
