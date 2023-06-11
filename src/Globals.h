@@ -124,9 +124,7 @@ extern bool ROTATE_SCREEN;
 extern uint8_t SCROLL_SPEED;
 extern uint16_t TIME_COLOR;
 extern uint16_t DATE_COLOR;
-#ifdef ULANZI
 extern uint16_t BAT_COLOR;
-#endif
 extern uint16_t TEMP_COLOR;
 extern uint16_t HUM_COLOR;
 extern bool ARTNET_MODE;
