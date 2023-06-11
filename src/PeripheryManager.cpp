@@ -155,7 +155,9 @@ void select_button_pressed_long()
     }
     else if (!BLOCK_NAVIGATION)
     {
+        #ifndef ULANZI
         PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
+        #endif
         if (!ALARM_ACTIVE)
             MenuManager.selectButtonLong();
 
