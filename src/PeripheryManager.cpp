@@ -5,6 +5,8 @@
 #include "Adafruit_SHT31.h"
 #else
 #include "Adafruit_BME280.h"
+#include "Adafruit_BMP280.h"
+#include "Adafruit_HTU21DF.h"
 #include "SoftwareSerial.h"
 #include <DFMiniMp3.h>
 #endif
@@ -42,7 +44,8 @@
 Adafruit_SHT31 sht31;
 #else
 Adafruit_BME280 bme280;
-TwoWire I2Cbme280 = TwoWire(0);
+Adafruit_BMP280 bmp280;
+Adafruit_HTU21DF htu21df;
 #endif
 
 EasyButton button_left(BUTTON_UP_PIN);
@@ -139,10 +142,10 @@ void select_button_pressed()
 
 void select_button_pressed_long()
 {
-
     if (AP_MODE)
     {
 #ifndef ULANZI
+        PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
         ++MATRIX_LAYOUT;
         if (MATRIX_LAYOUT < 0)
             MATRIX_LAYOUT = 2;
@@ -152,6 +155,7 @@ void select_button_pressed_long()
     }
     else if (!BLOCK_NAVIGATION)
     {
+        PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
         if (!ALARM_ACTIVE)
             MenuManager.selectButtonLong();
 
@@ -166,6 +170,9 @@ void select_button_double()
     DEBUG_PRINTLN(F("Select button double pressed"));
     if (!BLOCK_NAVIGATION)
     {
+#ifndef ULANZI
+        PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
+#endif
         if (MATRIX_OFF)
         {
             DisplayManager.setPower(true);
@@ -227,7 +234,6 @@ void PeripheryManager_::setVolume(uint8_t vol)
 
 bool PeripheryManager_::parseSound(const char *json)
 {
-
     StaticJsonDocument<128> doc;
     DeserializationError error = deserializeJson(doc, json);
     if (error)
@@ -268,8 +274,10 @@ bool PeripheryManager_::playFromFile(String file)
     {
         return false;
     }
-
 #else
+    DEBUG_PRINTLN(F("Playing MP3 file"));
+    dfmp3.stop();
+    delay(50);
     dfmp3.playMp3FolderTrack(file.toInt());
 #endif
     return true;
@@ -317,12 +325,25 @@ void PeripheryManager_::setup()
     button_select.onPressedFor(1000, select_button_pressed_long);
     button_select.onSequence(2, 300, select_button_double);
 
-#ifdef ULANZI
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+#ifdef ULANZI
     sht31.begin(0x44);
 #else
-    I2Cbme280.begin(I2C_SDA_PIN, I2C_SCL_PIN);
-    bme280.begin(0x76, &I2Cbme280);
+	if (bme280.begin(BME280_ADDRESS) || bme280.begin(BME280_ADDRESS_ALTERNATE))
+	{
+        DEBUG_PRINTLN(F("BME280 sensor detected"));
+		TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_BME280;
+	}
+    else if (bmp280.begin(BMP280_ADDRESS) || bmp280.begin(BMP280_ADDRESS_ALT))
+	{
+        DEBUG_PRINTLN(F("BMP280 sensor detected"));
+		TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_BMP280;
+	}
+    else if (htu21df.begin())
+	{
+        DEBUG_PRINTLN(F("HTU21DF sensor detected"));
+		TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_HTU21DF;
+	}
     dfmp3.begin();
 #endif
     photocell.setPhotocellPositionOnGround(false);
@@ -333,13 +354,11 @@ void PeripheryManager_::tick()
     if (ROTATE_SCREEN)
     {
         MQTTManager.sendButton(2, button_left.read());
-
         MQTTManager.sendButton(0, button_right.read());
     }
     else
     {
         MQTTManager.sendButton(0, button_left.read());
-
         MQTTManager.sendButton(2, button_right.read());
     }
 
@@ -358,8 +377,25 @@ void PeripheryManager_::tick()
 #ifdef ULANZI
             sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
 #else
-            CURRENT_TEMP = bme280.readTemperature();
-            CURRENT_HUM = bme280.readHumidity();
+			switch (TEMP_SENSOR_TYPE)
+			{
+			case TEMP_SENSOR_TYPE_BME280:
+                CURRENT_TEMP = bme280.readTemperature();
+				CURRENT_HUM = bme280.readHumidity();
+				break;
+			case TEMP_SENSOR_TYPE_BMP280:
+                CURRENT_TEMP = bmp280.readTemperature();
+				CURRENT_HUM = 0;
+				break;
+			case TEMP_SENSOR_TYPE_HTU21DF:
+                CURRENT_TEMP = htu21df.readTemperature();
+                CURRENT_HUM = htu21df.readHumidity();
+				break;
+			default:
+				CURRENT_TEMP = 0;
+				CURRENT_HUM = 0;
+				break;
+			}
 #endif
             CURRENT_TEMP += TEMP_OFFSET;
             CURRENT_HUM += HUM_OFFSET;

@@ -1683,7 +1683,7 @@ String DisplayManager_::getSettings()
     doc["TIME_COL"] = TIME_COLOR;
     doc["DATE_COL"] = DATE_COLOR;
     doc["HUM_COL"] = HUM_COLOR;
-    doc["TEMP_COL"] = TEMP_COLOR;
+    doc["TEMP_COL"] = TEMP_COLOR;   
     doc["BAT_COL"] = BAT_COLOR;
     doc["SSPEED"] = SCROLL_SPEED;
     String jsonString;
@@ -1810,11 +1810,13 @@ void DisplayManager_::setNewSettings(const char *json)
         HUM_COLOR = getColorFromJsonVariant(HUM_COL, TEXTCOLOR_565);
     }
 
+#ifdef ULANZI
     if (doc.containsKey("BAT_COL"))
     {
         auto BAT_COL = doc["BAT_COL"];
         BAT_COLOR = getColorFromJsonVariant(BAT_COL, TEXTCOLOR_565);
     }
+#endif
     applyAllSettings();
     saveSettings();
 }

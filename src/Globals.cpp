@@ -146,8 +146,9 @@ void loadSettings()
     DATE_COLOR = Settings.getUInt("DATE_COL", 0);
     TEMP_COLOR = Settings.getUInt("TEMP_COL", 0);
     HUM_COLOR = Settings.getUInt("HUM_COL", 0);
+#ifdef ULANZI
     BAT_COLOR = Settings.getUInt("BAT_COL", 0);
-
+#endif
     WDC_ACTIVE = Settings.getUInt("WDCA", 0xFFFF);
     WDC_INACTIVE = Settings.getUInt("WDCI", 0x6B6D);
     AUTO_TRANSITION = Settings.getBool("ATRANS", true);
@@ -193,7 +194,9 @@ void saveSettings()
     Settings.putUInt("DATE_COL", DATE_COLOR);
     Settings.putUInt("TEMP_COL", TEMP_COLOR);
     Settings.putUInt("HUM_COL", HUM_COLOR);
+#ifdef ULANZI
     Settings.putUInt("BAT_COL", BAT_COLOR);
+#endif
 
     Settings.putUInt("WDCA", WDC_ACTIVE);
     Settings.putUInt("WDCI", WDC_INACTIVE);
@@ -261,6 +264,9 @@ bool HA_DISCOVERY = false;
 String CURRENT_APP;
 float CURRENT_TEMP;
 bool IS_CELSIUS;
+#ifndef ULANZI
+uint8_t TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_NONE;
+#endif
 float CURRENT_HUM;
 float CURRENT_LUX;
 int BRIGHTNESS = 120;
@@ -315,7 +321,9 @@ bool ROTATE_SCREEN = false;
 uint8_t SCROLL_SPEED = 100;
 uint16_t TIME_COLOR = 0;
 uint16_t DATE_COLOR = 0;
+#ifdef ULANZI
 uint16_t BAT_COLOR = 0;
+#endif
 uint16_t TEMP_COLOR = 0;
 uint16_t HUM_COLOR = 0;
 bool ARTNET_MODE;
