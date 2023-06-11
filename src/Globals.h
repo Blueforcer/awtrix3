@@ -2,29 +2,30 @@
 #define GLOBALS_H
 #include <Arduino.h>
 #include <FastLED.h>
- 
+
 #define DEBUG
 
 #ifdef DEBUG
-#define DEBUG_PRINTLN(x) { \
- Serial.print("["); \
+#define DEBUG_PRINTLN(x)    \
+  {                         \
+    Serial.print("[");      \
     Serial.print(millis()); \
-    Serial.print("] ["); \
+    Serial.print("] [");    \
     Serial.print(__func__); \
-    Serial.print("]: "); \
-    Serial.println(x); \
+    Serial.print("]: ");    \
+    Serial.println(x);      \
   }
-#define DEBUG_PRINTF(format, ...) { \
-    String formattedMessage = "["+String(millis()) + "] [" + String(__func__) + "]: "; \
-    Serial.print(formattedMessage); \
-    Serial.printf(format, ##__VA_ARGS__); \
-    Serial.println(); \
+#define DEBUG_PRINTF(format, ...)                                                        \
+  {                                                                                      \
+    String formattedMessage = "[" + String(millis()) + "] [" + String(__func__) + "]: "; \
+    Serial.print(formattedMessage);                                                      \
+    Serial.printf(format, ##__VA_ARGS__);                                                \
+    Serial.println();                                                                    \
   }
 #else
-  #define DEBUG_PRINTLN(x)
-  #define DEBUG_PRINTF(format, ...)
+#define DEBUG_PRINTLN(x)
+#define DEBUG_PRINTF(format, ...)
 #endif
-
 
 extern const char *uniqueID;
 extern const char *VERSION;
@@ -74,8 +75,8 @@ extern uint16_t BATTERY_RAW;
 #endif
 extern float TEMP_OFFSET;
 extern float HUM_OFFSET;
-extern int  BRIGHTNESS;
-extern int  BRIGHTNESS_PERCENT;
+extern int BRIGHTNESS;
+extern int BRIGHTNESS_PERCENT;
 extern String TEXTCOLOR;
 extern String TIME_FORMAT;
 extern bool AUTO_BRIGHTNESS;
@@ -113,8 +114,7 @@ extern bool BLOCK_NAVIGATION;
 extern bool UPDATE_CHECK;
 extern bool SENSOR_READING;
 extern bool ROTATE_SCREEN;
-
-
+extern uint8_t SCROLL_SPEED;
 extern uint16_t TIME_COLOR;
 extern uint16_t DATE_COLOR;
 extern uint16_t BAT_COLOR;
@@ -122,4 +122,5 @@ extern uint16_t TEMP_COLOR;
 extern uint16_t HUM_COLOR;
 extern bool ARTNET_MODE;
 extern bool MOODLIGHT_MODE;
+extern float movementFactor;
 #endif // Globals_H

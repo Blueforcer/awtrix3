@@ -62,7 +62,7 @@ void addHandler()
                     } });
     mws.addHandler("/api/notify", HTTP_POST, []()
                    {
-                       if (DisplayManager.generateNotification(mws.webserver->arg("plain").c_str()))
+                       if (DisplayManager.generateNotification(1,mws.webserver->arg("plain").c_str()))
                        {
                         mws.webserver->send(200, F("text/plain"), F("OK"));
                        }else{

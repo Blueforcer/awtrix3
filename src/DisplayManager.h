@@ -50,7 +50,7 @@ public:
     void setBrightness(int);
     void setTextColor(uint16_t color);
     void setFPS(uint8_t);
-    bool generateNotification(const char *json);
+    bool generateNotification(uint8_t source,const char *json);
     bool generateCustomPage(const String &name, const char *json);
     void printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase);
     bool setAutoTransition(bool active);

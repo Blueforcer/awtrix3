@@ -66,7 +66,7 @@ void loadDevSettings()
             MATRIX_LAYOUT = doc["matrix"];
         }
 
-         if (doc.containsKey("temp_offset"))
+        if (doc.containsKey("temp_offset"))
         {
             TEMP_OFFSET = doc["temp_offset"];
         }
@@ -138,7 +138,6 @@ void loadSettings()
     startLittleFS();
     DEBUG_PRINTLN(F("Loading Usersettings"));
     Settings.begin("awtrix", false);
-    MATRIX_FPS = Settings.getUInt("FPS", 23);
     BRIGHTNESS = Settings.getUInt("BRI", 120);
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", false);
     TEXTCOLOR_565 = Settings.getUInt("TCOL", 0xFFFF);
@@ -165,6 +164,7 @@ void loadSettings()
     SHOW_TEMP = Settings.getBool("TEMP", true);
     SHOW_HUM = Settings.getBool("HUM", true);
     MATRIX_LAYOUT = Settings.getUInt("MAT", 0);
+    SCROLL_SPEED = Settings.getUInt("SSPEED", 100);
 #ifdef ULANZI
     SHOW_BAT = Settings.getBool("BAT", true);
 #endif
@@ -183,7 +183,6 @@ void saveSettings()
 {
     DEBUG_PRINTLN(F("Saving usersettings"));
     Settings.begin("awtrix", false);
-    Settings.putUInt("FPS", MATRIX_FPS);
     Settings.putUInt("BRI", BRIGHTNESS);
     Settings.putBool("WD", SHOW_WEEKDAY);
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
@@ -209,7 +208,7 @@ void saveSettings()
     Settings.putBool("DAT", SHOW_DATE);
     Settings.putBool("TEMP", SHOW_TEMP);
     Settings.putBool("HUM", SHOW_HUM);
-    Settings.putUInt("MAT", MATRIX_LAYOUT);
+    Settings.putUInt("SSPEED", SCROLL_SPEED);
 #ifdef ULANZI
     Settings.putBool("BAT", SHOW_BAT);
 #endif
@@ -226,7 +225,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.68";
+const char *VERSION = "0.69";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -252,7 +251,7 @@ String NET_SN = "255.255.255.0";
 String NET_PDNS = "8.8.8.8";
 String NET_SDNS = "1.1.1.1";
 long TIME_PER_APP = 7000;
-uint8_t MATRIX_FPS = 23;
+uint8_t MATRIX_FPS = 50;
 int TIME_PER_TRANSITION = 400;
 String NTP_SERVER = "de.pool.ntp.org";
 String NTP_TZ = "CET-1CEST,M3.5.0,M10.5.0/3";
@@ -313,7 +312,7 @@ bool UPDATE_CHECK = false;
 float GAMMA = 0;
 bool SENSOR_READING = true;
 bool ROTATE_SCREEN = false;
-
+uint8_t SCROLL_SPEED = 100;
 uint16_t TIME_COLOR = 0;
 uint16_t DATE_COLOR = 0;
 uint16_t BAT_COLOR = 0;
@@ -321,3 +320,5 @@ uint16_t TEMP_COLOR = 0;
 uint16_t HUM_COLOR = 0;
 bool ARTNET_MODE;
 bool MOODLIGHT_MODE;
+
+float movementFactor = 0.5;

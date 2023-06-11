@@ -390,19 +390,6 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json)
         customApp = customApps[name];
     }
 
-    if (doc.containsKey("sound"))
-    {
-#ifdef ULANZI
-        customApp.sound = ("/" + doc["sound"].as<String>() + ".txt");
-#else
-        customApp.sound = doc["sound"].as<String>();
-#endif
-    }
-    else
-    {
-        customApp.sound = "";
-    }
-
     customApp.progress = doc.containsKey("progress") ? doc["progress"].as<int>() : -1;
 
     if (doc.containsKey("background"))
@@ -522,6 +509,9 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json)
     customApp.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
     customApp.lifetime = doc.containsKey("lifetime") ? doc["lifetime"] : 0;
     customApp.textOffset = doc.containsKey("textOffset") ? doc["textOffset"] : 0;
+    customApp.scrollSpeed = doc.containsKey("scrollSpeed") ? doc["scrollSpeed"].as<int>() : -1;
+    customApp.topText = doc.containsKey("topText") ? doc["topText"].as<bool>() : false;
+    customApp.noScrolling = doc.containsKey("noScroll") ? doc["noScroll"] : false;
     customApp.name = name;
 
     customApp.lastUpdate = millis();
@@ -552,7 +542,7 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json)
         customApp.scrollposition = 9 + customApp.textOffset;
     }
 
-    customApp.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint8_t>() : -1;
+    customApp.repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
 
     if (doc.containsKey("icon"))
     {
@@ -596,8 +586,9 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json)
     return true;
 }
 
-bool DisplayManager_::generateNotification(const char *json)
+bool DisplayManager_::generateNotification(uint8_t source, const char *json)
 {
+    // source: 0=MQTT, 1=HTTP
     StaticJsonDocument<4096> doc;
     DeserializationError error = deserializeJson(doc, json);
     if (error)
@@ -645,15 +636,20 @@ bool DisplayManager_::generateNotification(const char *json)
         newNotification.drawInstructions = "";
     }
 
+    newNotification.sound = doc.containsKey("sound") ? doc["sound"].as<String>() : "";
+    newNotification.rtttl = doc.containsKey("rtttl") ? doc["rtttl"].as<String>() : "";
     newNotification.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
-    newNotification.repeat = doc.containsKey("repeat") ? doc["repeat"].as<uint16_t>() : -1;
+    newNotification.repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
     newNotification.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
     newNotification.hold = doc.containsKey("hold") ? doc["hold"].as<bool>() : false;
+    newNotification.scrollSpeed = doc.containsKey("scrollSpeed") ? doc["scrollSpeed"].as<int>() : -1;
     newNotification.wakeup = doc.containsKey("wakeup") ? doc["wakeup"].as<bool>() : false;
     newNotification.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
     newNotification.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
     newNotification.textOffset = doc.containsKey("textOffset") ? doc["textOffset"] : 0;
-    newNotification.startime = millis();
+    newNotification.topText = doc.containsKey("topText") ? doc["topText"].as<bool>() : false;
+    newNotification.noScrolling = doc.containsKey("noScroll") ? doc["noScroll"] : false;
+
     newNotification.scrollposition = 9 + newNotification.textOffset;
     newNotification.iconWasPushed = false;
     newNotification.iconPosition = 0;
@@ -780,6 +776,31 @@ bool DisplayManager_::generateNotification(const char *json)
         newNotification.icon = nullPointer;
     }
 
+    if (doc.containsKey("clients"))
+    {
+        JsonArray ClientNames = doc["clients"];
+        doc.remove("clients");
+        String modifiedJson;
+        serializeJson(doc, modifiedJson);
+        for (JsonVariant c : ClientNames)
+        {
+            String client = c.as<String>();
+            if (source == 0)
+            {
+                MQTTManager.rawPublish(client.c_str(), "notify", modifiedJson.c_str());
+            }
+            else
+            {
+                HTTPClient http;
+                http.begin("http://" + client + "/api/notify");
+                http.POST(modifiedJson);
+                http.end();
+            }
+        }
+    }
+    newNotification.startime = millis();
+    MQTTManager.setCurrentApp("Notification");
+
     bool stack = doc.containsKey("stack") ? doc["stack"] : true;
 
     if (stack)
@@ -798,14 +819,6 @@ bool DisplayManager_::generateNotification(const char *json)
         }
     }
 
-    if (doc.containsKey("sound"))
-    {
-        if (!MATRIX_OFF || (MATRIX_OFF && newNotification.wakeup))
-        {
-            PeripheryManager.playFromFile(doc["sound"].as<String>());
-        }
-    }
-    MQTTManager.setCurrentApp("Notification");
     doc.clear();
     return true;
 }
@@ -1116,11 +1129,9 @@ void DisplayManager_::dismissNotify()
 
     if (!notifications.empty())
     {
-        if (notifyFlag && notifications[0].hold)
-        {
-            wakeup = notifications[0].wakeup;
-            notifications.erase(notifications.begin());
-        }
+        wakeup = notifications[0].wakeup;
+        notifications.erase(notifications.begin());
+        PeripheryManager.stopSound();
     }
 
     if (notifications.empty())
@@ -1649,13 +1660,12 @@ void DisplayManager_::sendAppLoop()
 String DisplayManager_::getSettings()
 {
     StaticJsonDocument<512> doc;
-    doc["FPS"] = MATRIX_FPS;
     doc["ABRI"] = AUTO_BRIGHTNESS;
     doc["BRI"] = BRIGHTNESS;
     doc["ATRANS"] = AUTO_TRANSITION;
     doc["TCOL"] = TEXTCOLOR_565;
     doc["TSPEED"] = TIME_PER_TRANSITION;
-    doc["ATIME"] = TIME_PER_APP;
+    doc["ATIME"] = TIME_PER_APP / 1000;
     doc["TFORMAT"] = TIME_FORMAT;
     doc["DFORMAT"] = DATE_FORMAT;
     doc["SOM"] = START_ON_MONDAY;
@@ -1675,7 +1685,7 @@ String DisplayManager_::getSettings()
     doc["HUM_COL"] = HUM_COLOR;
     doc["TEMP_COL"] = TEMP_COLOR;
     doc["BAT_COL"] = BAT_COLOR;
-
+    doc["SSPEED"] = SCROLL_SPEED;
     String jsonString;
     return serializeJson(doc, jsonString), jsonString;
 }
@@ -1699,8 +1709,8 @@ void DisplayManager_::setNewSettings(const char *json)
         TIME_PER_APP = TIME_PER_APP;
     }
     TIME_PER_TRANSITION = doc.containsKey("TSPEED") ? doc["TSPEED"] : TIME_PER_TRANSITION;
-    MATRIX_FPS = doc.containsKey("FPS") ? doc["FPS"] : MATRIX_FPS;
     BRIGHTNESS = doc.containsKey("BRI") ? doc["BRI"] : BRIGHTNESS;
+    SCROLL_SPEED = doc.containsKey("SSPEED") ? doc["SSPEED"] : SCROLL_SPEED;
     IS_CELSIUS = doc.containsKey("CEL") ? doc["CEL"] : IS_CELSIUS;
     START_ON_MONDAY = doc.containsKey("SOM") ? doc["SOM"].as<bool>() : START_ON_MONDAY;
     TIME_FORMAT = doc.containsKey("TFORMAT") ? doc["TFORMAT"].as<String>() : TIME_FORMAT;

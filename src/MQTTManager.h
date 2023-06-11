@@ -12,6 +12,7 @@ public:
     static MQTTManager_ &getInstance();
     void setup();
     void tick();
+    void rawPublish(const char *prefix, const char *topic, const char *payload);
     void publish(const char *topic, const char *payload);
     void setCurrentApp(String);
     void sendStats();

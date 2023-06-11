@@ -18,7 +18,6 @@ enum MenuState
 {
     MainMenu,
     BrightnessMenu,
-    FPSMenu,
     ColorMenu,
     SwitchMenu,
     TspeedMenu,
@@ -38,7 +37,6 @@ enum MenuState
 
 const char *menuItems[] PROGMEM = {
     "BRIGHT",
-    "FPS",
     "COLOR",
     "SWITCH",
     "T-SPEED",
@@ -56,9 +54,9 @@ const char *menuItems[] PROGMEM = {
 
 int8_t menuIndex = 0;
 #ifdef ULANZI
-uint8_t menuItemCount = 13;
+uint8_t menuItemCount = 12;
 #else
-uint8_t menuItemCount = 14;
+uint8_t menuItemCount = 13;
 #endif
 
 const char *timeFormat[] PROGMEM = {
@@ -75,7 +73,7 @@ uint8_t timeFormatCount = 8;
 
 const char *dateFormat[] PROGMEM = {
     "%d.%m.%y", // 01.04.22
-    "%d.%m",    // 01.04
+    "%d.%m.",   // 01.04.
     "%y-%m-%d", // 22-04-01
     "%m-%d",    // 04-01
     "%m/%d/%y", // 04/01/22
@@ -131,8 +129,6 @@ String MenuManager_::menutext()
         return menuItems[menuIndex];
     case BrightnessMenu:
         return AUTO_BRIGHTNESS ? "AUTO" : String(BRIGHTNESS_PERCENT) + "%";
-    case FPSMenu:
-        return String(MATRIX_FPS) + " FPS";
     case ColorMenu:
         DisplayManager.drawMenuIndicator(currentColor, sizeof(textColors) / sizeof(textColors[0]), 0xFBC0);
         DisplayManager.setTextColor(textColors[currentColor]);
@@ -224,10 +220,6 @@ void MenuManager_::rightButton()
             DisplayManager.setBrightness(BRIGHTNESS);
         }
         break;
-    case FPSMenu:
-        if (MATRIX_FPS < 30)
-            ++MATRIX_FPS;
-        break;
     case ColorMenu:
         currentColor = (currentColor + 1) % (sizeof(textColors) / sizeof(textColors[0]));
         break;
@@ -289,12 +281,6 @@ void MenuManager_::leftButton()
             DisplayManager.setBrightness(BRIGHTNESS);
         }
         break;
-    case FPSMenu:
-        if (MATRIX_FPS > 15)
-        {
-            MATRIX_FPS--;
-        }
-        break;
     case ColorMenu:
         currentColor = (currentColor + sizeof(textColors) / sizeof(textColors[0]) - 1) % (sizeof(textColors) / sizeof(textColors[0]));
         break;
@@ -353,44 +339,41 @@ void MenuManager_::selectButton()
             currentState = BrightnessMenu;
             break;
         case 1:
-            currentState = FPSMenu;
-            break;
-        case 2:
             currentState = ColorMenu;
             break;
-        case 3:
+        case 2:
             currentState = SwitchMenu;
             break;
-        case 4:
+        case 3:
             currentState = TspeedMenu;
             break;
-        case 5:
+        case 4:
             currentState = AppTimeMenu;
             break;
-        case 6:
+        case 5:
             currentState = TimeFormatMenu;
             break;
-        case 7:
+        case 6:
             currentState = DateFormatMenu;
             break;
-        case 8:
+        case 7:
             currentState = WeekdayMenu;
             break;
-        case 9:
+        case 8:
             currentState = TempMenu;
             break;
-        case 10:
+        case 9:
             currentState = Appmenu;
             break;
-        case 11:
+        case 10:
             currentState = SoundMenu;
             break;
-        case 12:
+        case 11:
 #ifndef ULANZI
             currentState = VolumeMenu;
             break;
 #endif
-        case 13:
+        case 12:
             if (UpdateManager.checkUpdate(true))
             {
                 UpdateManager.updateFirmware();
@@ -448,10 +431,6 @@ void MenuManager_::selectButtonLong()
         {
         case BrightnessMenu:
             BRIGHTNESS = map(BRIGHTNESS_PERCENT, 0, 100, 0, 255);
-            saveSettings();
-            break;
-        case FPSMenu:
-            DisplayManager.setFPS(MATRIX_FPS);
             saveSettings();
             break;
         case ColorMenu:

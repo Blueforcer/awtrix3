@@ -152,9 +152,11 @@ void select_button_pressed_long()
     }
     else if (!BLOCK_NAVIGATION)
     {
-        DisplayManager.selectButtonLong();
         if (!ALARM_ACTIVE)
             MenuManager.selectButtonLong();
+
+        DisplayManager.selectButtonLong();
+
         DEBUG_PRINTLN(F("Select button pressed long"));
     }
 }
@@ -236,6 +238,13 @@ bool PeripheryManager_::parseSound(const char *json)
     {
         return playFromFile(doc["sound"].as<String>());
     }
+}
+
+bool PeripheryManager_::playRTTTLString(String rtttl)
+{
+    Melody melody = MelodyFactory.loadRtttlString(rtttl.c_str());
+    player.playAsync(melody);
+    return melody.isValid();
 }
 
 bool PeripheryManager_::playFromFile(String file)

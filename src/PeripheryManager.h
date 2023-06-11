@@ -36,6 +36,7 @@ public:
     void tick();
     void playBootSound();
     bool playFromFile(String file);
+    bool playRTTTLString(String rtttl);
     bool parseSound(const char *json);
     bool isPlaying();
     void stopSound();

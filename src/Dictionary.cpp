@@ -30,6 +30,10 @@ const char HAi3ID[] PROGMEM = {"%s_ind3"};
 const char HAi3Icon[] PROGMEM = {"mdi:arrow-bottom-right-thick"};
 const char HAi3Name[] PROGMEM = {"Indicator 3"};
 
+const char HASPEEDID[] PROGMEM = {"%s_sspeed"};
+const char HASPEEDIcon[] PROGMEM = {"mdi:speedometer"};
+const char HASPEEDName[] PROGMEM = {"Scrollspeed"};
+
 const char HAbriID[] PROGMEM = {"%s_bri"};
 const char HAbriIcon[] PROGMEM = {"mdi:brightness-auto"};
 const char HAbriName[] PROGMEM = {"Brightness mode"};

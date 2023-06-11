@@ -12,7 +12,7 @@
 WiFiClient espClient;
 HADevice device;
 HAMqtt mqtt(espClient, device, 25);
-
+HANumber *ScrollSpeed = nullptr;
 HALight *Matrix, *Indikator1, *Indikator2, *Indikator3 = nullptr;
 HASelect *BriMode = nullptr;
 HAButton *dismiss, *nextApp, *prevApp, *doUpdate = nullptr;
@@ -23,7 +23,7 @@ HASensor *battery = nullptr;
 HASensor *temperature, *humidity, *illuminance, *uptime, *strength, *version, *ram, *curApp, *myOwnID = nullptr;
 HABinarySensor *btnleft, *btnmid, *btnright = nullptr;
 
-char matID[40], ind1ID[40], ind2ID[40], ind3ID[40], briID[40], btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], doUpdateID[40], batID[40], myID[40];
+char matID[40], ind1ID[40], ind2ID[40], ind3ID[40], briID[40], btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], doUpdateID[40], batID[40], myID[40], sSpeed[40];
 
 // The getter for the instantiated singleton instance
 MQTTManager_ &MQTTManager_::getInstance()
@@ -137,6 +137,21 @@ void onBrightnessCommand(uint8_t brightness, HALight *sender)
     DisplayManager.setBrightness(brightness);
 }
 
+void onNumberCommand(HANumeric number, HANumber *sender)
+{
+    if (!number.isSet())
+    {
+        // the reset command was send by Home Assistant
+    }
+    else
+    {
+        SCROLL_SPEED = number.toInt8();
+        saveSettings();
+    }
+
+    sender->setState(number); // report the selected option back to the HA panel
+}
+
 void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
 {
     DEBUG_PRINTF("MQTT message received at topic %s", topic);
@@ -153,7 +168,7 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
             delete[] payloadCopy;
             return;
         }
-        DisplayManager.generateNotification(payloadCopy);
+        DisplayManager.generateNotification(0,payloadCopy);
         delete[] payloadCopy;
         return;
     }
@@ -531,6 +546,17 @@ void MQTTManager_::setup()
         ram->setIcon(HAramIcon);
         ram->setName(HAramName);
         ram->setUnitOfMeasurement(HAramUnit);
+
+        sprintf(sSpeed, HASPEEDID, macStr);
+        ScrollSpeed = new HANumber(sSpeed);
+        ScrollSpeed->setDeviceClass(HAramClass);
+        ScrollSpeed->setIcon(HASPEEDIcon);
+        ScrollSpeed->setName(HASPEEDName);
+        ScrollSpeed->onCommand(onNumberCommand);
+        ScrollSpeed->setMin(40);
+        ScrollSpeed->setMax(100);
+        ScrollSpeed->setStep(1);
+        ScrollSpeed->setCurrentState(SCROLL_SPEED);
     }
     else
     {
@@ -554,6 +580,17 @@ void MQTTManager_::publish(const char *topic, const char *payload)
         return;
     char result[100];
     strcpy(result, MQTT_PREFIX.c_str());
+    strcat(result, "/");
+    strcat(result, topic);
+    mqtt.publish(result, payload, false);
+}
+
+void MQTTManager_::rawPublish(const char *prefix, const char *topic, const char *payload)
+{
+    if (!mqtt.isConnected())
+        return;
+    char result[100];
+    strcpy(result, prefix);
     strcat(result, "/");
     strcat(result, topic);
     mqtt.publish(result, payload, false);
