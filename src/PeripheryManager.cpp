@@ -242,9 +242,13 @@ bool PeripheryManager_::parseSound(const char *json)
 
 bool PeripheryManager_::playRTTTLString(String rtttl)
 {
-    Melody melody = MelodyFactory.loadRtttlString(rtttl.c_str());
-    player.playAsync(melody);
-    return melody.isValid();
+    #ifdef ULANZI
+        Melody melody = MelodyFactory.loadRtttlString(rtttl.c_str());
+        player.playAsync(melody);
+        return melody.isValid();
+    #else
+        return false
+    #endif
 }
 
 bool PeripheryManager_::playFromFile(String file)
