@@ -247,7 +247,7 @@ bool PeripheryManager_::playRTTTLString(String rtttl)
         player.playAsync(melody);
         return melody.isValid();
     #else
-        return false
+        return false;
     #endif
 }
 
