@@ -126,9 +126,9 @@ uint16_t getColorFromJsonVariant(JsonVariant colorVariant, uint16_t defaultColor
 }
 
 
-uint16_t getTextWidth(const char *text, byte textCase)
+float getTextWidth(const char *text, byte textCase)
 {
-    uint16_t width = 0;
+    float width = 0;
     for (const char *c = text; *c != '\0'; ++c)
     {
         char current_char = *c;
