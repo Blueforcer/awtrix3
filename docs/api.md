@@ -267,6 +267,7 @@ Each property is optional; you do not need to send all.
 | `TEMP_COL` | string / array of ints| Sets the textcolor of the temp app. Set 0 for global textcolor  | an array of RGB values hexadecimal color value | N/A |
 | `HUM_COL` | string / array of ints| Sets the textcolor of the humidity app. Set 0 for global textcolor  | an array of RGB values hexadecimal color value | N/A |
 | `BAT_COL` | string / array of ints| Sets the textcolor of the battery app. Set 0 for global textcolor  | an array of RGB values hexadecimal color value | N/A |
+| `SSPEED` | integer | Modifies the scrollspeed | percentage value of the original scrollspeed | 100 |
 
 **Timeformats:**  
 ```bash  

@@ -12,7 +12,7 @@
 WiFiClient espClient;
 HADevice device;
 HAMqtt mqtt(espClient, device, 25);
-HANumber *ScrollSpeed = nullptr;
+//HANumber *ScrollSpeed = nullptr;
 HALight *Matrix, *Indikator1, *Indikator2, *Indikator3 = nullptr;
 HASelect *BriMode = nullptr;
 HAButton *dismiss, *nextApp, *prevApp, *doUpdate = nullptr;
@@ -547,16 +547,16 @@ void MQTTManager_::setup()
         ram->setName(HAramName);
         ram->setUnitOfMeasurement(HAramUnit);
 
-        sprintf(sSpeed, HASPEEDID, macStr);
-        ScrollSpeed = new HANumber(sSpeed);
-        ScrollSpeed->setDeviceClass(HAramClass);
-        ScrollSpeed->setIcon(HASPEEDIcon);
-        ScrollSpeed->setName(HASPEEDName);
-        ScrollSpeed->onCommand(onNumberCommand);
-        ScrollSpeed->setMin(40);
-        ScrollSpeed->setMax(100);
-        ScrollSpeed->setStep(1);
-        ScrollSpeed->setCurrentState(SCROLL_SPEED);
+        //sprintf(sSpeed, HASPEEDID, macStr);
+        //ScrollSpeed = new HANumber(sSpeed);
+        //ScrollSpeed->setDeviceClass(HAramClass);
+        //ScrollSpeed->setIcon(HASPEEDIcon);
+        //ScrollSpeed->setName(HASPEEDName);
+        //ScrollSpeed->onCommand(onNumberCommand);
+        //ScrollSpeed->setMin(40);
+        //ScrollSpeed->setMax(100);
+        //ScrollSpeed->setStep(1);
+        //ScrollSpeed->setCurrentState(SCROLL_SPEED);
     }
     else
     {
