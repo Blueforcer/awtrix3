@@ -426,7 +426,7 @@ void PeripheryManager_::tick()
         if (AUTO_BRIGHTNESS && !MATRIX_OFF)
         {
             brightnessPercent = sampleAverage / 4095.0 * 100.0;
-            int brightness = map(brightnessPercent, 0, 100, 2, 200);
+            int brightness = map(brightnessPercent, 0, 100, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
             DisplayManager.setBrightness(brightness);
         }
     }

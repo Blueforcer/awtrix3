@@ -71,6 +71,16 @@ void loadDevSettings()
             TEMP_OFFSET = doc["temp_offset"];
         }
 
+        if (doc.containsKey("min_brightness"))
+        {
+            MIN_BRIGHTNESS = doc["min_brightness"];
+        }
+
+        if (doc.containsKey("max_brightness"))
+        {
+            MAX_BRIGHTNESS = doc["max_brightness"];
+        }
+
         if (doc.containsKey("hum_offset"))
         {
             HUM_OFFSET = doc["hum_offset"];
@@ -326,5 +336,6 @@ uint16_t TEMP_COLOR = 0;
 uint16_t HUM_COLOR = 0;
 bool ARTNET_MODE;
 bool MOODLIGHT_MODE;
-
+uint8_t MIN_BRIGHTNESS = 2;
+uint8_t MAX_BRIGHTNESS = 180;
 float movementFactor = 0.5;

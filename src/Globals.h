@@ -130,4 +130,6 @@ extern uint16_t HUM_COLOR;
 extern bool ARTNET_MODE;
 extern bool MOODLIGHT_MODE;
 extern float movementFactor;
+extern uint8_t MIN_BRIGHTNESS;
+extern uint8_t MAX_BRIGHTNESS;
 #endif // Globals_H

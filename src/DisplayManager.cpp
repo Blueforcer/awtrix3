@@ -879,6 +879,7 @@ void DisplayManager_::setup()
     TJpgDec.setJpgScale(1);
 
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
+    FastLED.setCorrection(TypicalLEDStrip);
     setMatrixLayout(MATRIX_LAYOUT);
     matrix->setRotation(ROTATE_SCREEN ? 90 : 0);
     if (COLOR_CORRECTION)
