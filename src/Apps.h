@@ -471,7 +471,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 
         if (textWidth > availableWidth && !(state->appState == IN_TRANSITION))
         {
-            if (ca->scrollposition <= -textWidth)
+            if (ca->scrollposition <= (-textWidth - ca->textOffset))
             {
 
                 if (ca->iconWasPushed && ca->pushIcon == 2)
@@ -483,6 +483,8 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                     DisplayManager.setAutoTransition(true);
                     ca->currentRepeat = 0;
                     DisplayManager.nextApp();
+                    ca->scrollDelay = 0;
+                    ca->scrollposition = 9 + ca->textOffset;
                     return;
                 }
                 else if (ca->repeat > 0)

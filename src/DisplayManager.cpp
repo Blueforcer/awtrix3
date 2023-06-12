@@ -304,10 +304,11 @@ bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, s
 {
     colors.clear();
     fragments.clear();
-    StaticJsonDocument<2048> doc;
+    DynamicJsonDocument doc(4096);
     DeserializationError error = deserializeJson(doc, jsonText);
     if (error)
     {
+        doc.clear();
         return false;
     }
 
@@ -330,6 +331,7 @@ bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, s
         fragments.push_back(textFragment);
         colors.push_back(color);
     }
+    doc.clear();
     return true;
 }
 
@@ -1683,7 +1685,7 @@ String DisplayManager_::getSettings()
     doc["TIME_COL"] = TIME_COLOR;
     doc["DATE_COL"] = DATE_COLOR;
     doc["HUM_COL"] = HUM_COLOR;
-    doc["TEMP_COL"] = TEMP_COLOR;   
+    doc["TEMP_COL"] = TEMP_COLOR;
     doc["BAT_COL"] = BAT_COLOR;
     doc["SSPEED"] = SCROLL_SPEED;
     String jsonString;

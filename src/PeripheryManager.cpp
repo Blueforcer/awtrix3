@@ -246,6 +246,7 @@ bool PeripheryManager_::parseSound(const char *json)
     {
         return playFromFile(doc["sound"].as<String>());
     }
+    return false;
 }
 
 bool PeripheryManager_::playRTTTLString(String rtttl)
