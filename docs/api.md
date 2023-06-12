@@ -109,6 +109,8 @@ The JSON object has the following properties,
 | `clients` | array of strings | Allows to forward a notification to other awtrix. Use the MQTT prefix for MQTT and IP adresses for HTTP |  |   | X |
 | `scrollSpeed` | integer | Modifies the scrollspeed. You need to enter a percentage value | 100 | X | X |
   
+  
+
 Color values can have a hex string or an array of R,G,B values:  
 `"#FFFFFF" or [255,255,0]`  
   
