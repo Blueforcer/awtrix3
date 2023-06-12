@@ -114,7 +114,7 @@ The JSON object has the following properties,
 Color values can have a hex string or an array of R,G,B values:  
 `"#FFFFFF" or [255,255,0]`  
   
-### Example
+#### Example
 
 Here's an example JSON object to display the text "Hello, AWTRIX Light!" with the icon name "1", in rainbow colors, for 10 seconds:
 
@@ -143,7 +143,6 @@ Each drawing instruction is an object with a required command key and an array o
 | `dfc`   | `[x, y, r, cl]`      | Draw a filled circle with center at (`x`, `y`), radius `r`, and color `cl` |
 | `dt`    | `[x, y, t, cl]`      | Draw text `t` with top-left corner at (`x`, `y`) and color `cl` |
 | `db`    | `[x, y, w, h, [bmp]]`    | Draws a RGB565 bitmap array `[bmp]` with top-left corner at (`x`, `y`) and size of (`w`, `h`) |
-
   
 ### Example    
   
@@ -338,7 +337,6 @@ You can start the firmware update with update button in HA or:
 | Topic | URL | Payload/Body | HTTP Header | HTTP method |  
 | --- | --- | --- | --- | --- |  
 | `[PREFIX]/doupdate` |`http://[IP]/api/doupdate` | JSON | empty payload/body | POST |  
-  
   
 ## Reboot Awtrix    
   
