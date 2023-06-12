@@ -143,9 +143,7 @@ Each drawing instruction is an object with a required command key and an array o
 | `dfc`   | `[x, y, r, cl]`      | Draw a filled circle with center at (`x`, `y`), radius `r`, and color `cl` |
 | `dt`    | `[x, y, t, cl]`      | Draw text `t` with top-left corner at (`x`, `y`) and color `cl` |
 | `db`    | `[x, y, w, h, [bmp]]`    | Draws a RGB565 bitmap array `[bmp]` with top-left corner at (`x`, `y`) and size of (`w`, `h`) |
-  
-Color values can be a hex string or an array of R, G, B values:    
-`"#FFFFFF" or [255, 255, 0]`    
+
   
 ### Example    
   
