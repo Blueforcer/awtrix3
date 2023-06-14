@@ -801,7 +801,8 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
         }
     }
     newNotification.startime = millis();
-    MQTTManager.setCurrentApp("Notification");
+    CURRENT_APP= "Notification";
+    MQTTManager.setCurrentApp(CURRENT_APP);
 
     bool stack = doc.containsKey("stack") ? doc["stack"] : true;
 
@@ -879,7 +880,6 @@ void DisplayManager_::setup()
     TJpgDec.setJpgScale(1);
 
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
-    FastLED.setCorrection(TypicalLEDStrip);
     setMatrixLayout(MATRIX_LAYOUT);
     matrix->setRotation(ROTATE_SCREEN ? 90 : 0);
     if (COLOR_CORRECTION)
@@ -1371,7 +1371,7 @@ void DisplayManager_::updateAppVector(const char *json)
 String DisplayManager_::getStats()
 {
     StaticJsonDocument<512> doc;
-    char buffer[5];
+    char buffer[20];
 #ifdef ULANZI
     doc[BatKey] = BATTERY_PERCENT;
     doc[BatRawKey] = BATTERY_RAW;
@@ -1383,7 +1383,8 @@ String DisplayManager_::getStats()
     doc[BrightnessKey] = BRIGHTNESS;
     if (SENSOR_READING)
     {
-        snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
+        
+        snprintf(buffer, sizeof(buffer), "%.*f", TEMP_DECIMAL_PLACES, CURRENT_TEMP);
         doc[TempKey] = buffer;
         snprintf(buffer, 5, "%.0f", CURRENT_HUM);
         doc[HumKey] = buffer;
@@ -1396,6 +1397,7 @@ String DisplayManager_::getStats()
     doc[F("indicator1")] = ui->indicator1State;
     doc[F("indicator2")] = ui->indicator2State;
     doc[F("indicator3")] = ui->indicator3State;
+    doc[F("app")] = CURRENT_APP;
     String jsonString;
     return serializeJson(doc, jsonString), jsonString;
 }

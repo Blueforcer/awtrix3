@@ -176,7 +176,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         strftime(t, sizeof(t), timeformat, localtime(&now));
     }
 
-    DisplayManager.printText(0 + x, 6 + y, t, true, false);
+    DisplayManager.printText(0 + x, 6 + y, t, true, 2);
 
     if (!SHOW_WEEKDAY)
         return;
@@ -212,7 +212,7 @@ void DateApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     timeInfo = localtime(&now);
     char d[20];
     strftime(d, sizeof(d), DATE_FORMAT.c_str(), localtime(&now));
-    DisplayManager.printText(0 + x, 6 + y, d, true, true);
+    DisplayManager.printText(0 + x, 6 + y, d, true, 2);
     if (!SHOW_WEEKDAY)
         return;
     int dayOffset = START_ON_MONDAY ? 0 : 1;
