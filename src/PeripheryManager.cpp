@@ -315,10 +315,10 @@ bool PeripheryManager_::isPlaying()
 #ifdef ULANZI
     return player.isPlaying();
 #else
-    if ((dfmp3.getStatus() & 0xff) == 0x01) // 0x01 = DfMp3_StatusState_Playing
-        return true;
-    else
-        return false;
+//    if ((dfmp3.getStatus() & 0xff) == 0x01) // 0x01 = DfMp3_StatusState_Playing
+//        return true;
+//    else
+       return false;
 #endif
 }
 
