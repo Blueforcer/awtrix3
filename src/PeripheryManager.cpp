@@ -54,11 +54,35 @@ EasyButton button_select(BUTTON_SELECT_PIN);
 #ifdef ULANZI
 MelodyPlayer player(BUZZER_PIN, 1, LOW);
 #else
+class Mp3Notify;
+
+SoftwareSerial mySoftwareSerial(DFPLAYER_RX, DFPLAYER_TX); // RX, TX
+typedef DFMiniMp3<SoftwareSerial, Mp3Notify> DfMp3;
+DfMp3 dfmp3(mySoftwareSerial);
+
 class Mp3Notify
 {
+public:
+  static void OnError([[maybe_unused]] DfMp3& mp3, uint16_t errorCode)
+  {
+	DEBUG_PRINTLN(F("MP3 error"));
+  }
+  static void OnPlayFinished([[maybe_unused]] DfMp3& mp3, [[maybe_unused]] DfMp3_PlaySources source, uint16_t track)
+  {
+  }
+  static void OnPlaySourceOnline([[maybe_unused]] DfMp3& mp3, DfMp3_PlaySources source)
+  {
+    DEBUG_PRINTLN(F("MP3 online"));
+  }
+  static void OnPlaySourceInserted([[maybe_unused]] DfMp3& mp3, DfMp3_PlaySources source)
+  {
+    DEBUG_PRINTLN(F("MP3 SD inserted"));
+  }
+  static void OnPlaySourceRemoved([[maybe_unused]] DfMp3& mp3, DfMp3_PlaySources source)
+  {
+    DEBUG_PRINTLN(F("MP3 SD removed"));
+  }
 };
-SoftwareSerial mySoftwareSerial(DFPLAYER_RX, DFPLAYER_TX); // RX, TX
-DFMiniMp3<SoftwareSerial, Mp3Notify> dfmp3(mySoftwareSerial);
 #endif
 
 #ifdef ULANZI
