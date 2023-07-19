@@ -301,6 +301,48 @@ void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     matrix->print(BATTERY_PERCENT); // Ausgabe des Ladezustands
     matrix->print("%");
 }
+
+const CRGBPalette16 palette = RainbowColors_p;
+
+void EffectsApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
+{
+    if (notifyFlag)
+        return;
+    CURRENT_APP = "Effects";
+
+    // There's probably a more efficient way of getting these (could even hardcode as we're ifdef'd for Ulanzi)
+    const uint16_t cols = matrix->width();
+    const uint16_t rows = matrix->height();
+
+    // These look pretty good for this effect on the Ulanzi
+    // For this effect, speed is X scale and intensity is Y scale
+    const uint8_t speed = 150;
+    const uint8_t intensity = 150;
+
+    // A custom slider - some kind of effect control?
+    // From the comments in WLED, custom3 is reduced resolution slider (0,31)
+    // The 31 looks best to me
+    const uint8_t unknown_setting = 31;
+    uint32_t a = millis() / ((unknown_setting >> 1)+1); 
+
+    // Start at the passed in co-ordinates to get nice transitions
+    for (int _x = x; _x < cols; _x++) {
+        for (int _y = y; _y < rows; _y++) {
+            // The actual heart of the effect - in this case Hiphotic (https://github.com/Aircoookie/WLED/blob/286e057fae733657583b10b1e9694be487bed717/wled00/FX.cpp#L4953)
+            // Generate an index to look up within a color palette.
+            // Luckily, the rainbow palette that looks good for this effect is shipped with fastled.
+            uint32_t colorIdx = sin8(cos8(_x * speed/16 + a / 3) + sin8(_y * intensity/16 + a / 4) + a);
+
+            // Ultimately if you follow down the call stack this is pretty much what WLED ends up doing
+            // Though obviously they have configurable palettes and a lot more besides
+            CRGB fastled_col = ColorFromPalette(palette, colorIdx, 255, LINEARBLEND);
+            
+            // Use one of the drawPixel overloads so we can use full scale RGB straight from fastled
+            // Don't use the adafruit 16 bit 565, the quantization makes it look bad
+            matrix->drawPixel(_x, _y, fastled_col);
+        }
+    }
+}
 #endif
 
 void MenuApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)

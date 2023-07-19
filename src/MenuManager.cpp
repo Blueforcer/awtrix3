@@ -188,6 +188,9 @@ String MenuManager_::menutext()
         case 5:
             DisplayManager.drawBMP(0, 0, eyes, 8, 8);
             return SHOW_EYES ? "ON" : "OFF";
+        case 6:
+            DisplayManager.drawBMP(0, 0, effects, 8, 8);
+            return SHOW_EFFECTS ? "ON" : "OFF";
 #endif
         default:
             break;

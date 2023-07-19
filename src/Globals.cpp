@@ -178,6 +178,7 @@ void loadSettings()
     SCROLL_SPEED = Settings.getUInt("SSPEED", 100);
 #ifdef ULANZI
     SHOW_BAT = Settings.getBool("BAT", true);
+    SHOW_EFFECTS = Settings.getBool("EFFECTS", true);
 #endif
     SOUND_ACTIVE = Settings.getBool("SOUND", true);
 #ifndef ULANZI
@@ -224,6 +225,7 @@ void saveSettings()
     Settings.putUInt("SSPEED", SCROLL_SPEED);
 #ifdef ULANZI
     Settings.putBool("BAT", SHOW_BAT);
+    Settings.putBool("EFFECTS", SHOW_EFFECTS);
 #endif
     Settings.putBool("SOUND", SOUND_ACTIVE);
 #ifndef ULANZI
@@ -238,7 +240,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.70";
+const char *VERSION = "0.70-ef";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -253,6 +255,7 @@ bool SHOW_DATE = true;
 bool SHOW_WEATHER = true;
 #ifdef ULANZI
 bool SHOW_BAT = true;
+bool SHOW_EFFECTS = true;
 #endif
 bool SHOW_TEMP = true;
 bool SHOW_HUM = true;

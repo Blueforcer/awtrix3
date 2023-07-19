@@ -46,6 +46,7 @@ extern bool SHOW_DATE;
 extern bool SHOW_WEATHER;
 #ifdef ULANZI
 extern bool SHOW_BAT;
+extern bool SHOW_EFFECTS;
 #endif
 extern bool SHOW_TEMP;
 extern bool SHOW_HUM;

@@ -870,6 +870,11 @@ void DisplayManager_::loadNativeApps()
 
     updateApp("eyes", EyesApp, SHOW_EYES, 5);
 
+#ifdef ULANZI
+    // Repeat the ifdef to avoid messing with the order or indexing
+    updateApp("effects", EffectsApp, SHOW_EFFECTS, 6);
+#endif
+
     ui->setApps(Apps);
     setAutoTransition(true);
 }
@@ -1286,6 +1291,10 @@ std::pair<String, AppCallback> getNativeAppByName(const String &appName)
     else if (appName == "bat")
     {
         return std::make_pair("bat", BatApp);
+    }
+    else if (appName == "effects")
+    {
+        return std::make_pair("effects", EffectsApp);
     }
 #endif
     return std::make_pair("", nullptr);
