@@ -47,6 +47,7 @@ extern bool SHOW_WEATHER;
 #ifdef ULANZI
 extern bool SHOW_BAT;
 #endif
+extern String HA_PREFIX;
 extern bool SHOW_TEMP;
 extern bool SHOW_HUM;
 extern bool SHOW_SECONDS;

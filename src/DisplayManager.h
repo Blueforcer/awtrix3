@@ -27,6 +27,11 @@ private:
     const unsigned long interval = 1000;
 
 public:
+struct RGB {
+    int r;
+    int g;
+    int b;
+  };
     static DisplayManager_ &getInstance();
     bool appIsSwitching;
     bool showGif;
@@ -88,6 +93,8 @@ public:
     void startArtnet();
     bool parseCustomPage(const String &name, const char *json);
     bool moodlight(const char *json);
+    int* getLedColors();
+    void sendBMP(Stream &stream);
 };
 
 extern DisplayManager_ &DisplayManager;

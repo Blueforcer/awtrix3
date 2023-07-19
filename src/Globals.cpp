@@ -86,6 +86,12 @@ void loadDevSettings()
             HUM_OFFSET = doc["hum_offset"];
         }
 
+        
+        if (doc.containsKey("ha_prefix"))
+        {
+            HA_PREFIX = doc["ha_prefix"].as<String>();
+        }
+
         if (doc.containsKey("uppercase"))
         {
             UPPERCASE_LETTERS = doc["uppercase"].as<bool>();
@@ -238,7 +244,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.70";
+const char *VERSION = "0.71";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -270,6 +276,7 @@ String NTP_SERVER = "de.pool.ntp.org";
 String NTP_TZ = "CET-1CEST,M3.5.0,M10.5.0/3";
 bool HA_DISCOVERY = false;
 
+String HA_PREFIX = "homeassistant";
 // Periphery
 String CURRENT_APP;
 float CURRENT_TEMP;

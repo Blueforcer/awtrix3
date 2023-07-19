@@ -37,7 +37,7 @@ struct CustomApp
     bool isGif;
     bool rainbow;
 
-    uint16_t duration = 0;
+    long duration = 0;
 
     byte textCase = 0;
     int16_t repeat = 0;
@@ -79,7 +79,7 @@ struct Notification
     bool rainbow;
     bool isGif;
     unsigned long startime = 0;
-    uint16_t duration = 0;
+    long duration = 0;
     int16_t repeat = -1;
     bool hold = false;
     byte textCase = 0;
