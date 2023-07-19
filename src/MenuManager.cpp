@@ -420,6 +420,11 @@ void MenuManager_::selectButton()
         case 5:
             SHOW_EYES = !SHOW_EYES;
             break;
+#ifdef ULANZI
+        case 6:
+            SHOW_EFFECTS = !SHOW_EFFECTS;
+            break;
+#endif
         default:
             break;
         }
