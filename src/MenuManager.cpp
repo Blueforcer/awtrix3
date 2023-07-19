@@ -87,7 +87,10 @@ int8_t dateFormatIndex;
 uint8_t dateFormatCount = 9;
 
 int8_t appsIndex;
-uint8_t appsCount = 6;
+
+// Could this be fetched from DisplayManager
+// Or at least guarded with a static_assert?
+uint8_t appsCount = 7;
 
 MenuState currentState = MainMenu;
 
