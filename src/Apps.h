@@ -309,6 +309,7 @@ void MenuApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *
     if (!MenuManager.inMenu)
         return;
     matrix->fillScreen(0);
+    DisplayManager.setTextColor(matrix->Color(255, 255, 255));
     DisplayManager.printText(0, 6, utf8ascii(MenuManager.menutext()).c_str(), true, 2);
 }
 
@@ -727,19 +728,16 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
         return;
     }
 
-
-
     // Check if notification has an icon
     bool hasIcon = notifications[0].icon;
 
     // Clear the matrix display
     matrix->fillRect(0, 0, 32, 8, notifications[0].background);
 
-     if (!notifications[0].effect.isEmpty())
+    if (!notifications[0].effect.isEmpty())
     {
         callEffect(matrix, 0, 0, notifications[0].effect);
     }
-
 
     // Calculate text and available width
     uint16_t textWidth = 0;

@@ -57,7 +57,7 @@ void TheaterChase(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
 
 void Plasma(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
 {
- const uint16_t cols = matrix->width();
+    const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
     static uint32_t time = 0;
 
@@ -65,16 +65,13 @@ void Plasma(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
     {
         for (uint16_t j = 0; j < rows; j++)
         {
-            uint8_t value = sin8(i*10 + time) + sin8(j*10 + time/2) + sin8((i+j)*10 + time/3) / 3;
+            uint8_t value = sin8(i * 10 + time) + sin8(j * 10 + time / 2) + sin8((i + j) * 10 + time / 3) / 3;
             CRGB color = ColorFromPalette(RainbowColors_p, value);
             matrix->drawPixel(x + i, y + j, color);
         }
     }
-
-    // Increment time to create the animation
-    time += 2;
+    time += 1;
 }
-
 
 Effect effects[] = {
     {"Pacifica", Pacifica},
