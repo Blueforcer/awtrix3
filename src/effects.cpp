@@ -32,7 +32,7 @@ void TheaterChase(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
     static uint16_t callCount = 0;
     callCount++;
 
-    if (callCount % 10 == 0)
+    if (callCount % 3 == 0)
     {
         j = (j + 1) % 3;
     }

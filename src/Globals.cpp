@@ -71,6 +71,11 @@ void loadDevSettings()
             TEMP_OFFSET = doc["temp_offset"];
         }
 
+         if (doc.containsKey("background_effect"))
+        {
+            BACKGROUND_EFFECT = doc["background_effect"].as<String>();
+        }
+
         if (doc.containsKey("min_brightness"))
         {
             MIN_BRIGHTNESS = doc["min_brightness"];
@@ -300,6 +305,7 @@ float HUM_OFFSET;
 uint16_t LDR_RAW;
 String TIME_FORMAT = "%H:%M:%S";
 String DATE_FORMAT = "%d.%m.%y";
+String BACKGROUND_EFFECT;
 bool START_ON_MONDAY;
 
 String ALARM_SOUND;

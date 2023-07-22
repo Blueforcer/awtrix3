@@ -409,6 +409,7 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json)
         customApp.background = getColorFromJsonVariant(background, 0);
     }
 
+
     if (doc.containsKey("progressC"))
     {
         auto progressC = doc["progressC"];
@@ -513,6 +514,7 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json)
         customApp.drawInstructions = "";
     }
 
+    customApp.effect = doc.containsKey("effect") ? doc["effect"].as<String>() : "";
     customApp.duration = doc.containsKey("duration") ? doc["duration"].as<long>() * 1000 : 0;
     int pos = doc.containsKey("pos") ? doc["pos"].as<uint8_t>() : -1;
     customApp.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
@@ -648,6 +650,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     }
 
     newNotification.sound = doc.containsKey("sound") ? doc["sound"].as<String>() : "";
+    newNotification.effect = doc.containsKey("effect") ? doc["effect"].as<String>() : "";
     newNotification.rtttl = doc.containsKey("rtttl") ? doc["rtttl"].as<String>() : "";
     newNotification.duration = doc.containsKey("duration") ? doc["duration"].as<long>() * 1000 : TIME_PER_APP;
     newNotification.repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
@@ -906,6 +909,7 @@ void DisplayManager_::setup()
     ui->setTimePerApp(TIME_PER_APP);
     ui->setTimePerTransition(TIME_PER_TRANSITION);
     ui->setOverlays(overlays, 4);
+    ui->setBackgroundEffect(BACKGROUND_EFFECT);
     setAutoTransition(AUTO_TRANSITION);
     ui->init();
 }

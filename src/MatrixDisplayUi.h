@@ -95,7 +95,7 @@ private:
   OverlayCallback *overlayFunctions;
   BackgroundCallback backgroundFunction;
   uint8_t overlayCount = 0;
-
+  String BackgroundEffect;
   // UI State
   MatrixDisplayUiState state;
 
@@ -123,6 +123,7 @@ public:
    */
   void setTargetFPS(uint8_t fps);
 
+  void setBackgroundEffect(String effect);
   // Automatic Controll
   /**
    * Enable automatic transition to next app after the some time can be configured with `setTimePerApp` and `setTimePerTransition`.

@@ -60,6 +60,11 @@ void MatrixDisplayUi::setTargetFPS(uint8_t fps)
   this->ticksPerTransition *= changeRatio;
 }
 
+void MatrixDisplayUi::setBackgroundEffect(String effect)
+{
+  this->BackgroundEffect = effect;
+}
+
 // -/------ Automatic controll ------\-
 
 void MatrixDisplayUi::enablesetAutoTransition()
@@ -232,7 +237,12 @@ void MatrixDisplayUi::tick()
   }
 
   this->matrix->clear();
-  callEffect(this->matrix, 0, 0, "Plasma");
+  
+  if (!BackgroundEffect.isEmpty())
+  {
+    callEffect(this->matrix, 0, 0, BackgroundEffect);
+  }
+
   if (this->AppCount > 0)
     this->drawApp();
   this->drawOverlays();

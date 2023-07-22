@@ -37,7 +37,7 @@ struct CustomApp
     File icon;
     bool isGif;
     bool rainbow;
-
+    String effect;
     long duration = 0;
 
     byte textCase = 0;
@@ -96,6 +96,7 @@ struct Notification
     int textOffset;
     int progress = -1;
     uint16_t pColor;
+    String effect;
     uint16_t background = 0;
     uint16_t pbColor;
     bool wakeup;
@@ -387,12 +388,17 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         }
     }
 
+    if (!ca->effect.isEmpty())
+    {
+        callEffect(matrix, x, y, ca->effect);
+    }
+
     CURRENT_APP = ca->name;
     currentCustomApp = name;
 
     bool hasIcon = ca->icon;
 
-    //matrix->fillRect(x, y, 32, 8, ca->background);
+    // matrix->fillRect(x, y, 32, 8, ca->background);
 
     // Calculate text and available width
     uint16_t textWidth = 0;
@@ -721,11 +727,19 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
         return;
     }
 
+
+
     // Check if notification has an icon
     bool hasIcon = notifications[0].icon;
 
     // Clear the matrix display
     matrix->fillRect(0, 0, 32, 8, notifications[0].background);
+
+     if (!notifications[0].effect.isEmpty())
+    {
+        callEffect(matrix, 0, 0, notifications[0].effect);
+    }
+
 
     // Calculate text and available width
     uint16_t textWidth = 0;
