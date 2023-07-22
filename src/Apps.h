@@ -17,6 +17,7 @@
 #include <Ticker.h>
 #include <ArduinoJson.h>
 #include "LookingEyes.h"
+#include "effects.h"
 Ticker downloader;
 
 tm timeInfo;
@@ -151,7 +152,6 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     {
         DisplayManager.getInstance().resetTextColor();
     }
-
     time_t now = time(nullptr);
     struct tm *timeInfo;
     timeInfo = localtime(&now);
@@ -392,7 +392,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 
     bool hasIcon = ca->icon;
 
-    matrix->fillRect(x, y, 32, 8, ca->background);
+    //matrix->fillRect(x, y, 32, 8, ca->background);
 
     // Calculate text and available width
     uint16_t textWidth = 0;

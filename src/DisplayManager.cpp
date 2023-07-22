@@ -887,7 +887,7 @@ void DisplayManager_::setup()
 {
     TJpgDec.setCallback(jpg_output);
     TJpgDec.setJpgScale(1);
-
+    random16_set_seed(millis());
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
     setMatrixLayout(MATRIX_LAYOUT);
     matrix->setRotation(ROTATE_SCREEN ? 90 : 0);
@@ -2165,18 +2165,15 @@ void DisplayManager_::sendBMP(Stream &stream)
                       + sizeof(bmpInfoHeader) // size of info header
                       + scaledH * rowSize;    // size of image data (pixel data + padding)
 
-
     // Write the file
     stream.write(bmpFileHeader, sizeof(bmpFileHeader)); // write file header
     stream.write(bmpInfoHeader, sizeof(bmpInfoHeader)); // info header
 
     for (int i = 0; i < scaledH; i++)
-    {                                                                                   // iterate image array
+    {                                                                       // iterate image array
         stream.write(img + (scaledW * (scaledH - i - 1) * 3), 3 * scaledW); // write pixel data
         stream.write(bmpPad, (4 - (scaledW * 3) % 4) % 4);                  // and padding as needed
     }
-    
-
 
     // Clean up
     free(img);

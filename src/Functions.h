@@ -109,7 +109,7 @@ uint16_t getColorFromJsonVariant(JsonVariant colorVariant, uint16_t defaultColor
             uint8_t r = colorArray[0];
             uint8_t g = colorArray[1];
             uint8_t b = colorArray[2];
-            return (r << 11) | (g << 5) | b;
+            return ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
         }
         else if (colorArray.size() == 4 && colorArray[0] == "HSV") // HSV
         {

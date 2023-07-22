@@ -70,6 +70,7 @@ struct MatrixDisplayUiState
 
 typedef void (*AppCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer);
 typedef void (*OverlayCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
+typedef void (*BackgroundCallback)(FastLED_NeoMatrix *matrix);
 
 class MatrixDisplayUi
 {
@@ -92,6 +93,7 @@ private:
 
   // Values for Overlays
   OverlayCallback *overlayFunctions;
+  BackgroundCallback backgroundFunction;
   uint8_t overlayCount = 0;
 
   // UI State
@@ -102,6 +104,7 @@ private:
 
   void drawApp();
   void drawOverlays();
+  void drawBackground();
   void tick();
   void resetState();
   bool isCurrentAppValid();
@@ -180,7 +183,7 @@ public:
    * Add overlays drawing functions that are draw independent of the Apps
    */
   void setOverlays(OverlayCallback *overlayFunctions, uint8_t overlayCount);
-
+  void setBackground(BackgroundCallback backgroundfunction);
   // Manual Control
   void nextApp();
   void previousApp();

@@ -29,6 +29,7 @@
 
 #include "MatrixDisplayUi.h"
 #include "Fonts/AwtrixFont.h"
+#include "effects.h"
 
 GifPlayer gif1;
 GifPlayer gif2;
@@ -113,6 +114,11 @@ void MatrixDisplayUi::setOverlays(OverlayCallback *overlayFunctions, uint8_t ove
 {
   this->overlayFunctions = overlayFunctions;
   this->overlayCount = overlayCount;
+}
+
+void MatrixDisplayUi::setBackground(BackgroundCallback backgroundFunction)
+{
+  this->backgroundFunction = backgroundFunction;
 }
 
 // -/----- Manuel control -----\-
@@ -226,7 +232,7 @@ void MatrixDisplayUi::tick()
   }
 
   this->matrix->clear();
-
+  callEffect(this->matrix, 0, 0, "Plasma");
   if (this->AppCount > 0)
     this->drawApp();
   this->drawOverlays();
@@ -358,6 +364,11 @@ void MatrixDisplayUi::drawOverlays()
   {
     (this->overlayFunctions[i])(this->matrix, &this->state, &gif2);
   }
+}
+
+void MatrixDisplayUi::drawBackground()
+{
+  this->backgroundFunction(this->matrix);
 }
 
 uint8_t MatrixDisplayUi::getnextAppNumber()
