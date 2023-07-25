@@ -604,6 +604,10 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json, b
     }
 
     customApp.repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
+    if (customApp.noScrolling)
+    {
+        customApp.repeat = -1;
+    }
 
     if (doc.containsKey("icon"))
     {
@@ -701,7 +705,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     newNotification.sound = doc.containsKey("sound") ? doc["sound"].as<String>() : "";
     newNotification.rtttl = doc.containsKey("rtttl") ? doc["rtttl"].as<String>() : "";
     newNotification.duration = doc.containsKey("duration") ? doc["duration"].as<long>() * 1000 : TIME_PER_APP;
-    newNotification.repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
+
     newNotification.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
     newNotification.hold = doc.containsKey("hold") ? doc["hold"].as<bool>() : false;
     newNotification.scrollSpeed = doc.containsKey("scrollSpeed") ? doc["scrollSpeed"].as<int>() : -1;
@@ -711,7 +715,11 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     newNotification.textOffset = doc.containsKey("textOffset") ? doc["textOffset"] : 0;
     newNotification.topText = doc.containsKey("topText") ? doc["topText"].as<bool>() : false;
     newNotification.noScrolling = doc.containsKey("noScroll") ? doc["noScroll"] : false;
-
+    newNotification.repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
+    if (newNotification.noScrolling)
+    {
+        newNotification.repeat = -1;
+    }
     newNotification.scrollposition = 9 + newNotification.textOffset;
     newNotification.iconWasPushed = false;
     newNotification.iconPosition = 0;
