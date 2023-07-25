@@ -94,6 +94,7 @@ The JSON object has the following properties,
 | `hold` | boolean | Set it to true, to hold your **notification** on top until you press the middle button or dismiss it via HomeAssistant. This key only belongs to notification. | false |   | X |
 | `sound` | string | The filename of your RTTTL ringtone file placed in the MELODIES folder (without extension). | N/A |   | X |
 | `rtttl` | string | Allows to send the RTTTL sound string with the json |  |   | X |
+| `loopSound` | boolean | Loops the sound or rtttl as long as the notification is running | false |   | X |
 | `bar` | array of integers | draws a bargraph. Without icon maximum 16 values, with icon 11 values | N/A | X | X |
 | `line` | array of integers | draws a linechart. Without icon maximum 16 values, with icon 11 values | N/A | X | X |
 | `autoscale` | boolean | Enables or disables autoscaling for bar and linechart | true | X | X |
@@ -108,7 +109,8 @@ The JSON object has the following properties,
 | `noScroll` | boolean | Disables the textscrolling | false | X | X |
 | `clients` | array of strings | Allows to forward a notification to other awtrix. Use the MQTT prefix for MQTT and IP adresses for HTTP |  |   | X |
 | `scrollSpeed` | integer | Modifies the scrollspeed. You need to enter a percentage value | 100 | X | X |
-  
+| `effect` | string | Shows an effect as background |  | X | X |  
+| `save` | boolean | Saves your customapp into flash and reload it after boot. You should avoid that with customapps wich has high update frequency because ESPs flashmemory has limited writecycles  |  | X |  |  
   
 
 Color values can have a hex string or an array of R,G,B values:  
@@ -224,7 +226,6 @@ Built-in app names are:
 - `temp`
 - `hum`
 - `bat`  
-- `eyes`
   
 For custom apps, use the name you set in the topic or http request header.  
 In MQTT for example, if `[PREFIX]/custom/test` is your topic, then `test` is the name.
@@ -292,45 +293,7 @@ Each property is optional; you do not need to send all.
 %d/%m        16/04  
 %m-%d-%y     04-16-22  
 ```  
-  
-## Timer
-
-With AWTRIX Light, you can set a timer using MQTT. 
-When the timer goes off, the display will show a notification, and you can dismiss the timer by pressing the middle button. 
-
-  
-| Topic | URL | Payload/Body | HTTP method |  
-| --- | --- | --- | --- |  
-| `[PREFIX]/timer` | `http://[IP]/api/timer` | see below | POST | 
-  
-  
-
-#### JSON Properties
-
-The JSON object has the following properties:
-
-| Key | Type | Description |
-| --- | ---- | ----------- |
-| `hours` | number | The number of hours after midnight when the timer should be triggered. |
-| `minutes` | number | The number of minutes after the hour when the timer should be triggered. |
-| `seconds` | number | The number of seconds after the minute when the timer should be triggered. |
-| `sound` | string | The name of the sound file (without extension) to play when the timer is triggered. |
-
-Each value is optional, so you can set a timer for just minutes, or any combination of hours, minutes, and seconds. If you only want to start a timer in some minutes, just send the minutes.
-
-#### Example
-
-Here's an example JSON object to start a timer for 1 hour, 30 minutes, and 10 seconds, with the sound "friends":
-
-```json
-{  
-  "hours": 1,  
-  "minutes": 30,  
-  "seconds": 10,  
-  "sound": "friends"  
-} 
-```
-  
+    
 ## Update  
 You can start the firmware update with update button in HA or:   
    

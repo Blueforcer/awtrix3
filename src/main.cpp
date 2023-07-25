@@ -75,6 +75,7 @@ void setup()
   {
     MQTTManager.setup();
     DisplayManager.loadNativeApps();
+    DisplayManager.loadCustomApps();
     UpdateManager.setup();
     DisplayManager.startArtnet();
     StopTask = true;

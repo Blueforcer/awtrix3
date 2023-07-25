@@ -16,7 +16,8 @@
 #include <HTTPClient.h>
 #include <Ticker.h>
 #include <ArduinoJson.h>
-#include "LookingEyes.h"
+
+#include "effects.h"
 Ticker downloader;
 
 tm timeInfo;
@@ -36,8 +37,8 @@ struct CustomApp
     File icon;
     bool isGif;
     bool rainbow;
-
-    uint16_t duration = 0;
+    int effect;
+    long duration = 0;
 
     byte textCase = 0;
     int16_t repeat = 0;
@@ -79,7 +80,7 @@ struct Notification
     bool rainbow;
     bool isGif;
     unsigned long startime = 0;
-    uint16_t duration = 0;
+    long duration = 0;
     int16_t repeat = -1;
     bool hold = false;
     byte textCase = 0;
@@ -95,6 +96,7 @@ struct Notification
     int textOffset;
     int progress = -1;
     uint16_t pColor;
+    int effect;
     uint16_t background = 0;
     uint16_t pbColor;
     bool wakeup;
@@ -102,6 +104,7 @@ struct Notification
     bool topText = true;
     bool noScrolling = true;
     String sound;
+    bool loopSound;
     String rtttl;
 };
 std::vector<Notification> notifications;
@@ -151,7 +154,6 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     {
         DisplayManager.getInstance().resetTextColor();
     }
-
     time_t now = time(nullptr);
     struct tm *timeInfo;
     timeInfo = localtime(&now);
@@ -308,6 +310,7 @@ void MenuApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *
     if (!MenuManager.inMenu)
         return;
     matrix->fillScreen(0);
+    DisplayManager.setTextColor(matrix->Color(255, 255, 255));
     DisplayManager.printText(0, 6, utf8ascii(MenuManager.menutext()).c_str(), true, 2);
 }
 
@@ -387,12 +390,17 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         }
     }
 
+    if (ca->effect > -1)
+    {
+        callEffect(matrix, x, y, ca->effect);
+    }
+
     CURRENT_APP = ca->name;
     currentCustomApp = name;
 
     bool hasIcon = ca->icon;
 
-    matrix->fillRect(x, y, 32, 8, ca->background);
+    // matrix->fillRect(x, y, 32, 8, ca->background);
 
     // Calculate text and available width
     uint16_t textWidth = 0;
@@ -421,11 +429,11 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 if (state->appState == FIXED)
                     ca->iconPosition += movementFactor;
             }
-            if (ca->scrollposition < 9 && !ca->iconWasPushed)
+            if (ca->scrollposition < (9-ca->textOffset) && !ca->iconWasPushed)
             {
-                ca->iconPosition = ca->scrollposition - 9;
+                ca->iconPosition = ca->scrollposition - 9 + ca->textOffset;
 
-                if (ca->iconPosition <= -9)
+                if (ca->iconPosition <= -9 - ca->textOffset)
                 {
                     ca->iconWasPushed = true;
                 }
@@ -609,79 +617,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 }
 
 static unsigned long lastTime = 0;
-void EyesApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
-{
 
-    CURRENT_APP = "Eyes";
-    if (blinkCountdown < sizeof(blinkIndex) / sizeof(blinkIndex[0]) - 1)
-    {
-        matrix->drawRGBBitmap(6 + x, 0 + y, eye[blinkIndex[blinkCountdown]], 8, 8);
-        matrix->drawRGBBitmap(18 + x, 0 + y, eye[blinkIndex[blinkCountdown]], 8, 8);
-    }
-    else
-    {
-        matrix->drawRGBBitmap(6 + x, 0 + y, eye[0], 8, 8);
-        matrix->drawRGBBitmap(18 + x, 0 + y, eye[0], 8, 8);
-    }
-
-    blinkCountdown = blinkCountdown - 0.1;
-    if (blinkCountdown == 0)
-    {
-        blinkCountdown = random(60, 350);
-    }
-
-    if (gazeCountdown <= gazeFrames)
-    {
-        gazeCountdown -= movementFactor;
-        matrix->fillRect(newX - (dX * gazeCountdown / gazeFrames) + 6 + x, newY - (dY * gazeCountdown / gazeFrames) + y, 2, 2, 0);
-        matrix->fillRect(newX - (dX * gazeCountdown / gazeFrames) + 18 + x, newY - (dY * gazeCountdown / gazeFrames) + y, 2, 2, 0);
-        if (gazeCountdown == 0)
-        {
-            eyeX = newX;
-            eyeY = newY;
-            do
-            {
-                switch (PET_MOOD)
-                {
-                case 0:
-                    newX = random(0, 6);
-                    newY = random(0, 6);
-                    dX = newX - 4;
-                    dY = newY - 4;
-                    break;
-                case 1:
-                    newX = random(0, 7);
-                    newY = random(0, 7);
-                    dX = newX - 3;
-                    dY = newY - 3;
-                    break;
-                case 2:
-                    newX = random(1, 7);
-                    newY = random(1, 4);
-                    dX = newX - 3;
-                    dY = newY - 3;
-                    break;
-                case 3:
-                    newX = random(0, 7);
-                    newY = random(3, 7);
-                    dX = newX - 3;
-                    dY = newY - 3;
-                    break;
-                }
-            } while (((dX * dX + dY * dY) <= 3));
-            dX = newX - eyeX;
-            dY = newY - eyeY;
-            gazeFrames = random(15, 40);
-            gazeCountdown = random(gazeFrames, 120);
-        }
-    }
-    else
-    {
-        gazeCountdown -= 0.5;
-        matrix->fillRect(eyeX + 6 + x, eyeY + y, 2, 2, 0);
-        matrix->fillRect(eyeX + 18 + x, eyeY + y, 2, 2, 0);
-    }
-}
 
 void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
 {
@@ -727,6 +663,11 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
     // Clear the matrix display
     matrix->fillRect(0, 0, 32, 8, notifications[0].background);
 
+    if (!notifications[0].effect>-1)
+    {
+        callEffect(matrix, 0, 0, notifications[0].effect);
+    }
+
     // Calculate text and available width
     uint16_t textWidth = 0;
     if (!notifications[0].fragments.empty())
@@ -753,7 +694,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
         {
             if (notifications[0].iconPosition < 0 && notifications[0].iconWasPushed == false && notifications[0].scrollposition > 8)
             {
-                ++notifications[0].iconPosition;
+                notifications[0].iconPosition += movementFactor;
             }
 
             if (notifications[0].scrollposition < 9 && !notifications[0].iconWasPushed)
@@ -916,7 +857,6 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
                         matrix->setTextColor(notifications[0].colors[i]);
                         DisplayManager.printText(fragmentX, 6, notifications[0].fragments[i].c_str(), false, notifications[0].textCase);
                     }
-
                     fragmentX += getTextWidth(notifications[0].fragments[i].c_str(), notifications[0].textCase);
                 }
             }
@@ -952,8 +892,9 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
         DisplayManager.processDrawInstructions(0, 0, notifications[0].drawInstructions);
     }
 
-    if (!notifications[0].soundPlayed)
+    if (!notifications[0].soundPlayed || notifications[0].loopSound)
     {
+         if (!PeripheryManager.isPlaying()){
         if (notifications[0].sound != "" || (MATRIX_OFF && notifications[0].wakeup))
         {
             PeripheryManager.playFromFile(notifications[0].sound);
@@ -963,6 +904,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
         {
             PeripheryManager.playRTTTLString(notifications[0].rtttl);
         }
+          }
         notifications[0].soundPlayed = true;
     }
 

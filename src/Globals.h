@@ -47,11 +47,12 @@ extern bool SHOW_WEATHER;
 #ifdef ULANZI
 extern bool SHOW_BAT;
 #endif
+extern String HA_PREFIX;
 extern bool SHOW_TEMP;
 extern bool SHOW_HUM;
 extern bool SHOW_SECONDS;
 extern bool SHOW_WEEKDAY;
-extern bool SHOW_EYES;
+
 extern String NET_IP;
 extern String NET_GW;
 extern String NET_SN;
@@ -69,6 +70,7 @@ extern float CURRENT_HUM;
 extern float CURRENT_LUX;
 extern uint16_t LDR_RAW;
 extern String CURRENT_APP;
+extern int BACKGROUND_EFFECT;
 #ifdef ULANZI
 extern uint8_t BATTERY_PERCENT;
 extern uint16_t BATTERY_RAW;

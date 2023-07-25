@@ -5,6 +5,7 @@
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 #include <vector>
+#include <FastLED_NeoMatrix.h>
 
 class DisplayManager_
 {
@@ -27,6 +28,11 @@ private:
     const unsigned long interval = 1000;
 
 public:
+struct RGB {
+    int r;
+    int g;
+    int b;
+  };
     static DisplayManager_ &getInstance();
     bool appIsSwitching;
     bool showGif;
@@ -38,6 +44,7 @@ public:
     void rightButton();
     void dismissNotify();
     void HSVtext(int16_t, int16_t, const char *, bool, byte textCase);
+    void loadCustomApps();
     void loadNativeApps();
     void nextApp();
     void previousApp();
@@ -49,9 +56,8 @@ public:
     void selectButtonLong();
     void setBrightness(int);
     void setTextColor(uint16_t color);
-    void setFPS(uint8_t);
     bool generateNotification(uint8_t source,const char *json);
-    bool generateCustomPage(const String &name, const char *json);
+    bool generateCustomPage(const String &name, const char *json, bool preventSave);
     void printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase);
     bool setAutoTransition(bool active);
     bool switchToApp(const char *json);
@@ -88,6 +94,10 @@ public:
     void startArtnet();
     bool parseCustomPage(const String &name, const char *json);
     bool moodlight(const char *json);
+    int* getLedColors();
+    void sendBMP(Stream &stream);
+    CRGB getPixelColor(int16_t x, int16_t y);
+    CRGB* getLeds();
 };
 
 extern DisplayManager_ &DisplayManager;

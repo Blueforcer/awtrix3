@@ -12,7 +12,7 @@
 WiFiClient espClient;
 HADevice device;
 HAMqtt mqtt(espClient, device, 25);
-//HANumber *ScrollSpeed = nullptr;
+// HANumber *ScrollSpeed = nullptr;
 HALight *Matrix, *Indikator1, *Indikator2, *Indikator3 = nullptr;
 HASelect *BriMode = nullptr;
 HAButton *dismiss, *nextApp, *prevApp, *doUpdate = nullptr;
@@ -168,7 +168,7 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
             delete[] payloadCopy;
             return;
         }
-        DisplayManager.generateNotification(0,payloadCopy);
+        DisplayManager.generateNotification(0, payloadCopy);
         delete[] payloadCopy;
         return;
     }
@@ -335,7 +335,8 @@ void onMqttConnected()
         "/dateformat",
         "/reboot",
         "/moodlight",
-        "/sound"};
+        "/sound",
+        "/sendIMG"};
     for (const char *topic : topics)
     {
         DEBUG_PRINTF("Subscribe to topic %s", topic);
@@ -349,10 +350,12 @@ void onMqttConnected()
         myOwnID->setValue(MQTT_PREFIX.c_str());
         version->setValue(VERSION);
     }
+  
 }
 
 void connect()
 {
+    mqtt.setDiscoveryPrefix(HA_PREFIX.c_str());
     mqtt.setDataPrefix(MQTT_PREFIX.c_str());
     mqtt.onMessage(onMqttMessage);
     mqtt.onConnected(onMqttConnected);
@@ -383,6 +386,7 @@ void MQTTManager_::setup()
         device.setName(uniqueID);
         device.setSoftwareVersion(VERSION);
         device.setManufacturer(HAmanufacturer);
+
         device.setModel(HAmodel);
         device.setAvailability(true);
         device.enableSharedAvailability();
@@ -547,16 +551,16 @@ void MQTTManager_::setup()
         ram->setName(HAramName);
         ram->setUnitOfMeasurement(HAramUnit);
 
-        //sprintf(sSpeed, HASPEEDID, macStr);
-        //ScrollSpeed = new HANumber(sSpeed);
-        //ScrollSpeed->setDeviceClass(HAramClass);
-        //ScrollSpeed->setIcon(HASPEEDIcon);
-        //ScrollSpeed->setName(HASPEEDName);
-        //ScrollSpeed->onCommand(onNumberCommand);
-        //ScrollSpeed->setMin(40);
-        //ScrollSpeed->setMax(100);
-        //ScrollSpeed->setStep(1);
-        //ScrollSpeed->setCurrentState(SCROLL_SPEED);
+        // sprintf(sSpeed, HASPEEDID, macStr);
+        // ScrollSpeed = new HANumber(sSpeed);
+        // ScrollSpeed->setDeviceClass(HAramClass);
+        // ScrollSpeed->setIcon(HASPEEDIcon);
+        // ScrollSpeed->setName(HASPEEDName);
+        // ScrollSpeed->onCommand(onNumberCommand);
+        // ScrollSpeed->setMin(40);
+        // ScrollSpeed->setMax(100);
+        // ScrollSpeed->setStep(1);
+        // ScrollSpeed->setCurrentState(SCROLL_SPEED);
     }
     else
     {
@@ -731,4 +735,19 @@ void MQTTManager_::setIndicatorState(uint8_t indicator, bool state, uint16_t col
             break;
         }
     }
+}
+
+void MQTTManager_::beginPublish(const char *topic, unsigned int plength, boolean retained)
+{
+    mqtt.beginPublish(topic, plength, retained);
+}
+
+void MQTTManager_::writePayload(const char *data, const uint16_t length)
+{
+    mqtt.writePayload(data, length);
+}
+
+void MQTTManager_::endPublish()
+{
+    mqtt.endPublish();
 }

@@ -33,8 +33,7 @@
 ** see:
 ** http://robey.lag.net/2010/01/23/tiny-monospace-font.html
 **
-** Modifications for Awtrix for improved readability and LaMetric Style are from
-** Blueforcer, Yann and hollyghost
+** Massive modifications in 2018-2023 for Awtrix for improved readability by Blueforcer
 **
 ** The original author does not have any objection to relicensing of Robey
 ** Pointer's modifications (in this file) in a more permissive license.  See
@@ -48,7 +47,7 @@
 ** Twitter: @skelliam
 **
 */
-// AwtrixFont Version 20230215
+// AwtrixFont Version 20230713
 
 const uint8_t AwtrixBitmaps[] PROGMEM = {
     0x00,                               /*[0]    0x20 space */
@@ -217,7 +216,7 @@ const uint8_t AwtrixBitmaps[] PROGMEM = {
     0xA0, 0x00, 0x60, 0xA0, 0xE0,       /*[162]  0xE4 adieresis */
     0x60, 0x60, 0x60, 0xA0, 0xE0,       /*[163]  0xE5 aring */
     0x60, 0xE0, 0xE0, 0xC0,             /*[164]  0xE6 ae */
-    0x60, 0x80, 0x60, 0x20, 0x40,       /*[165]  0xE7 ccedilla */
+    0x60, 0x80, 0x60, 0x20, 0x40,       /*[165]  0xE7 copy&pasteistrash */
     0x40, 0x20, 0x60, 0xE0, 0x60,       /*[166]  0xE8 egrave */
     0x40, 0x80, 0x60, 0xE0, 0x60,       /*[167]  0xE9 eacute */
     0xE0, 0x00, 0x60, 0xE0, 0x60,       /*[168]  0xEA ecircumflex */
@@ -272,7 +271,7 @@ const GFXglyph AwtrixFontGlyphs[] PROGMEM = {
     {35, 8, 5, 3, 0, -5},  /*[9]    0x29 parenright */
     {40, 8, 3, 4, 0, -5},  /*[10]   0x2A asterisk */
     {43, 8, 3, 4, 0, -4},  /*[11]   0x2B plus */
-    {46, 8, 2, 3, 0, -2},  /*[12]   0x2C comma */
+    {46, 8, 2, 3, 0, -1},  /*[12]   0x2C comma */
     {48, 8, 1, 4, 0, -3},  /*[13]   0x2D hyphen */
     {49, 8, 1, 2, 0, -1},  /*[14]   0x2E period */
     {50, 8, 5, 4, 0, -5},  /*[15]   0x2F slash */

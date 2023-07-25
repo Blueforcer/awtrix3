@@ -3,6 +3,7 @@
 #include <WiFi.h>
 #include <ArduinoJson.h>
 #include <LittleFS.h>
+#include "effects.h"
 
 Preferences Settings;
 
@@ -71,6 +72,11 @@ void loadDevSettings()
             TEMP_OFFSET = doc["temp_offset"];
         }
 
+         if (doc.containsKey("background_effect"))
+        { 
+            BACKGROUND_EFFECT = getEffectIndex(doc["background_effect"].as<String>());
+        }
+
         if (doc.containsKey("min_brightness"))
         {
             MIN_BRIGHTNESS = doc["min_brightness"];
@@ -84,6 +90,12 @@ void loadDevSettings()
         if (doc.containsKey("hum_offset"))
         {
             HUM_OFFSET = doc["hum_offset"];
+        }
+
+        
+        if (doc.containsKey("ha_prefix"))
+        {
+            HA_PREFIX = doc["ha_prefix"].as<String>();
         }
 
         if (doc.containsKey("uppercase"))
@@ -170,7 +182,6 @@ void loadSettings()
     START_ON_MONDAY = Settings.getBool("SOM", true);
     IS_CELSIUS = Settings.getBool("CEL", true);
     SHOW_TIME = Settings.getBool("TIM", true);
-    SHOW_EYES = Settings.getBool("EYE", true);
     SHOW_DATE = Settings.getBool("DAT", true);
     SHOW_TEMP = Settings.getBool("TEMP", true);
     SHOW_HUM = Settings.getBool("HUM", true);
@@ -199,7 +210,6 @@ void saveSettings()
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
     Settings.putBool("ATRANS", AUTO_TRANSITION);
     Settings.putUInt("TCOL", TEXTCOLOR_565);
-
     Settings.putUInt("TIME_COL", TIME_COLOR);
     Settings.putUInt("DATE_COL", DATE_COLOR);
     Settings.putUInt("TEMP_COL", TEMP_COLOR);
@@ -207,7 +217,6 @@ void saveSettings()
 #ifdef ULANZI
     Settings.putUInt("BAT_COL", BAT_COLOR);
 #endif
-
     Settings.putUInt("WDCA", WDC_ACTIVE);
     Settings.putUInt("WDCI", WDC_INACTIVE);
     Settings.putUInt("TSPEED", TIME_PER_TRANSITION);
@@ -217,7 +226,6 @@ void saveSettings()
     Settings.putBool("SOM", START_ON_MONDAY);
     Settings.putBool("CEL", IS_CELSIUS);
     Settings.putBool("TIM", SHOW_TIME);
-    Settings.putBool("EYE", SHOW_EYES);
     Settings.putBool("DAT", SHOW_DATE);
     Settings.putBool("TEMP", SHOW_TEMP);
     Settings.putBool("HUM", SHOW_HUM);
@@ -238,7 +246,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.70";
+const char *VERSION = "0.71";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -248,7 +256,7 @@ String MQTT_PREFIX;
 bool IO_BROKER = false;
 bool NET_STATIC = false;
 bool SHOW_TIME = true;
-bool SHOW_EYES = true;
+
 bool SHOW_DATE = true;
 bool SHOW_WEATHER = true;
 #ifdef ULANZI
@@ -270,6 +278,7 @@ String NTP_SERVER = "de.pool.ntp.org";
 String NTP_TZ = "CET-1CEST,M3.5.0,M10.5.0/3";
 bool HA_DISCOVERY = false;
 
+String HA_PREFIX = "homeassistant";
 // Periphery
 String CURRENT_APP;
 float CURRENT_TEMP;
@@ -293,6 +302,7 @@ float HUM_OFFSET;
 uint16_t LDR_RAW;
 String TIME_FORMAT = "%H:%M:%S";
 String DATE_FORMAT = "%d.%m.%y";
+int BACKGROUND_EFFECT=-1;
 bool START_ON_MONDAY;
 
 String ALARM_SOUND;

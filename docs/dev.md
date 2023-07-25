@@ -27,3 +27,5 @@ The JSON object has the following properties:
 | `hum_offset` | float | Sets the offset for the internal humidity messurement | `0` |
 | `min_brightness` | integer | Sets minimum brightness level for the Autobrightness control | `2` |
 | `max_brightness` | integer | Sets maximum brightness level for the Autobrightness control. On high levels, this could result in overheating! | `180` |
+| `ha_prefix` | string | Sets the prefix for Homassistant discovery | `homeassistant` |
+| `background_effect` | string | Sets an effect as global background layer |  |

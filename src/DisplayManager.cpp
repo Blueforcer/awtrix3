@@ -1,5 +1,4 @@
 #include <DisplayManager.h>
-#include <FastLED_NeoMatrix.h>
 
 #include "MatrixDisplayUi.h"
 #include <TJpg_Decoder.h>
@@ -46,6 +45,15 @@ GifPlayer gif;
 uint16_t gifX, gifY;
 CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
 
+// BMP Creation
+const int w = 32;             // image width in pixels
+const int h = 8;              // " height
+const bool debugPrint = true; // print details of process over serial?
+
+const int imgSize = w * h;
+int px[w * h]; // actual pixel data (grayscale - added programatically below)
+
+// NeoMatrix
 FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
 MatrixDisplayUi *ui = new MatrixDisplayUi(matrix);
 
@@ -71,13 +79,9 @@ void DisplayManager_::setBrightness(int bri)
     }
     else
     {
+
         matrix->setBrightness(bri);
     }
-}
-
-void DisplayManager_::setFPS(uint8_t fps)
-{
-    ui->setTargetFPS(fps);
 }
 
 void DisplayManager_::setTextColor(uint16_t color)
@@ -265,6 +269,31 @@ void pushCustomApp(String name, int position)
     }
 }
 
+bool deleteCustomAppFile(const String &name)
+{
+    // Create the file name based on the app name
+    String fileName = "/CUSTOMAPPS/" + name + ".json";
+
+    // Check if the file exists
+    if (!LittleFS.exists(fileName))
+    {
+        DEBUG_PRINTLN("File does not exist: " + fileName);
+        return false;
+    }
+
+    // Delete the file
+    if (LittleFS.remove(fileName))
+    {
+        DEBUG_PRINTLN("File removed successfully: " + fileName);
+        return true;
+    }
+    else
+    {
+        DEBUG_PRINTLN("Failed to remove file: " + fileName);
+        return false;
+    }
+}
+
 void removeCustomAppFromApps(const String &name, bool setApps)
 {
     // Remove apps from Apps list
@@ -298,6 +327,7 @@ void removeCustomAppFromApps(const String &name, bool setApps)
     if (setApps)
         ui->setApps(Apps);
     DisplayManager.getInstance().setAutoTransition(true);
+    deleteCustomAppFile(name);
 }
 
 bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, std::vector<String> &fragments, uint16_t standardColor)
@@ -353,7 +383,7 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json)
     if (doc.is<JsonObject>())
     {
         DEBUG_PRINTLN("Single Page");
-        return generateCustomPage(name, json);
+        return generateCustomPage(name, json, false);
     }
     else if (doc.is<JsonArray>())
     {
@@ -365,7 +395,7 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json)
             JsonObject customPageObject = customPage.as<JsonObject>();
             String customPageJson;
             serializeJson(customPageObject, customPageJson);
-            generateCustomPage(name + String(cpIndex), customPageJson.c_str());
+            generateCustomPage(name + String(cpIndex), customPageJson.c_str(), false);
             ++cpIndex;
         }
     }
@@ -373,7 +403,7 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json)
     return true;
 }
 
-bool DisplayManager_::generateCustomPage(const String &name, const char *json)
+bool DisplayManager_::generateCustomPage(const String &name, const char *json, bool preventSave)
 {
     DynamicJsonDocument doc(4096);
     DeserializationError error = deserializeJson(doc, json);
@@ -398,6 +428,34 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json)
     {
         auto background = doc["background"];
         customApp.background = getColorFromJsonVariant(background, 0);
+    }
+
+    if (doc.containsKey("save") && preventSave == false)
+    {
+        bool saveApp = doc["save"].as<bool>();
+        if (saveApp)
+        {
+            // Create the file name based on the app name
+            String fileName = "/CUSTOMAPPS/" + name + ".json";
+
+            // Create the directory if it doesn't exist
+            if (!LittleFS.exists("/CUSTOMAPPS"))
+            {
+                LittleFS.mkdir("/CUSTOMAPPS");
+            }
+
+            // Open the file for writing (this will overwrite the file if it already exists)
+            File file = LittleFS.open(fileName, "w");
+            if (!file)
+            {
+                DEBUG_PRINTLN("Failed to open file for writing: " + fileName);
+                return false;
+            }
+
+            // Write the new custom app to the file
+            serializeJson(doc, file);
+            file.close();
+        }
     }
 
     if (doc.containsKey("progressC"))
@@ -504,7 +562,8 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json)
         customApp.drawInstructions = "";
     }
 
-    customApp.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : 0;
+    customApp.effect = doc.containsKey("effect") ? getEffectIndex(doc["effect"].as<String>()) : -1;
+    customApp.duration = doc.containsKey("duration") ? doc["duration"].as<long>() * 1000 : 0;
     int pos = doc.containsKey("pos") ? doc["pos"].as<uint8_t>() : -1;
     customApp.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
     customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
@@ -545,6 +604,10 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json)
     }
 
     customApp.repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
+    if (customApp.noScrolling)
+    {
+        customApp.repeat = -1;
+    }
 
     if (doc.containsKey("icon"))
     {
@@ -637,11 +700,12 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     {
         newNotification.drawInstructions = "";
     }
-
+    newNotification.loopSound = doc.containsKey("loopSound") ? doc["loopSound"].as<bool>() : false;
+    newNotification.effect = doc.containsKey("effect") ? getEffectIndex(doc["effect"].as<String>()) : -1;
     newNotification.sound = doc.containsKey("sound") ? doc["sound"].as<String>() : "";
     newNotification.rtttl = doc.containsKey("rtttl") ? doc["rtttl"].as<String>() : "";
-    newNotification.duration = doc.containsKey("duration") ? doc["duration"].as<int>() * 1000 : TIME_PER_APP;
-    newNotification.repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
+    newNotification.duration = doc.containsKey("duration") ? doc["duration"].as<long>() * 1000 : TIME_PER_APP;
+
     newNotification.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
     newNotification.hold = doc.containsKey("hold") ? doc["hold"].as<bool>() : false;
     newNotification.scrollSpeed = doc.containsKey("scrollSpeed") ? doc["scrollSpeed"].as<int>() : -1;
@@ -651,7 +715,11 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     newNotification.textOffset = doc.containsKey("textOffset") ? doc["textOffset"] : 0;
     newNotification.topText = doc.containsKey("topText") ? doc["topText"].as<bool>() : false;
     newNotification.noScrolling = doc.containsKey("noScroll") ? doc["noScroll"] : false;
-
+    newNotification.repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
+    if (newNotification.noScrolling)
+    {
+        newNotification.repeat = -1;
+    }
     newNotification.scrollposition = 9 + newNotification.textOffset;
     newNotification.iconWasPushed = false;
     newNotification.iconPosition = 0;
@@ -801,7 +869,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
         }
     }
     newNotification.startime = millis();
-    CURRENT_APP= "Notification";
+    CURRENT_APP = "Notification";
     MQTTManager.setCurrentApp(CURRENT_APP);
 
     bool stack = doc.containsKey("stack") ? doc["stack"] : true;
@@ -824,6 +892,46 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
 
     doc.clear();
     return true;
+}
+
+void DisplayManager_::loadCustomApps()
+{
+    File root = LittleFS.open("/CUSTOMAPPS");
+
+    if (!root)
+    {
+        DEBUG_PRINTLN("Failed to open directory");
+        return;
+    }
+    if (!root.isDirectory())
+    {
+        DEBUG_PRINTLN("/CUSTOMAPPS is not a directory");
+        return;
+    }
+
+    File file = root.openNextFile();
+
+    while (file)
+    {
+        if (file.isDirectory())
+        {
+            file = root.openNextFile();
+            continue;
+        }
+
+        String fileName = file.name();
+        String json = "";
+        while (file.available())
+        {
+            json += char(file.read());
+        }
+        file.close();
+
+        String name = fileName.substring(fileName.lastIndexOf('/') + 1, fileName.lastIndexOf('.')); // remove path and .json extension
+        generateCustomPage(name, json.c_str(), true);
+
+        file = root.openNextFile();
+    }
 }
 
 void DisplayManager_::loadNativeApps()
@@ -868,8 +976,6 @@ void DisplayManager_::loadNativeApps()
     updateApp("bat", BatApp, SHOW_BAT, 4);
 #endif
 
-    updateApp("eyes", EyesApp, SHOW_EYES, 5);
-
     ui->setApps(Apps);
     setAutoTransition(true);
 }
@@ -878,7 +984,7 @@ void DisplayManager_::setup()
 {
     TJpgDec.setCallback(jpg_output);
     TJpgDec.setJpgScale(1);
-
+    random16_set_seed(millis());
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
     setMatrixLayout(MATRIX_LAYOUT);
     matrix->setRotation(ROTATE_SCREEN ? 90 : 0);
@@ -897,6 +1003,7 @@ void DisplayManager_::setup()
     ui->setTimePerApp(TIME_PER_APP);
     ui->setTimePerTransition(TIME_PER_TRANSITION);
     ui->setOverlays(overlays, 4);
+    ui->setBackgroundEffect(BACKGROUND_EFFECT);
     setAutoTransition(AUTO_TRANSITION);
     ui->init();
 }
@@ -1144,6 +1251,12 @@ void DisplayManager_::dismissNotify()
             DisplayManager.setBrightness(0);
         }
     }
+
+    if (ALARM_ACTIVE)
+    {
+        PeripheryManager.stopSound();
+        ALARM_ACTIVE = false;
+    }
 }
 
 void timerCallback()
@@ -1266,10 +1379,6 @@ std::pair<String, AppCallback> getNativeAppByName(const String &appName)
     {
         return std::make_pair("time", TimeApp);
     }
-    if (appName == "eyes")
-    {
-        return std::make_pair("eyes", EyesApp);
-    }
     else if (appName == "date")
     {
         return std::make_pair("date", DateApp);
@@ -1383,7 +1492,7 @@ String DisplayManager_::getStats()
     doc[BrightnessKey] = BRIGHTNESS;
     if (SENSOR_READING)
     {
-        
+
         snprintf(buffer, sizeof(buffer), "%.*f", TEMP_DECIMAL_PLACES, CURRENT_TEMP);
         doc[TempKey] = buffer;
         snprintf(buffer, 5, "%.0f", CURRENT_HUM);
@@ -1867,6 +1976,12 @@ String DisplayManager_::getAppsWithIcon()
     return jsonString;
 }
 
+CRGB DisplayManager_::getPixelColor(int16_t x, int16_t y)
+{
+    int index = matrix->XY(x, y);
+    return leds[index];
+}
+
 void DisplayManager_::reorderApps(const String &jsonString)
 {
     StaticJsonDocument<2048> jsonDocument;
@@ -2056,4 +2171,112 @@ bool DisplayManager_::moodlight(const char *json)
 
     matrix->show();
     return true;
+}
+
+int *DisplayManager_::getLedColors()
+{
+    int *ledColors = new int[MATRIX_WIDTH * MATRIX_HEIGHT];
+    for (int y = 0; y < MATRIX_HEIGHT; y++)
+    {
+        for (int x = 0; x < MATRIX_WIDTH; x++)
+        {
+            int index = matrix->XY(x, y);
+            int r = leds[index].r;
+            int g = leds[index].g;
+            int b = leds[index].b;
+            ledColors[y * MATRIX_WIDTH + x] = (r << 16) | (g << 8) | b;
+        }
+    }
+    return ledColors;
+}
+
+void DisplayManager_::sendBMP(Stream &stream)
+{
+    // Scaling factor and grid size
+    int scaleFactor = 2;
+    int gridSize = 1;
+
+    // Calculate dimensions of the new scaled image
+    int scaledW = w * scaleFactor + (w - 1) * gridSize;
+    int scaledH = h * scaleFactor + (h - 1) * gridSize;
+
+    // Calculate file size for bmp header
+    int rowSize = 4 * ((3 * scaledW + 3) / 4);
+    int fileSize = 54 + scaledH * rowSize;
+
+    // Create image data
+    char *img = (char *)malloc(3 * scaledW * scaledH);
+    memset(img, 0, 3 * scaledW * scaledH); // initialize all pixels to black
+
+    for (int y = 0; y < h; y++)
+    {
+        for (int x = 0; x < w; x++)
+        {
+            int index = matrix->XY(x, y);
+            int r = leds[index].r;
+            int g = leds[index].g;
+            int b = leds[index].b;
+
+            // Write the same color to the corresponding cells in the scaled image
+            for (int i = 0; i < scaleFactor; i++)
+            {
+                for (int j = 0; j < scaleFactor; j++)
+                {
+                    int scaledX = x * (scaleFactor + gridSize) + i;
+                    int scaledY = y * (scaleFactor + gridSize) + j;
+                    int scaledIndex = scaledY * scaledW + scaledX;
+                    img[scaledIndex * 3 + 0] = (unsigned char)b; // B
+                    img[scaledIndex * 3 + 1] = (unsigned char)g; // G
+                    img[scaledIndex * 3 + 2] = (unsigned char)r; // R
+                }
+            }
+        }
+    }
+
+    // Create padding
+    char bmpPad[rowSize - 3 * scaledW];
+    for (int i = 0; i < sizeof(bmpPad); i++)
+    { // fill with 0s
+        bmpPad[i] = 0;
+    }
+
+    // Create file headers
+    char bmpFileHeader[14] = {'B', 'M', 0, 0, 0, 0, 0, 0, 0, 0, 54, 0, 0, 0};
+    char bmpInfoHeader[40] = {40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 24, 0};
+
+    bmpFileHeader[2] = (unsigned char)(fileSize);
+    bmpFileHeader[3] = (unsigned char)(fileSize >> 8);
+    bmpFileHeader[4] = (unsigned char)(fileSize >> 16);
+    bmpFileHeader[5] = (unsigned char)(fileSize >> 24);
+
+    bmpInfoHeader[4] = (unsigned char)(scaledW);
+    bmpInfoHeader[5] = (unsigned char)(scaledW >> 8);
+    bmpInfoHeader[6] = (unsigned char)(scaledW >> 16);
+    bmpInfoHeader[7] = (unsigned char)(scaledW >> 24);
+    bmpInfoHeader[8] = (unsigned char)(scaledH);
+    bmpInfoHeader[9] = (unsigned char)(scaledH >> 8);
+    bmpInfoHeader[10] = (unsigned char)(scaledH >> 16);
+    bmpInfoHeader[11] = (unsigned char)(scaledH >> 24);
+
+    int payloadSize = sizeof(bmpFileHeader)   // size of file header
+                      + sizeof(bmpInfoHeader) // size of info header
+                      + scaledH * rowSize;    // size of image data (pixel data + padding)
+
+    // Write the file
+    stream.write(bmpFileHeader, sizeof(bmpFileHeader)); // write file header
+    stream.write(bmpInfoHeader, sizeof(bmpInfoHeader)); // info header
+
+    for (int i = 0; i < scaledH; i++)
+    {                                                                       // iterate image array
+        stream.write(img + (scaledW * (scaledH - i - 1) * 3), 3 * scaledW); // write pixel data
+        stream.write(bmpPad, (4 - (scaledW * 3) % 4) % 4);                  // and padding as needed
+    }
+
+    // Clean up
+    free(img);
+}
+
+CRGB *DisplayManager_::getLeds()
+{
+    return leds;
 }

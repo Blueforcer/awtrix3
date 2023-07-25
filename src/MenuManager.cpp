@@ -87,7 +87,7 @@ int8_t dateFormatIndex;
 uint8_t dateFormatCount = 9;
 
 int8_t appsIndex;
-uint8_t appsCount = 6;
+uint8_t appsCount = 5;
 
 MenuState currentState = MainMenu;
 
@@ -185,9 +185,6 @@ String MenuManager_::menutext()
         case 4:
             DisplayManager.drawBMP(0, 0, icon_1486, 8, 8);
             return SHOW_BAT ? "ON" : "OFF";
-        case 5:
-            DisplayManager.drawBMP(0, 0, eyes, 8, 8);
-            return SHOW_EYES ? "ON" : "OFF";
 #endif
         default:
             break;
@@ -411,9 +408,6 @@ void MenuManager_::selectButton()
             SHOW_BAT = !SHOW_BAT;
             break;
 #endif
-        case 5:
-            SHOW_EYES = !SHOW_EYES;
-            break;
         default:
             break;
         }
