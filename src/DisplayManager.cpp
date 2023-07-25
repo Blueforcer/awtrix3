@@ -1,5 +1,4 @@
 #include <DisplayManager.h>
-
 #include "MatrixDisplayUi.h"
 #include <TJpg_Decoder.h>
 #include "icons.h"
