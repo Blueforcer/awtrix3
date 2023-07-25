@@ -15,56 +15,56 @@ Just call the name for your favorite effect.
   </tr>
   <tr>
     <td>BrickBreaker</td>
-    <td><img src="/assets/BrickBreaker.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/BrickBreaker.gif" style="max-height:100px;"></td>
     <td>Checkerboard</td>
-    <td><img src="/assets/Checkerboard.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/Checkerboard.gif" style="max-height:100px;"></td>
   </tr>
   <tr>
     <td>Fireworks</td>
-    <td><img src="/assets/Fireworks.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/Fireworks.gif" style="max-height:100px;"></td>
      <td>PingPong</td>
-    <td><img src="/assets/PingPong.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/PingPong.gif" style="max-height:100px;"></td>
   </tr>
   </tr>
     <tr>
     <td>Radar</td>
-    <td><img src="/assets/radar.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/radar.gif" style="max-height:100px;"></td>
      <td>Ripple</td>
-    <td><img src="/assets/Ripple.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/Ripple.gif" style="max-height:100px;"></td>
   </tr>
    <tr>
     <td>Snake</td>
-    <td><img src="/assets/Snake.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/Snake.gif" style="max-height:100px;"></td>
      <td>TwinklingStars</td>
-    <td><img src="/assets/TwinklingStars.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/TwinklingStars.gif" style="max-height:100px;"></td>
   </tr>
    <tr>
     <td>TheaterChase</td>
-    <td><img src="/assets/TheaterChase.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/TheaterChase.gif" style="max-height:100px;"></td>
       <td>ColorWaves</td>
-    <td><img src="/assets/ColorWaves.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/ColorWaves.gif" style="max-height:100px;"></td>
   </tr>
      <tr>
     <td>SwirlOut</td>
-    <td><img src="/assets/SwirlOut.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/SwirlOut.gif" style="max-height:100px;"></td>
     <td>SwirlIn</td>
-    <td><img src="/assets/SwirlIn.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/SwirlIn.gif" style="max-height:100px;"></td>
   </tr>
 <tr>
     <td>LookingEyes</td>
-    <td><img src="/assets/LookingEyes.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/LookingEyes.gif" style="max-height:100px;"></td>
      <td>Matrix</td>
-    <td><img src="/assets/Matrix.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/Matrix.gif" style="max-height:100px;"></td>
   </tr>
            <tr>
     <td>Pacifica</td>
-    <td><img src="/assets/Pacifica.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/Pacifica.gif" style="max-height:100px;"></td>
      <td>Plasma</td>
-    <td><img src="/assets/Plasma.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/Plasma.gif" style="max-height:100px;"></td>
   </tr>
                <tr>
     <td>PlasmaCloud</td>
-    <td><img src="/assets/PlasmaCloud.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/PlasmaCloud.gif" style="max-height:100px;"></td>
   </tr>
 </table>
 
