@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "Dictionary.h"
-
+ 
 // MQTT
 const char StatsTopic[] PROGMEM = {"stats"};
 const char ButtonLeftTopic[] PROGMEM = {"stats/buttonLeft"};
