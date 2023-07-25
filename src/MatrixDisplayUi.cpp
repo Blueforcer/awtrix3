@@ -60,7 +60,7 @@ void MatrixDisplayUi::setTargetFPS(uint8_t fps)
   this->ticksPerTransition *= changeRatio;
 }
 
-void MatrixDisplayUi::setBackgroundEffect(String effect)
+void MatrixDisplayUi::setBackgroundEffect(int effect)
 {
   this->BackgroundEffect = effect;
 }
@@ -238,7 +238,7 @@ void MatrixDisplayUi::tick()
 
   this->matrix->clear();
   
-  if (!BackgroundEffect.isEmpty())
+  if (BackgroundEffect>-1)
   {
     callEffect(this->matrix, 0, 0, BackgroundEffect);
   }

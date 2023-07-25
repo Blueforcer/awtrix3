@@ -16,7 +16,7 @@
 #include <HTTPClient.h>
 #include <Ticker.h>
 #include <ArduinoJson.h>
-#include "LookingEyes.h"
+
 #include "effects.h"
 Ticker downloader;
 
@@ -37,7 +37,7 @@ struct CustomApp
     File icon;
     bool isGif;
     bool rainbow;
-    String effect;
+    int effect;
     long duration = 0;
 
     byte textCase = 0;
@@ -96,7 +96,7 @@ struct Notification
     int textOffset;
     int progress = -1;
     uint16_t pColor;
-    String effect;
+    int effect;
     uint16_t background = 0;
     uint16_t pbColor;
     bool wakeup;
@@ -104,6 +104,7 @@ struct Notification
     bool topText = true;
     bool noScrolling = true;
     String sound;
+    bool loopSound;
     String rtttl;
 };
 std::vector<Notification> notifications;
@@ -389,7 +390,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         }
     }
 
-    if (!ca->effect.isEmpty())
+    if (ca->effect > -1)
     {
         callEffect(matrix, x, y, ca->effect);
     }
@@ -616,79 +617,6 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 }
 
 static unsigned long lastTime = 0;
-void EyesApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer)
-{
-
-    CURRENT_APP = "Eyes";
-    if (blinkCountdown < sizeof(blinkIndex) / sizeof(blinkIndex[0]) - 1)
-    {
-        matrix->drawRGBBitmap(6 + x, 0 + y, eye[blinkIndex[blinkCountdown]], 8, 8);
-        matrix->drawRGBBitmap(18 + x, 0 + y, eye[blinkIndex[blinkCountdown]], 8, 8);
-    }
-    else
-    {
-        matrix->drawRGBBitmap(6 + x, 0 + y, eye[0], 8, 8);
-        matrix->drawRGBBitmap(18 + x, 0 + y, eye[0], 8, 8);
-    }
-
-    blinkCountdown = blinkCountdown - 0.1;
-    if (blinkCountdown == 0)
-    {
-        blinkCountdown = random(60, 350);
-    }
-
-    if (gazeCountdown <= gazeFrames)
-    {
-        gazeCountdown -= movementFactor;
-        matrix->fillRect(newX - (dX * gazeCountdown / gazeFrames) + 6 + x, newY - (dY * gazeCountdown / gazeFrames) + y, 2, 2, 0);
-        matrix->fillRect(newX - (dX * gazeCountdown / gazeFrames) + 18 + x, newY - (dY * gazeCountdown / gazeFrames) + y, 2, 2, 0);
-        if (gazeCountdown == 0)
-        {
-            eyeX = newX;
-            eyeY = newY;
-            do
-            {
-                switch (PET_MOOD)
-                {
-                case 0:
-                    newX = random(0, 6);
-                    newY = random(0, 6);
-                    dX = newX - 4;
-                    dY = newY - 4;
-                    break;
-                case 1:
-                    newX = random(0, 7);
-                    newY = random(0, 7);
-                    dX = newX - 3;
-                    dY = newY - 3;
-                    break;
-                case 2:
-                    newX = random(1, 7);
-                    newY = random(1, 4);
-                    dX = newX - 3;
-                    dY = newY - 3;
-                    break;
-                case 3:
-                    newX = random(0, 7);
-                    newY = random(3, 7);
-                    dX = newX - 3;
-                    dY = newY - 3;
-                    break;
-                }
-            } while (((dX * dX + dY * dY) <= 3));
-            dX = newX - eyeX;
-            dY = newY - eyeY;
-            gazeFrames = random(15, 40);
-            gazeCountdown = random(gazeFrames, 120);
-        }
-    }
-    else
-    {
-        gazeCountdown -= 0.5;
-        matrix->fillRect(eyeX + 6 + x, eyeY + y, 2, 2, 0);
-        matrix->fillRect(eyeX + 18 + x, eyeY + y, 2, 2, 0);
-    }
-}
 
 void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
 {
@@ -734,7 +662,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
     // Clear the matrix display
     matrix->fillRect(0, 0, 32, 8, notifications[0].background);
 
-    if (!notifications[0].effect.isEmpty())
+    if (!notifications[0].effect > -1)
     {
         callEffect(matrix, 0, 0, notifications[0].effect);
     }
@@ -964,16 +892,20 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
         DisplayManager.processDrawInstructions(0, 0, notifications[0].drawInstructions);
     }
 
-    if (!notifications[0].soundPlayed)
+    if (!notifications[0].soundPlayed || notifications[0].loopSound)
     {
-        if (notifications[0].sound != "" || (MATRIX_OFF && notifications[0].wakeup))
+        if (!PeripheryManager.isPlaying())
         {
-            PeripheryManager.playFromFile(notifications[0].sound);
-        }
+            if (notifications[0].sound != "" || (MATRIX_OFF && notifications[0].wakeup))
+            {
 
-        if (notifications[0].rtttl != "")
-        {
-            PeripheryManager.playRTTTLString(notifications[0].rtttl);
+                PeripheryManager.playFromFile(notifications[0].sound);
+            }
+
+            if (notifications[0].rtttl != "")
+            {
+                PeripheryManager.playRTTTLString(notifications[0].rtttl);
+            }
         }
         notifications[0].soundPlayed = true;
     }

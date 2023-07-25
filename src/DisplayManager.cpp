@@ -1,5 +1,4 @@
 #include <DisplayManager.h>
-#include <FastLED_NeoMatrix.h>
 
 #include "MatrixDisplayUi.h"
 #include <TJpg_Decoder.h>
@@ -80,13 +79,9 @@ void DisplayManager_::setBrightness(int bri)
     }
     else
     {
+
         matrix->setBrightness(bri);
     }
-}
-
-void DisplayManager_::setFPS(uint8_t fps)
-{
-    ui->setTargetFPS(fps);
 }
 
 void DisplayManager_::setTextColor(uint16_t color)
@@ -274,6 +269,31 @@ void pushCustomApp(String name, int position)
     }
 }
 
+bool deleteCustomAppFile(const String &name)
+{
+    // Create the file name based on the app name
+    String fileName = "/CUSTOMAPPS/" + name + ".json";
+
+    // Check if the file exists
+    if (!LittleFS.exists(fileName))
+    {
+        DEBUG_PRINTLN("File does not exist: " + fileName);
+        return false;
+    }
+
+    // Delete the file
+    if (LittleFS.remove(fileName))
+    {
+        DEBUG_PRINTLN("File removed successfully: " + fileName);
+        return true;
+    }
+    else
+    {
+        DEBUG_PRINTLN("Failed to remove file: " + fileName);
+        return false;
+    }
+}
+
 void removeCustomAppFromApps(const String &name, bool setApps)
 {
     // Remove apps from Apps list
@@ -307,6 +327,7 @@ void removeCustomAppFromApps(const String &name, bool setApps)
     if (setApps)
         ui->setApps(Apps);
     DisplayManager.getInstance().setAutoTransition(true);
+    deleteCustomAppFile(name);
 }
 
 bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, std::vector<String> &fragments, uint16_t standardColor)
@@ -362,7 +383,7 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json)
     if (doc.is<JsonObject>())
     {
         DEBUG_PRINTLN("Single Page");
-        return generateCustomPage(name, json);
+        return generateCustomPage(name, json, false);
     }
     else if (doc.is<JsonArray>())
     {
@@ -374,7 +395,7 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json)
             JsonObject customPageObject = customPage.as<JsonObject>();
             String customPageJson;
             serializeJson(customPageObject, customPageJson);
-            generateCustomPage(name + String(cpIndex), customPageJson.c_str());
+            generateCustomPage(name + String(cpIndex), customPageJson.c_str(), false);
             ++cpIndex;
         }
     }
@@ -382,7 +403,7 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json)
     return true;
 }
 
-bool DisplayManager_::generateCustomPage(const String &name, const char *json)
+bool DisplayManager_::generateCustomPage(const String &name, const char *json, bool preventSave)
 {
     DynamicJsonDocument doc(4096);
     DeserializationError error = deserializeJson(doc, json);
@@ -409,6 +430,33 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json)
         customApp.background = getColorFromJsonVariant(background, 0);
     }
 
+    if (doc.containsKey("save") && preventSave == false)
+    {
+        bool saveApp = doc["save"].as<bool>();
+        if (saveApp)
+        {
+            // Create the file name based on the app name
+            String fileName = "/CUSTOMAPPS/" + name + ".json";
+
+            // Create the directory if it doesn't exist
+            if (!LittleFS.exists("/CUSTOMAPPS"))
+            {
+                LittleFS.mkdir("/CUSTOMAPPS");
+            }
+
+            // Open the file for writing (this will overwrite the file if it already exists)
+            File file = LittleFS.open(fileName, "w");
+            if (!file)
+            {
+                DEBUG_PRINTLN("Failed to open file for writing: " + fileName);
+                return false;
+            }
+
+            // Write the new custom app to the file
+            serializeJson(doc, file);
+            file.close();
+        }
+    }
 
     if (doc.containsKey("progressC"))
     {
@@ -514,7 +562,7 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json)
         customApp.drawInstructions = "";
     }
 
-    customApp.effect = doc.containsKey("effect") ? doc["effect"].as<String>() : "";
+    customApp.effect = doc.containsKey("effect") ? getEffectIndex(doc["effect"].as<String>()) : -1;
     customApp.duration = doc.containsKey("duration") ? doc["duration"].as<long>() * 1000 : 0;
     int pos = doc.containsKey("pos") ? doc["pos"].as<uint8_t>() : -1;
     customApp.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
@@ -648,9 +696,9 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     {
         newNotification.drawInstructions = "";
     }
-
+    newNotification.loopSound = doc.containsKey("loopSound") ? doc["loopSound"].as<bool>() : false;
+    newNotification.effect = doc.containsKey("effect") ? getEffectIndex(doc["effect"].as<String>()) : -1;
     newNotification.sound = doc.containsKey("sound") ? doc["sound"].as<String>() : "";
-    newNotification.effect = doc.containsKey("effect") ? doc["effect"].as<String>() : "";
     newNotification.rtttl = doc.containsKey("rtttl") ? doc["rtttl"].as<String>() : "";
     newNotification.duration = doc.containsKey("duration") ? doc["duration"].as<long>() * 1000 : TIME_PER_APP;
     newNotification.repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
@@ -838,6 +886,46 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     return true;
 }
 
+void DisplayManager_::loadCustomApps()
+{
+    File root = LittleFS.open("/CUSTOMAPPS");
+
+    if (!root)
+    {
+        DEBUG_PRINTLN("Failed to open directory");
+        return;
+    }
+    if (!root.isDirectory())
+    {
+        DEBUG_PRINTLN("/CUSTOMAPPS is not a directory");
+        return;
+    }
+
+    File file = root.openNextFile();
+
+    while (file)
+    {
+        if (file.isDirectory())
+        {
+            file = root.openNextFile();
+            continue;
+        }
+
+        String fileName = file.name();
+        String json = "";
+        while (file.available())
+        {
+            json += char(file.read());
+        }
+        file.close();
+
+        String name = fileName.substring(fileName.lastIndexOf('/') + 1, fileName.lastIndexOf('.')); // remove path and .json extension
+        generateCustomPage(name, json.c_str(), true);
+
+        file = root.openNextFile();
+    }
+}
+
 void DisplayManager_::loadNativeApps()
 {
     // Define a helper function to check and update an app
@@ -879,8 +967,6 @@ void DisplayManager_::loadNativeApps()
 #ifdef ULANZI
     updateApp("bat", BatApp, SHOW_BAT, 4);
 #endif
-
-    updateApp("eyes", EyesApp, SHOW_EYES, 5);
 
     ui->setApps(Apps);
     setAutoTransition(true);
@@ -1284,10 +1370,6 @@ std::pair<String, AppCallback> getNativeAppByName(const String &appName)
     if (appName == "time")
     {
         return std::make_pair("time", TimeApp);
-    }
-    if (appName == "eyes")
-    {
-        return std::make_pair("eyes", EyesApp);
     }
     else if (appName == "date")
     {
@@ -1886,6 +1968,12 @@ String DisplayManager_::getAppsWithIcon()
     return jsonString;
 }
 
+CRGB DisplayManager_::getPixelColor(int16_t x, int16_t y)
+{
+    int index = matrix->XY(x, y);
+    return leds[index];
+}
+
 void DisplayManager_::reorderApps(const String &jsonString)
 {
     StaticJsonDocument<2048> jsonDocument;
@@ -2096,9 +2184,6 @@ int *DisplayManager_::getLedColors()
 
 void DisplayManager_::sendBMP(Stream &stream)
 {
-    Serial.print("Generating BMP...");
-    unsigned long startMillis = millis();
-
     // Scaling factor and grid size
     int scaleFactor = 2;
     int gridSize = 1;
@@ -2181,11 +2266,9 @@ void DisplayManager_::sendBMP(Stream &stream)
 
     // Clean up
     free(img);
-    unsigned long endMillis = millis();
-    Serial.print("BMP Filesize ");
-    Serial.print(payloadSize);
-    Serial.println(" bytes");
-    Serial.print("BMP creation took ");
-    Serial.print(endMillis - startMillis);
-    Serial.println(" ms");
+}
+
+CRGB *DisplayManager_::getLeds()
+{
+    return leds;
 }

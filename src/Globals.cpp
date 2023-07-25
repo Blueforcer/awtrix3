@@ -3,6 +3,7 @@
 #include <WiFi.h>
 #include <ArduinoJson.h>
 #include <LittleFS.h>
+#include "effects.h"
 
 Preferences Settings;
 
@@ -72,8 +73,8 @@ void loadDevSettings()
         }
 
          if (doc.containsKey("background_effect"))
-        {
-            BACKGROUND_EFFECT = doc["background_effect"].as<String>();
+        { 
+            BACKGROUND_EFFECT = getEffectIndex(doc["background_effect"].as<String>());
         }
 
         if (doc.containsKey("min_brightness"))
@@ -181,7 +182,6 @@ void loadSettings()
     START_ON_MONDAY = Settings.getBool("SOM", true);
     IS_CELSIUS = Settings.getBool("CEL", true);
     SHOW_TIME = Settings.getBool("TIM", true);
-    SHOW_EYES = Settings.getBool("EYE", true);
     SHOW_DATE = Settings.getBool("DAT", true);
     SHOW_TEMP = Settings.getBool("TEMP", true);
     SHOW_HUM = Settings.getBool("HUM", true);
@@ -210,7 +210,6 @@ void saveSettings()
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
     Settings.putBool("ATRANS", AUTO_TRANSITION);
     Settings.putUInt("TCOL", TEXTCOLOR_565);
-
     Settings.putUInt("TIME_COL", TIME_COLOR);
     Settings.putUInt("DATE_COL", DATE_COLOR);
     Settings.putUInt("TEMP_COL", TEMP_COLOR);
@@ -218,7 +217,6 @@ void saveSettings()
 #ifdef ULANZI
     Settings.putUInt("BAT_COL", BAT_COLOR);
 #endif
-
     Settings.putUInt("WDCA", WDC_ACTIVE);
     Settings.putUInt("WDCI", WDC_INACTIVE);
     Settings.putUInt("TSPEED", TIME_PER_TRANSITION);
@@ -228,7 +226,6 @@ void saveSettings()
     Settings.putBool("SOM", START_ON_MONDAY);
     Settings.putBool("CEL", IS_CELSIUS);
     Settings.putBool("TIM", SHOW_TIME);
-    Settings.putBool("EYE", SHOW_EYES);
     Settings.putBool("DAT", SHOW_DATE);
     Settings.putBool("TEMP", SHOW_TEMP);
     Settings.putBool("HUM", SHOW_HUM);
@@ -259,7 +256,7 @@ String MQTT_PREFIX;
 bool IO_BROKER = false;
 bool NET_STATIC = false;
 bool SHOW_TIME = true;
-bool SHOW_EYES = true;
+
 bool SHOW_DATE = true;
 bool SHOW_WEATHER = true;
 #ifdef ULANZI
@@ -305,7 +302,7 @@ float HUM_OFFSET;
 uint16_t LDR_RAW;
 String TIME_FORMAT = "%H:%M:%S";
 String DATE_FORMAT = "%d.%m.%y";
-String BACKGROUND_EFFECT;
+int BACKGROUND_EFFECT=-1;
 bool START_ON_MONDAY;
 
 String ALARM_SOUND;

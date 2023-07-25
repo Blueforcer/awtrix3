@@ -10,10 +10,9 @@
 
 - Features
   - [Apps](apps.md)
-  - [Alarm clock](alarm.md)
+  - [Effects](effects.md)
   - [Icons](icons.md)
   - [Sounds](sounds.md)
-  - [Artnet](artnet.md)
   - [Hidden features](dev.md)
 
 - API
