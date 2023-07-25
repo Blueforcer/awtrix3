@@ -429,11 +429,11 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 if (state->appState == FIXED)
                     ca->iconPosition += movementFactor;
             }
-            if (ca->scrollposition < 9 && !ca->iconWasPushed)
+            if (ca->scrollposition < (9-ca->textOffset) && !ca->iconWasPushed)
             {
-                ca->iconPosition = ca->scrollposition - 9;
+                ca->iconPosition = ca->scrollposition - 9 + ca->textOffset;
 
-                if (ca->iconPosition <= -9)
+                if (ca->iconPosition <= -9 - ca->textOffset)
                 {
                     ca->iconWasPushed = true;
                 }
@@ -618,6 +618,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 
 static unsigned long lastTime = 0;
 
+
 void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
 {
     // Check if notification flag is set
@@ -662,7 +663,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
     // Clear the matrix display
     matrix->fillRect(0, 0, 32, 8, notifications[0].background);
 
-    if (!notifications[0].effect > -1)
+    if (!notifications[0].effect>-1)
     {
         callEffect(matrix, 0, 0, notifications[0].effect);
     }
@@ -693,7 +694,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
         {
             if (notifications[0].iconPosition < 0 && notifications[0].iconWasPushed == false && notifications[0].scrollposition > 8)
             {
-                ++notifications[0].iconPosition;
+                notifications[0].iconPosition += movementFactor;
             }
 
             if (notifications[0].scrollposition < 9 && !notifications[0].iconWasPushed)
@@ -856,7 +857,6 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
                         matrix->setTextColor(notifications[0].colors[i]);
                         DisplayManager.printText(fragmentX, 6, notifications[0].fragments[i].c_str(), false, notifications[0].textCase);
                     }
-
                     fragmentX += getTextWidth(notifications[0].fragments[i].c_str(), notifications[0].textCase);
                 }
             }
@@ -894,19 +894,17 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
 
     if (!notifications[0].soundPlayed || notifications[0].loopSound)
     {
-        if (!PeripheryManager.isPlaying())
+         if (!PeripheryManager.isPlaying()){
+        if (notifications[0].sound != "" || (MATRIX_OFF && notifications[0].wakeup))
         {
-            if (notifications[0].sound != "" || (MATRIX_OFF && notifications[0].wakeup))
-            {
-
-                PeripheryManager.playFromFile(notifications[0].sound);
-            }
-
-            if (notifications[0].rtttl != "")
-            {
-                PeripheryManager.playRTTTLString(notifications[0].rtttl);
-            }
+            PeripheryManager.playFromFile(notifications[0].sound);
         }
+
+        if (notifications[0].rtttl != "")
+        {
+            PeripheryManager.playRTTTLString(notifications[0].rtttl);
+        }
+          }
         notifications[0].soundPlayed = true;
     }
 
