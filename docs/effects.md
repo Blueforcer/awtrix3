@@ -28,7 +28,7 @@ Just call the name for your favorite effect.
   </tr>
     <tr>
     <td>Radar</td>
-    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/radar.gif" style="max-height:100px;"></td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/Radar.gif" style="max-height:100px;"></td>
      <td>Ripple</td>
     <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/Ripple.gif" style="max-height:100px;"></td>
   </tr>
