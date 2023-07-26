@@ -28,4 +28,4 @@ The JSON object has the following properties:
 | `min_brightness` | integer | Sets minimum brightness level for the Autobrightness control | `2` |
 | `max_brightness` | integer | Sets maximum brightness level for the Autobrightness control. On high levels, this could result in overheating! | `180` |
 | `ha_prefix` | string | Sets the prefix for Homassistant discovery | `homeassistant` |
-| `background_effect` | string | Sets an effect as global background layer |  |
+| `background_effect` | string | Sets an [effect](https://blueforcer.github.io/awtrix-light/#/effects) as global background layer |  |
