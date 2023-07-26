@@ -109,7 +109,7 @@ The JSON object has the following properties,
 | `noScroll` | boolean | Disables the textscrolling | false | X | X |
 | `clients` | array of strings | Allows to forward a notification to other awtrix. Use the MQTT prefix for MQTT and IP adresses for HTTP |  |   | X |
 | `scrollSpeed` | integer | Modifies the scrollspeed. You need to enter a percentage value | 100 | X | X |
-| `effect` | string | Shows an effect as background |  | X | X |  
+| `effect` | string | Shows an [effect](https://blueforcer.github.io/awtrix-light/#/effects) as background |  | X | X |  
 | `save` | boolean | Saves your customapp into flash and reload it after boot. You should avoid that with customapps wich has high update frequency because ESPs flashmemory has limited writecycles  |  | X |  |  
   
 
