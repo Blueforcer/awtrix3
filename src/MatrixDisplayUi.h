@@ -66,7 +66,6 @@ enum AppState
 // Structure of the UiState
 struct MatrixDisplayUiState
 {
-  TransitionType transitionType = SLIDE;
   u_int64_t lastUpdate = 0;
   long ticksSinceLastStateSwitch = 0;
 

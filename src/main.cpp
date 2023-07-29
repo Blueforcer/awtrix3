@@ -73,8 +73,6 @@ void setup()
   // PeripheryManager.playBootSound();
   if (ServerManager.isConnected)
   {
-    MQTTManager.setup();
-
     DisplayManager.loadNativeApps();
     DisplayManager.loadCustomApps();
     UpdateManager.setup();
@@ -89,9 +87,10 @@ void setup()
     if (MQTT_HOST != "")
     {
       DisplayManager.HSVtext(4, 6, "MQTT...", true, 0);
+      MQTTManager.setup();
       MQTTManager.tick();
     }
-    }
+  }
   else
   {
     AP_MODE = true;
@@ -103,7 +102,6 @@ void setup()
 
 void loop()
 {
-
   ServerManager.tick();
   DisplayManager.tick();
   PeripheryManager.tick();

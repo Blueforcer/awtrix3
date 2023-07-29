@@ -699,13 +699,20 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     {
         newNotification.drawInstructions = "";
     }
+
+    if (doc.containsKey("effect"))
+    {
+        newNotification.effect = getEffectIndex(doc["effect"].as<String>());
+        if (doc.containsKey("effectSettings"))
+        {
+            updateEffectSettings(newNotification.effect, doc["effectSettings"].as<String>());
+        }
+    }
+
     newNotification.loopSound = doc.containsKey("loopSound") ? doc["loopSound"].as<bool>() : false;
-    newNotification.effect = doc.containsKey("effect") ? getEffectIndex(doc["effect"].as<String>()) : -1;
-    updateEffectSettings(newNotification.effect, doc["effectSettings"].as<String>());
     newNotification.sound = doc.containsKey("sound") ? doc["sound"].as<String>() : "";
     newNotification.rtttl = doc.containsKey("rtttl") ? doc["rtttl"].as<String>() : "";
     newNotification.duration = doc.containsKey("duration") ? doc["duration"].as<long>() * 1000 : TIME_PER_APP;
-
     newNotification.rainbow = doc.containsKey("rainbow") ? doc["rainbow"].as<bool>() : false;
     newNotification.hold = doc.containsKey("hold") ? doc["hold"].as<bool>() : false;
     newNotification.scrollSpeed = doc.containsKey("scrollSpeed") ? doc["scrollSpeed"].as<int>() : -1;

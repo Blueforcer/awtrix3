@@ -1192,7 +1192,7 @@ Effect effects[] = {
 
 void callEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, u_int8_t index)
 {
-    if (index >= 0)
+    if (index > -1)
     {
         effects[index].func(matrix, x, y, &effects[index].settings);
     }

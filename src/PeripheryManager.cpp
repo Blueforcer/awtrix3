@@ -404,7 +404,7 @@ void PeripheryManager_::tick()
             CURRENT_HUM += HUM_OFFSET;
         }
 
-        checkAlarms();
+        //checkAlarms();
         MQTTManager.sendStats();
     }
 
