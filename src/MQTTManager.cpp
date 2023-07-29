@@ -14,7 +14,7 @@ HADevice device;
 HAMqtt mqtt(espClient, device, 25);
 // HANumber *ScrollSpeed = nullptr;
 HALight *Matrix, *Indikator1, *Indikator2, *Indikator3 = nullptr;
-HASelect *BriMode = nullptr;
+HASelect *BriMode, *transEffect = nullptr;
 HAButton *dismiss, *nextApp, *prevApp, *doUpdate = nullptr;
 HASwitch *transition = nullptr;
 #ifdef ULANZI
@@ -22,8 +22,8 @@ HASensor *battery = nullptr;
 #endif
 HASensor *temperature, *humidity, *illuminance, *uptime, *strength, *version, *ram, *curApp, *myOwnID = nullptr;
 HABinarySensor *btnleft, *btnmid, *btnright = nullptr;
-
-char matID[40], ind1ID[40], ind2ID[40], ind3ID[40], briID[40], btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], doUpdateID[40], batID[40], myID[40], sSpeed[40];
+bool connected;
+char matID[40], ind1ID[40], ind2ID[40], ind3ID[40], briID[40], btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], doUpdateID[40], batID[40], myID[40], sSpeed[40], effectID[40];
 
 // The getter for the instantiated singleton instance
 MQTTManager_ &MQTTManager_::getInstance()
@@ -68,18 +68,25 @@ void onSwitchCommand(bool state, HASwitch *sender)
 
 void onSelectCommand(int8_t index, HASelect *sender)
 {
-    sender->setState(index); // report the selected option back to the HA panel
-    switch (index)
+    if (sender == BriMode)
     {
-    case 0:
-        AUTO_BRIGHTNESS = false;
-        Matrix->setBrightness(BRIGHTNESS, true);
-        break;
-    case 1:
-        AUTO_BRIGHTNESS = true;
-        break;
+        switch (index)
+        {
+        case 0:
+            AUTO_BRIGHTNESS = false;
+            Matrix->setBrightness(BRIGHTNESS, true);
+            break;
+        case 1:
+            AUTO_BRIGHTNESS = true;
+            break;
+        }
+    }
+    else if (sender == transEffect)
+    {
+        TRANS_EFFECT = index;
     }
     saveSettings();
+    sender->setState(index);
 }
 
 void onRGBColorCommand(HALight::RGBColor color, HALight *sender)
@@ -350,13 +357,17 @@ void onMqttConnected()
         myOwnID->setValue(MQTT_PREFIX.c_str());
         version->setValue(VERSION);
     }
-  
+    MQTTManager.publish("stats/effects", DisplayManager.getEffectNamesInJson().c_str());
+    connected = true;
+}
+
+bool MQTTManager_::getStatus()
+{
+    return connected;
 }
 
 void connect()
 {
-    mqtt.setDiscoveryPrefix(HA_PREFIX.c_str());
-    mqtt.setDataPrefix(MQTT_PREFIX.c_str());
     mqtt.onMessage(onMqttMessage);
     mqtt.onConnected(onMqttConnected);
 
@@ -377,7 +388,8 @@ void MQTTManager_::setup()
     if (HA_DISCOVERY)
     {
         DEBUG_PRINTLN(F("Starting Homeassistant discovery"));
-
+        mqtt.setDiscoveryPrefix(HA_PREFIX.c_str());
+        mqtt.setDataPrefix(MQTT_PREFIX.c_str());
         uint8_t mac[6];
         WiFi.macAddress(mac);
         char *macStr = new char[18 + 1];
@@ -444,6 +456,14 @@ void MQTTManager_::setup()
         BriMode->setIcon(HAbriIcon);
         BriMode->setName(HAbriName);
         BriMode->setState(AUTO_BRIGHTNESS, true);
+
+        sprintf(effectID, HAeffectID, macStr);
+        transEffect = new HASelect(effectID);
+        transEffect->setOptions(HAeffectOptions);
+        transEffect->onCommand(onSelectCommand);
+        transEffect->setIcon(HAeffectIcon);
+        transEffect->setName(HAeffectName);
+        transEffect->setState(TRANS_EFFECT, true);
 
         sprintf(btnAID, HAbtnaID, macStr);
         dismiss = new HAButton(btnAID);
@@ -606,7 +626,7 @@ void MQTTManager_::setCurrentApp(String appName)
     if (HA_DISCOVERY)
         curApp->setValue(appName.c_str());
 
-    publish("currentApp", appName.c_str());
+    publish("stats/currentApp", appName.c_str());
 }
 
 void MQTTManager_::sendStats()
@@ -630,7 +650,7 @@ void MQTTManager_::sendStats()
 
         snprintf(buffer, 5, "%.0f", CURRENT_LUX);
         illuminance->setValue(buffer);
-
+        
         BriMode->setState(AUTO_BRIGHTNESS, false);
         Matrix->setBrightness(BRIGHTNESS);
         Matrix->setState(!MATRIX_OFF, false);

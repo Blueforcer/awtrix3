@@ -224,7 +224,7 @@ void MenuManager_::rightButton()
         AUTO_TRANSITION = !AUTO_TRANSITION;
         break;
     case TspeedMenu:
-        TIME_PER_TRANSITION = min(1200, TIME_PER_TRANSITION + 100);
+        TIME_PER_TRANSITION = min(2000, TIME_PER_TRANSITION + 100);
         break;
     case AppTimeMenu:
         TIME_PER_APP = min(static_cast<long>(30000), TIME_PER_APP + 1000);

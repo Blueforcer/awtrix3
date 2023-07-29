@@ -68,6 +68,45 @@ Just call the name for your favorite effect.
   </tr>
 </table>
 
+
+# Custom Color Palette Creation Guide
+
+This guide will show you how to create a custom color palette for use with AWTRIX effects.
+
+A color palette in AWTRIX is an array of 16 colors. Each color is represented as a `CRGB` object, which contains red, green, and blue components. 
+
+AWTRIX uses these palettes to create smooth transitions between colors in effects. The 16 colors in the palette are not the only colors that will be displayed. Instead, AWTRIX interpolates between these colors to create a wide spectrum of in-between hues. This creates smooth, visually pleasing color transitions in your LED effects.
+
+## Creating a Custom Color Palette
+
+1. Create a text file with the `.txt` extension (for example, `sunny.txt`).
+2. In the text file, define 16 colors in hexadecimal format. Each color should be on a new line. A color is defined in the format `#RRGGBB`, where `RR` is the red component, `GG` is the green component, and `BB` is the blue component. Each component is a two-digit hexadecimal number (00 to FF). 
+
+For example, a sunny palette might look like this:
+
+```
+#0000FF   // Deep blue sky at the horizon's edge
+#0047AB   // Lighter sky
+#0080FF   // Even lighter sky
+#00BFFF   // Light blue sky
+#87CEEB   // Slightly cloudy sky
+#87CEFA   // Light blue sky
+#F0E68C   // Light clouds
+#FFD700   // Start of sun colors
+#FFA500   // Darker sun colors
+#FF4500   // Even darker sun colors
+#FF6347   // Red-orange sun colors
+#FF4500   // Dark sun colors
+#FFA500   // Bright sun colors
+#FFD700   // Bright yellow sun colors
+#FFFFE0   // Very bright sun colors
+#FFFFFF   // White sun colors, very bright light
+```
+
+3. Save this file to in the `/PALETTES/` directory.
+
+Remember, the colors you define in your palette serve as key points in the color transitions. AWTRIX interpolates between these colors, creating a broad array of in-between hues for smooth color transitions in your animations. Experiment with different color placements in your palette to achieve different visual effects.
+
 # Artnet (DMX)
   
 Awtrix light supports Artnet out of the box.  

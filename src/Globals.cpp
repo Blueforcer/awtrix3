@@ -72,9 +72,9 @@ void loadDevSettings()
             TEMP_OFFSET = doc["temp_offset"];
         }
 
-         if (doc.containsKey("background_effect"))
-        { 
-            BACKGROUND_EFFECT = getEffectIndex(doc["background_effect"].as<String>());
+        if (doc.containsKey("background_effect"))
+        {
+            BACKGROUND_EFFECT = getEffectIndex(doc["background_effect"].as<const char *>());
         }
 
         if (doc.containsKey("min_brightness"))
@@ -92,7 +92,6 @@ void loadDevSettings()
             HUM_OFFSET = doc["hum_offset"];
         }
 
-        
         if (doc.containsKey("ha_prefix"))
         {
             HA_PREFIX = doc["ha_prefix"].as<String>();
@@ -163,7 +162,7 @@ void loadSettings()
     BRIGHTNESS = Settings.getUInt("BRI", 120);
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", false);
     TEXTCOLOR_565 = Settings.getUInt("TCOL", 0xFFFF);
-
+    TRANS_EFFECT = Settings.getUInt("TEFF", 0);
     TIME_COLOR = Settings.getUInt("TIME_COL", 0);
     DATE_COLOR = Settings.getUInt("DATE_COL", 0);
     TEMP_COLOR = Settings.getUInt("TEMP_COL", 0);
@@ -205,6 +204,7 @@ void saveSettings()
 {
     DEBUG_PRINTLN(F("Saving usersettings"));
     Settings.begin("awtrix", false);
+    Settings.putUInt("TEFF", TRANS_EFFECT);
     Settings.putUInt("BRI", BRIGHTNESS);
     Settings.putBool("WD", SHOW_WEEKDAY);
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
@@ -246,7 +246,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.71";
+const char *VERSION = "0.72";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -302,7 +302,7 @@ float HUM_OFFSET;
 uint16_t LDR_RAW;
 String TIME_FORMAT = "%H:%M:%S";
 String DATE_FORMAT = "%d.%m.%y";
-int BACKGROUND_EFFECT=-1;
+int BACKGROUND_EFFECT = -1;
 bool START_ON_MONDAY;
 
 String ALARM_SOUND;
@@ -349,3 +349,4 @@ bool MOODLIGHT_MODE;
 uint8_t MIN_BRIGHTNESS = 2;
 uint8_t MAX_BRIGHTNESS = 180;
 float movementFactor = 0.5;
+int8_t TRANS_EFFECT = 0;

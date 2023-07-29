@@ -10,6 +10,7 @@ private:
 
 public:
     static MQTTManager_ &getInstance();
+
     void setup();
     void tick();
     void rawPublish(const char *prefix, const char *topic, const char *payload);
@@ -21,6 +22,7 @@ public:
     void beginPublish(const char *topic, unsigned int plength, boolean retained);
     void writePayload(const char *data, const uint16_t length);
     void endPublish();
+    bool getStatus();
 };
 extern MQTTManager_ &MQTTManager;
 

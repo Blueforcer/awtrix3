@@ -701,6 +701,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     }
     newNotification.loopSound = doc.containsKey("loopSound") ? doc["loopSound"].as<bool>() : false;
     newNotification.effect = doc.containsKey("effect") ? getEffectIndex(doc["effect"].as<String>()) : -1;
+    updateEffectSettings(newNotification.effect, doc["effectSettings"].as<String>());
     newNotification.sound = doc.containsKey("sound") ? doc["sound"].as<String>() : "";
     newNotification.rtttl = doc.containsKey("rtttl") ? doc["rtttl"].as<String>() : "";
     newNotification.duration = doc.containsKey("duration") ? doc["duration"].as<long>() * 1000 : TIME_PER_APP;
@@ -1506,6 +1507,8 @@ String DisplayManager_::getStats()
     doc[F("indicator2")] = ui->indicator2State;
     doc[F("indicator3")] = ui->indicator3State;
     doc[F("app")] = CURRENT_APP;
+    doc[F("freeFlash")] = LittleFS.totalBytes() - LittleFS.usedBytes();
+    doc[F("heap")] = ESP.getFreeHeap();
     String jsonString;
     return serializeJson(doc, jsonString), jsonString;
 }
@@ -1777,6 +1780,7 @@ String DisplayManager_::getSettings()
     doc["BRI"] = BRIGHTNESS;
     doc["ATRANS"] = AUTO_TRANSITION;
     doc["TCOL"] = TEXTCOLOR_565;
+    doc["TEFF"] = TRANS_EFFECT;
     doc["TSPEED"] = TIME_PER_TRANSITION;
     doc["ATIME"] = TIME_PER_APP / 1000;
     doc["TFORMAT"] = TIME_FORMAT;
@@ -1821,6 +1825,7 @@ void DisplayManager_::setNewSettings(const char *json)
     {
         TIME_PER_APP = TIME_PER_APP;
     }
+    TRANS_EFFECT = doc.containsKey("TEFF") ? doc["TEFF"] : TRANS_EFFECT;
     TIME_PER_TRANSITION = doc.containsKey("TSPEED") ? doc["TSPEED"] : TIME_PER_TRANSITION;
     BRIGHTNESS = doc.containsKey("BRI") ? doc["BRI"] : BRIGHTNESS;
     SCROLL_SPEED = doc.containsKey("SSPEED") ? doc["SSPEED"] : SCROLL_SPEED;
@@ -2278,4 +2283,17 @@ void DisplayManager_::sendBMP(Stream &stream)
 CRGB *DisplayManager_::getLeds()
 {
     return leds;
+}
+
+String DisplayManager_::getEffectNamesInJson()
+{
+    StaticJsonDocument<1024> doc;
+    JsonArray array = doc.to<JsonArray>();
+    for (int i = 0; i < numOfEffects; i++)
+    {
+        array.add(effects[i].name);
+    }
+    String result;
+    serializeJson(array, result);
+    return result;
 }

@@ -98,6 +98,7 @@ struct RGB {
     void sendBMP(Stream &stream);
     CRGB getPixelColor(int16_t x, int16_t y);
     CRGB* getLeds();
+    String getEffectNamesInJson();
 };
 
 extern DisplayManager_ &DisplayManager;

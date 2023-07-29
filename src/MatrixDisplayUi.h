@@ -43,6 +43,20 @@ enum AnimationDirection
   SLIDE_DOWN
 };
 
+enum TransitionType
+{
+  SLIDE,
+  FADE,
+  ZOOM,
+  ROTATE,
+  PIXELATE,
+  CURTAIN,
+  RIPPLE,
+  BLINK,
+  RELOAD,
+  CROSSFADE
+};
+
 enum AppState
 {
   IN_TRANSITION,
@@ -52,7 +66,7 @@ enum AppState
 // Structure of the UiState
 struct MatrixDisplayUiState
 {
-
+  TransitionType transitionType = SLIDE;
   u_int64_t lastUpdate = 0;
   long ticksSinceLastStateSwitch = 0;
 
@@ -68,7 +82,7 @@ struct MatrixDisplayUiState
   void *userData = NULL;
 };
 
-typedef void (*AppCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer);
+typedef void (*AppCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
 typedef void (*OverlayCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
 typedef void (*BackgroundCallback)(FastLED_NeoMatrix *matrix);
 
@@ -76,7 +90,7 @@ class MatrixDisplayUi
 {
 private:
   FastLED_NeoMatrix *matrix;
-
+  CRGB ledsCopy[256];
   // Values for the Apps
   AnimationDirection appAnimationDirection = SLIDE_DOWN;
   int8_t lastTransitionDirection = 1;
@@ -108,6 +122,17 @@ private:
   void tick();
   void resetState();
   bool isCurrentAppValid();
+  void curtainTransition();
+  void slideTransition();
+  void fadeTransition();
+  void zoomTransition();
+  void rotateTransition();
+  void pixelateTransition();
+  void rippleTransition();
+  void blinkTransition();
+  void reloadTransition();
+  void crossfadeTransition();
+
 
 public:
   MatrixDisplayUi(FastLED_NeoMatrix *matrix);

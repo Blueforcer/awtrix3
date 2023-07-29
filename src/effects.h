@@ -6,14 +6,35 @@
 #include <ArduinoJson.h>
 #include "DisplayManager.h"
 
-typedef void (*EffectFunc)(FastLED_NeoMatrix *, int16_t, int16_t);
+
+enum Direction
+{
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
+};
+
+struct EffectSettings
+{
+    uint8_t speed;
+    CRGBPalette16 palette;
+    Direction direction;
+    EffectSettings(uint8_t s = 2, CRGBPalette16 p = OceanColors_p, Direction d = LEFT) : speed(s), palette(p), direction(d) {}
+};
+
+typedef void (*EffectFunc)(FastLED_NeoMatrix *, int16_t, int16_t, EffectSettings *);
 
 struct Effect
 {
     String name;
     EffectFunc func;
+    EffectSettings settings;
 };
+
+const int numOfEffects = 20;
 extern Effect effects[];
-void callEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, int index);
+void callEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, u_int8_t index);
 int getEffectIndex(String name);
+void updateEffectSettings(u_int8_t index, String json);
 #endif

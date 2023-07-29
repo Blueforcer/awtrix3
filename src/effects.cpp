@@ -2,31 +2,51 @@
 
 const CRGBPalette16 palette = RainbowColors_p;
 
-void Pacifica(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void Pacifica(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
-    uint8_t speed = 2;
     static uint32_t sPacificaTime = 0;
-    sPacificaTime += speed;
+    sPacificaTime += settings->speed;
     for (uint16_t i = 0; i < cols; i++)
     {
         for (uint16_t j = 0; j < rows; j++)
         {
-            uint16_t ulx = (sPacificaTime / 8) + (i * 16);
-            uint16_t uly = (sPacificaTime / 4) + (j * 16);
+            uint16_t ulx, uly;
+
+            // Richtung berücksichtigen
+            switch (settings->direction)
+            {
+            case UP:
+                ulx = (sPacificaTime / 8) - (i * 16); // Für UP und DOWN, verändert sich die x-Position
+                uly = (sPacificaTime / 4) + (j * 16);
+                break;
+            case DOWN:
+                ulx = (sPacificaTime / 8) + (i * 16);
+                uly = (sPacificaTime / 4) + (j * 16);
+                break;
+            case LEFT:
+                ulx = (sPacificaTime / 8) + (i * 16); // Für LEFT und RIGHT, verändert sich die y-Position
+                uly = (sPacificaTime / 4) - (j * 16);
+                break;
+            case RIGHT:
+                ulx = (sPacificaTime / 8) + (i * 16);
+                uly = (sPacificaTime / 4) + (j * 16);
+                break;
+            }
+
             uint16_t v = 0;
             v += sin16(ulx * 6 + sPacificaTime / 2) / 8 + 127;
             v += sin16(uly * 9 + sPacificaTime / 2) / 8 + 127;
             v += sin16(ulx * 7 + uly * 2 - sPacificaTime) / 16;
             v = v / 3;
-            CRGB color = ColorFromPalette(OceanColors_p, v);
+            CRGB color = ColorFromPalette(settings->palette, v);
             matrix->drawPixel(x + i, y + j, color);
         }
     }
 }
 
-void TheaterChase(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void TheaterChase(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
@@ -57,7 +77,7 @@ void TheaterChase(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
     }
 }
 
-void Plasma(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void Plasma(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
@@ -81,7 +101,7 @@ struct MatrixColumn
     CRGB color;       // Farbe des Pixels
 };
 
-void Matrix(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void Matrix(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
@@ -142,7 +162,7 @@ void Matrix(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
     }
 }
 
-void SwirlIn(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void SwirlIn(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
@@ -174,7 +194,7 @@ void SwirlIn(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
     }
 }
 
-void SwirlOut(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void SwirlOut(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
@@ -206,7 +226,7 @@ void SwirlOut(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
     }
 }
 
-void ColorWaves(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void ColorWaves(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
@@ -243,7 +263,7 @@ struct Star
 
 Star stars[32][8]; // Create a buffer to store the state of the LEDs
 
-void TwinklingStars(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void TwinklingStars(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
@@ -301,7 +321,7 @@ uint16_t eye[5][64] = {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 65535, 0, 0, 0, 0, 0, 0, 65535, 0, 65535, 65535, 65535, 65535, 65535, 65535, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 };
 
-void LookingEyes(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void LookingEyes(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     if (blinkCountdown < sizeof(blinkIndex) / sizeof(blinkIndex[0]) - 1)
     {
@@ -490,7 +510,7 @@ void updateDirection()
     }
 }
 
-void SnakeGame(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void SnakeGame(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
@@ -615,7 +635,7 @@ Firework fireworks[MAX_FIREWORKS];
 uint32_t lastFireworkTime = 0;
 uint32_t fireworkInterval = 350; // milliseconds between new fireworks
 
-void Fireworks(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void Fireworks(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
@@ -687,7 +707,7 @@ Ripple ripple;
 
 CRGB RippleLeds[32][8]; // temporary LEDs state
 
-void RippleEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void RippleEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
@@ -737,7 +757,7 @@ void RippleEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
 
 // ######## PlasmaCloud ############
 
-void PlasmaCloudEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void PlasmaCloudEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
@@ -762,7 +782,7 @@ void PlasmaCloudEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
     hueShift += 0.1;
 }
 
-void CheckerboardEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void CheckerboardEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
@@ -793,51 +813,11 @@ void CheckerboardEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
     colorIndex2 += 1; // Increment at a different rate for more variation
 }
 
-// ######## Raindrops ############
-
-#define MAX_DROPS 10
-#define DROP_SPEED 0.5
-
-struct Drop
-{
-    float pos;  // Current position
-    CRGB color; // Drop's color
-};
-
-Drop drops[MAX_DROPS];
-
-void RaindropsEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
-{
-    const uint16_t cols = matrix->width();
-    const uint16_t rows = matrix->height();
-    matrix->fillScreen(0); // Clear the matrix each frame
-
-    // Initialize drops with random positions and colors
-    for (uint8_t i = 0; i < MAX_DROPS; i++)
-    {
-        if ((drops[i].color.r == 0 && drops[i].color.g == 0 && drops[i].color.b == 0) || drops[i].pos > rows)
-        {
-            // Check if the color is black
-            drops[i].pos = 0;
-            drops[i].color = CHSV(random(255), 255, 255);
-        }
-    }
-
-    // Move each drop and draw it on the matrix
-    for (uint8_t i = 0; i < MAX_DROPS; i++)
-    {
-        drops[i].pos += DROP_SPEED;
-        if (drops[i].pos <= rows)
-        {
-            matrix->drawPixel(x + i, y + (int)drops[i].pos, drops[i].color);
-        }
-    }
-}
 
 uint8_t beamAngle = 0;
 CRGB leds1[32][8];
 
-void RadarEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void RadarEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
@@ -860,7 +840,7 @@ void RadarEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
         uint16_t j = centerY - r * (sin8(beamAngle) - 128) / 128.0;
         if (i < cols && j < rows)
         {
-            leds1[i][j] = CHSV(beamAngle, 255, 255);
+            leds1[i][j] = ColorFromPalette(settings->palette, beamAngle);
         }
     }
 
@@ -874,7 +854,7 @@ void RadarEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
     }
 
     // Increment the beam angle
-    beamAngle += 2;
+    beamAngle += settings->speed;
 }
 
 // ######## Balls ############
@@ -893,7 +873,7 @@ struct Ball
     int dx, dy; // Speed of the ball
 };
 
-void PingPongEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void PingPongEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
@@ -1009,7 +989,7 @@ bool bricksRemain()
     return false;
 }
 
-void BrickBreakerEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+void BrickBreakerEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
     const uint16_t cols = matrix->width();
     const uint16_t rows = matrix->height();
@@ -1041,7 +1021,7 @@ void BrickBreakerEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
         ball.y += ball.dy;
 
         // Move the paddle
-        paddle.x = ball.x-1;
+        paddle.x = ball.x - 1;
 
         // If the paddle has reached the left or right edge, change its direction
         if (paddle.x <= 0 || paddle.x + PADDLE_WIDTH >= cols)
@@ -1098,31 +1078,123 @@ void BrickBreakerEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
     }
 }
 
-Effect effects[] = {
-    {"BrickBreaker", BrickBreakerEffect},
-    {"PingPong", PingPongEffect},
-    {"Radar", RadarEffect},
-    {"Raindrops", RaindropsEffect},
-    {"Checkerboard", CheckerboardEffect},
-    {"Fireworks", Fireworks},
-    {"PlasmaCloud", PlasmaCloudEffect},
-    {"Ripple", RippleEffect},
-    {"Snake", SnakeGame},
-    {"Pacifica", Pacifica},
-    {"TheaterChase", TheaterChase},
-    {"Plasma", Plasma},
-    {"Matrix", Matrix},
-    {"SwirlIn", SwirlIn},
-    {"SwirlOut", SwirlOut},
-    {"LookingEyes", LookingEyes},
-    {"TwinklingStars", TwinklingStars},
-    {"ColorWaves", ColorWaves}};
+void MovingLine(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+{
+    const uint16_t cols = matrix->width();
+    const uint16_t rows = matrix->height();
 
-void callEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, int index)
+    static int16_t linePosition = 0; // Start position of the line
+    static int8_t direction = 1;     // Direction of the line movement
+    static uint8_t hue = 0;          // Hue for the color of the line
+
+    // Control the speed of the line
+    static uint32_t lastUpdate = 0;
+    if (millis() - lastUpdate > 50)
+    { // Update every 60 milliseconds
+        lastUpdate = millis();
+
+        // Move the line
+        linePosition += direction;
+        if (linePosition <= 0 || linePosition + 1 >= rows)
+        {
+            direction = -direction;
+        }
+
+        // Change the color of the line
+        hue += 10;
+    }
+
+    // Draw the line
+    for (int16_t i = 0; i < 1; i++)
+    {
+        for (uint16_t j = 0; j < cols; j++)
+        {
+            matrix->drawPixel(x + j, y + linePosition + i, CHSV(hue, 255, 255));
+        }
+    }
+}
+
+void RainbowFade(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
+{
+    const uint16_t cols = matrix->width();
+    const uint16_t rows = matrix->height();
+    static uint8_t hue = 0; // Hue for the color of the rows
+    // Change the color of the rows based on speed
+    hue += settings->speed;
+    // Draw the rows with fading colors based on the palette
+    switch (settings->direction)
+    {
+    case UP:
+        for (int16_t i = rows - 1; i >= 0; i--)
+        {
+            for (uint16_t j = 0; j < cols; j++)
+            {
+                CRGB color = ColorFromPalette(settings->palette, hue + (i * 256 / rows));
+                matrix->drawPixel(x + j, y + i, color);
+            }
+        }
+        break;
+    case DOWN:
+        for (uint16_t i = 0; i < rows; i++)
+        {
+            for (uint16_t j = 0; j < cols; j++)
+            {
+                CRGB color = ColorFromPalette(settings->palette, hue + (i * 256 / rows));
+                matrix->drawPixel(x + j, y + i, color);
+            }
+        }
+        break;
+    case LEFT:
+        for (uint16_t i = 0; i < rows; i++)
+        {
+            for (int16_t j = cols - 1; j >= 0; j--)
+            {
+                CRGB color = ColorFromPalette(settings->palette, hue + (i * 256 / rows));
+                matrix->drawPixel(x + j, y + i, color);
+            }
+        }
+        break;
+    case RIGHT:
+        for (uint16_t i = 0; i < rows; i++)
+        {
+            for (uint16_t j = 0; j < cols; j++)
+            {
+                CRGB color = ColorFromPalette(settings->palette, hue + (i * 256 / rows));
+                matrix->drawPixel(x + j, y + i, color);
+            }
+        }
+        break;
+    }
+}
+
+Effect effects[] = {
+    {"RainbowFade", RainbowFade, EffectSettings(3, OceanColors_p, LEFT)},
+    {"MovingLine", MovingLine, EffectSettings()},
+    {"BrickBreaker", BrickBreakerEffect, EffectSettings()},
+    {"PingPong", PingPongEffect, EffectSettings()},
+    {"Radar", RadarEffect, EffectSettings()},
+    {"Checkerboard", CheckerboardEffect, EffectSettings()},
+    {"Fireworks", Fireworks, EffectSettings()},
+    {"PlasmaCloud", PlasmaCloudEffect, EffectSettings()},
+    {"Ripple", RippleEffect, EffectSettings()},
+    {"Snake", SnakeGame, EffectSettings()},
+    {"Pacifica", Pacifica, EffectSettings(3, OceanColors_p, LEFT)},
+    {"TheaterChase", TheaterChase, EffectSettings()},
+    {"Plasma", Plasma, EffectSettings()},
+    {"Matrix", Matrix, EffectSettings()},
+    {"SwirlIn", SwirlIn, EffectSettings()},
+    {"SwirlOut", SwirlOut, EffectSettings()},
+    {"LookingEyes", LookingEyes, EffectSettings()},
+    {"TwinklingStars", TwinklingStars, EffectSettings()},
+    {"ColorWaves", ColorWaves, EffectSettings()}};
+
+// ######## Helper functions ############
+
+void callEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, u_int8_t index)
 {
     if (index >= 0)
     {
-        effects[index].func(matrix, x, y);
+        effects[index].func(matrix, x, y, &effects[index].settings);
     }
 }
 
@@ -1136,4 +1208,137 @@ int getEffectIndex(String name)
         }
     }
     return -1;
+}
+
+Direction getDirection(String directionName)
+{
+    if (directionName == "UP")
+    {
+        return UP;
+    }
+    else if (directionName == "DOWN")
+    {
+        return DOWN;
+    }
+    else if (directionName == "LEFT")
+    {
+        return LEFT;
+    }
+    else if (directionName == "RIGHT")
+    {
+        return RIGHT;
+    }
+    else
+    {
+        // default
+        return UP;
+    }
+}
+
+// Loads a palette from the LittleFS filesystem
+CRGBPalette16 loadPaletteFromLittleFS(String paletteName)
+{
+    Serial.println("Loading palette: " + paletteName);
+    File paletteFile = LittleFS.open("/palettes.json", "r");
+    if (!paletteFile)
+    {
+        Serial.println("Failed to open palette file " + paletteName);
+        return RainbowColors_p; // default palette
+    }
+    String paletteContent = paletteFile.readString();
+    paletteFile.close();
+
+    DynamicJsonDocument doc(4096);
+    auto error = deserializeJson(doc, paletteContent);
+    if (error)
+    {
+        Serial.println("Failed to parse JSON");
+        return RainbowColors_p;
+    }
+
+    JsonArray paletteArray = doc[paletteName];
+    if (!paletteArray)
+    {
+        Serial.println("Failed to find palette: " + paletteName);
+        return RainbowColors_p;
+    }
+
+    CRGBPalette16 palette;
+    for (int i = 0; i < 16; i++)
+    {
+        String colorString = paletteArray[i];
+        if(colorString.startsWith("#"))
+        {
+            colorString = colorString.substring(1);
+        }
+        uint32_t colorValue = (uint32_t)strtol(colorString.c_str(), NULL, 16);
+        palette[i] = CRGB(colorValue);
+    }
+
+    Serial.println("Palette loaded: " + paletteName);
+    return palette;
+}
+
+
+
+// Returns a palette based on the given name
+CRGBPalette16 getPalette(String palette)
+{
+    if (palette == "Cloud")
+    {
+        return CloudColors_p;
+    }
+    else if (palette == "Lava")
+    {
+        return LavaColors_p;
+    }
+    else if (palette == "Ocean")
+    {
+        return OceanColors_p;
+    }
+    else if (palette == "Forest")
+    {
+        return ForestColors_p;
+    }
+    else if (palette == "RainbowStripe")
+    {
+        return RainbowStripeColors_p;
+    }
+    else if (palette == "Party")
+    {
+        return PartyColors_p;
+    }
+    else if (palette == "Heat")
+    {
+        return HeatColors_p;
+    }
+    else
+    {
+        return loadPaletteFromLittleFS(palette);
+    }
+}
+
+void updateEffectSettings(u_int8_t index, String json)
+{
+    if (index != -1)
+    {
+        StaticJsonDocument<200> doc;
+        deserializeJson(doc, json);
+
+        if (doc.containsKey("speed"))
+        {
+            effects[index].settings.speed = doc["speed"];
+        }
+
+        if (doc.containsKey("palette"))
+        {
+            effects[index].settings.palette = getPalette(doc["palette"].as<String>());
+        }
+
+        if (doc.containsKey("dir"))
+        {
+            effects[index].settings.direction = getDirection(doc["dir"].as<String>());
+        }
+        doc.clear();
+    }
 }

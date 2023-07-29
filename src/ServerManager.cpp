@@ -69,6 +69,8 @@ void addHandler()
 {
     mws.addHandler("/api/power", HTTP_POST, []()
                    { DisplayManager.powerStateParse(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
+    mws.addHandler("/api/effects", HTTP_GET, []()
+                     { mws.webserver->send_P(200, "application/json", DisplayManager.getEffectNamesInJson().c_str()); });
     mws.addHandler("/api/reboot", HTTP_POST, []()
                    { mws.webserver->send(200,F("text/plain"),F("OK")); delay(200); ESP.restart(); });
     mws.addHandler("/api/sound", HTTP_POST, []()
