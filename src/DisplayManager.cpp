@@ -613,6 +613,7 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json, b
         String iconFileName = String(doc["icon"].as<String>());
         if (customApp.icon && String(customApp.icon.name()).startsWith(iconFileName))
         {
+            
         }
         else
         {

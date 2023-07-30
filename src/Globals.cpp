@@ -26,6 +26,8 @@ void startLittleFS()
         LittleFS.mkdir("/MELODIES");
 #endif
         LittleFS.mkdir("/ICONS");
+        LittleFS.mkdir("/PALETTES");
+        LittleFS.mkdir("/CUSTOMAPPS");
         DEBUG_PRINTLN(F("Filesystem started"));
     }
     else

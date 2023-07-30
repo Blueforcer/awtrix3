@@ -17,10 +17,10 @@ enum Direction
 
 struct EffectSettings
 {
-    uint8_t speed;
+    double speed;
     CRGBPalette16 palette;
     Direction direction;
-    EffectSettings(uint8_t s = 2, CRGBPalette16 p = OceanColors_p, Direction d = LEFT) : speed(s), palette(p), direction(d) {}
+    EffectSettings(double s = 2, CRGBPalette16 p = OceanColors_p, Direction d = LEFT) : speed(s), palette(p), direction(d) {}
 };
 
 typedef void (*EffectFunc)(FastLED_NeoMatrix *, int16_t, int16_t, EffectSettings *);

@@ -155,9 +155,9 @@ void select_button_pressed_long()
     }
     else if (!BLOCK_NAVIGATION)
     {
-        #ifndef ULANZI
+#ifndef ULANZI
         PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
-        #endif
+#endif
         if (!ALARM_ACTIVE)
             MenuManager.selectButtonLong();
 
@@ -251,13 +251,13 @@ bool PeripheryManager_::parseSound(const char *json)
 
 bool PeripheryManager_::playRTTTLString(String rtttl)
 {
-    #ifdef ULANZI
-        Melody melody = MelodyFactory.loadRtttlString(rtttl.c_str());
-        player.playAsync(melody);
-        return melody.isValid();
-    #else
-        return false;
-    #endif
+#ifdef ULANZI
+    Melody melody = MelodyFactory.loadRtttlString(rtttl.c_str());
+    player.playAsync(melody);
+    return melody.isValid();
+#else
+    return false;
+#endif
 }
 
 bool PeripheryManager_::playFromFile(String file)
@@ -332,21 +332,21 @@ void PeripheryManager_::setup()
 #ifdef ULANZI
     sht31.begin(0x44);
 #else
-	if (bme280.begin(BME280_ADDRESS) || bme280.begin(BME280_ADDRESS_ALTERNATE))
-	{
+    if (bme280.begin(BME280_ADDRESS) || bme280.begin(BME280_ADDRESS_ALTERNATE))
+    {
         DEBUG_PRINTLN(F("BME280 sensor detected"));
-		TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_BME280;
-	}
+        TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_BME280;
+    }
     else if (bmp280.begin(BMP280_ADDRESS) || bmp280.begin(BMP280_ADDRESS_ALT))
-	{
+    {
         DEBUG_PRINTLN(F("BMP280 sensor detected"));
-		TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_BMP280;
-	}
+        TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_BMP280;
+    }
     else if (htu21df.begin())
-	{
+    {
         DEBUG_PRINTLN(F("HTU21DF sensor detected"));
-		TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_HTU21DF;
-	}
+        TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_HTU21DF;
+    }
     dfmp3.begin();
 #endif
     photocell.setPhotocellPositionOnGround(false);
@@ -380,31 +380,31 @@ void PeripheryManager_::tick()
 #ifdef ULANZI
             sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
 #else
-			switch (TEMP_SENSOR_TYPE)
-			{
-			case TEMP_SENSOR_TYPE_BME280:
+            switch (TEMP_SENSOR_TYPE)
+            {
+            case TEMP_SENSOR_TYPE_BME280:
                 CURRENT_TEMP = bme280.readTemperature();
-				CURRENT_HUM = bme280.readHumidity();
-				break;
-			case TEMP_SENSOR_TYPE_BMP280:
+                CURRENT_HUM = bme280.readHumidity();
+                break;
+            case TEMP_SENSOR_TYPE_BMP280:
                 CURRENT_TEMP = bmp280.readTemperature();
-				CURRENT_HUM = 0;
-				break;
-			case TEMP_SENSOR_TYPE_HTU21DF:
+                CURRENT_HUM = 0;
+                break;
+            case TEMP_SENSOR_TYPE_HTU21DF:
                 CURRENT_TEMP = htu21df.readTemperature();
                 CURRENT_HUM = htu21df.readHumidity();
-				break;
-			default:
-				CURRENT_TEMP = 0;
-				CURRENT_HUM = 0;
-				break;
-			}
+                break;
+            default:
+                CURRENT_TEMP = 0;
+                CURRENT_HUM = 0;
+                break;
+            }
 #endif
             CURRENT_TEMP += TEMP_OFFSET;
             CURRENT_HUM += HUM_OFFSET;
         }
 
-        //checkAlarms();
+        // checkAlarms();
         MQTTManager.sendStats();
     }
 
@@ -435,6 +435,7 @@ void PeripheryManager_::tick()
 const int MIN_ALARM_INTERVAL = 60; // 1 Minute
 time_t lastAlarmTime = 0;
 
+// deprecated
 void PeripheryManager_::checkAlarms()
 {
     if (LittleFS.exists("/alarms.json"))

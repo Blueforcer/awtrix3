@@ -69,13 +69,39 @@ Just call the name for your favorite effect.
 </table>
 
 
+# Effect settings
+
+| Effect Name | Speed | Palette | Direction |
+|-------------|-------|---------|-----------|
+| RainbowFade | 1 | Rainbow | LEFT |
+| MovingLine | 1 | Rainbow | LEFT |
+| BrickBreaker | - | - | - |
+| PingPong | 8 | Rainbow | - |
+| Radar | 1 | Rainbow | - |
+| Checkerboard | 1 | Rainbow | - |
+| Fireworks | 0.8 | Rainbow | - |
+| PlasmaCloud | 3 | Rainbow | - |
+| Ripple | - | - | - |
+| Snake | - | - | - |
+| Pacifica | 3 | Ocean | LEFT |
+| TheaterChase | - | - | - |
+| Plasma | 2 | Rainbow | - |
+| Matrix | - | - | - |
+| SwirlIn | 4 | Rainbow | - |
+| SwirlOut | 4 | Rainbow | - |
+| LookingEyes | - | - | - |
+| TwinklingStars | 4 | Ocean | - |
+| ColorWaves | - | - | - |
+
+
+
 # Custom Color Palette Creation Guide
 
 This guide will show you how to create a custom color palette for use with AWTRIX effects.
 
-A color palette in AWTRIX is an array of 16 colors. Each color is represented as a `CRGB` object, which contains red, green, and blue components. 
+A color palette in AWTRIX is an array of 16 colors. Each color is represented as a `RGB` object, which contains red, green, and blue components. 
 
-AWTRIX uses these palettes to create smooth transitions between colors in effects. The 16 colors in the palette are not the only colors that will be displayed. Instead, AWTRIX interpolates between these colors to create a wide spectrum of in-between hues. This creates smooth, visually pleasing color transitions in your LED effects.
+AWTRIX uses these palettes to create transitions between colors in effects. The 16 colors in the palette are not the only colors that will be displayed. Instead, AWTRIX interpolates between these colors to create a wide spectrum of in-between hues. This creates smooth, visually pleasing color transitions in your effects.
 
 ## Creating a Custom Color Palette
 
