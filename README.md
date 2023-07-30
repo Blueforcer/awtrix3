@@ -66,6 +66,7 @@ https://flows.blueforcer.de/
 - Notification support
 - Animated icons
 - Fullscreen animations
+- Effects
 - Custom icons without recompiling
 - Easy to use icon system
 - Powerful MQTT commands
