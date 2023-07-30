@@ -357,7 +357,8 @@ void onMqttConnected()
         myOwnID->setValue(MQTT_PREFIX.c_str());
         version->setValue(VERSION);
     }
-    MQTTManager.publish("stats/effects", DisplayManager.getEffectNamesInJson().c_str());
+    MQTTManager.publish("stats/effects", DisplayManager.getEffectNames().c_str());
+    MQTTManager.publish("stats/transitions", DisplayManager.getTransistionNames().c_str());
     connected = true;
 }
 
@@ -650,7 +651,7 @@ void MQTTManager_::sendStats()
 
         snprintf(buffer, 5, "%.0f", CURRENT_LUX);
         illuminance->setValue(buffer);
-        
+
         BriMode->setState(AUTO_BRIGHTNESS, false);
         Matrix->setBrightness(BRIGHTNESS);
         Matrix->setState(!MATRIX_OFF, false);

@@ -613,7 +613,6 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json, b
         String iconFileName = String(doc["icon"].as<String>());
         if (customApp.icon && String(customApp.icon.name()).startsWith(iconFileName))
         {
-            
         }
         else
         {
@@ -2293,7 +2292,7 @@ CRGB *DisplayManager_::getLeds()
     return leds;
 }
 
-String DisplayManager_::getEffectNamesInJson()
+String DisplayManager_::getEffectNames()
 {
     StaticJsonDocument<1024> doc;
     JsonArray array = doc.to<JsonArray>();
@@ -2303,5 +2302,23 @@ String DisplayManager_::getEffectNamesInJson()
     }
     String result;
     serializeJson(array, result);
+    doc.clear();
     return result;
+}
+
+String DisplayManager_::getTransistionNames()
+{
+    char effectOptions[100];
+    strcpy_P(effectOptions, HAeffectOptions); 
+    StaticJsonDocument<1024> doc;
+    char *effect = strtok(effectOptions, ";");
+    while (effect != NULL)
+    {
+        doc.add(effect);
+        effect = strtok(NULL, ";");
+    }
+    String json;
+    serializeJson(doc, json);
+    doc.clear();
+    return json;
 }
