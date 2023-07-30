@@ -71,27 +71,27 @@ Just call the name for your favorite effect.
 
 # Effect settings
 
-| Effect Name | Speed | Palette | Direction |
+| Effect Name | Speed | Palette | Blend |
 |-------------|-------|---------|-----------|
-| RainbowFade | 1 | Rainbow | LEFT |
-| MovingLine | 1 | Rainbow | LEFT |
+| Fade | 1 | Rainbow | true |
+| MovingLine | 1 | Rainbow | true |
 | BrickBreaker | - | - | - |
 | PingPong | 8 | Rainbow | - |
-| Radar | 1 | Rainbow | - |
-| Checkerboard | 1 | Rainbow | - |
-| Fireworks | 0.8 | Rainbow | - |
-| PlasmaCloud | 3 | Rainbow | - |
-| Ripple | - | - | - |
+| Radar | 1 | Rainbow | true |
+| Checkerboard | 1 | Rainbow | true |
+| Fireworks | 0.8 | Rainbow | true |
+| PlasmaCloud | 3 | Rainbow | true |
+| Ripple | - | - | true |
 | Snake | - | - | - |
-| Pacifica | 3 | Ocean | LEFT |
+| Pacifica | 3 | Ocean | true |
 | TheaterChase | - | - | - |
-| Plasma | 2 | Rainbow | - |
-| Matrix | - | - | - |
+| Plasma | 2 | Rainbow | true |
+| Matrix | 8 | - | - |
 | SwirlIn | 4 | Rainbow | - |
 | SwirlOut | 4 | Rainbow | - |
 | LookingEyes | - | - | - |
-| TwinklingStars | 4 | Ocean | - |
-| ColorWaves | - | - | - |
+| TwinklingStars | 4 | Ocean | false |
+| ColorWaves | 3 | Rainbow | true |
 
 
 
@@ -105,11 +105,12 @@ AWTRIX uses these palettes to create transitions between colors in effects. The 
 
 ## Creating a Custom Color Palette
 
-1. Create a text file with the `.txt` extension (for example, `sunny.txt`).
+1. Create a text file with the `.txt` extension (for example, `sunny.txt`) in the `/PALETTES/` directory..
 2. In the text file, define 16 colors in hexadecimal format. Each color should be on a new line. A color is defined in the format `#RRGGBB`, where `RR` is the red component, `GG` is the green component, and `BB` is the blue component. Each component is a two-digit hexadecimal number (00 to FF). 
-
+  
 For example, a sunny palette might look like this:
-
+Note, dont use comments in your palettes file.  
+  
 ```
 #0000FF   // Deep blue sky at the horizon's edge
 #0047AB   // Lighter sky
@@ -129,15 +130,13 @@ For example, a sunny palette might look like this:
 #FFFFFF   // White sun colors, very bright light
 ```
 
-3. Save this file to in the `/PALETTES/` directory.
-
-Remember, the colors you define in your palette serve as key points in the color transitions. AWTRIX interpolates between these colors, creating a broad array of in-between hues for smooth color transitions in your animations. Experiment with different color placements in your palette to achieve different visual effects.
+Remember, the colors you define in your palette serve as key points in the color transitions. AWTRIX interpolates between these colors, creating a broad array of in-between hues for smooth color transitions in your animations. Experiment with different color placements in your palette to achieve different visual effects. You can use blend=false to not use interpolate colors.
 
 # Artnet (DMX)
   
 Awtrix light supports Artnet out of the box.  
 For [Jinx!](http://www.live-leds.de/) you can <a href="awtrix_light.jnx" download>download this template</a>. Just change the IP of both universes to your awtrix IP and youre ready to go.
 
-**For any Other Arnet controller:**    
+**For any Other Artnet controller:**    
 Create 2 universes with 384 channels each. Also add a new matrix layout with 8 strings á 32 Strands and top left starting position. When you start to send data, AWTRIX will stop its normal operation and shows your data. 1s after you stop sending data, AWTRIX will return to normal operation.
   
