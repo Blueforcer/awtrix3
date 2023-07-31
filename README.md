@@ -15,6 +15,9 @@
 ![GitHub Sponsors](https://img.shields.io/github/sponsors/blueforcer?style=flat-square)
 ![Discord](https://img.shields.io/discord/546407049148366859?label=Discord&style=flat-square)
 
+![Alt text](/logo.png?raw=true "Title")
+
+
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=N0NKPJzGHuA" target="_blank">
  <img src="http://img.youtube.com/vi/N0NKPJzGHuA/mqdefault.jpg" alt="Watch the video" height="180" border="10" />
 </a>  
