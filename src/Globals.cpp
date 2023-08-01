@@ -164,8 +164,10 @@ void loadSettings()
     BRIGHTNESS = Settings.getUInt("BRI", 120);
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", false);
     TEXTCOLOR_565 = Settings.getUInt("TCOL", 0xFFFF);
+    CALENDAR_COLOR = Settings.getUInt("CCOL", 0xF800);
+    CALENDAR_TEXT_COLOR = Settings.getUInt("CTCOL", 0x0000);
     TRANS_EFFECT = Settings.getUInt("TEFF", 0);
-    TIME_MODE = Settings.getUInt("TMODE", 0);
+    TIME_MODE = Settings.getUInt("TMODE", 1);
     TIME_COLOR = Settings.getUInt("TIME_COL", 0);
     DATE_COLOR = Settings.getUInt("DATE_COL", 0);
     TEMP_COLOR = Settings.getUInt("TEMP_COL", 0);
@@ -184,7 +186,7 @@ void loadSettings()
     START_ON_MONDAY = Settings.getBool("SOM", true);
     IS_CELSIUS = Settings.getBool("CEL", true);
     SHOW_TIME = Settings.getBool("TIM", true);
-    SHOW_DATE = Settings.getBool("DAT", true);
+    SHOW_DATE = Settings.getBool("DAT", false);
     SHOW_TEMP = Settings.getBool("TEMP", true);
     SHOW_HUM = Settings.getBool("HUM", true);
     MATRIX_LAYOUT = Settings.getUInt("MAT", 0);
@@ -207,13 +209,15 @@ void saveSettings()
 {
     DEBUG_PRINTLN(F("Saving usersettings"));
     Settings.begin("awtrix", false);
+    Settings.putUInt("CCOL", CALENDAR_COLOR);
+    Settings.putUInt("CTCOL", CALENDAR_TEXT_COLOR);
     Settings.putUInt("TEFF", TRANS_EFFECT);
     Settings.putUInt("BRI", BRIGHTNESS);
     Settings.putBool("WD", SHOW_WEEKDAY);
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
     Settings.putBool("ATRANS", AUTO_TRANSITION);
     Settings.putUInt("TCOL", TEXTCOLOR_565);
-    Settings.putUInt("TMODE", TIME_MODE);    
+    Settings.putUInt("TMODE", TIME_MODE);
     Settings.putUInt("TIME_COL", TIME_COLOR);
     Settings.putUInt("DATE_COL", DATE_COLOR);
     Settings.putUInt("TEMP_COL", TEMP_COLOR);
@@ -345,7 +349,8 @@ bool ROTATE_SCREEN = false;
 uint8_t TIME_MODE = 1;
 uint8_t SCROLL_SPEED = 100;
 uint16_t TIME_COLOR = 0;
-
+uint16_t CALENDAR_COLOR = 0;
+uint16_t CALENDAR_TEXT_COLOR = 0;
 uint16_t DATE_COLOR = 0;
 uint16_t BAT_COLOR = 0;
 uint16_t TEMP_COLOR = 0;

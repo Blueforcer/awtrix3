@@ -1911,6 +1911,16 @@ void DisplayManager_::setNewSettings(const char *json)
         auto WDCA = doc["WDCA"];
         WDC_ACTIVE = getColorFromJsonVariant(WDCA, matrix->Color(255, 255, 255));
     }
+    if (doc.containsKey("CCOL"))
+    {
+        auto CCOL = doc["CCOL"];
+        CALENDAR_COLOR = getColorFromJsonVariant(CCOL, matrix->Color(255, 0, 0));
+    }
+    if (doc.containsKey("CTCOL"))
+    {
+        auto CTCOL = doc["CTCOL"];
+        CALENDAR_TEXT_COLOR = getColorFromJsonVariant(CTCOL, matrix->Color(0, 0, 0));
+    }
     if (doc.containsKey("WDCI"))
     {
         auto WDCI = doc["WDCI"];

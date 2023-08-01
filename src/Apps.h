@@ -189,7 +189,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     {
         strftime(t, sizeof(t), timeformat, localtime(&now));
     }
-
+    char day_str[3];
     uint8_t wdPosX, wdPosY, timePosX, timePosY;
     switch (TIME_MODE)
     {
@@ -198,18 +198,34 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         break;
     case 1:
         DisplayManager.printText(12 + x, 6 + y, t, false, 2);
-        matrix->drawRect(0, 0, 8, 2, matrix->Color(255, 0, 0));
-        matrix->fillRect(0, 2, 8, 7, matrix->Color(255, 255, 255));
-        char day_str[3];
+        matrix->drawRect(0 + x, 0 + y, 9 + x, 2 + y, CALENDAR_COLOR);
+        matrix->fillRect(0 + x, 2 + y, 9 + x, 7 + y, matrix->Color(255, 255, 255));
         sprintf(day_str, "%d", timeInfo->tm_mday);
-        matrix->setTextColor(matrix->Color(0, 0, 0));
+        matrix->setTextColor(CALENDAR_TEXT_COLOR);
         if (timeInfo->tm_mday < 10)
         {
-            matrix->setCursor(3, 7);
+            matrix->setCursor(3 + x, 7 + y);
         }
         else
         {
-            matrix->setCursor(1, 7);
+            matrix->setCursor(1 + x, 7 + y);
+        }
+        matrix->print(day_str);
+        break;
+    case 2:
+        DisplayManager.printText(12 + x, 6 + y, t, false, 2);
+        matrix->fillRect(0 + x, 0 + y, 9 + x, 8 + y, CALENDAR_COLOR);
+        matrix->drawLine(1, 0, 2, 0, matrix->Color(0, 0, 0));
+        matrix->drawLine(6, 0, 7, 0, matrix->Color(0, 0, 0));
+        sprintf(day_str, "%d", timeInfo->tm_mday);
+        matrix->setTextColor(CALENDAR_TEXT_COLOR);
+        if (timeInfo->tm_mday < 10)
+        {
+            matrix->setCursor(3 + x, 7 + y);
+        }
+        else
+        {
+            matrix->setCursor(1 + x, 7 + y);
         }
         matrix->print(day_str);
         break;
