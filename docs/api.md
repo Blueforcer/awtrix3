@@ -4,7 +4,19 @@
 In MQTT awtrix send its stats every 10s to `[PREFIX]/stats`  
 With HTTP, make GET request to `http://[IP]/api/stats`
   
+## ScreenMirror  
+You can get the current matrix screen as an array of colors.  
   
+| Topic | URL | Payload/Body | HTTP method |  
+| --- | --- | --- | --- |  
+| `[PREFIX]/screen` | `http://[IP]/api/screen` | - | GET | 
+  
+When trigger the MQTT API, awtrix send the array to `[PREFIX]/screen`  
+  
+AWTRIX is also able to generate a bitmap directly. You can get it with
+http://[IP]/screen.bmp
+Note: dont use this as a live mirror, since it costs way more ressources to build a BMP binary.
+
 ## Turn display on or off    
   
 | Topic | URL | Payload/Body | HTTP method |  
@@ -110,6 +122,7 @@ The JSON object has the following properties,
 | `clients` | array of strings | Allows to forward a notification to other awtrix. Use the MQTT prefix for MQTT and IP adresses for HTTP |  |   | X |
 | `scrollSpeed` | integer | Modifies the scrollspeed. You need to enter a percentage value | 100 | X | X |
 | `effect` | string | Shows an [effect](https://blueforcer.github.io/awtrix-light/#/effects) as background |  | X | X |  
+| `effectSettings` | json map | Changes color and speed of the [effect](https://blueforcer.github.io/awtrix-light/#/effects) |  | X | X |  
 | `save` | boolean | Saves your customapp into flash and reload it after boot. You should avoid that with customapps wich has high update frequency because ESPs flashmemory has limited writecycles  |  | X |  |  
   
 
@@ -247,6 +260,8 @@ Each property is optional; you do not need to send all.
 | `ATIME` | number | Determines the duration an app is displayed in seconds. | Any positive integer value. | 7 |
 | `TSPEED` | number | The time the transition to the next app takes in milliseconds. | Any positive integer value. | 500 |
 | `TCOL` | string / array of ints| Sets the textcolor | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FF0000" for red. | N/A |
+| `TMODE` | integer | Changes the time app style | 0-4 | 1 |
+| `CCOL` | string / array of ints| Sets the calendar color of the time app | an array of RGB values hexadecimal color value | N/A |
 | `WD` | bool | Enable or disable the weekday display | true/false | true |
 | `WDCA` | string / array of ints| Sets the active weekday color | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FF0000" for red. | N/A |
 | `WDCI` | string / array of ints| Sets the inactive weekday color | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FFFF" for white. | N/A |

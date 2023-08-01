@@ -101,7 +101,7 @@ void addHandler()
                        } });
     mws.addHandler("/api/nextapp", HTTP_POST, []()
                    { DisplayManager.nextApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
-    mws.addHandler("/screenshot.bmp", HTTP_GET, [&]()
+    mws.addHandler("/screen.bmp", HTTP_GET, [&]()
                    {
 
     WiFiClient client = mws.webserver->client();

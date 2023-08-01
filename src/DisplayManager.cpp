@@ -2225,7 +2225,7 @@ int *DisplayManager_::getLedColors()
 void DisplayManager_::sendBMP(Stream &stream)
 {
     // Scaling factor and grid size
-    int scaleFactor = 2;
+    int scaleFactor = 10;
     int gridSize = 1;
 
     // Calculate dimensions of the new scaled image

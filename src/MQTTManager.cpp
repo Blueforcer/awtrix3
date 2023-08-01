@@ -208,6 +208,13 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         return;
     }
 
+     if (strTopic.equals(MQTT_PREFIX + "/sendscreen"))
+    {
+        MQTTManager.getInstance().publish("screen",DisplayManager.ledsAsJson().c_str());
+        delete[] payloadCopy;
+        return;
+    }
+
     if (strTopic.equals(MQTT_PREFIX + "/settings"))
     {
         DisplayManager.setNewSettings(payloadCopy);
@@ -343,7 +350,7 @@ void onMqttConnected()
         "/reboot",
         "/moodlight",
         "/sound",
-        "/sendIMG"};
+        "/sendscreen"};
     for (const char *topic : topics)
     {
         DEBUG_PRINTF("Subscribe to topic %s", topic);

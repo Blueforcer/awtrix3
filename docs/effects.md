@@ -65,11 +65,39 @@ Just call the name for your favorite effect.
                <tr>
     <td>PlasmaCloud</td>
     <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/PlasmaCloud.gif" style="max-height:100px;"></td>
+    <td>ColorWaves</td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/ColorWaves.gif" style="max-height:100px;"></td>
+  </tr>
+    <tr>
+    <td>MovingLine</td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/MovingLine.gif" style="max-height:100px;"></td>
   </tr>
 </table>
 
 
 # Effect settings
+example:  
+```json
+{
+  "effect":"Plasma",
+  "effectSettings":{
+    "speed":3,
+    "palette":"Rainbow",
+    "blend":true
+  }
+}
+```
+All settings keys are optional
+
+**speed:** 
+Mostly 3 as standard . Higher means faster
+**palette:**
+A color palette is an array of 16 colors to create transitions between colors. 
+Build-in palettes: `Cloud, Lava, Ocean, Forest, Stripe, Party, Heat, Rainbow`
+**blend:**
+Interpolates between colors, creating a broad array of in-between hues for smooth color transitions.
+
+Standard values:
 
 | Effect Name | Speed | Palette | Blend |
 |-------------|-------|---------|-----------|
@@ -112,22 +140,22 @@ For example, a sunny palette might look like this:
 Note, dont use comments in your palettes file.  
   
 ```
-#0000FF   // Deep blue sky at the horizon's edge
-#0047AB   // Lighter sky
-#0080FF   // Even lighter sky
-#00BFFF   // Light blue sky
-#87CEEB   // Slightly cloudy sky
-#87CEFA   // Light blue sky
-#F0E68C   // Light clouds
-#FFD700   // Start of sun colors
-#FFA500   // Darker sun colors
-#FF4500   // Even darker sun colors
-#FF6347   // Red-orange sun colors
-#FF4500   // Dark sun colors
-#FFA500   // Bright sun colors
-#FFD700   // Bright yellow sun colors
-#FFFFE0   // Very bright sun colors
-#FFFFFF   // White sun colors, very bright light
+0000FF   // Deep blue sky at the horizon's edge
+0047AB   // Lighter sky
+0080FF   // Even lighter sky
+00BFFF   // Light blue sky
+87CEEB   // Slightly cloudy sky
+87CEFA   // Light blue sky
+F0E68C   // Light clouds
+FFD700   // Start of sun colors
+FFA500   // Darker sun colors
+FF4500   // Even darker sun colors
+FF6347   // Red-orange sun colors
+FF4500   // Dark sun colors
+FFA500   // Bright sun colors
+FFD700   // Bright yellow sun colors
+FFFFE0   // Very bright sun colors
+FFFFFF   // White sun colors, very bright light
 ```
 
 Remember, the colors you define in your palette serve as key points in the color transitions. AWTRIX interpolates between these colors, creating a broad array of in-between hues for smooth color transitions in your animations. Experiment with different color placements in your palette to achieve different visual effects. You can use blend=false to not use interpolate colors.

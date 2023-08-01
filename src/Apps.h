@@ -189,34 +189,37 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     {
         strftime(t, sizeof(t), timeformat, localtime(&now));
     }
-    char day_str[3];
-    uint8_t wdPosX, wdPosY, timePosX, timePosY;
-    switch (TIME_MODE)
+
+    uint8_t wdPosY;
+    uint8_t timePosY;
+
+    if (TIME_MODE == 1 || TIME_MODE == 2)
     {
-    case 0:
-        DisplayManager.printText(0 + x, 6 + y, t, true, 2);
-        break;
-    case 1:
-        DisplayManager.printText(12 + x, 6 + y, t, false, 2);
+        wdPosY = TIME_MODE == 1 ? 7 : 0;
+        timePosY = TIME_MODE == 1 ? 6 : 7;
+        DisplayManager.printText(12 + x, timePosY + y, t, false, 2);
         matrix->drawRect(0 + x, 0 + y, 9 + x, 2 + y, CALENDAR_COLOR);
         matrix->fillRect(0 + x, 2 + y, 9 + x, 7 + y, matrix->Color(255, 255, 255));
-        sprintf(day_str, "%d", timeInfo->tm_mday);
-        matrix->setTextColor(CALENDAR_TEXT_COLOR);
-        if (timeInfo->tm_mday < 10)
-        {
-            matrix->setCursor(3 + x, 7 + y);
-        }
-        else
-        {
-            matrix->setCursor(1 + x, 7 + y);
-        }
-        matrix->print(day_str);
-        break;
-    case 2:
-        DisplayManager.printText(12 + x, 6 + y, t, false, 2);
+    }
+    else if (TIME_MODE == 3 || TIME_MODE == 4)
+    {
+        wdPosY = TIME_MODE == 3 ? 7 : 0;
+        timePosY = TIME_MODE == 3 ? 6 : 7;
+        DisplayManager.printText(12 + x, timePosY + y, t, false, 2);
         matrix->fillRect(0 + x, 0 + y, 9 + x, 8 + y, CALENDAR_COLOR);
         matrix->drawLine(1, 0, 2, 0, matrix->Color(0, 0, 0));
         matrix->drawLine(6, 0, 7, 0, matrix->Color(0, 0, 0));
+    }
+    else
+    {
+        wdPosY = 7;
+        timePosY = 6;
+        DisplayManager.printText(0 + x, timePosY + y, t, true, 2);
+    }
+
+    if (TIME_MODE > 0)
+    {
+        char day_str[3];
         sprintf(day_str, "%d", timeInfo->tm_mday);
         matrix->setTextColor(CALENDAR_TEXT_COLOR);
         if (timeInfo->tm_mday < 10)
@@ -228,13 +231,13 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
             matrix->setCursor(1 + x, 7 + y);
         }
         matrix->print(day_str);
-        break;
-    default:
-        break;
+        uint8_t wdPosY = TIME_MODE > 0 ? 0 : 8;
+        uint8_t timePosY = TIME_MODE > 0 ? 6 : 0;
     }
 
     if (!SHOW_WEEKDAY)
         return;
+
     uint8_t LINE_WIDTH = TIME_MODE > 0 ? 2 : 3;
     uint8_t LINE_SPACING = 1;
     uint8_t LINE_START = TIME_MODE > 0 ? 10 : 2;
@@ -246,11 +249,11 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
 
         if (i == (timeInfo->tm_wday + 6 + dayOffset) % 7)
         {
-            matrix->drawLine(lineStart + x, y + 7, lineEnd + x, y + 7, WDC_ACTIVE);
+            matrix->drawLine(lineStart + x, y + wdPosY, lineEnd + x, y + wdPosY, WDC_ACTIVE);
         }
         else
         {
-            matrix->drawLine(lineStart + x, y + 7, lineEnd + x, y + 7, WDC_INACTIVE);
+            matrix->drawLine(lineStart + x, y + wdPosY, lineEnd + x, y + wdPosY, WDC_INACTIVE);
         }
     }
 }
