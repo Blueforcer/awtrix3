@@ -101,12 +101,9 @@ void addHandler()
                        } });
     mws.addHandler("/api/nextapp", HTTP_POST, []()
                    { DisplayManager.nextApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
-    mws.addHandler("/screen.bmp", HTTP_GET, [&]()
+    mws.addHandler("/screen", HTTP_GET, []()
                    {
-
-    WiFiClient client = mws.webserver->client();
-    mws.webserver->sendHeader("Content-Type", "image/bmp");
-    DisplayManager.sendBMP(client); });
+    mws.webserver->send(200, "text/html", screen_html); });
     mws.addHandler("/api/previousapp", HTTP_POST, []()
                    { DisplayManager.previousApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/timer", HTTP_POST, []()
