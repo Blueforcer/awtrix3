@@ -561,7 +561,14 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json, b
         customApp.drawInstructions = "";
     }
 
-    customApp.effect = doc.containsKey("effect") ? getEffectIndex(doc["effect"].as<String>()) : -1;
+    if (doc.containsKey("effect"))
+    {
+        customApp.effect = getEffectIndex(doc["effect"].as<String>());
+        if (doc.containsKey("effectSettings"))
+        {
+            updateEffectSettings(customApp.effect, doc["effectSettings"].as<String>());
+        }
+    }
     customApp.duration = doc.containsKey("duration") ? doc["duration"].as<long>() * 1000 : 0;
     int pos = doc.containsKey("pos") ? doc["pos"].as<uint8_t>() : -1;
     customApp.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
@@ -1654,7 +1661,7 @@ void DisplayManager_::setIndicator3State(bool state)
 bool DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
 {
 
-    if (strcmp(json, "") == 0)
+    if (strcmp(json, "") == 0 || strcmp(json, "{}") == 0)
     {
         switch (indicator)
         {
@@ -1790,6 +1797,7 @@ String DisplayManager_::getSettings()
     doc["TEFF"] = TRANS_EFFECT;
     doc["TSPEED"] = TIME_PER_TRANSITION;
     doc["ATIME"] = TIME_PER_APP / 1000;
+    doc["TMODE"] = TIME_MODE;
     doc["TFORMAT"] = TIME_FORMAT;
     doc["DFORMAT"] = DATE_FORMAT;
     doc["SOM"] = START_ON_MONDAY;
@@ -1802,6 +1810,7 @@ String DisplayManager_::getSettings()
     doc["CCORRECTION"] = COLOR_CORRECTION.raw;
     doc["CTEMP"] = COLOR_TEMPERATURE.raw;
     doc["WD"] = SHOW_WEEKDAY;
+    doc["TEFF"] = TRANS_EFFECT;
     doc["WDCA"] = WDC_ACTIVE;
     doc["WDCI"] = WDC_INACTIVE;
     doc["TIME_COL"] = TIME_COLOR;
@@ -1832,6 +1841,7 @@ void DisplayManager_::setNewSettings(const char *json)
     {
         TIME_PER_APP = TIME_PER_APP;
     }
+    TIME_MODE = doc.containsKey("TMODE") ? doc["TMODE"].as<int>() : TIME_MODE;
     TRANS_EFFECT = doc.containsKey("TEFF") ? doc["TEFF"] : TRANS_EFFECT;
     TIME_PER_TRANSITION = doc.containsKey("TSPEED") ? doc["TSPEED"] : TIME_PER_TRANSITION;
     BRIGHTNESS = doc.containsKey("BRI") ? doc["BRI"] : BRIGHTNESS;
@@ -1942,6 +1952,7 @@ void DisplayManager_::setNewSettings(const char *json)
         BAT_COLOR = getColorFromJsonVariant(BAT_COL, TEXTCOLOR_565);
     }
 #endif
+    doc.clear();
     applyAllSettings();
     saveSettings();
 }
@@ -2309,7 +2320,7 @@ String DisplayManager_::getEffectNames()
 String DisplayManager_::getTransistionNames()
 {
     char effectOptions[100];
-    strcpy_P(effectOptions, HAeffectOptions); 
+    strcpy_P(effectOptions, HAeffectOptions);
     StaticJsonDocument<1024> doc;
     char *effect = strtok(effectOptions, ";");
     while (effect != NULL)

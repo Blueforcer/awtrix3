@@ -123,6 +123,7 @@ extern bool BLOCK_NAVIGATION;
 extern bool UPDATE_CHECK;
 extern bool SENSOR_READING;
 extern bool ROTATE_SCREEN;
+extern uint8_t TIME_MODE;
 extern uint8_t SCROLL_SPEED;
 extern uint16_t TIME_COLOR;
 extern uint16_t DATE_COLOR;

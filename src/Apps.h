@@ -139,6 +139,18 @@ int findAppIndexByName(const String &name)
     return -1;
 }
 
+const char *getTimeFormat()
+{
+    if (TIME_MODE == 0)
+    {
+        return TIME_FORMAT.c_str();
+    }
+    else
+    {
+        return TIME_FORMAT[2] == ' ' ? "%H %M" : "%H:%M";
+    }
+}
+
 void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     if (notifyFlag)
@@ -153,10 +165,11 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     {
         DisplayManager.getInstance().resetTextColor();
     }
+
     time_t now = time(nullptr);
     struct tm *timeInfo;
     timeInfo = localtime(&now);
-    const char *timeformat = TIME_FORMAT.c_str();
+    const char *timeformat = getTimeFormat();
     char t[20];
     char t2[20];
     if (timeformat[2] == ' ')
@@ -177,20 +190,51 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         strftime(t, sizeof(t), timeformat, localtime(&now));
     }
 
-    DisplayManager.printText(0 + x, 6 + y, t, true, 2);
-
-    if (!SHOW_WEEKDAY)
-        return;
-    int dayOffset = START_ON_MONDAY ? 0 : 1;
-    for (int i = 0; i <= 6; i++)
+    uint8_t wdPosX, wdPosY, timePosX, timePosY;
+    switch (TIME_MODE)
     {
-        if (i == (timeInfo->tm_wday + 6 + dayOffset) % 7)
+    case 0:
+        DisplayManager.printText(0 + x, 6 + y, t, true, 2);
+        break;
+    case 1:
+        DisplayManager.printText(12 + x, 6 + y, t, false, 2);
+        matrix->drawRect(0, 0, 8, 2, matrix->Color(255, 0, 0));
+        matrix->fillRect(0, 2, 8, 7, matrix->Color(255, 255, 255));
+        char day_str[3];
+        sprintf(day_str, "%d", timeInfo->tm_mday);
+        matrix->setTextColor(matrix->Color(0, 0, 0));
+        if (timeInfo->tm_mday < 10)
         {
-            matrix->drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, WDC_ACTIVE);
+            matrix->setCursor(3, 7);
         }
         else
         {
-            matrix->drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, WDC_INACTIVE);
+            matrix->setCursor(1, 7);
+        }
+        matrix->print(day_str);
+        break;
+    default:
+        break;
+    }
+
+    if (!SHOW_WEEKDAY)
+        return;
+    uint8_t LINE_WIDTH = TIME_MODE > 0 ? 2 : 3;
+    uint8_t LINE_SPACING = 1;
+    uint8_t LINE_START = TIME_MODE > 0 ? 10 : 2;
+    uint8_t dayOffset = START_ON_MONDAY ? 0 : 1;
+    for (int i = 0; i <= 6; i++)
+    {
+        int lineStart = LINE_START + i * (LINE_WIDTH + LINE_SPACING);
+        int lineEnd = lineStart + LINE_WIDTH - 1;
+
+        if (i == (timeInfo->tm_wday + 6 + dayOffset) % 7)
+        {
+            matrix->drawLine(lineStart + x, y + 7, lineEnd + x, y + 7, WDC_ACTIVE);
+        }
+        else
+        {
+            matrix->drawLine(lineStart + x, y + 7, lineEnd + x, y + 7, WDC_INACTIVE);
         }
     }
 }

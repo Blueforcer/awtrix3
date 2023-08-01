@@ -165,6 +165,7 @@ void loadSettings()
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", false);
     TEXTCOLOR_565 = Settings.getUInt("TCOL", 0xFFFF);
     TRANS_EFFECT = Settings.getUInt("TEFF", 0);
+    TIME_MODE = Settings.getUInt("TMODE", 0);
     TIME_COLOR = Settings.getUInt("TIME_COL", 0);
     DATE_COLOR = Settings.getUInt("DATE_COL", 0);
     TEMP_COLOR = Settings.getUInt("TEMP_COL", 0);
@@ -212,6 +213,7 @@ void saveSettings()
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
     Settings.putBool("ATRANS", AUTO_TRANSITION);
     Settings.putUInt("TCOL", TEXTCOLOR_565);
+    Settings.putUInt("TMODE", TIME_MODE);    
     Settings.putUInt("TIME_COL", TIME_COLOR);
     Settings.putUInt("DATE_COL", DATE_COLOR);
     Settings.putUInt("TEMP_COL", TEMP_COLOR);
@@ -340,8 +342,10 @@ bool UPDATE_CHECK = false;
 float GAMMA = 0;
 bool SENSOR_READING = true;
 bool ROTATE_SCREEN = false;
+uint8_t TIME_MODE = 1;
 uint8_t SCROLL_SPEED = 100;
 uint16_t TIME_COLOR = 0;
+
 uint16_t DATE_COLOR = 0;
 uint16_t BAT_COLOR = 0;
 uint16_t TEMP_COLOR = 0;
