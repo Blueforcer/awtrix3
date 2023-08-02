@@ -5,7 +5,6 @@
 #include "icondownloader.h"
 #include <Update.h>
 #include <ESPmDNS.h>
-#include "SPI.h"
 #include <LittleFS.h>
 #include <WiFi.h>
 #include "DisplayManager.h"
