@@ -28,7 +28,7 @@
  */
 int pixelDelays[32][8];
 #include "MatrixDisplayUi.h"
-#include "Fonts/AwtrixFont.h"
+#include "AwtrixFont.h"
 #include "effects.h"
 #include "Globals.h"
 

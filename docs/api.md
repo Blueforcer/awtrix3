@@ -1,21 +1,26 @@
 # MQTT / HTTP API
   
 ## Status  
-In MQTT awtrix send its stats every 10s to `[PREFIX]/stats`  
-With HTTP, make GET request to `http://[IP]/api/stats`
-  
+| Topic | URL | Description |
+| --- | --- | --- | 
+| `[PREFIX]/stats` | `http://[IP]/api/stats` | Various device stats like battery, RAM etc.
+| `[PREFIX]/stats/effects` | `http://[IP]/api/effects`   | Returns all effects.
+| `[PREFIX]/stats/transitions` | `http://[IP]/api/transitions`   | Returns all transition effects.
+| `[PREFIX]/stats/loop` | `http://[IP]/api/loop`   | Returns all apps inside the loop.
+MQTT also send some other informations like button presses and current app
+
 ## ScreenMirror  
 You can get the current matrix screen as an array of colors.  
   
 | Topic | URL | Payload/Body | HTTP method |  
 | --- | --- | --- | --- |  
 | `[PREFIX]/screen` | `http://[IP]/api/screen` | - | GET | 
-  
+
 When trigger the MQTT API, awtrix send the array to `[PREFIX]/screen`  
   
-AWTRIX is also able to generate a bitmap directly. You can get it with
-http://[IP]/screen.bmp
-Note: dont use this as a live mirror, since it costs way more ressources to build a BMP binary.
+AWTRIX also provide a liveview screen in your browser at `http://[IP]/screen`.  
+You can also download a screenshot or generate a GIF from the actual display content.  
+
 
 ## Turn display on or off    
   
@@ -43,7 +48,7 @@ Send empty payload to disable moodlight.
 | Topic | URL | Payload/Body | HTTP method |  
 | --- | --- | --- | --- |  
 | `[PREFIX]/moodlight` | `http://[IP]/api/moodlight` | see below | POST |  
-  
+
 
 Possible moodlight options:  
 ```json
@@ -96,8 +101,8 @@ The JSON object has the following properties,
 | `textCase` | integer | Changes the Uppercase setting. 0=global setting, 1=forces uppercase; 2=shows as it sent. | 0 | X | X |
 | `topText` | boolean | Draw the text on top | false | X | X |
 | `textOffset` | integer | Sets an offset for the x position of a starting text. | 0 | X | X |
-| `color` | string or array of integers | The text, bar or line color | | X | X |
-| `background` | string or array of integers | Sets a background color | | X | X |
+| `color` | string or array of integers | The text, bar or line color | N/A | X | X |
+| `background` | string or array of integers | Sets a background color | N/A | X | X |
 | `rainbow` | boolean | Fades each letter in the text differently through the entire RGB spectrum. | false | X | X |
 | `icon` | string | The icon ID or filename (without extension) to display on the app. | N/A | X | X |
 | `pushIcon` | integer | 0 = Icon doesn't move. 1 = Icon moves with text and will not appear again. 2 = Icon moves with text but appears again when the text starts to scroll again. | 0 | X | X |
@@ -105,7 +110,7 @@ The JSON object has the following properties,
 | `duration` | integer | Sets how long the app or notification should be displayed. | 5 | X | X |
 | `hold` | boolean | Set it to true, to hold your **notification** on top until you press the middle button or dismiss it via HomeAssistant. This key only belongs to notification. | false |   | X |
 | `sound` | string | The filename of your RTTTL ringtone file placed in the MELODIES folder (without extension). | N/A |   | X |
-| `rtttl` | string | Allows to send the RTTTL sound string with the json |  |   | X |
+| `rtttl` | string | Allows to send the RTTTL sound string with the json | N/A |   | X |
 | `loopSound` | boolean | Loops the sound or rtttl as long as the notification is running | false |   | X |
 | `bar` | array of integers | draws a bargraph. Without icon maximum 16 values, with icon 11 values | N/A | X | X |
 | `line` | array of integers | draws a linechart. Without icon maximum 16 values, with icon 11 values | N/A | X | X |
@@ -124,14 +129,14 @@ The JSON object has the following properties,
 | `effect` | string | Shows an [effect](https://blueforcer.github.io/awtrix-light/#/effects) as background |  | X | X |  
 | `effectSettings` | json map | Changes color and speed of the [effect](https://blueforcer.github.io/awtrix-light/#/effects) |  | X | X |  
 | `save` | boolean | Saves your customapp into flash and reload it after boot. You should avoid that with customapps wich has high update frequency because ESPs flashmemory has limited writecycles  |  | X |  |  
-  
+
 
 Color values can have a hex string or an array of R,G,B values:  
 `"#FFFFFF" or [255,255,0]`  
   
 #### Example
 
-Here's an example JSON object to display the text "Hello, AWTRIX Light!" with the icon name "1", in rainbow colors, for 10 seconds:
+Here's an example JSON object to display the text "Hello, AWTRIX Light!" in rainbow colors, for 10 seconds:
 
 ```json
 {
@@ -158,7 +163,8 @@ Each drawing instruction is an object with a required command key and an array o
 | `dfc`   | `[x, y, r, cl]`      | Draw a filled circle with center at (`x`, `y`), radius `r`, and color `cl` |
 | `dt`    | `[x, y, t, cl]`      | Draw text `t` with top-left corner at (`x`, `y`) and color `cl` |
 | `db`    | `[x, y, w, h, [bmp]]`    | Draws a RGB565 bitmap array `[bmp]` with top-left corner at (`x`, `y`) and size of (`w`, `h`) |
-  
+
+
 ### Example    
   
 Here's an example JSON object to draw a red circle, a blue rectangle, and the text "Hello" in green:  
@@ -258,6 +264,7 @@ Each property is optional; you do not need to send all.
 | Key | Type | Description | Value Range | Default |
 | --- | --- | --- | --- | --- |
 | `ATIME` | number | Determines the duration an app is displayed in seconds. | Any positive integer value. | 7 |
+| `TEFF` | number | Choose beween app transision effects. See below for possible transitions. | 0-9 | 0 |
 | `TSPEED` | number | The time the transition to the next app takes in milliseconds. | Any positive integer value. | 500 |
 | `TCOL` | string / array of ints| Sets the textcolor | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FF0000" for red. | N/A |
 | `TMODE` | integer | Changes the time app style | 0-4 | 1 |
@@ -283,6 +290,20 @@ Each property is optional; you do not need to send all.
 | `HUM_COL` | string / array of ints| Sets the textcolor of the humidity app. Set 0 for global textcolor  | an array of RGB values hexadecimal color value | N/A |
 | `BAT_COL` | string / array of ints| Sets the textcolor of the battery app. Set 0 for global textcolor  | an array of RGB values hexadecimal color value | N/A |
 | `SSPEED` | integer | Modifies the scrollspeed | percentage value of the original scrollspeed | 100 |
+
+**Transision effects:**  
+```bash  
+0 - Slide
+1 - Dim
+2 - Zoom
+3 - Rotate
+4 - Pixelate
+5 - Curtain
+6 - Ripple
+7 - Blink
+8 - Reload
+9 - Fade 
+```
 
 **Timeformats:**  
 ```bash  
@@ -315,7 +336,8 @@ You can start the firmware update with update button in HA or:
 | Topic | URL | Payload/Body | HTTP Header | HTTP method |  
 | --- | --- | --- | --- | --- |  
 | `[PREFIX]/doupdate` |`http://[IP]/api/doupdate` | JSON | empty payload/body | POST |  
-  
+
+
 ## Reboot Awtrix    
   
 | Topic | URL | Payload/Body | HTTP method |  

@@ -68,6 +68,8 @@ void addHandler()
 {
     mws.addHandler("/api/power", HTTP_POST, []()
                    { DisplayManager.powerStateParse(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
+        mws.addHandler("/api/loop", HTTP_GET, []()
+                   { mws.webserver->send_P(200, "application/json", DisplayManager.getAppsAsJson().c_str()); });
     mws.addHandler("/api/effects", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getEffectNames().c_str()); });
     mws.addHandler("/api/transitions", HTTP_GET, []()

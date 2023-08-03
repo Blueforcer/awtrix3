@@ -1,10 +1,12 @@
 # Effects
 
-with v0.71 AWTRIX light can show effects wherever you want
+AWTRIX light can show effects wherever you want
 - Notification and CustomApps. This will show the effect as the first layer, so you can stil draw text over it.  
 - Backgroundlayer. This will show the effect behind everything and in each app. You can add it via Hidden features.
-
-Just call the name for your favorite effect.
+  
+Just call the name for your favorite effect.  
+AWTRIX sends all effect names once after start via MQTT to stats/effects. So you can create external selectors.  
+Its also accessable via HTTTP /api/effects  
 
 <table>
   <tr>
@@ -109,12 +111,12 @@ Standard values:
 | Checkerboard | 1 | Rainbow | true |
 | Fireworks | 0.8 | Rainbow | true |
 | PlasmaCloud | 3 | Rainbow | true |
-| Ripple | - | - | true |
-| Snake | - | - | - |
+| Ripple | 3 | Rainbow | true |
+| Snake | 3 | Rainbow | - |
 | Pacifica | 3 | Ocean | true |
 | TheaterChase | - | - | - |
 | Plasma | 2 | Rainbow | true |
-| Matrix | 8 | - | - |
+| Matrix | 8 | - | false |
 | SwirlIn | 4 | Rainbow | - |
 | SwirlOut | 4 | Rainbow | - |
 | LookingEyes | - | - | - |
