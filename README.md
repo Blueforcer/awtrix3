@@ -8,6 +8,7 @@
 } -->
 
 <div align="center">
+  
 ![Alt text](/logo.png?raw=true "Title")
 ![GitHub all releases](https://img.shields.io/github/downloads/blueforcer/awtrix-light/total?style=flat-square)
 ![GitHub Sponsors](https://img.shields.io/github/sponsors/blueforcer?style=flat-square)
