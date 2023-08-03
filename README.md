@@ -33,18 +33,17 @@ Youtube videos from some awesome creators to get a quick first look.
  <img src="http://img.youtube.com/vi/Wr8fHErJI0o/mqdefault.jpg" alt="Watch the video" height="180" border="10" />
 </a>
   
-   
-
-  
 </div>  
   
 <br>  
 <br>  
   
-**AWTRIX Light is an open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882) or as upgrade for the old AWTRIX 2 Mainboard and even self build matrix clock**
+**AWTRIX Light is an open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.de/products/ulanzi-pixel-smart-uhr-2882?aff=907)) or as upgrade for the old AWTRIX 2 Mainboard and even self build matrix clock**
   
 **Note: This Firmware is only compatible with ESP32**
   
+You can get a Ulanzi TC001 [here](https://www.ulanzi.de/products/ulanzi-pixel-smart-uhr-2882?aff=907) (affiliate link) 
+
 AWL meant to be a companion for your smarthome like HomeAssistant, IOBroker, FHEM, NodeRed and so on.    
 Even if you don't have a Smarthome system, but would like to experiment with NodeRed or N8N, you are still welcome to join us.  
 Our discord community with over 2100 people, are willing to help you!  
