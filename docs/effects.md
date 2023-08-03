@@ -114,7 +114,7 @@ Standard values:
 | Ripple | 3 | Rainbow | true |
 | Snake | 3 | Rainbow | - |
 | Pacifica | 3 | Ocean | true |
-| TheaterChase | - | - | - |
+| TheaterChase | 3 | Rainbow | - |
 | Plasma | 2 | Rainbow | true |
 | Matrix | 8 | - | false |
 | SwirlIn | 4 | Rainbow | - |
@@ -132,8 +132,6 @@ This guide will show you how to create a custom color palette for use with AWTRI
 A color palette in AWTRIX is an array of 16 colors. Each color is represented as a `RGB` object, which contains red, green, and blue components. 
 
 AWTRIX uses these palettes to create transitions between colors in effects. The 16 colors in the palette are not the only colors that will be displayed. Instead, AWTRIX interpolates between these colors to create a wide spectrum of in-between hues. This creates smooth, visually pleasing color transitions in your effects.
-
-## Creating a Custom Color Palette
 
 1. Create a text file with the `.txt` extension (for example, `sunny.txt`) in the `/PALETTES/` directory..
 2. In the text file, define 16 colors in hexadecimal format. Each color should be on a new line. A color is defined in the format `#RRGGBB`, where `RR` is the red component, `GG` is the green component, and `BB` is the blue component. Each component is a two-digit hexadecimal number (00 to FF). 
