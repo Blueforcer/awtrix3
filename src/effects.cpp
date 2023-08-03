@@ -1085,7 +1085,7 @@ Effect effects[] = {
     {"Ripple", RippleEffect, EffectSettings(3, RainbowColors_p, true)},
     {"Snake", SnakeGame, EffectSettings(3, RainbowColors_p, true)},
     {"Pacifica", Pacifica, EffectSettings(3, OceanColors_p, true)},
-    {"TheaterChase", TheaterChase, EffectSettings(3, RainbowColors_p)},
+    {"TheaterChase", TheaterChase, EffectSettings(3, RainbowColors_p,true)},
     {"Plasma", Plasma, EffectSettings(2, RainbowColors_p, true)},
     {"Matrix", Matrix, EffectSettings(8, ForestColors_p, false)},
     {"SwirlIn", SwirlIn, EffectSettings(4, RainbowColors_p, true)},

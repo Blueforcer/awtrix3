@@ -362,7 +362,7 @@ public:
     }
 
 private:
-    static const uint16_t c_msSendSpace = 50;
+    static const uint16_t c_msSendSpace = 150;
 
     // 7E FF 06 0F 00 01 01 xx xx EF
     // 0	->	7E is start code
