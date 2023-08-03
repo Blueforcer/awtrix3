@@ -104,7 +104,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: .pio/build/ulanzi/firmware.bin
-          asset_name: ulanzi_firmware.bin
+          asset_name: ulanzi_TC001_${{ steps.version_number.outputs.firmware_version }}.bin
           asset_content_type: application/octet-stream
 
       - name: Upload awtrix2_upgrade Release Asset
@@ -115,7 +115,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: .pio/build/awtrix2_upgrade/firmware.bin
-          asset_name: awtrix2_upgrade_firmware.bin
+          asset_name: old_awtrix2_conversion_${{ steps.version_number.outputs.firmware_version }}.bin
           asset_content_type: application/octet-stream
 
       - name: Commit
