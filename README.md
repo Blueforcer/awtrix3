@@ -8,14 +8,10 @@
 } -->
 
 <div align="center">
-
-# AWTRIX LIGHT
-
+![Alt text](/logo.png?raw=true "Title")
 ![GitHub all releases](https://img.shields.io/github/downloads/blueforcer/awtrix-light/total?style=flat-square)
 ![GitHub Sponsors](https://img.shields.io/github/sponsors/blueforcer?style=flat-square)
 ![Discord](https://img.shields.io/discord/546407049148366859?label=Discord&style=flat-square)
-
-![Alt text](/logo.png?raw=true "Title")
 <br>
 <br>
 Youtube videos from some awesome creators to get a quick first look.
