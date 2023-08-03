@@ -67,10 +67,6 @@ Its also accessable via HTTTP /api/effects
                <tr>
     <td>PlasmaCloud</td>
     <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/PlasmaCloud.gif" style="max-height:100px;"></td>
-    <td>ColorWaves</td>
-    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/ColorWaves.gif" style="max-height:100px;"></td>
-  </tr>
-    <tr>
     <td>MovingLine</td>
     <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/assets/MovingLine.gif" style="max-height:100px;"></td>
   </tr>
