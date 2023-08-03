@@ -30,7 +30,7 @@ Our discord community with over 2100 people, are willing to help you!
 It is ready to use straight out of the box, with time, date, temperature, and humidity pages pre-installed. You don't need to do anything other than turning it on to start using these features.    
 
 However, for those with more advanced skills, the customization options available with customapps and mqtt commands allows you to take Awtrix Light to its full potential.
-Just send all your customapps from your smarthome via MQTT and update it in realtime.
+Just send all your customapps from your smarthome via MQTT or HTTP and update it in realtime.
 The powerful icon system bring your ideas to life and enjoy a hassle-free experience   
 
 Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 and Awtrix Light and experience the difference today! 
