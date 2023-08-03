@@ -13,25 +13,8 @@
 ![GitHub all releases](https://img.shields.io/github/downloads/blueforcer/awtrix-light/total?style=flat-square)
 ![GitHub Sponsors](https://img.shields.io/github/sponsors/blueforcer?style=flat-square)
 ![Discord](https://img.shields.io/discord/546407049148366859?label=Discord&style=flat-square)
-<br>
-<br>
-Youtube videos from some awesome creators to get a quick first look.
-<br>
-
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=N0NKPJzGHuA" target="_blank">
- <img src="http://img.youtube.com/vi/N0NKPJzGHuA/mqdefault.jpg" alt="Watch the video" height="180" border="10" />
-</a>  
-  
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=BWf04wWOLHE" target="_blank">
- <img src="http://img.youtube.com/vi/BWf04wWOLHE/mqdefault.jpg" alt="Watch the video" height="180" border="10" />
-</a>  
-  
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=Wr8fHErJI0o" target="_blank">
- <img src="http://img.youtube.com/vi/Wr8fHErJI0o/mqdefault.jpg" alt="Watch the video" height="180" border="10" />
-</a>
-  
+<br>  
 </div>  
-  
 <br>  
 <br>  
   
