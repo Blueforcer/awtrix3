@@ -116,7 +116,7 @@ Standard values:
 | Pacifica | 3 | Ocean | true |
 | TheaterChase | 3 | Rainbow | true |
 | Plasma | 2 | Rainbow | true |
-| Matrix | 8 | - | false |
+| Matrix | 8 | - | - |
 | SwirlIn | 4 | Rainbow | - |
 | SwirlOut | 4 | Rainbow | - |
 | LookingEyes | - | - | - |
