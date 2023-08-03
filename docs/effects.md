@@ -114,7 +114,7 @@ Standard values:
 | Ripple | 3 | Rainbow | true |
 | Snake | 3 | Rainbow | - |
 | Pacifica | 3 | Ocean | true |
-| TheaterChase | 3 | Rainbow | - |
+| TheaterChase | 3 | Rainbow | true |
 | Plasma | 2 | Rainbow | true |
 | Matrix | 8 | - | false |
 | SwirlIn | 4 | Rainbow | - |
