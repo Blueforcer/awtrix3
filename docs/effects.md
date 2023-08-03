@@ -91,16 +91,16 @@ example:
 ```
 All settings keys are optional
 
-**speed:** 
-Mostly 3 as standard . Higher means faster
-**palette:**
-A color palette is an array of 16 colors to create transitions between colors. 
-Build-in palettes: `Cloud, Lava, Ocean, Forest, Stripe, Party, Heat, Rainbow`
-**blend:**
-Interpolates between colors, creating a broad array of in-between hues for smooth color transitions.
-
-Standard values:
-
+**speed:**  
+Mostly 3 as standard. Higher means faster.  
+**palette:**  
+A color palette is an array of 16 colors to create transitions between colors.   
+Build-in palettes: `Cloud, Lava, Ocean, Forest, Stripe, Party, Heat, Rainbow`  
+**blend:**  
+Interpolates between colors, creating a broad array of in-between hues for smooth color transitions.  
+  
+Standard values:  
+  
 | Effect Name | Speed | Palette | Blend |
 |-------------|-------|---------|-----------|
 | Fade | 1 | Rainbow | true |
