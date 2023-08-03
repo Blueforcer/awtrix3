@@ -26,10 +26,11 @@
  * SOFTWARE.
  *
  */
-
+int pixelDelays[32][8];
 #include "MatrixDisplayUi.h"
-#include "Fonts/AwtrixFont.h"
+#include "AwtrixFont.h"
 #include "effects.h"
+#include "Globals.h"
 
 GifPlayer gif1;
 GifPlayer gif2;
@@ -47,6 +48,14 @@ void MatrixDisplayUi::init()
   this->matrix->setFont(&AwtrixFont);
   gif1.setMatrix(this->matrix);
   gif2.setMatrix(this->matrix);
+
+  for (int i = 0; i < 32; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      pixelDelays[i][j] = random(256);
+    }
+  }
 }
 
 void MatrixDisplayUi::setTargetFPS(uint8_t fps)
@@ -237,8 +246,8 @@ void MatrixDisplayUi::tick()
   }
 
   this->matrix->clear();
-  
-  if (BackgroundEffect>-1)
+
+  if (BackgroundEffect > -1)
   {
     callEffect(this->matrix, 0, 0, BackgroundEffect);
   }
@@ -301,38 +310,50 @@ void MatrixDisplayUi::drawApp()
   {
   case IN_TRANSITION:
   {
-    float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
-    int16_t x, y, x1, y1;
-    switch (this->appAnimationDirection)
+    if (TRANS_EFFECT == SLIDE)
     {
-    case SLIDE_UP:
-      x = 0;
-      y = -8 * progress;
-      x1 = 0;
-      y1 = y + 8;
-      break;
-    case SLIDE_DOWN:
-      x = 0;
-      y = 8 * progress;
-      x1 = 0;
-      y1 = y - 8;
-      break;
+      slideTransition();
     }
-    // Invert animation if direction is reversed.
-    int8_t dir = this->state.appTransitionDirection >= 0 ? 1 : -1;
-    x *= dir;
-    y *= dir;
-    x1 *= dir;
-    y1 *= dir;
-    bool FirstApp = progress < 0.2;
-    bool LastApp = progress > 0.8;
-    this->matrix->drawRect(x, y, x1, y1, matrix->Color(0, 0, 0));
-    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, x, y, FirstApp, LastApp, &gif1);
-    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, x1, y1, FirstApp, LastApp, &gif2);
+    else if (TRANS_EFFECT == FADE)
+    {
+      fadeTransition();
+    }
+    else if (TRANS_EFFECT == ZOOM)
+    {
+      zoomTransition();
+    }
+    else if (TRANS_EFFECT == ROTATE)
+    {
+      rotateTransition();
+    }
+    else if (TRANS_EFFECT == PIXELATE)
+    {
+      pixelateTransition();
+    }
+    else if (TRANS_EFFECT == CURTAIN)
+    {
+      curtainTransition();
+    }
+    else if (TRANS_EFFECT == RIPPLE)
+    {
+      rippleTransition();
+    }
+    else if (TRANS_EFFECT == BLINK)
+    {
+      blinkTransition();
+    }
+    else if (TRANS_EFFECT == RELOAD)
+    {
+      reloadTransition();
+    }
+    else if (TRANS_EFFECT == CROSSFADE)
+    {
+      crossfadeTransition();
+    }
     break;
   }
   case FIXED:
-    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, false, false, &gif2);
+    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif2);
     break;
   }
 }
@@ -431,4 +452,399 @@ void MatrixDisplayUi::setIndicator3State(bool state)
 void MatrixDisplayUi::setIndicator3Blink(int blink)
 {
   this->indicator3Blink = blink;
+}
+
+// ------------------ TRANSITIONS -------------------
+float distance(int x1, int y1, int x2, int y2)
+{
+  return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+}
+
+void rotate(int &x, int &y, float angle)
+{
+  // Move the point to the origin
+  x -= 16;
+  y -= 4;
+
+  // Perform the rotation
+  int newX = x * cos(angle) - y * sin(angle);
+  int newY = x * sin(angle) + y * cos(angle);
+
+  // Move the point back to the actual origin
+  x = newX + 16;
+  y = newY + 4;
+}
+
+void MatrixDisplayUi::fadeTransition()
+{
+  float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
+  int fadeValue;
+  if (progress < 0.5)
+  {
+    fadeValue = pow(progress * 2, 2) * 255; // Fading out the old app (progress from 0 to 0.5)
+  }
+  else
+  {
+    fadeValue = pow((1.0 - progress) * 2, 2) * 255; // Fading in the new app (progress from 0.5 to 1.0)
+  }
+  this->matrix->clear(); // Clear the matrix
+  // If fading out the old app
+  if (progress < 0.5)
+  {
+    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+  }
+  else
+  {
+    // Otherwise fading in the new app
+    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+  }
+
+  for (int i = 0; i < 32; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      CRGB color = DisplayManager.getLeds()[this->matrix->XY(i, j)];
+      color.fadeToBlackBy(fadeValue);
+      DisplayManager.getLeds()[this->matrix->XY(i, j)] = color;
+    }
+  }
+}
+
+void MatrixDisplayUi::slideTransition()
+{
+  float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
+  int16_t x, y, x1, y1;
+  switch (this->appAnimationDirection)
+  {
+  case SLIDE_UP:
+    x = 0;
+    y = -8 * progress;
+    x1 = 0;
+    y1 = y + 8;
+    break;
+  case SLIDE_DOWN:
+    x = 0;
+    y = 8 * progress;
+    x1 = 0;
+    y1 = y - 8;
+    break;
+  }
+  // Invert animation if direction is reversed.
+  int8_t dir = this->state.appTransitionDirection >= 0 ? 1 : -1;
+  x *= dir;
+  y *= dir;
+  x1 *= dir;
+  y1 *= dir;
+  this->matrix->drawRect(x, y, x1, y1, matrix->Color(0, 0, 0));
+  (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, x, y, &gif1);
+  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, x1, y1, &gif2);
+}
+
+void MatrixDisplayUi::curtainTransition()
+{
+  float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
+  if (this->state.ticksSinceLastStateSwitch == 0)
+  {
+    // At the beginning of the transition, copy the current app image to the ledsCopy array
+    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+
+    for (int i = 0; i < 32; i++)
+    {
+      for (int j = 0; j < 8; j++)
+      {
+        ledsCopy[i + j * 32] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
+      }
+    }
+  }
+
+  // Draw the new app
+  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+
+  // Create the curtain effect
+  for (int i = 0; i < 32; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      if (i < 16 - progress * 16 || i > 15 + progress * 16)
+      {
+        DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[i + j * 32];
+      }
+    }
+  }
+}
+
+void MatrixDisplayUi::zoomTransition()
+{
+  float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
+  float scale = 1.0;
+  // If zooming out the old app
+  if (progress < 0.5)
+  {
+    scale = 1 - progress * 2; // scale will change from 1.0 to 0.0
+    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+  }
+  else
+  {
+    // Otherwise zooming in the new app
+    scale = (progress - 0.5) * 2; // scale will change from 0.0 to 1.0
+    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+  }
+
+  // Copy the data to the temporary array ledsCopy
+  for (int i = 0; i < 32; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      ledsCopy[i + j * 32] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
+    }
+  }
+
+  // Scale the data and copy back to the matrix
+  for (int i = 0; i < 32; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      int iScaled = 16 + (i - 16) * scale;
+      int jScaled = 4 + (j - 4) * scale;
+
+      if (iScaled < 0)
+        iScaled = 0;
+      if (iScaled >= 32)
+        iScaled = 31;
+      if (jScaled < 0)
+        jScaled = 0;
+      if (jScaled >= 8)
+        jScaled = 7;
+      DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[iScaled + jScaled * 32];
+    }
+  }
+}
+
+void MatrixDisplayUi::rotateTransition()
+{
+  float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
+  float angle = progress * 2 * PI; // Rotate 360 degrees over the transition
+
+  // Determine which app to draw
+  if (progress < 0.5)
+  {
+    // Rotate out the old app (progress from 0 to 0.5)
+    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+  }
+  else
+  {
+    // Rotate in the new app (progress from 0.5 to 1.0)
+    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+  }
+
+  // Copy the data to the temporary array ledsCopy
+  for (int i = 0; i < 32; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      ledsCopy[i + j * 32] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
+    }
+  }
+
+  // Rotate the data and copy back to the matrix
+  for (int i = 0; i < 32; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      int iRotated = i;
+      int jRotated = j;
+      rotate(iRotated, jRotated, angle);
+
+      if (iRotated < 0)
+        iRotated = 0;
+      if (iRotated >= 32)
+        iRotated = 31;
+      if (jRotated < 0)
+        jRotated = 0;
+      if (jRotated >= 8)
+        jRotated = 7;
+
+      DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[iRotated + jRotated * 32];
+    }
+  }
+}
+
+void MatrixDisplayUi::pixelateTransition()
+{
+  float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
+
+  // Draw the old app and copy to ledsCopy
+  (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+  for (int i = 0; i < 32; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      ledsCopy[i + j * 32] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
+    }
+  }
+
+  // Clear the screen and draw the new app
+  this->matrix->clear();
+  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+
+  // Apply the random pixel swap transition effect
+  for (int i = 0; i < 32; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      // If the random number is greater than the progress, display the pixel from the old app
+      if (random(255) > progress * 255)
+      {
+        DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[i + j * 32];
+      }
+      // Otherwise, keep the pixel from the new app
+    }
+  }
+}
+
+void MatrixDisplayUi::rippleTransition()
+{
+  float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
+
+  // Draw the old app and copy to ledsCopy
+  (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+  for (int i = 0; i < 32; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      ledsCopy[i + j * 32] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
+    }
+  }
+
+  // Clear the screen and draw the new app
+  this->matrix->clear();
+  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+
+  // Apply the checkerboard transition effect
+  for (int i = 0; i < 32; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      // If the sum of i and j is an even number and the progress is less than 0.5, display the pixel from the old app
+      if ((i + j) % 2 == 0 && progress < 0.5)
+      {
+        DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[i + j * 32];
+      }
+      // If the sum of i and j is an odd number and the progress is more than 0.5, display the pixel from the old app
+      else if ((i + j) % 2 != 0 && progress >= 0.5)
+      {
+        DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[i + j * 32];
+      }
+      // Otherwise, keep the pixel from the new app
+    }
+  }
+}
+
+void MatrixDisplayUi::blinkTransition()
+{
+  float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
+
+  // Number of blinks during the transition
+  int blinks = 3;
+
+  // Calculate the current blink state (on or off) by considering the number of blinks and the progress
+  bool blinkState = (int)(progress * blinks) % 2 == 0;
+
+  // Depending on the blinkState and the progress, draw the old or the new app
+  if (blinkState)
+  {
+    // If blinkState is true, draw the old app if progress is less than 0.5, otherwise draw the new app
+    if (progress < 0.5)
+    {
+      (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+    }
+    else
+    {
+      (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+    }
+  }
+  else
+  {
+    // If blinkState is false, clear the matrix (display off)
+    this->matrix->clear();
+  }
+}
+
+void MatrixDisplayUi::reloadTransition()
+{
+  float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
+  int visiblePixel;
+
+  if (progress < 0.5)
+  {
+
+    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+
+    // Calculating pixel to be visible based on progress
+    visiblePixel = 32 * (1.0 - (progress * 2));
+    if (visiblePixel < 0)
+      visiblePixel = 0;
+
+    for (int i = visiblePixel; i < 32; i++)
+    {
+      for (int j = 0; j < 8; j++)
+      {
+        // Turning the pixels off to create a fly out effect
+        DisplayManager.getLeds()[this->matrix->XY(i, j)] = CRGB::Black;
+      }
+    }
+  }
+  else
+  {
+    // Draw the new app and let the pixels fly in
+    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+
+    // Calculating pixel to be visible based on progress
+    visiblePixel = 32 * ((progress - 0.5) * 2);
+    if (visiblePixel > 32)
+      visiblePixel = 32;
+
+    for (int i = visiblePixel; i < 32; i++)
+    {
+      for (int j = 0; j < 8; j++)
+      {
+        // Turning the pixels off to create a fly in effect
+        DisplayManager.getLeds()[this->matrix->XY(i, j)] = CRGB::Black;
+      }
+    }
+  }
+}
+
+void MatrixDisplayUi::crossfadeTransition()
+{
+  float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
+
+  // Draw the old app
+  (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+
+  // Copy the old app data to ledsCopy array
+  for (int i = 0; i < 32; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      ledsCopy[i + j * 32] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
+    }
+  }
+
+  // Clear the matrix before drawing the new app
+  this->matrix->fillScreen(0);
+
+  // Draw the new app
+  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+
+  // Linearly interpolate between old and new pixel colors based on the progress
+  for (int i = 0; i < 32; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      CRGB pixelOld = ledsCopy[i + j * 32];
+      CRGB pixelNew = DisplayManager.getLeds()[this->matrix->XY(i, j)];
+      DisplayManager.getLeds()[this->matrix->XY(i, j)] = pixelOld.lerp8(pixelNew, progress * 255);
+    }
+  }
 }

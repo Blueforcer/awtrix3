@@ -5,7 +5,6 @@
 #include "icondownloader.h"
 #include <Update.h>
 #include <ESPmDNS.h>
-#include "SPI.h"
 #include <LittleFS.h>
 #include <WiFi.h>
 #include "DisplayManager.h"
@@ -69,6 +68,12 @@ void addHandler()
 {
     mws.addHandler("/api/power", HTTP_POST, []()
                    { DisplayManager.powerStateParse(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
+        mws.addHandler("/api/loop", HTTP_GET, []()
+                   { mws.webserver->send_P(200, "application/json", DisplayManager.getAppsAsJson().c_str()); });
+    mws.addHandler("/api/effects", HTTP_GET, []()
+                   { mws.webserver->send_P(200, "application/json", DisplayManager.getEffectNames().c_str()); });
+    mws.addHandler("/api/transitions", HTTP_GET, []()
+                   { mws.webserver->send_P(200, "application/json", DisplayManager.getTransistionNames().c_str()); });
     mws.addHandler("/api/reboot", HTTP_POST, []()
                    { mws.webserver->send(200,F("text/plain"),F("OK")); delay(200); ESP.restart(); });
     mws.addHandler("/api/sound", HTTP_POST, []()
@@ -97,12 +102,9 @@ void addHandler()
                        } });
     mws.addHandler("/api/nextapp", HTTP_POST, []()
                    { DisplayManager.nextApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
-    mws.addHandler("/screenshot.bmp", HTTP_GET, [&]()
+    mws.addHandler("/screen", HTTP_GET, []()
                    {
-
-    WiFiClient client = mws.webserver->client();
-    mws.webserver->sendHeader("Content-Type", "image/bmp");
-    DisplayManager.sendBMP(client); });
+    mws.webserver->send(200, "text/html", screen_html); });
     mws.addHandler("/api/previousapp", HTTP_POST, []()
                    { DisplayManager.previousApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/timer", HTTP_POST, []()

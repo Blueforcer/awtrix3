@@ -39,6 +39,11 @@ const char HAbriIcon[] PROGMEM = {"mdi:brightness-auto"};
 const char HAbriName[] PROGMEM = {"Brightness mode"};
 const char HAbriOptions[] PROGMEM = {"Manual;Auto"};
 
+const char HAeffectID[] PROGMEM = {"%s_eff"};
+const char HAeffectIcon[] PROGMEM = {"mdi:auto-fix"};
+const char HAeffectName[] PROGMEM = {"Transition effect"};
+const char HAeffectOptions[] PROGMEM = {"Slide;Dim;Zoom;Rotate;Pixelate;Curtain;Ripple;Blink;Reload;Fade"};
+
 const char HAbtnaID[] PROGMEM = {"%s_btna"};
 const char HAbtnaIcon[] PROGMEM = {"mdi:bell-off"};
 const char HAbtnaName[] PROGMEM = {"Dismiss notification"};

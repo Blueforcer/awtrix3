@@ -73,7 +73,6 @@ void setup()
   // PeripheryManager.playBootSound();
   if (ServerManager.isConnected)
   {
-    MQTTManager.setup();
     DisplayManager.loadNativeApps();
     DisplayManager.loadCustomApps();
     UpdateManager.setup();
@@ -84,6 +83,12 @@ void setup()
     {
       DisplayManager.HSVtext(x, 6, ("AWTRIX   " + ServerManager.myIP.toString()).c_str(), true, 0);
       x -= 0.18;
+    }
+    if (MQTT_HOST != "")
+    {
+      DisplayManager.HSVtext(4, 6, "MQTT...", true, 0);
+      MQTTManager.setup();
+      MQTTManager.tick();
     }
   }
   else

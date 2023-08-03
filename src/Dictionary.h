@@ -35,6 +35,11 @@ extern const char HAbriIcon[];
 extern const char HAbriName[];
 extern const char HAbriOptions[];
 
+extern const char HAeffectID[];
+extern const char HAeffectIcon[];
+extern const char HAeffectName[];
+extern const char HAeffectOptions[];
+
 extern const char HAbtnaID[];
 extern const char HAbtnaIcon[];
 extern const char HAbtnaName[];
