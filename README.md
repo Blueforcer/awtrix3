@@ -94,7 +94,7 @@ https://www.paypal.me/blueforcer
 </a>
 
 # Community  
-Join the discord channel with over 2100 Users  
+Join the discord channel with over 2500 Users  
 https://discord.gg/cyBCpdx  
   
 # Commercial cooperations  
