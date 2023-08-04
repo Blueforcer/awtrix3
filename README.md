@@ -17,7 +17,7 @@
 </div>  
 <br>  
   
-**AWTRIX Light is an open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.de/products/ulanzi-pixel-smart-uhr-2882?aff=907)) or as upgrade for the old AWTRIX 2 Mainboard and even self build matrix clock**
+**AWTRIX Light is a open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.de/products/ulanzi-pixel-smart-uhr-2882?aff=907)) or as upgrade for the old AWTRIX 2 Mainboard and even self build matrix clock**
   
 **Note: This Firmware is only compatible with ESP32**
   
