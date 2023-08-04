@@ -59,6 +59,11 @@ https://flows.blueforcer.de/
 - Integrated filebrowser
 - No cloud 
 - No telemetry
+
+# Getting Started
+Starting is easy as 1-2-3
+[with the documentation](https://blueforcer.github.io/awtrix-light/)
+  
 # Community 
 Join the discord channel with over 2500 Users  
 https://discord.gg/cyBCpdx  
@@ -76,11 +81,6 @@ Youtube videos from some awesome creators to get a quick first look.
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=Wr8fHErJI0o" target="_blank">
  <img src="http://img.youtube.com/vi/Wr8fHErJI0o/mqdefault.jpg" alt="Watch the video" height="180" border="10" />
 </a>
-  
-# Getting Started
-
-Starting is easy as 1-2-3
-[with the documentation](https://blueforcer.github.io/awtrix-light/)
   
 # Support  
 If you want to support my work, I really appreciate your donation!
