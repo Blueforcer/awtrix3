@@ -272,7 +272,6 @@ Each property is optional; you do not need to send all.
 | `WD` | bool | Enable or disable the weekday display | true/false | true |
 | `WDCA` | string / array of ints| Sets the active weekday color | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FF0000" for red. | N/A |
 | `WDCI` | string / array of ints| Sets the inactive weekday color | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FFFF" for white. | N/A |
-| `FPS` | number | Determines the frame rate at which the matrix is updated. | Any positive integer value. | 23 |
 | `BRI` | number | Determines the brightness of the matrix. | An integer between 0 and 255. | N/A |
 | `ABRI` | boolean | Determines if automatic brightness control is active. | `true` or `false`. | N/A |
 | `ATRANS` | boolean | Determines if automatic switching to the next app is active. | `true` or `false`. | N/A |
