@@ -59,10 +59,12 @@ https://flows.blueforcer.de/
 - Integrated filebrowser
 - No cloud 
 - No telemetry
-# Community
+# Community 
+Join the discord channel with over 2500 Users  
+https://discord.gg/cyBCpdx  
+
 Youtube videos from some awesome creators to get a quick first look.
 <br>
-
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=N0NKPJzGHuA" target="_blank">
  <img src="http://img.youtube.com/vi/N0NKPJzGHuA/mqdefault.jpg" alt="Watch the video" height="180" border="10" />
 </a>  
@@ -92,10 +94,6 @@ https://www.paypal.me/blueforcer
 <a href="https://github.com/Blueforcer/awtrix-light/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=Blueforcer/awtrix-light" />
 </a>
-
-# Community  
-Join the discord channel with over 2500 Users  
-https://discord.gg/cyBCpdx  
   
 # Commercial cooperations  
 For any commercial usage, contact me at awtrix@blueforcer.de
