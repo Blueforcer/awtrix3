@@ -8,7 +8,6 @@ Hold down the middle button for 2s to exit the current menu and to save your set
 | Menu Item | Description |
 | --- | --- |
 | `BRIGHT` | Allows adjustment of the brightness of the display. Switch between Auto and manual brightnesscontrol with the middle button. |
-| `FPS` | Affects rendering speed and scrolling speed. |
 | `COLOR` | Allows selection of one of 13 different colors for text. Hex values displayed.  |
 | `SWITCH` | Determines if pages should automatically switch. |
 | `T-SPEED` | Adjusts transition speed between apps. |
