@@ -17,27 +17,26 @@
 </div>  
 <br>  
   
-**AWTRIX Light is a open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.de/products/ulanzi-pixel-smart-uhr-2882?aff=907) or as upgrade for the old AWTRIX 2 Mainboard and even self build matrix clock**
-  
+**AWTRIX Light is an open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.de/products/ulanzi-pixel-smart-uhr-2882?aff=907) or as upgrade for the old AWTRIX 2 Mainboard and even self build matrix clock**
+
 **Note: This Firmware is only compatible with ESP32**
-  
-You can get a Ulanzi TC001 [here](https://www.ulanzi.de/products/ulanzi-pixel-smart-uhr-2882?aff=907) (affiliate link) 
+
+You can get an Ulanzi TC001 [here](https://www.ulanzi.de/products/ulanzi-pixel-smart-uhr-2882?aff=907) (affiliate link)
 
 AWL meant to be a companion for your smarthome like HomeAssistant, IOBroker, FHEM, NodeRed and so on.    
 Even if you don't have a Smarthome system, but would like to experiment with NodeRed or N8N, you are still welcome to join us.  
-Our discord community with over 2100 people, are willing to help you!  
+Our discord community, with over 2100 people, are willing to help you!  
 
 It is ready to use straight out of the box, with time, date, temperature, and humidity pages pre-installed. You don't need to do anything other than turning it on to start using these features.    
 
 However, for those with more advanced skills, the customization options available with customapps and mqtt commands allows you to take Awtrix Light to its full potential.
 Just send all your customapps from your smarthome via MQTT or HTTP and update it in realtime.
-The powerful icon system bring your ideas to life and enjoy a hassle-free experience   
+The powerful icon system brings your ideas to life and lets you enjoy a hassle-free experience.   
 
 Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 and Awtrix Light and experience the difference today! 
   
 # AWTRIX Light flows  
-This is your go-to hub for sharing and discovering AWTRIX Light automations. Enhance your AWTRIX Light experience, exchange ideas, and get inspired.
-Lets bring our creative automations to life together!  
+This is your go-to hub for sharing and discovering AWTRIX Light automations. Enhance your AWTRIX Light experience, exchange ideas, and get inspired. Let's bring our creative automations to life together!  
 https://flows.blueforcer.de/
   
 # Features
@@ -84,7 +83,7 @@ Youtube videos from some awesome creators to get a quick first look.
   
 # Support  
 If you want to support my work, I really appreciate your donation!
-All of the money will be allocated towards purchasing new hardware for testing purposes, software licenses, server costs, and a significant portion will also be set aside for dinners and trips with my wife and kids so that they can continue to endure the many hours I spend programming :) 
+All the money will be allocated towards purchasing new hardware for testing purposes, software licenses, server costs, and a significant portion will also be set aside for dinners and trips with my wife and kids so that they can continue to endure the many hours I spend programming :) 
   
 https://github.com/sponsors/Blueforcer  
 https://www.buymeacoffee.com/blueforcer  
@@ -99,4 +98,4 @@ https://www.paypal.me/blueforcer
 For any commercial usage, contact me at awtrix@blueforcer.de
   
 # Disclaimer
-This open-source software is not affiliated with or endorsed by the company Ulanzi in any way. Use of the software is at your own risk and discretion, and i assume no liability for any potential damages or issues that may arise from using the software. It is important to be aware that using this open-source software comes without direct support or guarantees from the company Ulanzi.
+This open-source software is not affiliated with or endorsed by the company Ulanzi in any way. Use of the software is at your own risk and discretion, and I assume no liability for any potential damages or issues that may arise from using the software. It is important to be aware that using this open-source software comes without direct support or guarantees from the company Ulanzi.
