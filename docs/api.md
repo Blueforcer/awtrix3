@@ -264,7 +264,7 @@ Each property is optional; you do not need to send all.
 | Key | Type | Description | Value Range | Default |
 | --- | --- | --- | --- | --- |
 | `ATIME` | number | Determines the duration an app is displayed in seconds. | Any positive integer value. | 7 |
-| `TEFF` | number | Choose beween app transision effects. See below for possible transitions. | 0-9 | 0 |
+| `TEFF` | number | Choose beween app transision effects. See below for possible transitions. | 0-10 | 1 |
 | `TSPEED` | number | The time the transition to the next app takes in milliseconds. | Any positive integer value. | 500 |
 | `TCOL` | string / array of ints| Sets the textcolor | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FF0000" for red. | N/A |
 | `TMODE` | integer | Changes the time app style | 0-4 | 1 |
@@ -297,16 +297,17 @@ Each property is optional; you do not need to send all.
 
 **Transision effects:**  
 ```bash  
-0 - Slide
-1 - Dim
-2 - Zoom
-3 - Rotate
-4 - Pixelate
-5 - Curtain
-6 - Ripple
-7 - Blink
-8 - Reload
-9 - Fade 
+0 - Random
+1 - Slide
+2 - Dim
+3 - Zoom
+4 - Rotate
+5 - Pixelate
+6 - Curtain
+7 - Ripple
+8 - Blink
+9 - Reload
+10 - Fade 
 ```
 
 **Timeformats:**  
