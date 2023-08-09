@@ -269,6 +269,7 @@ Each property is optional; you do not need to send all.
 | `TCOL` | string / array of ints| Sets the textcolor | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FF0000" for red. | N/A |
 | `TMODE` | integer | Changes the time app style | 0-4 | 1 |
 | `CCOL` | string / array of ints| Sets the calendar color of the time app | an array of RGB values hexadecimal color value | N/A |
+| `CTCOL` | string / array of ints| Sets the calendar textcolor in the time app | an array of RGB values hexadecimal color value | N/A |
 | `WD` | bool | Enable or disable the weekday display | true/false | true |
 | `WDCA` | string / array of ints| Sets the active weekday color | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FF0000" for red. | N/A |
 | `WDCI` | string / array of ints| Sets the inactive weekday color | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FFFF" for white. | N/A |
