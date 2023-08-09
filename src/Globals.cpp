@@ -13,13 +13,13 @@ char *getID()
     WiFi.macAddress(mac);
     char *macStr = new char[24];
     snprintf(macStr, 24, "awtrix_%02x%02x%02x", mac[3], mac[4], mac[5]);
-    DEBUG_PRINTLN(F("Starting filesystem"));
+    if (DEBUG_MODE) DEBUG_PRINTLN(F("Starting filesystem"));
     return macStr;
 }
 
 void startLittleFS()
 {
-    DEBUG_PRINTLN(F("Starting filesystem"));
+    if (DEBUG_MODE) DEBUG_PRINTLN(F("Starting filesystem"));
     if (LittleFS.begin())
     {
 #ifdef ULANZI
@@ -28,11 +28,11 @@ void startLittleFS()
         LittleFS.mkdir("/ICONS");
         LittleFS.mkdir("/PALETTES");
         LittleFS.mkdir("/CUSTOMAPPS");
-        DEBUG_PRINTLN(F("Filesystem started"));
+        if (DEBUG_MODE) DEBUG_PRINTLN(F("Filesystem started"));
     }
     else
     {
-        DEBUG_PRINTLN(F("Filesystem currupt. Formating..."));
+        if (DEBUG_MODE) DEBUG_PRINTLN(F("Filesystem currupt. Formating..."));
         LittleFS.format();
         ESP.restart();
     }
@@ -40,7 +40,7 @@ void startLittleFS()
 
 void loadDevSettings()
 {
-    DEBUG_PRINTLN("Loading Devsettings");
+    if (DEBUG_MODE) DEBUG_PRINTLN("Loading Devsettings");
     if (LittleFS.exists("/dev.json"))
     {
         File file = LittleFS.open("/dev.json", "r");
@@ -48,11 +48,11 @@ void loadDevSettings()
         DeserializationError error = deserializeJson(doc, file);
         if (error)
         {
-            DEBUG_PRINTLN(F("Failed to read dev settings"));
+            if (DEBUG_MODE) DEBUG_PRINTLN(F("Failed to read dev settings"));
             return;
         }
 
-        DEBUG_PRINTF("%i dev settings found", doc.size());
+        if (DEBUG_MODE) DEBUG_PRINTF("%i dev settings found", doc.size());
 
         if (doc.containsKey("bootsound"))
         {
@@ -99,6 +99,11 @@ void loadDevSettings()
             HA_PREFIX = doc["ha_prefix"].as<String>();
         }
 
+        if (doc.containsKey("stats_interval"))
+        {
+            STATS_INTERVAL = doc["stats_interval"].as<long>();
+        }
+
         if (doc.containsKey("uppercase"))
         {
             UPPERCASE_LETTERS = doc["uppercase"].as<bool>();
@@ -117,6 +122,11 @@ void loadDevSettings()
         if (doc.containsKey("rotate_screen"))
         {
             ROTATE_SCREEN = doc["rotate_screen"].as<bool>();
+        }
+
+         if (doc.containsKey("debug_mode"))
+        {
+            DEBUG_MODE = doc["debug_mode"].as<bool>();
         }
 
         if (doc.containsKey("gamma"))
@@ -152,21 +162,28 @@ void loadDevSettings()
     }
     else
     {
-        DEBUG_PRINTLN("Devsettings not found");
+        if (DEBUG_MODE) DEBUG_PRINTLN("Devsettings not found");
     }
+}
+
+void formatSettings()
+{
+    Settings.begin("awtrix", false);
+    Settings.clear();
+    Settings.end();
 }
 
 void loadSettings()
 {
     startLittleFS();
-    DEBUG_PRINTLN(F("Loading Usersettings"));
+    if (DEBUG_MODE) DEBUG_PRINTLN(F("Loading Usersettings"));
     Settings.begin("awtrix", false);
     BRIGHTNESS = Settings.getUInt("BRI", 120);
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", false);
     TEXTCOLOR_565 = Settings.getUInt("TCOL", 0xFFFF);
     CALENDAR_COLOR = Settings.getUInt("CCOL", 0xF800);
     CALENDAR_TEXT_COLOR = Settings.getUInt("CTCOL", 0x0000);
-    TRANS_EFFECT = Settings.getUInt("TEFF", 0);
+    TRANS_EFFECT = Settings.getUInt("TEFF", 1);
     TIME_MODE = Settings.getUInt("TMODE", 1);
     TIME_COLOR = Settings.getUInt("TIME_COL", 0);
     DATE_COLOR = Settings.getUInt("DATE_COL", 0);
@@ -184,6 +201,7 @@ void loadSettings()
     TIME_FORMAT = Settings.getString("TFORMAT", "%H:%M:%S");
     DATE_FORMAT = Settings.getString("DFORMAT", "%d.%m.%y");
     START_ON_MONDAY = Settings.getBool("SOM", true);
+     BLOCK_NAVIGATION = Settings.getBool("BLOCKN", false);
     IS_CELSIUS = Settings.getBool("CEL", true);
     SHOW_TIME = Settings.getBool("TIM", true);
     SHOW_DATE = Settings.getBool("DAT", false);
@@ -207,7 +225,7 @@ void loadSettings()
 
 void saveSettings()
 {
-    DEBUG_PRINTLN(F("Saving usersettings"));
+    if (DEBUG_MODE) DEBUG_PRINTLN(F("Saving usersettings"));
     Settings.begin("awtrix", false);
     Settings.putUInt("CCOL", CALENDAR_COLOR);
     Settings.putUInt("CTCOL", CALENDAR_TEXT_COLOR);
@@ -215,6 +233,7 @@ void saveSettings()
     Settings.putUInt("BRI", BRIGHTNESS);
     Settings.putBool("WD", SHOW_WEEKDAY);
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
+    Settings.putBool("BLOCKN", BLOCK_NAVIGATION);
     Settings.putBool("ATRANS", AUTO_TRANSITION);
     Settings.putUInt("TCOL", TEXTCOLOR_565);
     Settings.putUInt("TMODE", TIME_MODE);
@@ -254,7 +273,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.72";
+const char *VERSION = "0.73";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -267,9 +286,7 @@ bool SHOW_TIME = true;
 
 bool SHOW_DATE = true;
 bool SHOW_WEATHER = true;
-#ifdef ULANZI
 bool SHOW_BAT = true;
-#endif
 bool SHOW_TEMP = true;
 bool SHOW_HUM = true;
 bool SHOW_SECONDS = true;
@@ -280,7 +297,7 @@ String NET_SN = "255.255.255.0";
 String NET_PDNS = "8.8.8.8";
 String NET_SDNS = "1.1.1.1";
 long TIME_PER_APP = 7000;
-uint8_t MATRIX_FPS = 50;
+uint8_t MATRIX_FPS = 40;
 int TIME_PER_TRANSITION = 400;
 String NTP_SERVER = "de.pool.ntp.org";
 String NTP_TZ = "CET-1CEST,M3.5.0,M10.5.0/3";
@@ -357,7 +374,9 @@ uint16_t TEMP_COLOR = 0;
 uint16_t HUM_COLOR = 0;
 bool ARTNET_MODE;
 bool MOODLIGHT_MODE;
+long STATS_INTERVAL = 10000;
+bool DEBUG_MODE = false;
 uint8_t MIN_BRIGHTNESS = 2;
 uint8_t MAX_BRIGHTNESS = 180;
-float movementFactor = 0.5;
-int8_t TRANS_EFFECT = 0;
+double movementFactor = 0.5;
+int8_t TRANS_EFFECT = 1;

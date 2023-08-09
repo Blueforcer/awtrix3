@@ -26,7 +26,7 @@
 #define DEBUG_PRINTLN(x)
 #define DEBUG_PRINTF(format, ...)
 #endif
-
+void formatSettings();
 extern const char *uniqueID;
 extern const char *VERSION;
 extern IPAddress local_IP;
@@ -44,9 +44,7 @@ extern bool NET_STATIC;
 extern bool SHOW_TIME;
 extern bool SHOW_DATE;
 extern bool SHOW_WEATHER;
-#ifdef ULANZI
 extern bool SHOW_BAT;
-#endif
 extern String HA_PREFIX;
 extern bool SHOW_TEMP;
 extern bool SHOW_HUM;
@@ -123,6 +121,7 @@ extern bool BLOCK_NAVIGATION;
 extern bool UPDATE_CHECK;
 extern bool SENSOR_READING;
 extern bool ROTATE_SCREEN;
+extern long STATS_INTERVAL;
 extern uint8_t TIME_MODE;
 extern uint8_t SCROLL_SPEED;
 extern uint16_t CALENDAR_COLOR;
@@ -134,7 +133,10 @@ extern uint16_t TEMP_COLOR;
 extern uint16_t HUM_COLOR;
 extern bool ARTNET_MODE;
 extern bool MOODLIGHT_MODE;
-extern float movementFactor;
+extern double movementFactor;
 extern uint8_t MIN_BRIGHTNESS;
 extern uint8_t MAX_BRIGHTNESS;
+extern bool DEBUG_MODE;
+
+
 #endif // Globals_H

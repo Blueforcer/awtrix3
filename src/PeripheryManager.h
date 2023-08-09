@@ -40,10 +40,11 @@ public:
     bool parseSound(const char *json);
     bool isPlaying();
     void stopSound();
+    uint8_t getMatrixPin();
 #ifndef ULANZI
     void setVolume(uint8_t);
 #endif
-    const char *readUptime();
+    long readUptime();
 };
 
 extern PeripheryManager_ &PeripheryManager;

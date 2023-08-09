@@ -110,7 +110,13 @@ void left_button_pressed()
 #endif
         DisplayManager.leftButton();
         MenuManager.leftButton();
-        DEBUG_PRINTLN(F("Left button clicked"));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Left button clicked"));
+    }
+    else
+    {
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Left button clicked but blocked"));
     }
 }
 
@@ -123,7 +129,13 @@ void right_button_pressed()
 #endif
         DisplayManager.rightButton();
         MenuManager.rightButton();
-        DEBUG_PRINTLN(F("Right button clicked"));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Right button clicked"));
+    }
+    else
+    {
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Right button clicked but blocked"));
     }
 }
 
@@ -136,7 +148,13 @@ void select_button_pressed()
 #endif
         DisplayManager.selectButton();
         MenuManager.selectButton();
-        DEBUG_PRINTLN(F("Select button clicked"));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Select button clicked"));
+    }
+    else
+    {
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Select button clicked but blocked"));
     }
 }
 
@@ -163,13 +181,15 @@ void select_button_pressed_long()
 
         DisplayManager.selectButtonLong();
 
-        DEBUG_PRINTLN(F("Select button pressed long"));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Select button pressed long"));
     }
 }
 
 void select_button_double()
 {
-    DEBUG_PRINTLN(F("Select button double pressed"));
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("Select button double pressed"));
     if (!BLOCK_NAVIGATION)
     {
 #ifndef ULANZI
@@ -188,10 +208,12 @@ void select_button_double()
 
 void PeripheryManager_::playBootSound()
 {
-    DEBUG_PRINTLN(F("Playing bootsound"));
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("Playing bootsound"));
     if (!SOUND_ACTIVE)
     {
-        DEBUG_PRINTLN(F("Sound output disabled"));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Sound output disabled"));
         return;
     }
 
@@ -266,7 +288,8 @@ bool PeripheryManager_::playFromFile(String file)
         return true;
 
 #ifdef ULANZI
-    DEBUG_PRINTLN(F("Playing RTTTL sound file"));
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("Playing RTTTL sound file"));
     if (LittleFS.exists("/MELODIES/" + String(file) + ".txt"))
     {
         Melody melody = MelodyFactory.loadRtttlFile("/MELODIES/" + String(file) + ".txt");
@@ -278,7 +301,8 @@ bool PeripheryManager_::playFromFile(String file)
         return false;
     }
 #else
-    DEBUG_PRINTLN(F("Playing MP3 file"));
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("Playing MP3 file"));
     dfmp3.stop();
     delay(50);
     dfmp3.playMp3FolderTrack(file.toInt());
@@ -300,7 +324,8 @@ bool PeripheryManager_::isPlaying()
 
 void PeripheryManager_::setup()
 {
-    DEBUG_PRINTLN(F("Setup periphery"));
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("Setup periphery"));
     startTime = millis();
     pinMode(LDR_PIN, INPUT);
 #ifndef ULANZI
@@ -334,17 +359,20 @@ void PeripheryManager_::setup()
 #else
     if (bme280.begin(BME280_ADDRESS) || bme280.begin(BME280_ADDRESS_ALTERNATE))
     {
-        DEBUG_PRINTLN(F("BME280 sensor detected"));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("BME280 sensor detected"));
         TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_BME280;
     }
     else if (bmp280.begin(BMP280_ADDRESS) || bmp280.begin(BMP280_ADDRESS_ALT))
     {
-        DEBUG_PRINTLN(F("BMP280 sensor detected"));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("BMP280 sensor detected"));
         TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_BMP280;
     }
     else if (htu21df.begin())
     {
-        DEBUG_PRINTLN(F("HTU21DF sensor detected"));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("HTU21DF sensor detected"));
         TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_HTU21DF;
     }
     dfmp3.begin();
@@ -403,9 +431,6 @@ void PeripheryManager_::tick()
             CURRENT_TEMP += TEMP_OFFSET;
             CURRENT_HUM += HUM_OFFSET;
         }
-
-        // checkAlarms();
-        MQTTManager.sendStats();
     }
 
     unsigned long currentMillis_LDR = millis();
@@ -445,7 +470,8 @@ void PeripheryManager_::checkAlarms()
         DeserializationError error = deserializeJson(doc, file);
         if (error)
         {
-            DEBUG_PRINTLN(F("Failed to read Alarm file"));
+            if (DEBUG_MODE)
+                DEBUG_PRINTLN(F("Failed to read Alarm file"));
             return;
         }
         JsonArray alarms = doc["alarms"];
@@ -496,12 +522,10 @@ void PeripheryManager_::checkAlarms()
     }
 }
 
-const char *PeripheryManager_::readUptime()
+long PeripheryManager_::readUptime()
 {
-    static char uptime[25]; // Make the array static to keep it from being destroyed when the function returns
     unsigned long currentTime = millis();
     unsigned long elapsedTime = currentTime - startTime;
-    unsigned long uptimeSeconds = elapsedTime / 1000;
-    sprintf(uptime, "%lu", uptimeSeconds);
-    return uptime;
+    long uptimeSeconds = elapsedTime / 1000;
+    return uptimeSeconds;
 }

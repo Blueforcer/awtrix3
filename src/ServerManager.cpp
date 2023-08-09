@@ -10,6 +10,11 @@
 #include "DisplayManager.h"
 #include "UpdateManager.h"
 #include "PeripheryManager.h"
+#include <WiFiUdp.h>
+
+WiFiUDP udp;
+unsigned int localUdpPort = 4210; // Wählen Sie einen Port
+char incomingPacket[255];
 
 WebServer server(80);
 FSWebServer mws(LittleFS, server);
@@ -30,33 +35,6 @@ void versionHandler()
     webRequest->send(200, F("text/plain"), VERSION);
 }
 
-void handleBmpRequest()
-{
-    // Setze den Inhaltstyp auf BMP
-    server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-    server.send_P(200, "image/bmp", "");
-    int *ledColors = DisplayManager.getLedColors();
-
-    // Schreibe BMP-Header
-    uint16_t fileHeader[7] = {0x4D42, 0x1136, 0x0000, 0x0000, 0x0036, 0x0000, 0x0028};
-    server.sendContent_P((char *)&fileHeader, sizeof(fileHeader));
-    uint32_t header[9] = {32, 8, 0x00200001, 0x0000, 0x0000, 0x1136, 0x0B13, 0x0B13, 0x0000};
-    server.sendContent_P((char *)&header, sizeof(header));
-
-    for (int y = 0; y < 8; y++)
-    {
-        for (int x = 0; x < 32; x++)
-        {
-            int color = ledColors[y * 32 + x];
-            char pixel[3] = {static_cast<char>(color & 0xFF), static_cast<char>((color >> 8) & 0xFF), static_cast<char>((color >> 16) & 0xFF)};
-            server.sendContent_P(pixel, sizeof(pixel));
-        }
-    }
-    delete[] ledColors; // Lösche das Array
-
-    server.sendContent("");
-}
-
 void saveHandler()
 {
     WebServerClass *webRequest = mws.getRequest();
@@ -68,7 +46,7 @@ void addHandler()
 {
     mws.addHandler("/api/power", HTTP_POST, []()
                    { DisplayManager.powerStateParse(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
-        mws.addHandler("/api/loop", HTTP_GET, []()
+    mws.addHandler("/api/loop", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getAppsAsJson().c_str()); });
     mws.addHandler("/api/effects", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getEffectNames().c_str()); });
@@ -103,8 +81,7 @@ void addHandler()
     mws.addHandler("/api/nextapp", HTTP_POST, []()
                    { DisplayManager.nextApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/screen", HTTP_GET, []()
-                   {
-    mws.webserver->send(200, "text/html", screen_html); });
+                   { mws.webserver->send(200, "text/html", screen_html); });
     mws.addHandler("/api/previousapp", HTTP_POST, []()
                    { DisplayManager.previousApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/timer", HTTP_POST, []()
@@ -128,6 +105,8 @@ void addHandler()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getAppsWithIcon().c_str()); });
     mws.addHandler("/api/settings", HTTP_POST, []()
                    { DisplayManager.setNewSettings(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
+    mws.addHandler("/api/erase", HTTP_POST, []()
+                   { LittleFS.format(); delay(200); formatSettings();   mws.webserver->send(200,F("text/plain"),F("OK"));delay(200); ESP.restart(); });
     mws.addHandler("/api/reorder", HTTP_POST, []()
                    { DisplayManager.reorderApps(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/settings", HTTP_GET, []()
@@ -185,7 +164,8 @@ void ServerManager_::setup()
     WiFi.setHostname(uniqueID); // define hostname
     myIP = mws.startWiFi(15000, uniqueID, "12345678");
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
-    DEBUG_PRINTF("My IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
+    if (DEBUG_MODE)
+        DEBUG_PRINTF("My IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
     if (isConnected)
     {
         mws.addOptionBox("Network");
@@ -212,15 +192,17 @@ void ServerManager_::setup()
         mws.addJavascript(custom_script);
         mws.addHandler("/save", HTTP_POST, saveHandler);
         addHandler();
-
-        DEBUG_PRINTLN(F("Webserver loaded"));
+        udp.begin(localUdpPort);
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Webserver loaded"));
     }
     mws.addHandler("/version", HTTP_GET, versionHandler);
     mws.begin();
 
     if (!MDNS.begin(uniqueID))
     {
-        DEBUG_PRINTLN(F("Error starting mDNS"));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Error starting mDNS"));
         return;
     }
 
@@ -232,6 +214,23 @@ void ServerManager_::setup()
 void ServerManager_::tick()
 {
     mws.run();
+    int packetSize = udp.parsePacket();
+    if (packetSize)
+    {
+        int len = udp.read(incomingPacket, 255);
+        if (len > 0)
+        {
+            incomingPacket[len] = 0;
+        }
+        if (DEBUG_MODE)
+            DEBUG_PRINTF("UDP-Paket: %s\n", incomingPacket);
+        if (strcmp(incomingPacket, "FIND_AWTRIX") == 0)
+        {
+            udp.beginPacket(udp.remoteIP(), udp.remotePort());
+            udp.printf("%s|%s", uniqueID, WiFi.localIP().toString().c_str());
+            udp.endPacket();
+        }
+    }
 }
 
 uint16_t stringToColor(const String &str)
@@ -300,10 +299,11 @@ void ServerManager_::loadSettings()
         NET_SDNS = doc["Secondary DNS"].as<String>();
         file.close();
         DisplayManager.applyAllSettings();
-        DEBUG_PRINTLN(F("Webserver configuration loaded"));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Webserver configuration loaded"));
         return;
     }
-    else
+    else if (DEBUG_MODE)
         DEBUG_PRINTLN(F("Webserver configuration file not exist"));
     return;
 }

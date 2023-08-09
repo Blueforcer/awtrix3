@@ -246,7 +246,8 @@ void pushCustomApp(String name, int position)
 
         if (availableCallbackIndex == -1)
         {
-            DEBUG_PRINTLN("Error adding custom app -> Maximum number of custom apps reached");
+            if (DEBUG_MODE)
+                DEBUG_PRINTLN("Error adding custom app -> Maximum number of custom apps reached");
             return;
         }
 
@@ -276,19 +277,22 @@ bool deleteCustomAppFile(const String &name)
     // Check if the file exists
     if (!LittleFS.exists(fileName))
     {
-        DEBUG_PRINTLN("File does not exist: " + fileName);
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN("File does not exist: " + fileName);
         return false;
     }
 
     // Delete the file
     if (LittleFS.remove(fileName))
     {
-        DEBUG_PRINTLN("File removed successfully: " + fileName);
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN("File removed successfully: " + fileName);
         return true;
     }
     else
     {
-        DEBUG_PRINTLN("Failed to remove file: " + fileName);
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN("Failed to remove file: " + fileName);
         return false;
     }
 }
@@ -381,7 +385,6 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json)
 
     if (doc.is<JsonObject>())
     {
-        DEBUG_PRINTLN("Single Page");
         return generateCustomPage(name, json, false);
     }
     else if (doc.is<JsonArray>())
@@ -390,7 +393,6 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json)
         int cpIndex = 0;
         for (JsonVariant customPage : customPagesArray)
         {
-            Serial.printf("Multiple Page: %i", cpIndex);
             JsonObject customPageObject = customPage.as<JsonObject>();
             String customPageJson;
             serializeJson(customPageObject, customPageJson);
@@ -404,12 +406,14 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json)
 
 bool DisplayManager_::generateCustomPage(const String &name, const char *json, bool preventSave)
 {
-    DynamicJsonDocument doc(4096);
+    DynamicJsonDocument doc(8192);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
-        DEBUG_PRINTLN("PARSING FAILED");
-        DEBUG_PRINTLN(error.c_str());
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN("PARSING FAILED");
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(error.c_str());
         doc.clear();
         return false;
     }
@@ -447,7 +451,8 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json, b
             File file = LittleFS.open(fileName, "w");
             if (!file)
             {
-                DEBUG_PRINTLN("Failed to open file for writing: " + fileName);
+                if (DEBUG_MODE)
+                    DEBUG_PRINTLN("Failed to open file for writing: " + fileName);
                 return false;
             }
 
@@ -653,14 +658,13 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json, b
     pushCustomApp(name, pos - 1);
     customApps[name] = customApp;
     doc.clear();
-    DEBUG_PRINTLN("PARSING FINISHED");
     return true;
 }
 
 bool DisplayManager_::generateNotification(uint8_t source, const char *json)
 {
     // source: 0=MQTT, 1=HTTP
-    StaticJsonDocument<4096> doc;
+    DynamicJsonDocument doc(8192);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
@@ -914,12 +918,14 @@ void DisplayManager_::loadCustomApps()
 
     if (!root)
     {
-        DEBUG_PRINTLN("Failed to open directory");
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN("Failed to open directory");
         return;
     }
     if (!root.isDirectory())
     {
-        DEBUG_PRINTLN("/CUSTOMAPPS is not a directory");
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN("/CUSTOMAPPS is not a directory");
         return;
     }
 
@@ -1002,6 +1008,8 @@ void DisplayManager_::setup()
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
     setMatrixLayout(MATRIX_LAYOUT);
     matrix->setRotation(ROTATE_SCREEN ? 90 : 0);
+    // FastLED.setTemperature(16752790);
+    // FastLED.setCorrection(0xC8FFFF);
     if (COLOR_CORRECTION)
     {
         FastLED.setCorrection(COLOR_CORRECTION);
@@ -1062,10 +1070,12 @@ void checkLifetime(uint8_t pos)
         CustomApp &app = appIt->second;
         if (app.lifetime > 0 && (millis() - app.lastUpdate) / 1000 >= app.lifetime)
         {
-            DEBUG_PRINTLN("Removing " + appName + " -> Lifetime over");
+            if (DEBUG_MODE)
+                DEBUG_PRINTLN("Removing " + appName + " -> Lifetime over");
             removeCustomAppFromApps(appName, false);
 
-            DEBUG_PRINTLN("Set new Apploop");
+            if (DEBUG_MODE)
+                DEBUG_PRINTLN("Set new Apploop");
             ui->setApps(Apps);
         }
     }
@@ -1195,7 +1205,8 @@ void DisplayManager_::nextApp()
 {
     if (!MenuManager.inMenu)
     {
-        DEBUG_PRINTLN(F("Switching to next app"));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Switching to next app"));
         ui->nextApp();
     }
 }
@@ -1204,7 +1215,8 @@ void DisplayManager_::previousApp()
 {
     if (!MenuManager.inMenu)
     {
-        DEBUG_PRINTLN(F("Switching to previous app"));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Switching to previous app"));
         ui->previousApp();
     }
 }
@@ -1219,7 +1231,6 @@ void DisplayManager_::selectButton()
 {
     if (!MenuManager.inMenu)
     {
-
         DisplayManager.getInstance().dismissNotify();
 
         if (ALARM_ACTIVE && SNOOZE_TIME > 0)
@@ -1228,7 +1239,6 @@ void DisplayManager_::selectButton()
             ALARM_ACTIVE = false;
             AlarmTicker.once(SNOOZE_TIME * 60, snozzeTimerCallback);
         }
-
         if (TIMER_ACTIVE)
         {
             PeripheryManager.stopSound();
@@ -1248,16 +1258,13 @@ void DisplayManager_::selectButtonLong()
 
 void DisplayManager_::dismissNotify()
 {
-
     bool wakeup;
-
     if (!notifications.empty())
     {
         wakeup = notifications[0].wakeup;
         notifications.erase(notifications.begin());
         PeripheryManager.stopSound();
     }
-
     if (notifications.empty())
     {
         if (wakeup && MATRIX_OFF)
@@ -1265,7 +1272,6 @@ void DisplayManager_::dismissNotify()
             DisplayManager.setBrightness(0);
         }
     }
-
     if (ALARM_ACTIVE)
     {
         PeripheryManager.stopSound();
@@ -1310,8 +1316,16 @@ bool DisplayManager_::switchToApp(const char *json)
     int index = findAppIndexByName(name);
     if (index > -1)
     {
-        ui->transitionToApp(index);
-        return true;
+        if (fast)
+        {
+            ui->switchToApp(index);
+            return true;
+        }
+        else
+        {
+            ui->transitionToApp(index);
+            return true;
+        }
     }
     else
     {
@@ -1416,14 +1430,17 @@ std::pair<String, AppCallback> getNativeAppByName(const String &appName)
 
 void DisplayManager_::updateAppVector(const char *json)
 {
-    DEBUG_PRINTLN(F("New apps vector received"));
-    DEBUG_PRINTLN(json);
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("New apps vector received"));
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(json);
     DynamicJsonDocument doc(2048);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
         doc.clear();
-        DEBUG_PRINTLN(F("Failed to parse json"));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Failed to parse json"));
         return;
     }
 
@@ -1493,38 +1510,39 @@ void DisplayManager_::updateAppVector(const char *json)
 
 String DisplayManager_::getStats()
 {
-    StaticJsonDocument<512> doc;
+    StaticJsonDocument<1024> doc;
     char buffer[20];
+
 #ifdef ULANZI
     doc[BatKey] = BATTERY_PERCENT;
     doc[BatRawKey] = BATTERY_RAW;
 #endif
-    snprintf(buffer, 5, "%.0f", CURRENT_LUX);
-    doc[LuxKey] = buffer;
+
+    doc[LuxKey] = static_cast<int>(CURRENT_LUX);
     doc[LDRRawKey] = LDR_RAW;
-    doc[RamKey] = ESP.getFreeHeap();
+
+    uint32_t freeHeap = ESP.getFreeHeap();
+    doc[RamKey] = freeHeap;
     doc[BrightnessKey] = BRIGHTNESS;
+
     if (SENSOR_READING)
     {
-
-        snprintf(buffer, sizeof(buffer), "%.*f", TEMP_DECIMAL_PLACES, CURRENT_TEMP);
-        doc[TempKey] = buffer;
-        snprintf(buffer, 5, "%.0f", CURRENT_HUM);
-        doc[HumKey] = buffer;
+        doc[TempKey] = static_cast<uint8_t>(CURRENT_TEMP);
+        doc[HumKey] = static_cast<uint8_t>(CURRENT_HUM);
     }
+
     doc[UpTimeKey] = PeripheryManager.readUptime();
     doc[SignalStrengthKey] = WiFi.RSSI();
-    doc[UpdateKey] = UPDATE_AVAILABLE;
     doc[MessagesKey] = RECEIVED_MESSAGES;
     doc[VersionKey] = VERSION;
     doc[F("indicator1")] = ui->indicator1State;
     doc[F("indicator2")] = ui->indicator2State;
     doc[F("indicator3")] = ui->indicator3State;
     doc[F("app")] = CURRENT_APP;
-    doc[F("freeFlash")] = LittleFS.totalBytes() - LittleFS.usedBytes();
-    doc[F("heap")] = ESP.getFreeHeap();
+   // doc[F("freeFlash")] = LittleFS.totalBytes() - LittleFS.usedBytes();
     String jsonString;
-    return serializeJson(doc, jsonString), jsonString;
+    serializeJson(doc, jsonString);
+    return jsonString;
 }
 
 void DisplayManager_::setAppTime(long duration)
@@ -1535,7 +1553,8 @@ void DisplayManager_::setAppTime(long duration)
 void DisplayManager_::setMatrixLayout(int layout)
 {
     delete matrix; // Free memory from the current matrix object
-    DEBUG_PRINTF("Set matrix layout to %i", layout);
+    if (DEBUG_MODE)
+        DEBUG_PRINTF("Set matrix layout to %i", layout);
     switch (layout)
     {
     case 0:
@@ -1594,20 +1613,6 @@ void DisplayManager_::showSleepAnimation()
     {
         clear();
         printText(steps[i][0], steps[i][1], "Z", false, 1);
-        show();
-        delay(80);
-    }
-}
-
-void DisplayManager_::showCurtainEffect()
-{
-    int width = 32;
-    int height = 8;
-
-    for (int i = 0; i <= width / 2; i++)
-    {
-        // ui->update();
-        matrix->fillRect(0, 0, i, 8, 0xFFFF); // Linker Vorhang
         show();
         delay(80);
     }
@@ -1789,7 +1794,7 @@ void DisplayManager_::sendAppLoop()
 
 String DisplayManager_::getSettings()
 {
-    StaticJsonDocument<512> doc;
+    StaticJsonDocument<1024> doc;
     doc["ABRI"] = AUTO_BRIGHTNESS;
     doc["BRI"] = BRIGHTNESS;
     doc["ATRANS"] = AUTO_TRANSITION;
@@ -1798,6 +1803,8 @@ String DisplayManager_::getSettings()
     doc["TSPEED"] = TIME_PER_TRANSITION;
     doc["ATIME"] = TIME_PER_APP / 1000;
     doc["TMODE"] = TIME_MODE;
+    doc["CCOL"] = CALENDAR_COLOR;
+    doc["CTCOL"] = CALENDAR_TEXT_COLOR;
     doc["TFORMAT"] = TIME_FORMAT;
     doc["DFORMAT"] = DATE_FORMAT;
     doc["SOM"] = START_ON_MONDAY;
@@ -1819,19 +1826,31 @@ String DisplayManager_::getSettings()
     doc["TEMP_COL"] = TEMP_COLOR;
     doc["BAT_COL"] = BAT_COLOR;
     doc["SSPEED"] = SCROLL_SPEED;
+    doc["TIM"] = SHOW_TIME;
+    doc["DAT"] = SHOW_DATE;
+    doc["HUM"] = SHOW_HUM;
+    doc["TEMP"] = SHOW_TEMP;
+    doc["BAT"] = SHOW_BAT;
     String jsonString;
     return serializeJson(doc, jsonString), jsonString;
 }
 
 void DisplayManager_::setNewSettings(const char *json)
 {
-    DEBUG_PRINTLN(F("Got new settings:"));
-    DEBUG_PRINTLN(json);
-    DynamicJsonDocument doc(512);
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("Got new settings:"));
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(json);
+    DynamicJsonDocument doc(2048);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
+    {
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Error while parsing json"));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(error.c_str());
         return;
-
+    }
     if (doc.containsKey("ATIME"))
     {
         long atime = doc["ATIME"].as<int>();
@@ -1856,6 +1875,11 @@ void DisplayManager_::setNewSettings(const char *json)
     UPPERCASE_LETTERS = doc.containsKey("UPPERCASE") ? doc["UPPERCASE"].as<bool>() : UPPERCASE_LETTERS;
     SHOW_WEEKDAY = doc.containsKey("WD") ? doc["WD"].as<bool>() : SHOW_WEEKDAY;
     BLOCK_NAVIGATION = doc.containsKey("BLOCKN") ? doc["BLOCKN"].as<bool>() : BLOCK_NAVIGATION;
+    SHOW_TIME = doc.containsKey("TIM") ? doc["TIM"].as<bool>() : SHOW_TIME;
+    SHOW_DATE = doc.containsKey("DAT") ? doc["DAT"].as<bool>() : SHOW_DATE;
+    SHOW_HUM = doc.containsKey("HUM") ? doc["HUM"].as<bool>() : SHOW_HUM;
+    SHOW_TEMP = doc.containsKey("TEMP") ? doc["TEMP"].as<bool>() : SHOW_TEMP;
+    SHOW_BAT = doc.containsKey("BAT") ? doc["BAT"].as<bool>() : SHOW_BAT;
     if (doc.containsKey("CCORRECTION"))
     {
         auto colorValue = doc["CCORRECTION"];
@@ -1929,42 +1953,48 @@ void DisplayManager_::setNewSettings(const char *json)
     if (doc.containsKey("TCOL"))
     {
         auto TCOL = doc["TCOL"];
-        TEXTCOLOR_565 = getColorFromJsonVariant(TCOL, matrix->Color(255, 255, 255));
+        uint16_t TempColor = getColorFromJsonVariant(TCOL, matrix->Color(255, 255, 255));
+        for (auto it = customApps.begin(); it != customApps.end(); ++it)
+        {
+            CustomApp &app = it->second;
+            if (app.color == TEXTCOLOR_565)
+            {
+                app.color = TempColor;
+            }
+        }
+        TEXTCOLOR_565 = TempColor;
     }
+
     if (doc.containsKey("TIME_COL"))
     {
         auto TIME_COL = doc["TIME_COL"];
-        TIME_COLOR = getColorFromJsonVariant(TIME_COL, TEXTCOLOR_565);
+        TIME_COLOR = getColorFromJsonVariant(TIME_COL, 0);
     }
-
     if (doc.containsKey("DATE_COL"))
     {
         auto DATE_COL = doc["DATE_COL"];
-        DATE_COLOR = getColorFromJsonVariant(DATE_COL, TEXTCOLOR_565);
+        DATE_COLOR = getColorFromJsonVariant(DATE_COL, 0);
     }
-
     if (doc.containsKey("TEMP_COL"))
     {
         auto TEMP_COL = doc["TEMP_COL"];
-        TEMP_COLOR = getColorFromJsonVariant(TEMP_COL, TEXTCOLOR_565);
+        TEMP_COLOR = getColorFromJsonVariant(TEMP_COL, 0);
     }
-
     if (doc.containsKey("HUM_COL"))
     {
         auto HUM_COL = doc["HUM_COL"];
-        HUM_COLOR = getColorFromJsonVariant(HUM_COL, TEXTCOLOR_565);
+        HUM_COLOR = getColorFromJsonVariant(HUM_COL, 0);
     }
-
-#ifdef ULANZI
     if (doc.containsKey("BAT_COL"))
     {
         auto BAT_COL = doc["BAT_COL"];
-        BAT_COLOR = getColorFromJsonVariant(BAT_COL, TEXTCOLOR_565);
+        BAT_COLOR = getColorFromJsonVariant(BAT_COL, 0);
     }
-#endif
     doc.clear();
     applyAllSettings();
     saveSettings();
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN("Settings loaded");
 }
 
 String DisplayManager_::ledsAsJson()
@@ -2043,7 +2073,7 @@ void DisplayManager_::reorderApps(const String &jsonString)
 
 void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, String &drawInstructions)
 {
-    StaticJsonDocument<4096> doc;
+    DynamicJsonDocument doc(8192);
     DeserializationError error = deserializeJson(doc, drawInstructions);
 
     if (error)
@@ -2159,6 +2189,7 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
             }
         }
     }
+    doc.clear();
 }
 
 bool DisplayManager_::moodlight(const char *json)

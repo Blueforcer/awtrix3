@@ -147,7 +147,14 @@ const char *getTimeFormat()
     }
     else
     {
-        return TIME_FORMAT[2] == ' ' ? "%H %M" : "%H:%M";
+        if (TIME_FORMAT.length() > 5)
+        {
+            return TIME_FORMAT[2] == ' ' ? "%H %M" : "%H:%M";
+        }
+        else
+        {
+            return TIME_FORMAT.c_str();
+        }
     }
 }
 
@@ -451,6 +458,8 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             DisplayManager.setAppTime(ca->duration);
         }
     }
+
+    matrix->fillRect(x, y, 32, 8, ca->background);
 
     if (ca->effect > -1)
     {

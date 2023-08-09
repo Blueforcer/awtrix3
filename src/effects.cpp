@@ -5,13 +5,11 @@ CRGB tempLeds[32][8];
 
 void Pacifica(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
-    const uint16_t cols = matrix->width();
-    const uint16_t rows = matrix->height();
     static uint32_t sPacificaTime = 0;
     sPacificaTime += settings->speed;
-    for (uint16_t i = 0; i < cols; i++)
+    for (uint16_t i = 0; i < 32; i++)
     {
-        for (uint16_t j = 0; j < rows; j++)
+        for (uint16_t j = 0; j < 8; j++)
         {
             uint16_t ulx, uly;
 
@@ -33,8 +31,7 @@ void Pacifica(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *s
 
 void TheaterChase(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
-    const uint16_t cols = matrix->width();
-    const uint16_t rows = matrix->height();
+
     static uint16_t j = 0;
     static uint32_t lastUpdate = 0;
     // Hier verwenden wir settings->speed um die Geschwindigkeit der Animation zu steuern.
@@ -45,13 +42,13 @@ void TheaterChase(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSetting
         j += 1;
     }
 
-    for (uint16_t i = 0; i < cols; i++)
+    for (uint16_t i = 0; i < 32; i++)
     {
-        for (uint16_t k = 0; k < rows; k++)
+        for (uint16_t k = 0; k < 8; k++)
         {
             if ((i + j) % 3 == 0)
             {
-                uint8_t colorIndex = (i * 256 / cols) & 255;
+                uint8_t colorIndex = (i * 256 / 32) & 255;
                 CRGB color = ColorFromPalette(settings->palette, colorIndex, 255, settings->blend ? LINEARBLEND : NOBLEND);
                 matrix->drawPixel(x + i, y + k, color);
             }
@@ -65,13 +62,11 @@ void TheaterChase(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSetting
 
 void Plasma(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
-    const uint16_t cols = matrix->width();
-    const uint16_t rows = matrix->height();
     static double time = 0;
 
-    for (uint16_t i = 0; i < cols; i++)
+    for (uint16_t i = 0; i < 32; i++)
     {
-        for (uint16_t j = 0; j < rows; j++)
+        for (uint16_t j = 0; j < 8; j++)
         {
             uint8_t value = sin8(i * 10 + time) + sin8(j * 10 + time / 2) + sin8((i + j) * 10 + time / 3) / 3;
             CRGB color = ColorFromPalette(settings->palette, value, 255, settings->blend ? LINEARBLEND : NOBLEND);
@@ -89,8 +84,6 @@ struct MatrixColumn
 
 void Matrix(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
-    const uint16_t cols = matrix->width();
-    const uint16_t rows = matrix->height();
     static uint32_t lastMove = 0;
 
     // Retrieve colors from the palette
@@ -113,17 +106,17 @@ void Matrix(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *set
     {
         lastMove = millis();
 
-        // Shift rows down and update the ledState array
-        for (uint16_t i = 0; i < cols; i++)
+        // Shift 8 down and update the ledState array
+        for (uint16_t i = 0; i < 32; i++)
         {
-            for (uint16_t j = rows - 1; j > 0; j--)
+            for (uint16_t j = 8 - 1; j > 0; j--)
             {
                 ledState[i][j] = ledState[i][j - 1];
             }
         }
 
         // Fade top row and spawn new pixels
-        for (uint16_t i = 0; i < cols; i++)
+        for (uint16_t i = 0; i < 32; i++)
         {
             if (ledState[i][0] == spawnColor)
             {
@@ -143,9 +136,9 @@ void Matrix(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *set
     }
 
     // Always draw the current state
-    for (uint16_t i = 0; i < cols; i++)
+    for (uint16_t i = 0; i < 32; i++)
     {
-        for (uint16_t j = 0; j < rows; j++)
+        for (uint16_t j = 0; j < 8; j++)
         {
             matrix->drawPixel(x + i, y + j, ledState[i][j]);
         }
@@ -232,14 +225,12 @@ Star stars[32][8]; // Create a buffer to store the state of the LEDs
 
 void TwinklingStars(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
-    const uint16_t cols = matrix->width();
-    const uint16_t rows = matrix->height();
     static uint32_t lastUpdate = 0;
 
     // Fade all LEDs each frame
-    for (uint16_t i = 0; i < cols; i++)
+    for (uint16_t i = 0; i < 32; i++)
     {
-        for (uint16_t j = 0; j < rows; j++)
+        for (uint16_t j = 0; j < 8; j++)
         {
             stars[i][j].brightness -= 0.01;
             if (stars[i][j].brightness < 0)
@@ -255,8 +246,8 @@ void TwinklingStars(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSetti
         uint8_t numStars = random(1, 5); // Create between 1-5 new stars per frame
         for (uint8_t i = 0; i < numStars; i++)
         {
-            uint16_t starX = random(cols);
-            uint16_t starY = random(rows);
+            uint16_t starX = random(32);
+            uint16_t starY = random(8);
             // Star color - varying the saturation and value for shades of blue and white
             stars[starX][starY].color = ColorFromPalette(settings->palette, random8(), 255, settings->blend ? LINEARBLEND : NOBLEND);
             stars[starX][starY].brightness = 1.0;
@@ -477,8 +468,6 @@ void updateDirection()
 
 void SnakeGame(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
-    const uint16_t cols = matrix->width();
-    const uint16_t rows = matrix->height();
     if (isGameOver)
     {
         for (uint8_t i = 0; i < snakeLength; i++)
@@ -544,11 +533,11 @@ void SnakeGame(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *
         // Check for wall collision and wrap around
         if (snake[0].x < 0)
         {
-            snake[0].x = cols - 1;
+            snake[0].x = 32 - 1;
             colorIndex = (colorIndex + 10) % 255;
             snake[0].colorIndex = colorIndex; // Update color index for head segment
         }
-        else if (snake[0].x >= cols)
+        else if (snake[0].x >= 32)
         {
             snake[0].x = 0;
             colorIndex = (colorIndex + 10) % 255;
@@ -556,11 +545,11 @@ void SnakeGame(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *
         }
         else if (snake[0].y < 0)
         {
-            snake[0].y = rows - 1;
+            snake[0].y = 8 - 1;
             colorIndex = (colorIndex + 10) % 255;
             snake[0].colorIndex = colorIndex; // Update color index for head segment
         }
-        else if (snake[0].y >= rows)
+        else if (snake[0].y >= 8)
         {
             snake[0].y = 0;
             colorIndex = (colorIndex + 10) % 255;
@@ -604,9 +593,6 @@ uint32_t fireworkInterval = 350; // milliseconds between new fireworks
 
 void Fireworks(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
-    const uint16_t cols = matrix->width();
-    const uint16_t rows = matrix->height();
-
     // Spawn new firework if enough time has passed
     if (millis() - lastFireworkTime >= 1000 / fireworkInterval && random(100) < 50)
     { // 50% chance to spawn firework
@@ -614,13 +600,13 @@ void Fireworks(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *
         {
             if (fireworks[i].life == 0)
             { // find an unused firework
-                fireworks[i].x = random(cols);
-                fireworks[i].y = rows - 1;
+                fireworks[i].x = random(32);
+                fireworks[i].y = 8 - 1;
                 fireworks[i].life = 255;
                 fireworks[i].exploded = false;
                 fireworks[i].color = CRGB::White;           // The unexploded firework is white
                 fireworks[i].peak = random(1, 5);           // Set a random peak height for the firework
-                fireworks[i].speed = settings->speed * 0.3; // Set a speed for the firework
+                fireworks[i].speed = settings->speed * 0.5; // Set a speed for the firework
                 lastFireworkTime = millis();
                 break;
             }
@@ -648,11 +634,11 @@ void Fireworks(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *
             {
                 if (fireworks[i].x > 0)
                     matrix->drawPixel(x + fireworks[i].x - 1, y + fireworks[i].y, fireworks[i].color);
-                if (fireworks[i].x < cols - 1)
+                if (fireworks[i].x < 32 - 1)
                     matrix->drawPixel(x + fireworks[i].x + 1, y + fireworks[i].y, fireworks[i].color);
                 if (fireworks[i].y > 0)
                     matrix->drawPixel(x + fireworks[i].x, y + fireworks[i].y - 1, fireworks[i].color);
-                if (fireworks[i].y < rows - 1)
+                if (fireworks[i].y < 8 - 1)
                     matrix->drawPixel(x + fireworks[i].x, y + fireworks[i].y + 1, fireworks[i].color);
             }
         }
@@ -824,27 +810,25 @@ struct Ball
 
 void PingPongEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
-    const uint16_t cols = matrix->width();
-    const uint16_t rows = matrix->height();
 
-    static Paddle paddle1 = {rows / 2, 1};         // Paddle on the left side
-    static Paddle paddle2 = {rows / 2, -1};        // Paddle on the right side
-    static Ball ball = {cols / 2, rows / 2, 1, 1}; // Ball in the middle of the matrix
+    static Paddle paddle1 = {8 / 2, 1};       // Paddle on the left side
+    static Paddle paddle2 = {8 / 2, -1};      // Paddle on the right side
+    static Ball ball = {32 / 2, 8 / 2, 1, 1}; // Ball in the middle of the matrix
     static uint32_t lastUpdate = 0;
     // Move the paddles
 
-    if (millis() - lastUpdate > settings->speed * 100)
+    if (millis() - lastUpdate > 150 - settings->speed * 10)
     {
         lastUpdate = millis();
         paddle1.y += paddle1.dy;
         paddle2.y += paddle2.dy;
 
         // If a paddle has reached the top or bottom edge, change its direction
-        if (paddle1.y <= 0 || paddle1.y + PADDLE_HEIGHT >= rows)
+        if (paddle1.y <= 0 || paddle1.y + PADDLE_HEIGHT >= 8)
         {
             paddle1.dy = -paddle1.dy;
         }
-        if (paddle2.y <= 0 || paddle2.y + PADDLE_HEIGHT >= rows)
+        if (paddle2.y <= 0 || paddle2.y + PADDLE_HEIGHT >= 8)
         {
             paddle2.dy = -paddle2.dy;
         }
@@ -854,17 +838,17 @@ void PingPongEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSetti
         ball.y += ball.dy;
 
         // If the ball has reached the top or bottom edge, change its direction
-        if (ball.y <= 0 || ball.y + BALL_SIZE >= rows)
+        if (ball.y <= 0 || ball.y + BALL_SIZE >= 8)
         {
             ball.dy = -ball.dy;
         }
 
         // If the ball has reached the left or right edge without hitting a paddle, restart the game
         if ((ball.x < 0 && (ball.y < paddle1.y || ball.y > paddle1.y + PADDLE_HEIGHT)) ||
-            (ball.x + BALL_SIZE > cols && (ball.y < paddle2.y || ball.y > paddle2.y + PADDLE_HEIGHT)))
+            (ball.x + BALL_SIZE > 32 && (ball.y < paddle2.y || ball.y > paddle2.y + PADDLE_HEIGHT)))
         {
-            ball.x = cols / 2; // Reset ball position
-            ball.y = rows / 2;
+            ball.x = 32 / 2; // Reset ball position
+            ball.y = 8 / 2;
             ball.dx = 1; // Reset ball direction
             ball.dy = 1;
         }
@@ -874,7 +858,7 @@ void PingPongEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSetti
         {
             ball.dx = -ball.dx;
         }
-        if (ball.x + BALL_SIZE >= cols && ball.y >= paddle2.y && ball.y < paddle2.y + PADDLE_HEIGHT)
+        if (ball.x + BALL_SIZE >= 32 && ball.y >= paddle2.y && ball.y < paddle2.y + PADDLE_HEIGHT)
         {
             ball.dx = -ball.dx;
         }
@@ -883,7 +867,7 @@ void PingPongEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSetti
     for (int i = 0; i < PADDLE_HEIGHT; i++)
     {
         matrix->drawPixel(x, y + paddle1.y + i, matrix->Color(255, 255, 255));
-        matrix->drawPixel(x + cols - 1, y + paddle2.y + i, matrix->Color(255, 255, 255));
+        matrix->drawPixel(x + 32 - 1, y + paddle2.y + i, matrix->Color(255, 255, 255));
     }
     for (int i = 0; i < BALL_SIZE; i++)
     {
@@ -894,8 +878,8 @@ void PingPongEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSetti
 // ######## Bricks ############
 #define PADDLE_WIDTH 3 // Width of the paddle
 #define BALL_SIZE 1    // Size of the ball
-#define BRICK_COLS 16  // Number of bricks in a row
-#define BRICK_ROWS 3   // Number of brick rows
+#define BRICK_32 16    // Number of bricks in a row
+#define BRICK_8 3      // Number of brick 8
 
 struct BricksPaddle
 {
@@ -909,13 +893,13 @@ struct BricksBall
     int dx, dy; // Speed of the ball
 };
 
-bool bricks[BRICK_ROWS][BRICK_COLS]; // State of the bricks
+bool bricks[BRICK_8][BRICK_32]; // State of the bricks
 
 void resetBricks()
 {
-    for (int i = 0; i < BRICK_ROWS; i++)
+    for (int i = 0; i < BRICK_8; i++)
     {
-        for (int j = 0; j < BRICK_COLS; j++)
+        for (int j = 0; j < BRICK_32; j++)
         {
             bricks[i][j] = true;
         }
@@ -924,9 +908,9 @@ void resetBricks()
 
 bool bricksRemain()
 {
-    for (int i = 0; i < BRICK_ROWS; i++)
+    for (int i = 0; i < BRICK_8; i++)
     {
-        for (int j = 0; j < BRICK_COLS; j++)
+        for (int j = 0; j < BRICK_32; j++)
         {
             if (bricks[i][j])
             {
@@ -939,19 +923,16 @@ bool bricksRemain()
 
 void BrickBreakerEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
-    const uint16_t cols = matrix->width();
-    const uint16_t rows = matrix->height();
-
-    static BricksPaddle paddle = {cols / 2, 1};          // Paddle in the middle of the matrix
-    static BricksBall ball = {cols / 2, rows / 2, 1, 1}; // Ball in the middle of the matrix
+    static BricksPaddle paddle = {32 / 2, 1};       // Paddle in the middle of the matrix
+    static BricksBall ball = {32 / 2, 8 / 2, 1, 1}; // Ball in the middle of the matrix
 
     // Initialize the bricks
     static bool firstTime = true;
     if (firstTime)
     {
-        for (int i = 0; i < BRICK_ROWS; i++)
+        for (int i = 0; i < BRICK_8; i++)
         {
-            for (int j = 0; j < BRICK_COLS; j++)
+            for (int j = 0; j < BRICK_32; j++)
             {
                 bricks[i][j] = true; // All bricks exist at the beginning
             }
@@ -960,7 +941,7 @@ void BrickBreakerEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectS
     }
 
     static uint32_t lastUpdate = 0;
-    if (millis() - lastUpdate > 100)
+    if (millis() - lastUpdate > 150 - settings->speed * 10)
     {
         lastUpdate = millis();
 
@@ -972,26 +953,26 @@ void BrickBreakerEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectS
         paddle.x = ball.x - 1;
 
         // If the paddle has reached the left or right edge, change its direction
-        if (paddle.x <= 0 || paddle.x + PADDLE_WIDTH >= cols)
+        if (paddle.x <= 0 || paddle.x + PADDLE_WIDTH >= 32)
         {
             paddle.dx = -paddle.dx;
         }
 
         // If the ball has reached the top, bottom, left, or right edge, change its direction
-        if (ball.x <= 0 || ball.x + BALL_SIZE >= cols)
+        if (ball.x <= 0 || ball.x + BALL_SIZE >= 32)
         {
             ball.dx = -ball.dx;
         }
-        if (ball.y <= 0 || ball.y + BALL_SIZE >= rows)
+        if (ball.y <= 0 || ball.y + BALL_SIZE >= 8)
         {
             ball.dy = -ball.dy;
         }
 
-        for (int i = 0; i < BRICK_ROWS; i++)
+        for (int i = 0; i < BRICK_8; i++)
         {
-            for (int j = 0; j < BRICK_COLS; j++)
+            for (int j = 0; j < BRICK_32; j++)
             {
-                if (bricks[i][j] && ball.y == i && ball.x >= j * (cols / BRICK_COLS) && ball.x < (j + 1) * (cols / BRICK_COLS))
+                if (bricks[i][j] && ball.y == i && ball.x >= j * (32 / BRICK_32) && ball.x < (j + 1) * (32 / BRICK_32))
                 {
                     bricks[i][j] = false;
                     ball.dy = -ball.dy;
@@ -1008,19 +989,19 @@ void BrickBreakerEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectS
     // Draw the paddle, the ball, and the bricks
     for (int i = 0; i < PADDLE_WIDTH; i++)
     {
-        matrix->drawPixel(x + paddle.x + i, y + rows - 1, matrix->Color(255, 255, 255));
+        matrix->drawPixel(x + paddle.x + i, y + 8 - 1, matrix->Color(255, 255, 255));
     }
     for (int i = 0; i < BALL_SIZE; i++)
     {
         matrix->drawPixel(x + ball.x, y + ball.y + i, matrix->Color(255, 0, 0));
     }
-    for (int i = 0; i < BRICK_ROWS; i++)
+    for (int i = 0; i < BRICK_8; i++)
     {
-        for (int j = 0; j < BRICK_COLS; j++)
+        for (int j = 0; j < BRICK_32; j++)
         {
             if (bricks[i][j])
             {
-                matrix->drawPixel(x + j * (cols / BRICK_COLS), y + i, matrix->Color(0, 0, 255));
+                matrix->drawPixel(x + j * (32 / BRICK_32), y + i, matrix->Color(0, 0, 255));
             }
         }
     }
@@ -1058,10 +1039,10 @@ void MovingLine(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings 
 
 void Fade(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
-    static uint8_t hue = 0; // Hue for the color of the rows
-    // Change the color of the rows based on speed
+    static uint8_t hue = 0; // Hue for the color of the 8
+    // Change the color of the 8 based on speed
     hue += settings->speed;
-    // Draw the rows with fading colors based on the palette
+    // Draw the 8 with fading colors based on the palette
 
     for (int16_t i = 8 - 1; i >= 0; i--)
     {
@@ -1080,19 +1061,19 @@ Effect effects[] = {
     {"PingPong", PingPongEffect, EffectSettings(8, RainbowColors_p, true)},
     {"Radar", RadarEffect, EffectSettings(1, RainbowColors_p, true)},
     {"Checkerboard", CheckerboardEffect, EffectSettings(1, RainbowColors_p, true)},
-    {"Fireworks", Fireworks, EffectSettings(0.8, RainbowColors_p)},
+    {"Fireworks", Fireworks, EffectSettings(0, RainbowColors_p)},
     {"PlasmaCloud", PlasmaCloudEffect, EffectSettings(3, RainbowColors_p, true)},
     {"Ripple", RippleEffect, EffectSettings(3, RainbowColors_p, true)},
     {"Snake", SnakeGame, EffectSettings(3, RainbowColors_p, true)},
     {"Pacifica", Pacifica, EffectSettings(3, OceanColors_p, true)},
-    {"TheaterChase", TheaterChase, EffectSettings(3, RainbowColors_p,true)},
+    {"TheaterChase", TheaterChase, EffectSettings(3, RainbowColors_p, true)},
     {"Plasma", Plasma, EffectSettings(2, RainbowColors_p, true)},
     {"Matrix", Matrix, EffectSettings(8, ForestColors_p, false)},
-    {"SwirlIn", SwirlIn, EffectSettings(4, RainbowColors_p, true)},
-    {"SwirlOut", SwirlOut, EffectSettings(4, RainbowColors_p, true)},
+    {"SwirlIn", SwirlIn, EffectSettings(5, RainbowColors_p, true)},
+    {"SwirlOut", SwirlOut, EffectSettings(5, RainbowColors_p, true)},
     {"LookingEyes", LookingEyes, EffectSettings()},
     {"TwinklingStars", TwinklingStars, EffectSettings(4, OceanColors_p, true)},
-    {"ColorWaves", ColorWaves, EffectSettings(3, RainbowColors_p, true)}};
+    {"ColorWaves", ColorWaves, EffectSettings(5, RainbowColors_p, true)}};
 
 // ######## Helper functions ############
 
@@ -1144,48 +1125,63 @@ CRGBPalette16 loadPaletteFromLittleFS(String paletteName)
     return palette;
 }
 
-// Returns a palette based on the given name
-CRGBPalette16 getPalette(String palette)
+CRGBPalette16 getPalette(const JsonVariant &paletteVariant)
 {
-    if (palette == "Cloud")
+    if (paletteVariant.is<String>())
     {
-        return CloudColors_p;
+        String palette = paletteVariant.as<String>();
+        if (palette == "Cloud")
+        {
+            return CloudColors_p;
+        }
+        else if (palette == "Lava")
+        {
+            return LavaColors_p;
+        }
+        else if (palette == "Ocean")
+        {
+            return OceanColors_p;
+        }
+        else if (palette == "Forest")
+        {
+            return ForestColors_p;
+        }
+        else if (palette == "Stripe")
+        {
+            return RainbowStripeColors_p;
+        }
+        else if (palette == "Party")
+        {
+            return PartyColors_p;
+        }
+        else if (palette == "Heat")
+        {
+            return HeatColors_p;
+        }
+        else
+        {
+            return loadPaletteFromLittleFS(palette);
+        }
     }
-    else if (palette == "Lava")
+    else if (paletteVariant.is<JsonArray>())
     {
-        return LavaColors_p;
+        CRGBPalette16 palette;
+        JsonArray array = paletteVariant.as<JsonArray>();
+        for (int i = 0; i < 16 && i < array.size(); i++)
+        {
+            uint32_t colorValue = (uint32_t)strtol(array[i].as<String>().c_str(), NULL, 16);
+            palette[i] = CRGB(colorValue);
+        }
+        return palette;
     }
-    else if (palette == "Ocean")
-    {
-        return OceanColors_p;
-    }
-    else if (palette == "Forest")
-    {
-        return ForestColors_p;
-    }
-    else if (palette == "Stripe")
-    {
-        return RainbowStripeColors_p;
-    }
-    else if (palette == "Party")
-    {
-        return PartyColors_p;
-    }
-    else if (palette == "Heat")
-    {
-        return HeatColors_p;
-    }
-    else
-    {
-        return loadPaletteFromLittleFS(palette);
-    }
+    return RainbowColors_p; // Default fallback
 }
 
 void updateEffectSettings(u_int8_t index, String json)
 {
     if (index != -1)
     {
-        StaticJsonDocument<200> doc;
+        StaticJsonDocument<2048> doc;
         deserializeJson(doc, json);
 
         if (doc.containsKey("speed"))
@@ -1195,7 +1191,7 @@ void updateEffectSettings(u_int8_t index, String json)
 
         if (doc.containsKey("palette"))
         {
-            effects[index].settings.palette = getPalette(doc["palette"].as<String>());
+            effects[index].settings.palette = getPalette(doc["palette"]);
         }
 
         if (doc.containsKey("blend"))

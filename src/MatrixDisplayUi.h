@@ -45,6 +45,7 @@ enum AnimationDirection
 
 enum TransitionType
 {
+  RANDOM,
   SLIDE,
   FADE,
   ZOOM,
@@ -68,6 +69,7 @@ struct MatrixDisplayUiState
 {
   u_int64_t lastUpdate = 0;
   long ticksSinceLastStateSwitch = 0;
+
 
   AppState appState = FIXED;
   uint8_t currentApp = 0;
@@ -131,7 +133,6 @@ private:
   void blinkTransition();
   void reloadTransition();
   void crossfadeTransition();
-
 
 public:
   MatrixDisplayUi(FastLED_NeoMatrix *matrix);

@@ -304,55 +304,76 @@ void MatrixDisplayUi::drawIndicators()
   }
 }
 
+uint8_t currentTransition;
+bool gotNewTransition = true;
+TransitionType getRandomTransition()
+{
+  // RANDOM is now index 0, so we add 1 to the result to ensure it's never selected
+  return static_cast<TransitionType>((rand() % (CROSSFADE)) + 1);
+}
+
 void MatrixDisplayUi::drawApp()
 {
   switch (this->state.appState)
   {
   case IN_TRANSITION:
   {
-    if (TRANS_EFFECT == SLIDE)
+    gotNewTransition = false;
+    if (currentTransition == SLIDE)
     {
       slideTransition();
     }
-    else if (TRANS_EFFECT == FADE)
+    else if (currentTransition == FADE)
     {
       fadeTransition();
     }
-    else if (TRANS_EFFECT == ZOOM)
+    else if (currentTransition == ZOOM)
     {
       zoomTransition();
     }
-    else if (TRANS_EFFECT == ROTATE)
+    else if (currentTransition == ROTATE)
     {
       rotateTransition();
     }
-    else if (TRANS_EFFECT == PIXELATE)
+    else if (currentTransition == PIXELATE)
     {
       pixelateTransition();
     }
-    else if (TRANS_EFFECT == CURTAIN)
+    else if (currentTransition == CURTAIN)
     {
       curtainTransition();
     }
-    else if (TRANS_EFFECT == RIPPLE)
+    else if (currentTransition == RIPPLE)
     {
       rippleTransition();
     }
-    else if (TRANS_EFFECT == BLINK)
+    else if (currentTransition == BLINK)
     {
       blinkTransition();
     }
-    else if (TRANS_EFFECT == RELOAD)
+    else if (currentTransition == RELOAD)
     {
       reloadTransition();
     }
-    else if (TRANS_EFFECT == CROSSFADE)
+    else if (currentTransition == CROSSFADE)
     {
       crossfadeTransition();
     }
     break;
   }
   case FIXED:
+    if (TRANS_EFFECT == RANDOM)
+    {
+      if (gotNewTransition == false)
+      {
+        currentTransition = getRandomTransition(); // Wähle einen neuen zufälligen Übergang aus, wenn TRANS_EFFECT auf RANDOM gesetzt ist
+        gotNewTransition = true;
+      }
+    }
+    else
+    {
+      currentTransition = TRANS_EFFECT; // Wenn TRANS_EFFECT nicht RANDOM ist, setzen Sie currentTransition auf TRANS_EFFECT
+    }
     (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif2);
     break;
   }

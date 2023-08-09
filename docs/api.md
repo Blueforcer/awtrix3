@@ -289,6 +289,11 @@ Each property is optional; you do not need to send all.
 | `HUM_COL` | string / array of ints| Sets the textcolor of the humidity app. Set 0 for global textcolor  | an array of RGB values hexadecimal color value | N/A |
 | `BAT_COL` | string / array of ints| Sets the textcolor of the battery app. Set 0 for global textcolor  | an array of RGB values hexadecimal color value | N/A |
 | `SSPEED` | integer | Modifies the scrollspeed | percentage value of the original scrollspeed | 100 |
+| `TIM` | boolean | Enable or disable the native time app (needs a reboot) | true/false | true |
+| `DAT` | boolean | Enable or disable the native date app (needs a reboot) | true/false | true |
+| `HUM` | boolean | Enable or disable the native humidity app (needs a reboot) | true/false | true |
+| `TEMP` | boolean | Enable or disable the native temperature app (needs a reboot) | true/false | true |
+| `BAT` | boolean | Enable or disable the native battery app (needs a reboot) | true/false | true |
 
 **Transision effects:**  
 ```bash  
@@ -342,3 +347,12 @@ You can start the firmware update with update button in HA or:
 | Topic | URL | Payload/Body | HTTP method |  
 | --- | --- | --- | --- |  
 | `[PREFIX]/reboot` | `http://[IP]/api/reboot` | - | POST |  
+
+
+## Erase Awtrix    
+WARNING: this will format the flashmemory and EEPROM but dont touches the Wifi Settings.
+This is kind of a factoryreset!  
+  
+| Topic | URL | Payload/Body | HTTP method |  
+| --- | --- | --- | --- |  
+| `N/A` | `http://[IP]/api/erase` | - | POST |  
