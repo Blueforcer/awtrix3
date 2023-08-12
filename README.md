@@ -41,8 +41,9 @@ https://flows.blueforcer.de/
 
 # AWTRIX APP
 Manage your Awtrix with unparalleled ease straight from your smartphone. 
-With this intuitive app, get complete control over your device's features. More Features will come soon!  
-By purchasing this app, you play a crucial role in supporting the development of Awtrix Light. Enhance your experience and contribute to innovation. Download now!  
+With this intuitive app, get complete control over your device's features and settings. More functions will come soon!  
+By purchasing this app, you play a crucial role in supporting the development of Awtrix Light. Enhance your experience and contribute to innovation.  
+Download now!  
 <a href='https://play.google.com/store/apps/details?id=de.awtrix.light&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'>
   <img style="width: 20%; height: auto;" alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/>
 </a>
