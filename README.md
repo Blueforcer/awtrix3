@@ -39,7 +39,7 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
 This is your go-to hub for sharing and discovering AWTRIX Light automations. Enhance your AWTRIX Light experience, exchange ideas, and get inspired. Let's bring our creative automations to life together!  
 https://flows.blueforcer.de/
 
-# AWTRIX APP
+# AWTRIX App
 Manage your Awtrix with unparalleled ease straight from your smartphone. 
 With this intuitive app, get complete control over your device's features and settings. More functions will come soon!  
 By purchasing this app, you play a crucial role in supporting the development of Awtrix Light. Enhance your experience and contribute to innovation.  
