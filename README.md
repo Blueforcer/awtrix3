@@ -45,10 +45,10 @@ With this intuitive app, get complete control over your device's features and se
 By purchasing this app, you play a crucial role in supporting the development of Awtrix Light. Enhance your experience and contribute to innovation.  
   
 <a href='https://play.google.com/store/apps/details?id=de.awtrix.light&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'>
-  <img style="width: 25%; height: auto;" alt='Get it on Google Play' src='playstore.png'/>
+  <img style="width: 25%; height: auto;" alt='Get it on Google Play' src='playstore_button.png'/>
 </a>
 <a href='https://play.google.com/store/apps/details?id=de.awtrix.light&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'>
-  <img style="width: 20%; height: auto;" alt='Get it on Google Play' src='appstore.png'/>
+  <img style="width: 20%; height: auto;" alt='Get it on Google Play' src='appstore_button.png'/>
 </a>
 
   
