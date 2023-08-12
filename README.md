@@ -35,9 +35,7 @@ The powerful icon system brings your ideas to life and lets you enjoy a hassle-f
 
 Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 and Awtrix Light and experience the difference today! 
   
-# AWTRIX Light flows  
-This is your go-to hub for sharing and discovering AWTRIX Light automations. Enhance your AWTRIX Light experience, exchange ideas, and get inspired. Let's bring our creative automations to life together!  
-https://flows.blueforcer.de/
+
 
 # AWTRIX App
 Manage your Awtrix with unparalleled ease straight from your smartphone. 
@@ -51,6 +49,9 @@ By purchasing this app, you play a crucial role in supporting the development of
   <img style="width: 20%; height: auto;" alt='Get it on Google Play' src='appstore_button.png'/>
 </a>
 
+# AWTRIX Light flows  
+This is your go-to hub for sharing and discovering AWTRIX Light automations. Enhance your AWTRIX Light experience, exchange ideas, and get inspired. Let's bring our creative automations to life together!  
+https://flows.blueforcer.de/
   
 # Features
 - Easy to setup
