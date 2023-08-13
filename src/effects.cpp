@@ -12,12 +12,8 @@ void Pacifica(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *s
         for (uint16_t j = 0; j < 8; j++)
         {
             uint16_t ulx, uly;
-
-            // Richtung berücksichtigen
-
-            ulx = (sPacificaTime / 8) - (i * 16); // Für UP und DOWN, verändert sich die x-Position
+            ulx = (sPacificaTime / 8) - (i * 16); 
             uly = (sPacificaTime / 4) + (j * 16);
-
             uint16_t v = 0;
             v += sin16(ulx * 6 + sPacificaTime / 2) / 8 + 127;
             v += sin16(uly * 9 + sPacificaTime / 2) / 8 + 127;
@@ -34,8 +30,6 @@ void TheaterChase(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSetting
 
     static uint16_t j = 0;
     static uint32_t lastUpdate = 0;
-    // Hier verwenden wir settings->speed um die Geschwindigkeit der Animation zu steuern.
-    // Die Geschwindigkeitseinstellung wird verwendet, um die Anzahl der Animationsschritte zu steuern, die übersprungen werden.
     if (millis() - lastUpdate > 100 - settings->speed * 10)
     {
         lastUpdate = millis();
@@ -1061,7 +1055,7 @@ Effect effects[] = {
     {"PingPong", PingPongEffect, EffectSettings(8, RainbowColors_p, true)},
     {"Radar", RadarEffect, EffectSettings(1, RainbowColors_p, true)},
     {"Checkerboard", CheckerboardEffect, EffectSettings(1, RainbowColors_p, true)},
-    {"Fireworks", Fireworks, EffectSettings(0, RainbowColors_p)},
+    {"Fireworks", Fireworks, EffectSettings(1, RainbowColors_p)},
     {"PlasmaCloud", PlasmaCloudEffect, EffectSettings(3, RainbowColors_p, true)},
     {"Ripple", RippleEffect, EffectSettings(3, RainbowColors_p, true)},
     {"Snake", SnakeGame, EffectSettings(3, RainbowColors_p, true)},
@@ -1100,11 +1094,9 @@ int getEffectIndex(String name)
 // Loads a palette from the LittleFS filesystem
 CRGBPalette16 loadPaletteFromLittleFS(String paletteName)
 {
-    Serial.println("Loading palette: " + paletteName);
     File paletteFile = LittleFS.open("/PALETTES/" + paletteName + ".txt", "r");
     if (!paletteFile)
     {
-        Serial.println("Failed to open palette file " + paletteName);
         return RainbowColors_p; // default palette
     }
 
@@ -1120,8 +1112,6 @@ CRGBPalette16 loadPaletteFromLittleFS(String paletteName)
         i++;
     }
     paletteFile.close();
-
-    Serial.println("Palette loaded: " + paletteName);
     return palette;
 }
 

@@ -341,6 +341,7 @@ bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, s
     DeserializationError error = deserializeJson(doc, jsonText);
     if (error)
     {
+        DEBUG_PRINTLN(error.c_str());
         doc.clear();
         return false;
     }
@@ -379,6 +380,7 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json)
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
+        DEBUG_PRINTLN(error.c_str());
         doc.clear();
         return false;
     }
@@ -668,6 +670,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
+        DEBUG_PRINTLN(error.c_str());
         doc.clear();
         return false;
     }

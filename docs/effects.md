@@ -105,7 +105,7 @@ Standard values:
 | PingPong | 8 | Rainbow | - |
 | Radar | 1 | Rainbow | true |
 | Checkerboard | 1 | Rainbow | true |
-| Fireworks | 0.8 | Rainbow | true |
+| Fireworks | 1 | Rainbow | true |
 | PlasmaCloud | 3 | Rainbow | true |
 | Ripple | 3 | Rainbow | true |
 | Snake | 3 | Rainbow | - |

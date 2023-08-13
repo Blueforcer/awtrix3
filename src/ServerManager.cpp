@@ -226,8 +226,8 @@ void ServerManager_::tick()
             DEBUG_PRINTF("UDP-Paket: %s\n", incomingPacket);
         if (strcmp(incomingPacket, "FIND_AWTRIX") == 0)
         {
-            udp.beginPacket(udp.remoteIP(), udp.remotePort());
-            udp.printf("%s|%s", uniqueID, WiFi.localIP().toString().c_str());
+            udp.beginPacket(udp.remoteIP(),4211);
+            udp.printf(MQTT_PREFIX.c_str());
             udp.endPacket();
         }
     }
