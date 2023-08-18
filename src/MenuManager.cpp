@@ -117,6 +117,22 @@ MenuManager_ &MenuManager_::getInstance()
 // Initialize the global shared instance
 MenuManager_ &MenuManager = MenuManager.getInstance();
 
+int convertBRIPercentTo8Bit(int brightness_percent)
+{
+    int brightness;
+    if (brightness_percent <= 10) {
+        // Map 10 % or lower 1:1 to 0:255 range. Reasons:
+        // * 1% would be mapped to 2 so lowest value would be inaccessible.
+        // * Small changes in lower brightness are perceived by humans
+        //   as big changes, so it makes sense to give higher
+        //   "resolution" here.
+        brightness = brightness_percent;
+    } else {
+        brightness = map(brightness_percent, 0, 100, 0, 255);
+    }
+    return brightness;
+}
+
 String MenuManager_::menutext()
 {
     time_t now = time(nullptr);
@@ -213,7 +229,7 @@ void MenuManager_::rightButton()
         if (!AUTO_BRIGHTNESS)
         {
             BRIGHTNESS_PERCENT = (BRIGHTNESS_PERCENT % 100) + 1;
-            BRIGHTNESS = map(BRIGHTNESS_PERCENT, 0, 100, 0, 255);
+            BRIGHTNESS = convertBRIPercentTo8Bit(BRIGHTNESS_PERCENT);
             DisplayManager.setBrightness(BRIGHTNESS);
         }
         break;
@@ -274,7 +290,7 @@ void MenuManager_::leftButton()
         if (!AUTO_BRIGHTNESS)
         {
             BRIGHTNESS_PERCENT = (BRIGHTNESS_PERCENT == 1) ? 100 : BRIGHTNESS_PERCENT - 1;
-            BRIGHTNESS = map(BRIGHTNESS_PERCENT, 0, 100, 0, 255);
+            BRIGHTNESS = convertBRIPercentTo8Bit(BRIGHTNESS_PERCENT);
             DisplayManager.setBrightness(BRIGHTNESS);
         }
         break;
@@ -332,7 +348,12 @@ void MenuManager_::selectButton()
         switch (menuIndex)
         {
         case 0:
-            BRIGHTNESS_PERCENT = map(BRIGHTNESS, 0, 255, 0, 100);
+            // reverse of convertBRIPercentTo8Bit.
+            if (BRIGHTNESS <= 10) {
+                BRIGHTNESS_PERCENT = BRIGHTNESS;
+            } else {
+                BRIGHTNESS_PERCENT = map(BRIGHTNESS, 0, 255, 0, 100);
+            }
             currentState = BrightnessMenu;
             break;
         case 1:
@@ -384,7 +405,7 @@ void MenuManager_::selectButton()
         AUTO_BRIGHTNESS = !AUTO_BRIGHTNESS;
         if (!AUTO_BRIGHTNESS)
         {
-            BRIGHTNESS = map(BRIGHTNESS_PERCENT, 0, 100, 0, 255);
+            BRIGHTNESS = convertBRIPercentTo8Bit(BRIGHTNESS_PERCENT);
             DisplayManager.setBrightness(BRIGHTNESS);
         }
         break;
