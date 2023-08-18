@@ -17,6 +17,8 @@ void FSWebServer::run()
     webserver->handleClient();
     if (m_apmode)
         m_dnsServer.processNextRequest();
+
+
 }
 
 void FSWebServer::addHandler(const Uri &uri, HTTPMethod method, WebServerClass::THandlerFunction fn)
@@ -169,9 +171,9 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
             Serial.print(".");
             if (WiFi.status() == WL_CONNECTED)
             {
+                ip = WiFi.localIP();
                 WiFi.setAutoReconnect(true);
                 WiFi.persistent(true);
-                ip = WiFi.localIP();
                 return ip;
             }
             // If no connection after a while go in Access Point mode
@@ -897,8 +899,8 @@ void FSWebServer::handleStatus()
     totalBytes = fs_info.totalBytes;
     usedBytes = fs_info.usedBytes;
 #elif defined(ESP32)
-    totalBytes = LittleFS.totalBytes();
-    usedBytes = LittleFS.usedBytes();
+    // totalBytes = m_filesystem->totalBytes();
+    // usedBytes = m_filesystem->usedBytes();
 #endif
 
     String json;
@@ -906,10 +908,15 @@ void FSWebServer::handleStatus()
     json = "{\"type\":\"Filesystem\", \"isOk\":";
     if (m_fsOK)
     {
+        uint32_t ip = (WiFi.status() == WL_CONNECTED) ? WiFi.localIP() : WiFi.softAPIP();
         json += PSTR("\"true\", \"totalBytes\":\"");
         json += totalBytes;
         json += PSTR("\", \"usedBytes\":\"");
         json += usedBytes;
+        json += PSTR("\", \"mode\":\"");
+        json += WiFi.status() == WL_CONNECTED ? "Station" : "Access Point";
+        json += PSTR("\", \"ip\":\"");
+        json += ip;
         json += "\"";
     }
     else

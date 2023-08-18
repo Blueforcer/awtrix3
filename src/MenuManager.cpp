@@ -445,7 +445,7 @@ void MenuManager_::selectButtonLong()
         switch (currentState)
         {
         case BrightnessMenu:
-            BRIGHTNESS = map(BRIGHTNESS_PERCENT, 0, 100, 0, 255);
+            //BRIGHTNESS = map(BRIGHTNESS_PERCENT, 0, 100, 0, 255);
             saveSettings();
             break;
         case ColorMenu:

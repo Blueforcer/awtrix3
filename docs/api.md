@@ -278,11 +278,10 @@ Each property is optional; you do not need to send all.
 | `ATRANS` | boolean | Determines if automatic switching to the next app is active. | `true` or `false`. | N/A |
 | `CCORRECTION` | array of ints | Sets the color correction for the matrix | an array of RGB values | N/A |
 | `CTEMP` | array of ints | Sets the color temperature for the matrix | an array of RGB values | N/A |
-| `GAMMA` | float | Sets the gamma for the matrix | 2.5 | N/A |
 | `TFORMAT` | string | Sets the timeformat for the TimeApp | see below | N/A |
 | `DFORMAT` | string | Sets the dateformat for the DateApp | see below | N/A |
 | `SOM` | bool | Sets the start of the week to monday | true/false | true |
-| `BLOCKN` | bool | Blocks temporarily the physical navigation keys, but still sends the input to MQTT | true/false | false |
+| `BLOCKN` | bool | Blocks the physical navigation keys, but still sends the input to MQTT | true/false | false |
 | `UPPERCASE` | bool | Shows text in uppercase | true/false | true |
 | `TIME_COL` | string / array of ints| Sets the textcolor of the time app. Set 0 for global textcolor | an array of RGB values hexadecimal color value | N/A |
 | `DATE_COL` | string / array of ints| Sets the textcolor of the date app . Set 0 for global textcolor | an array of RGB values hexadecimal color value | N/A |

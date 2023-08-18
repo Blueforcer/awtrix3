@@ -43,7 +43,8 @@ GifPlayer gif;
 
 uint16_t gifX, gifY;
 CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
-
+CRGB ledsCopy[MATRIX_WIDTH * MATRIX_HEIGHT];
+float actualBri;
 // BMP Creation
 const int w = 32;             // image width in pixels
 const int h = 8;              // " height
@@ -80,6 +81,8 @@ void DisplayManager_::setBrightness(int bri)
     {
 
         matrix->setBrightness(bri);
+        actualBri = bri;
+        Serial.println(actualBri);
     }
 }
 
@@ -1011,8 +1014,7 @@ void DisplayManager_::setup()
     FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
     setMatrixLayout(MATRIX_LAYOUT);
     matrix->setRotation(ROTATE_SCREEN ? 90 : 0);
-    // FastLED.setTemperature(16752790);
-    // FastLED.setCorrection(0xC8FFFF);
+    GAMMA = 1.9;
     if (COLOR_CORRECTION)
     {
         FastLED.setCorrection(COLOR_CORRECTION);
@@ -1265,6 +1267,7 @@ void DisplayManager_::dismissNotify()
     if (!notifications.empty())
     {
         wakeup = notifications[0].wakeup;
+        notifications[0].icon.close();
         notifications.erase(notifications.begin());
         PeripheryManager.stopSound();
     }
@@ -1361,7 +1364,7 @@ void DisplayManager_::drawMenuIndicator(int cur, int total, uint16_t color)
         }
         else
         {
-            matrix->drawLine(x, 7, x + menuItemWidth - 1, 7, matrix->Color(100, 100, 100));
+            matrix->drawLine(x, 7, x + menuItemWidth - 1, 7, 0x6B6D);
         }
     }
 }
@@ -1542,7 +1545,7 @@ String DisplayManager_::getStats()
     doc[F("indicator2")] = ui->indicator2State;
     doc[F("indicator3")] = ui->indicator3State;
     doc[F("app")] = CURRENT_APP;
-   // doc[F("freeFlash")] = LittleFS.totalBytes() - LittleFS.usedBytes();
+    // doc[F("freeFlash")] = LittleFS.totalBytes() - LittleFS.usedBytes();
     String jsonString;
     serializeJson(doc, jsonString);
     return jsonString;
@@ -1779,14 +1782,29 @@ bool DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
     return true;
 }
 
+float logMap(float x, float in_min, float in_max, float out_min, float out_max, float mid_point_out)
+{
+    if (x<in_min) return out_min;
+    if (x>in_max) return out_max;
+    float scale = (mid_point_out - out_min) / log(in_max - in_min + 1);
+    if (x <= (in_max + in_min) / 2.0)
+    {
+        return scale * log(x - in_min + 1) + out_min;
+    }
+    else
+    {
+        float upper_scale = (out_max - mid_point_out) / log(in_max - (in_max + in_min) / 2.0 + 1);
+        return upper_scale * log(x - (in_max + in_min) / 2.0 + 1) + mid_point_out;
+    }
+}
+
 void DisplayManager_::gammaCorrection()
 {
-    if (GAMMA > 0)
+    float gamma = logMap(actualBri, 2, 180, 0.535, 2.3, 1.9);
+    memcpy(ledsCopy, leds, sizeof(leds));
+    for (int i = 0; i < 256; i++)
     {
-        for (int i = 0; i < 256; i++)
-        {
-            leds[i] = applyGamma_video(leds[i], GAMMA);
-        }
+        leds[i] = applyGamma_video(leds[i], gamma);
     }
 }
 
@@ -2009,10 +2027,7 @@ String DisplayManager_::ledsAsJson()
         for (int x = 0; x < MATRIX_WIDTH; x++)
         {
             int index = matrix->XY(x, y);
-            int r = leds[index].r;
-            int g = leds[index].g;
-            int b = leds[index].b;
-            int color = (r << 16) | (g << 8) | b;
+            int color = (ledsCopy[index].r << 16) | (ledsCopy[index].g << 8) | ledsCopy[index].b;
             jsonColors.add(color);
         }
     }

@@ -720,6 +720,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
         {
             notifications[1].startime = millis();
         }
+        notifications[0].icon.close();
         notifications.erase(notifications.begin());
         if (notifications[0].wakeup && MATRIX_OFF)
         {

@@ -18,7 +18,6 @@ The JSON object has the following properties:
 | `matrix` | integer | Changes the matrix layout (0,1 or 2) | `0` |
 | `color_correction` | array of int | Sets the colorcorrection of the matrix | `[255,255,255]` |
 | `color_temperature` | array of int | Sets the colortemperature of the matrix | `[255,255,255]` |
-| `gamma` |float | Sets the gamma of the matrix | `2.5` |
 | `update_check` | boolean | Enables searchfunction for new version every 1 hour. This could cause in loop stack overflow! | `false` |
 | `rotate_screen` | boolean | Rotates the screen upside down | `false` |
 | `temp_dec_places` | integer | Number of decimal places for temperature measurements | `0` |
