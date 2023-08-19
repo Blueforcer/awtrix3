@@ -115,7 +115,7 @@ bool FSWebServer::begin(const char *path)
 
     // OTA update via webbrowser
     m_httpUpdater.setup(webserver);
-
+    
 
     webserver->enableCORS(true);
 

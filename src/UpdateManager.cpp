@@ -16,8 +16,6 @@
 #define URL_fw_Bin "https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/awtrix2_flasher/firmware/firmware.bin"
 #endif
 
-Ticker UpdateTicker;
-
 // The getter for the instantiated singleton instance
 UpdateManager_ &UpdateManager_::getInstance()
 {
@@ -42,6 +40,7 @@ void update_progress(int cur, int total)
     int progress = (cur * 100) / total;
     char progressStr[5];
     snprintf(progressStr, 5, "%d%%", progress);
+     DisplayManager.resetTextColor();
     DisplayManager.printText(0, 6, progressStr, true, false);
     DisplayManager.drawProgressBar(0, 7, progress, 0xCE59, 0x07E0);
     DisplayManager.show();
@@ -86,6 +85,7 @@ bool UpdateManager_::checkUpdate(bool withScreen)
     if (withScreen)
     {
         DisplayManager.clear();
+        DisplayManager.resetTextColor();
         DisplayManager.printText(0, 6, "CHECK", true, true);
         DisplayManager.show();
     }
@@ -118,6 +118,7 @@ bool UpdateManager_::checkUpdate(bool withScreen)
             if (withScreen)
             {
                 DisplayManager.clear();
+                 DisplayManager.resetTextColor();
                 DisplayManager.printText(0, 6, "ERR CNCT", true, true);
                 DisplayManager.show();
                 delay(1000);
@@ -136,6 +137,7 @@ bool UpdateManager_::checkUpdate(bool withScreen)
             if (withScreen)
             {
                 DisplayManager.clear();
+                 DisplayManager.resetTextColor();
                 DisplayManager.printText(0, 6, "NO UP :(", true, true);
                 DisplayManager.show();
                 delay(1000);
@@ -161,6 +163,5 @@ void checkUpdateNoReturn()
 
 void UpdateManager_::setup()
 {
-    if (UPDATE_CHECK)
-        UpdateTicker.attach(120, checkUpdateNoReturn);
+   
 }

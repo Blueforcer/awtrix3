@@ -79,10 +79,8 @@ void DisplayManager_::setBrightness(int bri)
     }
     else
     {
-
         matrix->setBrightness(bri);
         actualBri = bri;
-        Serial.println(actualBri);
     }
 }
 
@@ -281,7 +279,7 @@ bool deleteCustomAppFile(const String &name)
     if (!LittleFS.exists(fileName))
     {
         if (DEBUG_MODE)
-            DEBUG_PRINTLN("File does not exist: " + fileName);
+            DEBUG_PRINTLN("File does not exist: " + fileName + ". No need to delete it");
         return false;
     }
 
@@ -1522,6 +1520,9 @@ String DisplayManager_::getStats()
 #ifdef ULANZI
     doc[BatKey] = BATTERY_PERCENT;
     doc[BatRawKey] = BATTERY_RAW;
+    doc[F("type")] = 0;
+#else 
+    doc[F("type")] = 1;
 #endif
 
     doc[LuxKey] = static_cast<int>(CURRENT_LUX);
@@ -1816,6 +1817,7 @@ void DisplayManager_::sendAppLoop()
 String DisplayManager_::getSettings()
 {
     StaticJsonDocument<1024> doc;
+    doc["MATP"] =  !MATRIX_OFF;
     doc["ABRI"] = AUTO_BRIGHTNESS;
     doc["BRI"] = BRIGHTNESS;
     doc["ATRANS"] = AUTO_TRANSITION;
@@ -1888,6 +1890,7 @@ void DisplayManager_::setNewSettings(const char *json)
     SCROLL_SPEED = doc.containsKey("SSPEED") ? doc["SSPEED"] : SCROLL_SPEED;
     IS_CELSIUS = doc.containsKey("CEL") ? doc["CEL"] : IS_CELSIUS;
     START_ON_MONDAY = doc.containsKey("SOM") ? doc["SOM"].as<bool>() : START_ON_MONDAY;
+     MATRIX_OFF = doc.containsKey("MATP") ? !doc["MATP"].as<bool>() : MATRIX_OFF;
     TIME_FORMAT = doc.containsKey("TFORMAT") ? doc["TFORMAT"].as<String>() : TIME_FORMAT;
     GAMMA = doc.containsKey("GAMMA") ? doc["GAMMA"].as<float>() : GAMMA;
     DATE_FORMAT = doc.containsKey("DFORMAT") ? doc["DFORMAT"].as<String>() : DATE_FORMAT;

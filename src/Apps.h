@@ -619,7 +619,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 
             if (!ca->fragments.empty())
             {
-                int16_t fragmentX = textX;
+                int16_t fragmentX = textX + ca->textOffset;
                 for (size_t i = 0; i < ca->fragments.size(); ++i)
                 {
                     matrix->setTextColor(ca->colors[i]);
@@ -631,13 +631,13 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             {
                 if (ca->rainbow)
                 {
-                    DisplayManager.HSVtext(x + textX, 6 + y, ca->text.c_str(), false, ca->textCase);
+                    DisplayManager.HSVtext(x + textX+ca->textOffset, 6 + y, ca->text.c_str(), false, ca->textCase);
                 }
                 else
                 {
                     // Display text
                     matrix->setTextColor(ca->color);
-                    DisplayManager.printText(x + textX, y + 6, ca->text.c_str(), false, ca->textCase);
+                    DisplayManager.printText(x + textX+ca->textOffset, y + 6, ca->text.c_str(), false, ca->textCase);
                 }
             }
         }

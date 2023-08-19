@@ -304,6 +304,7 @@ public:
 private:
     char m_basePath[16];
     UpdateServerClass m_httpUpdater;
+    
     DNSServer m_dnsServer;
     fs::FS *m_filesystem;
     File m_uploadFile;

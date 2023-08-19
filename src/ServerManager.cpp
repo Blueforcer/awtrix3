@@ -222,8 +222,6 @@ void ServerManager_::tick()
         {
             incomingPacket[len] = 0;
         }
-        if (DEBUG_MODE)
-            DEBUG_PRINTF("UDP-Paket: %s\n", incomingPacket);
         if (strcmp(incomingPacket, "FIND_AWTRIX") == 0)
         {
             udp.beginPacket(udp.remoteIP(),4211);
