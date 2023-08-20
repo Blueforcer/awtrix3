@@ -605,7 +605,7 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json, b
 bool DisplayManager_::generateNotification(uint8_t source, const char *json)
 {
     // source: 0=MQTT, 1=HTTP
-    DynamicJsonDocument doc(8192);
+    DynamicJsonDocument doc(6144);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
