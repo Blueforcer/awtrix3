@@ -115,7 +115,7 @@ bool FSWebServer::begin(const char *path)
 
     // OTA update via webbrowser
     m_httpUpdater.setup(webserver);
-    
+
 
     webserver->enableCORS(true);
 
@@ -899,8 +899,8 @@ void FSWebServer::handleStatus()
     totalBytes = fs_info.totalBytes;
     usedBytes = fs_info.usedBytes;
 #elif defined(ESP32)
-    // totalBytes = m_filesystem->totalBytes();
-    // usedBytes = m_filesystem->usedBytes();
+     totalBytes = LittleFS.totalBytes();
+     usedBytes = LittleFS.usedBytes();
 #endif
 
     String json;

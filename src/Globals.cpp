@@ -273,7 +273,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.76";
+const char *VERSION = "0.77";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -302,7 +302,6 @@ int TIME_PER_TRANSITION = 400;
 String NTP_SERVER = "de.pool.ntp.org";
 String NTP_TZ = "CET-1CEST,M3.5.0,M10.5.0/3";
 bool HA_DISCOVERY = false;
-
 String HA_PREFIX = "homeassistant";
 // Periphery
 String CURRENT_APP;

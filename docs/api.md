@@ -176,23 +176,6 @@ Here's an example JSON object to draw a red circle, a blue rectangle, and the te
  {"dt": [0, 0, "Hello", "#00FF00"]}  
 ]}  
 ```  
-
-### Send multiple custompage at once  
-This allows you to send multiple custompage at once. Instead of a single custompage object, you can send an array of objects. like
-
-**Topic:**   
-/custom/test
-
-```json 
-`[{"text":"1"},{"text":"2"}]`  
-```  
-Internally the appname gets a suffix like test0, test1 and so on.  
-You can update each app like before, or you can update all apps at once.  
-While removing apps, awtrix doesnt search for the exact name, but uses the app that starts with the given name.  
-So if you want to delete all apps just send empty payload to /custom/test. This will remove test0, test1 and so on.  
-you can also remove one app by removing /custom/test1.  
-Please keep in mind that if you delete only one app, you cant get the correct Order again because all apps in the loop move, since there can be no placeholder.  
-  
   
 ### Display a text in colored fragments
 You can display a text where you allowed to colorize fragments of the text.  

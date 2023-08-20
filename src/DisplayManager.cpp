@@ -334,24 +334,14 @@ void removeCustomAppFromApps(const String &name, bool setApps)
     deleteCustomAppFile(name);
 }
 
-bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, std::vector<String> &fragments, uint16_t standardColor)
+bool parseFragmentsText(const JsonArray &fragmentArray, std::vector<uint16_t> &colors, std::vector<String> &fragments, uint16_t standardColor)
 {
     colors.clear();
     fragments.clear();
-    DynamicJsonDocument doc(4096);
-    DeserializationError error = deserializeJson(doc, jsonText);
-    if (error)
-    {
-        DEBUG_PRINTLN(error.c_str());
-        doc.clear();
-        return false;
-    }
-
-    JsonArray fragmentArray = doc.as<JsonArray>();
 
     for (JsonObject fragmentObj : fragmentArray)
     {
-        String textFragment = fragmentObj["t"].as<String>();
+        String textFragment = utf8ascii(fragmentObj["t"].as<String>());
         uint16_t color;
         if (fragmentObj.containsKey("c"))
         {
@@ -366,46 +356,9 @@ bool parseFragmentsText(const String &jsonText, std::vector<uint16_t> &colors, s
         fragments.push_back(textFragment);
         colors.push_back(color);
     }
-    doc.clear();
     return true;
 }
 
-bool DisplayManager_::parseCustomPage(const String &name, const char *json)
-{
-    if ((strcmp(json, "") == 0) || (strcmp(json, "{}") == 0))
-    {
-        removeCustomAppFromApps(name, true);
-        return true;
-    }
-    DynamicJsonDocument doc(4096);
-    DeserializationError error = deserializeJson(doc, json);
-    if (error)
-    {
-        DEBUG_PRINTLN(error.c_str());
-        doc.clear();
-        return false;
-    }
-
-    if (doc.is<JsonObject>())
-    {
-        return generateCustomPage(name, json, false);
-    }
-    else if (doc.is<JsonArray>())
-    {
-        JsonArray customPagesArray = doc.as<JsonArray>();
-        int cpIndex = 0;
-        for (JsonVariant customPage : customPagesArray)
-        {
-            JsonObject customPageObject = customPage.as<JsonObject>();
-            String customPageJson;
-            serializeJson(customPageObject, customPageJson);
-            generateCustomPage(name + String(cpIndex), customPageJson.c_str(), false);
-            ++cpIndex;
-        }
-    }
-    doc.clear();
-    return true;
-}
 
 bool DisplayManager_::generateCustomPage(const String &name, const char *json, bool preventSave)
 {
@@ -491,73 +444,50 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json, b
         autoscale = doc["autoscale"].as<bool>();
     }
 
-    if (doc.containsKey("bar"))
-    {
-        JsonArray barData = doc["bar"];
-        int i = 0;
-        int maximum = 0;
-        for (JsonVariant v : barData)
-        {
-            if (i >= 16)
-            {
-                break;
-            }
-            int d = v.as<int>();
-            if (d > maximum)
-            {
-                maximum = d;
-            }
-            customApp.barData[i] = d;
-            i++;
-        }
-        customApp.barSize = i;
+    // Handling for "bar" and "line" as they have similar structures
+    const char* dataKeys[] = {"bar", "line"};
+    int* dataArrays[] = {customApp.barData, customApp.lineData};
+    int* dataSizeArrays[] = {&customApp.barSize, &customApp.lineSize};
 
-        if (autoscale)
-        {
-            for (int j = 0; j < customApp.barSize; j++)
-            {
-                customApp.barData[j] = map(customApp.barData[j], 0, maximum, 0, 8);
-            }
-        }
-    }
-    else
+    for (int i = 0; i < 2; i++)
     {
-        customApp.barSize = 0;
-    }
+        const char* key = dataKeys[i];
+        int* dataArray = dataArrays[i];
+        int* dataSize = dataSizeArrays[i];
 
-    if (doc.containsKey("line"))
-    {
-        JsonArray lineData = doc["line"];
-        int i = 0;
-        int maximum = 0;
-        for (JsonVariant v : lineData)
+        if (doc.containsKey(key))
         {
-            if (i >= 16)
+            JsonArray data = doc[key];
+            int index = 0;
+            int maximum = 0;
+            for (JsonVariant v : data)
             {
-                break;
+                if (index >= 16)
+                {
+                    break;
+                }
+                int d = v.as<int>();
+                if (d > maximum)
+                {
+                    maximum = d;
+                }
+                dataArray[index] = d;
+                index++;
             }
-            int d = v.as<int>();
-            if (d > maximum)
-            {
-                maximum = d;
-            }
-            customApp.lineData[i] = d;
-            i++;
-        }
-        customApp.lineSize = i;
+            *dataSize = index;
 
-        // Autoscaling
-        if (autoscale)
-        {
-            for (int j = 0; j < customApp.lineSize; j++)
+            if (autoscale)
             {
-                customApp.lineData[j] = map(customApp.lineData[j], 0, maximum, 0, 8);
+                for (int j = 0; j < *dataSize; j++)
+                {
+                    dataArray[j] = map(dataArray[j], 0, maximum, 0, 8);
+                }
             }
         }
-    }
-    else
-    {
-        customApp.lineSize = 0;
+        else
+        {
+            *dataSize = 0;
+        }
     }
 
     if (doc.containsKey("draw"))
@@ -601,11 +531,15 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json, b
         customApp.color = TEXTCOLOR_565;
     }
 
-    if (doc.containsKey("text"))
+    if (doc.containsKey("text") && doc["text"].is<JsonArray>())
     {
-        String text = utf8ascii(doc["text"].as<String>());
-        parseFragmentsText(text, customApp.colors, customApp.fragments, customApp.color);
-        customApp.text = text;
+        JsonArray textArray = doc["text"].as<JsonArray>();
+        parseFragmentsText(textArray, customApp.colors, customApp.fragments, customApp.color);
+        // Der Code zur Zuweisung von customApp.text könnte hier angepasst werden, je nachdem, wie Sie die Textinformationen verwenden möchten.
+    }
+    else if (doc.containsKey("text") && doc["text"].is<String>())
+    {
+        customApp.text = utf8ascii(doc["text"].as<String>());
     }
     else
     {
@@ -747,79 +681,56 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     newNotification.iconPosition = 0;
     newNotification.scrollDelay = 0;
 
-    bool autoscale = true;
+      bool autoscale = true;
     if (doc.containsKey("autoscale"))
     {
         autoscale = doc["autoscale"].as<bool>();
     }
 
-    if (doc.containsKey("bar"))
-    {
-        JsonArray barData = doc["bar"];
-        int i = 0;
-        int maximum = 0;
-        for (JsonVariant v : barData)
-        {
-            if (i >= 16)
-            {
-                break;
-            }
-            int d = v.as<int>();
-            if (d > maximum)
-            {
-                maximum = d;
-            }
-            newNotification.barData[i] = d;
-            i++;
-        }
-        newNotification.barSize = i;
+    // Handling for "bar" and "line" as they have similar structures
+    const char* dataKeys[] = {"bar", "line"};
+    int* dataArrays[] = {newNotification.barData, newNotification.lineData};
+    int* dataSizeArrays[] = {&newNotification.barSize, &newNotification.lineSize};
 
-        if (autoscale)
-        {
-            for (int j = 0; j < newNotification.barSize; j++)
-            {
-                newNotification.barData[j] = map(newNotification.barData[j], 0, maximum, 0, 8);
-            }
-        }
-    }
-    else
+    for (int i = 0; i < 2; i++)
     {
-        newNotification.barSize = 0;
-    }
+        const char* key = dataKeys[i];
+        int* dataArray = dataArrays[i];
+        int* dataSize = dataSizeArrays[i];
 
-    if (doc.containsKey("line"))
-    {
-        JsonArray lineData = doc["line"];
-        int i = 0;
-        int maximum = 0;
-        for (JsonVariant v : lineData)
+        if (doc.containsKey(key))
         {
-            if (i >= 16)
+            JsonArray data = doc[key];
+            int index = 0;
+            int maximum = 0;
+            for (JsonVariant v : data)
             {
-                break;
+                if (index >= 16)
+                {
+                    break;
+                }
+                int d = v.as<int>();
+                if (d > maximum)
+                {
+                    maximum = d;
+                }
+                dataArray[index] = d;
+                index++;
             }
-            int d = v.as<int>();
-            if (d > maximum)
-            {
-                maximum = d;
-            }
-            newNotification.lineData[i] = d;
-            i++;
-        }
-        newNotification.lineSize = i;
+            *dataSize = index;
 
-        // Autoscaling
-        if (autoscale)
-        {
-            for (int j = 0; j < newNotification.lineSize; j++)
+            if (autoscale)
             {
-                newNotification.lineData[j] = map(newNotification.lineData[j], 0, maximum, 0, 8);
+                for (int j = 0; j < *dataSize; j++)
+                {
+                    dataArray[j] = map(dataArray[j], 0, maximum, 0, 8);
+                }
             }
         }
-    }
-    else
-    {
-        newNotification.lineSize = 0;
+        else
+        {
+            *dataSize = 0;
+        }
     }
 
     if (doc.containsKey("color"))
@@ -832,11 +743,15 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
         newNotification.color = TEXTCOLOR_565;
     }
 
-    if (doc.containsKey("text"))
+    if (doc.containsKey("text") && doc["text"].is<JsonArray>())
     {
-        String text = utf8ascii(doc["text"].as<String>());
-        parseFragmentsText(text, newNotification.colors, newNotification.fragments, newNotification.color);
-        newNotification.text = text;
+        JsonArray textArray = doc["text"].as<JsonArray>();
+        parseFragmentsText(textArray, newNotification.colors, newNotification.fragments, newNotification.color);
+        // Der Code zur Zuweisung von customApp.text könnte hier angepasst werden, je nachdem, wie Sie die Textinformationen verwenden möchten.
+    }
+    else if (doc["text"].is<String>())
+    {
+        newNotification.text = doc["text"].as<String>();
     }
     else
     {
@@ -1521,7 +1436,7 @@ String DisplayManager_::getStats()
     doc[BatKey] = BATTERY_PERCENT;
     doc[BatRawKey] = BATTERY_RAW;
     doc[F("type")] = 0;
-#else 
+#else
     doc[F("type")] = 1;
 #endif
 
@@ -1785,8 +1700,10 @@ bool DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
 
 float logMap(float x, float in_min, float in_max, float out_min, float out_max, float mid_point_out)
 {
-    if (x<in_min) return out_min;
-    if (x>in_max) return out_max;
+    if (x < in_min)
+        return out_min;
+    if (x > in_max)
+        return out_max;
     float scale = (mid_point_out - out_min) / log(in_max - in_min + 1);
     if (x <= (in_max + in_min) / 2.0)
     {
@@ -1817,7 +1734,7 @@ void DisplayManager_::sendAppLoop()
 String DisplayManager_::getSettings()
 {
     StaticJsonDocument<1024> doc;
-    doc["MATP"] =  !MATRIX_OFF;
+    doc["MATP"] = !MATRIX_OFF;
     doc["ABRI"] = AUTO_BRIGHTNESS;
     doc["BRI"] = BRIGHTNESS;
     doc["ATRANS"] = AUTO_TRANSITION;
@@ -1890,7 +1807,7 @@ void DisplayManager_::setNewSettings(const char *json)
     SCROLL_SPEED = doc.containsKey("SSPEED") ? doc["SSPEED"] : SCROLL_SPEED;
     IS_CELSIUS = doc.containsKey("CEL") ? doc["CEL"] : IS_CELSIUS;
     START_ON_MONDAY = doc.containsKey("SOM") ? doc["SOM"].as<bool>() : START_ON_MONDAY;
-     MATRIX_OFF = doc.containsKey("MATP") ? !doc["MATP"].as<bool>() : MATRIX_OFF;
+    MATRIX_OFF = doc.containsKey("MATP") ? !doc["MATP"].as<bool>() : MATRIX_OFF;
     TIME_FORMAT = doc.containsKey("TFORMAT") ? doc["TFORMAT"].as<String>() : TIME_FORMAT;
     GAMMA = doc.containsKey("GAMMA") ? doc["GAMMA"].as<float>() : GAMMA;
     DATE_FORMAT = doc.containsKey("DFORMAT") ? doc["DFORMAT"].as<String>() : DATE_FORMAT;

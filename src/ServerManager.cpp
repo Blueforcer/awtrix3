@@ -113,7 +113,7 @@ void addHandler()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getSettings().c_str()); });
     mws.addHandler("/api/custom", HTTP_POST, []()
                    { 
-                    if (DisplayManager.parseCustomPage(mws.webserver->arg("name"),mws.webserver->arg("plain").c_str())){
+                    if (DisplayManager.generateCustomPage(mws.webserver->arg("name"),mws.webserver->arg("plain").c_str(),false)){
                         mws.webserver->send(200,F("text/plain"),F("OK")); 
                     }else{
                         mws.webserver->send(500,F("text/plain"),F("ErrorParsingJson")); 
