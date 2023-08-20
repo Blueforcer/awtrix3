@@ -751,7 +751,6 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     {
         JsonArray textArray = doc["text"].as<JsonArray>();
         parseFragmentsText(textArray, newNotification.colors, newNotification.fragments, newNotification.color);
-        // Der Code zur Zuweisung von customApp.text könnte hier angepasst werden, je nachdem, wie Sie die Textinformationen verwenden möchten.
     }
     else if (doc["text"].is<String>())
     {
