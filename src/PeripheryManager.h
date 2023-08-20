@@ -16,7 +16,6 @@ class PeripheryManager_
 {
 private:
     PeripheryManager_() = default;
-    void checkAlarms();
 #ifdef ULANZI
     const int BatReadings = 10;
     uint16_t TotalBatReadings[10];

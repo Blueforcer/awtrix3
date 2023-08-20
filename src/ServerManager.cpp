@@ -84,8 +84,6 @@ void addHandler()
                    { mws.webserver->send(200, "text/html", screen_html); });
     mws.addHandler("/api/previousapp", HTTP_POST, []()
                    { DisplayManager.previousApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
-    mws.addHandler("/api/timer", HTTP_POST, []()
-                   { DisplayManager.gererateTimer(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/notify/dismiss", HTTP_POST, []()
                    { DisplayManager.dismissNotify(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/apps", HTTP_POST, []()

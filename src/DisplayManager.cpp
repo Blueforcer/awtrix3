@@ -16,8 +16,6 @@
 #include "GifPlayer.h"
 #include <ArtnetWifi.h>
 
-Ticker AlarmTicker;
-Ticker TimerTicker;
 
 unsigned long lastArtnetStatusTime = 0;
 const int numberOfChannels = 256 * 3;
@@ -73,7 +71,7 @@ void DisplayManager_::setBrightness(int bri)
         wakeup = notifications[0].wakeup;
     }
 
-    if (MATRIX_OFF && !ALARM_ACTIVE && !wakeup)
+    if (MATRIX_OFF && !wakeup)
     {
         matrix->setBrightness(0);
     }
@@ -83,6 +81,7 @@ void DisplayManager_::setBrightness(int bri)
         actualBri = bri;
     }
 }
+
 
 void DisplayManager_::setTextColor(uint16_t color)
 {
@@ -517,9 +516,11 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json, b
     customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
     customApp.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
     customApp.lifetime = doc.containsKey("lifetime") ? doc["lifetime"] : 0;
+    customApp.iconOffset = doc.containsKey("iconOffset") ? doc["iconOffset"] : 0;
     customApp.textOffset = doc.containsKey("textOffset") ? doc["textOffset"] : 0;
     customApp.scrollSpeed = doc.containsKey("scrollSpeed") ? doc["scrollSpeed"].as<int>() : -1;
     customApp.topText = doc.containsKey("topText") ? doc["topText"].as<bool>() : false;
+    customApp.center = doc.containsKey("center") ? doc["center"].as<bool>() : true;
     customApp.noScrolling = doc.containsKey("noScroll") ? doc["noScroll"] : false;
     customApp.name = name;
 
@@ -663,6 +664,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     }
 
     newNotification.loopSound = doc.containsKey("loopSound") ? doc["loopSound"].as<bool>() : false;
+    newNotification.center = doc.containsKey("center") ? doc["center"].as<bool>() : true;
     newNotification.sound = doc.containsKey("sound") ? doc["sound"].as<String>() : "";
     newNotification.rtttl = doc.containsKey("rtttl") ? doc["rtttl"].as<String>() : "";
     newNotification.duration = doc.containsKey("duration") ? doc["duration"].as<long>() * 1000 : TIME_PER_APP;
@@ -671,6 +673,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     newNotification.scrollSpeed = doc.containsKey("scrollSpeed") ? doc["scrollSpeed"].as<int>() : -1;
     newNotification.wakeup = doc.containsKey("wakeup") ? doc["wakeup"].as<bool>() : false;
     newNotification.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
+    newNotification.iconOffset = doc.containsKey("iconOffset") ? doc["iconOffset"] : 0;
     newNotification.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
     newNotification.textOffset = doc.containsKey("textOffset") ? doc["textOffset"] : 0;
     newNotification.topText = doc.containsKey("topText") ? doc["topText"].as<bool>() : false;
@@ -754,7 +757,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     }
     else if (doc["text"].is<String>())
     {
-        newNotification.text = doc["text"].as<String>();
+        newNotification.text = utf8ascii(doc["text"].as<String>());
     }
     else
     {
@@ -945,7 +948,7 @@ void DisplayManager_::setup()
     ui->setTargetFPS(MATRIX_FPS);
     ui->setTimePerApp(TIME_PER_APP);
     ui->setTimePerTransition(TIME_PER_TRANSITION);
-    ui->setOverlays(overlays, 4);
+    ui->setOverlays(overlays, 2);
     ui->setBackgroundEffect(BACKGROUND_EFFECT);
     setAutoTransition(AUTO_TRANSITION);
     ui->init();
@@ -1142,39 +1145,16 @@ void DisplayManager_::previousApp()
     }
 }
 
-void snozzeTimerCallback()
-{
-    ALARM_ACTIVE = true;
-    AlarmTicker.detach();
-}
-
 void DisplayManager_::selectButton()
 {
     if (!MenuManager.inMenu)
     {
         DisplayManager.getInstance().dismissNotify();
-
-        if (ALARM_ACTIVE && SNOOZE_TIME > 0)
-        {
-            PeripheryManager.stopSound();
-            ALARM_ACTIVE = false;
-            AlarmTicker.once(SNOOZE_TIME * 60, snozzeTimerCallback);
-        }
-        if (TIMER_ACTIVE)
-        {
-            PeripheryManager.stopSound();
-            TIMER_ACTIVE = false;
-        }
     }
 }
 
 void DisplayManager_::selectButtonLong()
 {
-    if (ALARM_ACTIVE)
-    {
-        PeripheryManager.stopSound();
-        ALARM_ACTIVE = false;
-    }
 }
 
 void DisplayManager_::dismissNotify()
@@ -1194,37 +1174,6 @@ void DisplayManager_::dismissNotify()
             DisplayManager.setBrightness(0);
         }
     }
-    if (ALARM_ACTIVE)
-    {
-        PeripheryManager.stopSound();
-        ALARM_ACTIVE = false;
-    }
-}
-
-void timerCallback()
-{
-    TIMER_ACTIVE = true;
-    TimerTicker.detach();
-}
-
-void DisplayManager_::gererateTimer(String Payload)
-{
-    DynamicJsonDocument doc(1024);
-    DeserializationError error = deserializeJson(doc, Payload);
-    if (error)
-        return;
-    int hours = doc["hours"] | 0;
-    int minutes = doc["minutes"] | 0;
-    int seconds = doc["seconds"] | 0;
-    TIMER_SOUND = doc.containsKey("sound") ? doc["sound"].as<String>() : "";
-    time_t now = time(nullptr);
-    struct tm futureTimeinfo = *localtime(&now);
-    futureTimeinfo.tm_hour += hours;
-    futureTimeinfo.tm_min += minutes;
-    futureTimeinfo.tm_sec += seconds;
-    time_t futureTime = mktime(&futureTimeinfo);
-    int interval = difftime(futureTime, now) * 1000;
-    TimerTicker.once_ms(interval, timerCallback);
 }
 
 bool DisplayManager_::switchToApp(const char *json)
@@ -1260,7 +1209,6 @@ void DisplayManager_::drawProgressBar(int16_t x, int16_t y, int progress, uint16
     int available_length = 32 - x;
     int leds_for_progress = (progress * available_length) / 100;
     matrix->drawFastHLine(x, y, available_length, pbColor);
-    Serial.println(leds_for_progress);
     if (leds_for_progress > 0)
         matrix->drawFastHLine(x, y, leds_for_progress, pColor);
 }
@@ -1697,6 +1645,42 @@ bool DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
             break;
         }
     }
+
+
+    if (doc.containsKey("fade"))
+    {
+        switch (indicator)
+        {
+        case 1:
+            ui->setIndicator1Fade(doc["fade"].as<int>());
+            break;
+        case 2:
+            ui->setIndicator2Fade(doc["fade"].as<int>());
+            break;
+        case 3:
+            ui->setIndicator3Fade(doc["fade"].as<int>());
+            break;
+        default:
+            break;
+        }
+    }
+    else
+    {
+        switch (indicator)
+        {
+        case 1:
+            ui->setIndicator1Fade(0);
+            break;
+        case 2:
+            ui->setIndicator2Fade(0);
+            break;
+        case 3:
+            ui->setIndicator3Fade(0);
+            break;
+        default:
+            break;
+        }
+    }
     MQTTManager.setIndicatorState(indicator, ui->indicator1State, ui->indicator1Color);
     return true;
 }
@@ -1734,6 +1718,13 @@ void DisplayManager_::sendAppLoop()
     MQTTManager.publish("stats/loop", getAppsAsJson().c_str());
 }
 
+String CRGBtoHex(CRGB color)
+{
+    char buf[8];
+    snprintf(buf, sizeof(buf), "#%02X%02X%02X", color.r, color.g, color.b);
+    return String(buf);
+}
+
 String DisplayManager_::getSettings()
 {
     StaticJsonDocument<1024> doc;
@@ -1757,8 +1748,8 @@ String DisplayManager_::getSettings()
     doc["SOUND"] = SOUND_ACTIVE;
     doc["GAMMA"] = GAMMA;
     doc["UPPERCASE"] = UPPERCASE_LETTERS;
-    doc["CCORRECTION"] = COLOR_CORRECTION.raw;
-    doc["CTEMP"] = COLOR_TEMPERATURE.raw;
+    doc["CCORRECTION"] = CRGBtoHex(COLOR_CORRECTION);
+    doc["CTEMP"] = CRGBtoHex(COLOR_TEMPERATURE);
     doc["WD"] = SHOW_WEEKDAY;
     doc["TEFF"] = TRANS_EFFECT;
     doc["WDCA"] = WDC_ACTIVE;

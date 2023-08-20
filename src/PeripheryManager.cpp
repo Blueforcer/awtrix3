@@ -176,8 +176,8 @@ void select_button_pressed_long()
 #ifndef ULANZI
         PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
 #endif
-        if (!ALARM_ACTIVE)
-            MenuManager.selectButtonLong();
+     
+        MenuManager.selectButtonLong();
 
         DisplayManager.selectButtonLong();
 
@@ -457,70 +457,7 @@ void PeripheryManager_::tick()
     }
 }
 
-const int MIN_ALARM_INTERVAL = 60; // 1 Minute
-time_t lastAlarmTime = 0;
 
-// deprecated
-void PeripheryManager_::checkAlarms()
-{
-    if (LittleFS.exists("/alarms.json"))
-    {
-        File file = LittleFS.open("/alarms.json", "r");
-        DynamicJsonDocument doc(file.size() * 1.33);
-        DeserializationError error = deserializeJson(doc, file);
-        if (error)
-        {
-            if (DEBUG_MODE)
-                DEBUG_PRINTLN(F("Failed to read Alarm file"));
-            return;
-        }
-        JsonArray alarms = doc["alarms"];
-        file.close();
-
-        time_t now1 = time(nullptr);
-        struct tm *timeInfo;
-        timeInfo = localtime(&now1);
-        int currentHour = timeInfo->tm_hour;
-        int currentMinute = timeInfo->tm_min;
-        int currentDay = timeInfo->tm_wday - 1;
-
-        for (JsonObject alarm : alarms)
-        {
-            int alarmHour = alarm["hour"];
-            int alarmMinute = alarm["minute"];
-            String alarmDays = alarm["days"];
-
-            if (currentHour == alarmHour && currentMinute == alarmMinute && alarmDays.indexOf(String(currentDay)) != -1)
-            {
-                if (difftime(now1, lastAlarmTime) < MIN_ALARM_INTERVAL)
-                {
-                    return;
-                }
-
-                ALARM_ACTIVE = true;
-                lastAlarmTime = now1;
-
-                if (alarm.containsKey("sound"))
-                {
-                    ALARM_SOUND = alarm["sound"].as<String>();
-                }
-                else
-                {
-                    ALARM_SOUND = "";
-                }
-
-                if (alarm.containsKey("snooze"))
-                {
-                    SNOOZE_TIME = alarm["snooze"].as<uint8_t>();
-                }
-                else
-                {
-                    SNOOZE_TIME = 0;
-                }
-            }
-        }
-    }
-}
 
 long PeripheryManager_::readUptime()
 {

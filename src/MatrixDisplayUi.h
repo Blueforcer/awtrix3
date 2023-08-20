@@ -70,7 +70,6 @@ struct MatrixDisplayUiState
   u_int64_t lastUpdate = 0;
   long ticksSinceLastStateSwitch = 0;
 
-
   AppState appState = FIXED;
   uint8_t currentApp = 0;
 
@@ -133,6 +132,7 @@ private:
   void blinkTransition();
   void reloadTransition();
   void crossfadeTransition();
+  uint16_t  fadeColor(uint16_t  color, uint32_t interval);
 
 public:
   MatrixDisplayUi(FastLED_NeoMatrix *matrix);
@@ -179,15 +179,17 @@ public:
   void setIndicator1Color(uint16_t color);
   void setIndicator1State(bool state);
   void setIndicator1Blink(int Blink);
+  void setIndicator1Fade(int fade);
 
   void setIndicator2Color(uint16_t color);
   void setIndicator2State(bool state);
   void setIndicator2Blink(int Blink);
+  void setIndicator2Fade(int fade);
 
   void setIndicator3Color(uint16_t color);
   void setIndicator3State(bool state);
   void setIndicator3Blink(int Blink);
-
+  void setIndicator3Fade(int fade);
   void drawIndicators();
   // Customize indicator position and style
 
@@ -241,5 +243,9 @@ public:
   int indicator1Blink = 0;
   int indicator2Blink = 0;
   int indicator3Blink = 0;
+
+  int indicator1Fade = 0;
+  int indicator2Fade = 0;
+  int indicator3Fade = 0;
 };
 #endif

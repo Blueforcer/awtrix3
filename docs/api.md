@@ -72,7 +72,8 @@ A colored indicator is like a small notification sign wich will be shown on the 
 
 Instead of a RGB array you can also sent HEX color strings like `{"color":"#32a852"}`  
 Send the color black  `{"color":[0,0,0]}` or `{"color":"0"}` or a empty payload/body to hide the indicators.    
-Optionally you can make the indicator blinking by adding the key `"blink"` with a value of the blinking interval in milliseconds.   
+Optionally you can make the indicator blinking by adding the key `"blink"` with a value of the blinking interval in milliseconds **or**    
+you can make the indicator fading on and off by adding the key `"fade"` with a value of the fade interval in milliseconds.  
   
 ## Custom Apps and Notifications
 With AWTRIX Light, you can create custom apps or notifications to display your own text and icons.  
@@ -101,6 +102,7 @@ The JSON object has the following properties,
 | `textCase` | integer | Changes the Uppercase setting. 0=global setting, 1=forces uppercase; 2=shows as it sent. | 0 | X | X |
 | `topText` | boolean | Draw the text on top | false | X | X |
 | `textOffset` | integer | Sets an offset for the x position of a starting text. | 0 | X | X |
+| `center` | boolean | Centers a short, non-scrollable text. | true | X | X |
 | `color` | string or array of integers | The text, bar or line color | N/A | X | X |
 | `background` | string or array of integers | Sets a background color | N/A | X | X |
 | `rainbow` | boolean | Fades each letter in the text differently through the entire RGB spectrum. | false | X | X |

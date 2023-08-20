@@ -273,7 +273,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.78"; 
+const char *VERSION = "0.79"; 
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -329,10 +329,7 @@ String DATE_FORMAT = "%d.%m.%y";
 int BACKGROUND_EFFECT = -1;
 bool START_ON_MONDAY;
 
-String ALARM_SOUND;
-uint8_t SNOOZE_TIME;
 
-String TIMER_SOUND;
 
 // Matrix States
 bool AUTO_TRANSITION = false;
@@ -340,8 +337,8 @@ bool AUTO_BRIGHTNESS = true;
 bool UPPERCASE_LETTERS = true;
 bool AP_MODE;
 bool MATRIX_OFF;
-bool TIMER_ACTIVE;
-bool ALARM_ACTIVE;
+
+
 uint16_t TEXTCOLOR_565;
 bool SOUND_ACTIVE;
 String BOOT_SOUND = "";

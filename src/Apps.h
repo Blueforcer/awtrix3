@@ -37,6 +37,7 @@ struct CustomApp
     File icon;
     bool isGif;
     bool rainbow;
+    bool center;
     int effect = -1;
     long duration = 0;
     byte textCase = 0;
@@ -55,6 +56,7 @@ struct CustomApp
     std::vector<uint16_t> colors;
     std::vector<String> fragments;
     int textOffset;
+    int iconOffset;
     int progress = -1;
     uint16_t pColor;
     uint16_t background = 0;
@@ -69,6 +71,7 @@ std::map<String, CustomApp> customApps;
 
 struct Notification
 {
+    bool center;
     String drawInstructions;
     float scrollposition = 34;
     int16_t scrollDelay = 0;
@@ -78,6 +81,7 @@ struct Notification
     File icon;
     bool rainbow;
     bool isGif;
+    int iconOffset;
     unsigned long startime = 0;
     long duration = 0;
     int16_t repeat = -1;
@@ -383,57 +387,6 @@ void MenuApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *
     DisplayManager.printText(0, 6, utf8ascii(MenuManager.menutext()).c_str(), true, 2);
 }
 
-void AlarmApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
-{
-    if (ALARM_ACTIVE)
-    {
-        matrix->fillScreen(matrix->Color(255, 0, 0));
-        CURRENT_APP = "Alarm";
-        uint16_t textWidth = getTextWidth("ALARM", 0);
-        int16_t textX = ((32 - textWidth) / 2);
-        matrix->setTextColor(0);
-        matrix->setCursor(textX, 6);
-        matrix->print("ALARM");
-        if (ALARM_SOUND != "")
-        {
-            if (!PeripheryManager.isPlaying())
-            {
-#ifdef ULANZI
-                PeripheryManager.playFromFile(ALARM_SOUND);
-#else
-                PeripheryManager.playFromFile(DFMINI_MP3_ALARM);
-#endif
-            }
-        }
-    }
-}
-
-void TimerApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
-{
-    if (TIMER_ACTIVE)
-    {
-        matrix->fillScreen(matrix->Color(0, 255, 0));
-        CURRENT_APP = "Timer";
-        String menuText = "TIMER";
-        uint16_t textWidth = getTextWidth(menuText.c_str(), 0);
-        int16_t textX = ((32 - textWidth) / 2);
-        matrix->setTextColor(0);
-        matrix->setCursor(textX, 6);
-        matrix->print(menuText);
-        if (TIMER_SOUND != "")
-        {
-            if (!PeripheryManager.isPlaying())
-            {
-#ifdef ULANZI
-                PeripheryManager.playFromFile(TIMER_SOUND);
-#else
-                PeripheryManager.playFromFile(DFMINI_MP3_TIMER);
-#endif
-            }
-        }
-    }
-}
-
 void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     // Abort if notifyFlag is set
@@ -512,11 +465,11 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         }
         if (ca->isGif)
         {
-            gifPlayer->playGif(x + ca->iconPosition, y, &ca->icon);
+            gifPlayer->playGif(x + ca->iconPosition + ca->iconOffset, y, &ca->icon);
         }
         else
         {
-            DisplayManager.drawJPG(x + ca->iconPosition, y, ca->icon);
+            DisplayManager.drawJPG(x + ca->iconPosition + ca->iconOffset, y, ca->icon);
         }
         if (!noScrolling)
         {
@@ -612,7 +565,16 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             }
         }
 
-        int16_t textX = hasIcon ? ((24 - textWidth) / 2) + 9 : ((32 - textWidth) / 2);
+        int16_t textX;
+        if (ca->center)
+        {
+            textX = hasIcon ? ((24 - textWidth) / 2) + 9 : ((32 - textWidth) / 2);
+        }
+        else
+        {
+            textX = hasIcon ? 9 : 0;
+        }
+
         if (noScrolling)
         {
             ca->repeat = -1; // Disable repeat if text is too short for scrolling
@@ -631,13 +593,13 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             {
                 if (ca->rainbow)
                 {
-                    DisplayManager.HSVtext(x + textX+ca->textOffset, 6 + y, ca->text.c_str(), false, ca->textCase);
+                    DisplayManager.HSVtext(x + textX + ca->textOffset, 6 + y, ca->text.c_str(), false, ca->textCase);
                 }
                 else
                 {
                     // Display text
                     matrix->setTextColor(ca->color);
-                    DisplayManager.printText(x + textX+ca->textOffset, y + 6, ca->text.c_str(), false, ca->textCase);
+                    DisplayManager.printText(x + textX + ca->textOffset, y + 6, ca->text.c_str(), false, ca->textCase);
                 }
             }
         }
@@ -785,18 +747,18 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
         {
             // Display GIF if present
 
-            gifPlayer->playGif(notifications[0].iconPosition, 0, &notifications[0].icon);
+            gifPlayer->playGif(notifications[0].iconPosition + notifications[0].iconOffset, 0, &notifications[0].icon);
         }
         else
         {
             // Display JPG image if present
-            DisplayManager.drawJPG(notifications[0].iconPosition, 0, notifications[0].icon);
+            DisplayManager.drawJPG(notifications[0].iconPosition + notifications[0].iconOffset, 0, notifications[0].icon);
         }
 
         // Display icon divider line if text is scrolling
         if (!noScrolling)
         {
-            matrix->drawLine(8 + notifications[0].iconPosition, 0, 8 + notifications[0].iconPosition, 7, 0);
+            matrix->drawLine(8 + notifications[0].iconPosition + notifications[0].iconOffset, 0, 8 + notifications[0].iconPosition, 7, 0);
         }
     };
 
@@ -872,8 +834,15 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
             }
         }
 
-        // Calculate text X position based on icon presence
-        int16_t textX = hasIcon ? ((24 - textWidth) / 2) + 9 : ((32 - textWidth) / 2);
+        int16_t textX;
+        if (notifications[0].center)
+        {
+            textX = hasIcon ? ((24 - textWidth) / 2) + 9 : ((32 - textWidth) / 2);
+        }
+        else
+        {
+            textX = hasIcon ? 9 : 0;
+        }
 
         // Set text color
         matrix->setTextColor(notifications[0].color);
@@ -1107,6 +1076,6 @@ void CApp20(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-OverlayCallback overlays[] = {MenuApp, NotifyApp, AlarmApp, TimerApp};
+OverlayCallback overlays[] = {MenuApp, NotifyApp};
 void (*customAppCallbacks[20])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, GifPlayer *) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};
 #endif

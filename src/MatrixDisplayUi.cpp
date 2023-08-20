@@ -111,7 +111,6 @@ void MatrixDisplayUi::setAppAnimation(AnimationDirection dir)
 
 void MatrixDisplayUi::setApps(const std::vector<std::pair<String, AppCallback>> &appPairs)
 {
-
   delete[] AppFunctions;
   AppCount = appPairs.size();
   AppFunctions = new AppCallback[AppCount];
@@ -182,7 +181,6 @@ void MatrixDisplayUi::transitionToApp(uint8_t app)
   this->lastTransitionDirection = this->state.appTransitionDirection;
   this->state.manuelControll = true;
   this->state.appState = IN_TRANSITION;
-
   this->state.appTransitionDirection = app < this->state.currentApp ? -1 : 1;
 }
 
@@ -262,46 +260,70 @@ void MatrixDisplayUi::tick()
 
 void MatrixDisplayUi::drawIndicators()
 {
+  uint16_t drawColor;
 
-  if (indicator1State && indicator1Blink && (millis() % (2 * indicator1Blink)) < indicator1Blink)
-  {
-    matrix->drawPixel(31, 0, indicator1Color);
-    matrix->drawPixel(30, 0, indicator1Color);
-    matrix->drawPixel(31, 1, indicator1Color);
+  // Indicator 1
+  if (indicator1State) {
+    if (indicator1Blink) {
+      if (millis() % (2 * indicator1Blink) < indicator1Blink) {
+        drawColor = indicator1Color;
+      } else {
+        drawColor = 0; // Schwarz
+      }
+    } else if (indicator1Fade) {
+      drawColor = fadeColor(indicator1Color, indicator1Fade);
+    } else {
+      drawColor = indicator1Color;
+    }
+    matrix->drawPixel(31, 0, drawColor);
+    matrix->drawPixel(30, 0, drawColor);
+    matrix->drawPixel(31, 1, drawColor);
   }
 
-  if (indicator2State && indicator2Blink && (millis() % (2 * indicator2Blink)) < indicator2Blink)
-  {
-    matrix->drawPixel(31, 3, indicator2Color);
-    matrix->drawPixel(31, 4, indicator2Color);
+  // Indicator 2
+  if (indicator2State) {
+    if (indicator2Blink) {
+      if (millis() % (2 * indicator2Blink) < indicator2Blink) {
+        drawColor = indicator2Color;
+      } else {
+        drawColor = 0; // Schwarz
+      }
+    } else if (indicator2Fade) {
+      drawColor = fadeColor(indicator2Color, indicator2Fade);
+    } else {
+      drawColor = indicator2Color;
+    }
+    matrix->drawPixel(31, 3, drawColor);
+    matrix->drawPixel(31, 4, drawColor);
   }
 
-  if (indicator3State && indicator3Blink && (millis() % (2 * indicator3Blink)) < indicator3Blink)
-  {
-    matrix->drawPixel(31, 7, indicator3Color);
-    matrix->drawPixel(31, 6, indicator3Color);
-    matrix->drawPixel(30, 7, indicator3Color);
+  // Indicator 3
+  if (indicator3State) {
+    if (indicator3Blink) {
+      if (millis() % (2 * indicator3Blink) < indicator3Blink) {
+        drawColor = indicator3Color;
+      } else {
+        drawColor = 0; // Schwarz
+      }
+    } else if (indicator3Fade) {
+      drawColor = fadeColor(indicator3Color, indicator3Fade);
+    } else {
+      drawColor = indicator3Color;
+    }
+    matrix->drawPixel(31, 7, drawColor);
+    matrix->drawPixel(31, 6, drawColor);
+    matrix->drawPixel(30, 7, drawColor);
   }
+}
 
-  if (indicator1State && !indicator1Blink)
-  {
-    matrix->drawPixel(31, 0, indicator1Color);
-    matrix->drawPixel(30, 0, indicator1Color);
-    matrix->drawPixel(31, 1, indicator1Color);
-  }
 
-  if (indicator2State && !indicator2Blink)
-  {
-    matrix->drawPixel(31, 3, indicator2Color);
-    matrix->drawPixel(31, 4, indicator2Color);
-  }
-
-  if (indicator3State && !indicator3Blink)
-  {
-    matrix->drawPixel(31, 7, indicator3Color);
-    matrix->drawPixel(31, 6, indicator3Color);
-    matrix->drawPixel(30, 7, indicator3Color);
-  }
+uint16_t MatrixDisplayUi::fadeColor(uint16_t color, uint32_t interval)
+{
+  float phase = (sin(2 * PI * millis() / float(interval)) + 1) * 0.5;
+  uint8_t r = ((color >> 11) & 0x1F) * phase;
+  uint8_t g = ((color >> 5) & 0x3F) * phase;
+  uint8_t b = (color & 0x1F) * phase;
+  return (r << 11) | (g << 5) | b;
 }
 
 uint8_t currentTransition;
@@ -445,6 +467,11 @@ void MatrixDisplayUi::setIndicator1Blink(int blink)
   this->indicator1Blink = blink;
 }
 
+void MatrixDisplayUi::setIndicator1Fade(int fade)
+{
+  this->indicator1Fade = fade;
+}
+
 void MatrixDisplayUi::setIndicator2Color(uint16_t color)
 {
   this->indicator2Color = color;
@@ -460,6 +487,11 @@ void MatrixDisplayUi::setIndicator2Blink(int blink)
   this->indicator2Blink = blink;
 }
 
+void MatrixDisplayUi::setIndicator2Fade(int fade)
+{
+  this->indicator2Fade = fade;
+}
+
 void MatrixDisplayUi::setIndicator3Color(uint16_t color)
 {
   this->indicator3Color = color;
@@ -473,6 +505,11 @@ void MatrixDisplayUi::setIndicator3State(bool state)
 void MatrixDisplayUi::setIndicator3Blink(int blink)
 {
   this->indicator3Blink = blink;
+}
+
+void MatrixDisplayUi::setIndicator3Fade(int fade)
+{
+  this->indicator3Fade = fade;
 }
 
 // ------------------ TRANSITIONS -------------------

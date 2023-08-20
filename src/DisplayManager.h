@@ -28,11 +28,12 @@ private:
     const unsigned long interval = 1000;
 
 public:
-struct RGB {
-    int r;
-    int g;
-    int b;
-  };
+    struct RGB
+    {
+        int r;
+        int g;
+        int b;
+    };
     static DisplayManager_ &getInstance();
     bool appIsSwitching;
     bool showGif;
@@ -50,13 +51,13 @@ struct RGB {
     void previousApp();
     void leftButton();
     void resetTextColor();
-    void gererateTimer(String);
+    void setArrayBrightness(uint8_t brightness);
     void clearMatrix();
     void selectButton();
     void selectButtonLong();
     void setBrightness(int);
     void setTextColor(uint16_t color);
-    bool generateNotification(uint8_t source,const char *json);
+    bool generateNotification(uint8_t source, const char *json);
     bool generateCustomPage(const String &name, const char *json, bool preventSave);
     void printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase);
     bool setAutoTransition(bool active);
@@ -94,10 +95,10 @@ struct RGB {
     void startArtnet();
     bool parseCustomPage(const String &name, const char *json);
     bool moodlight(const char *json);
-    int* getLedColors();
+    int *getLedColors();
     void sendBMP(Stream &stream);
     CRGB getPixelColor(int16_t x, int16_t y);
-    CRGB* getLeds();
+    CRGB *getLeds();
     String getEffectNames();
     String getTransistionNames();
 };
