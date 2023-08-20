@@ -23,7 +23,7 @@ void FSWebServer::run()
 
 void FSWebServer::addHandler(const Uri &uri, HTTPMethod method, WebServerClass::THandlerFunction fn)
 {
-    webserver->on(uri, method, fn);
+    webserver->on(uri, method, authMiddleware(fn));
 }
 
 void FSWebServer::onNotFound(WebServerClass::THandlerFunction fn)
@@ -33,7 +33,7 @@ void FSWebServer::onNotFound(WebServerClass::THandlerFunction fn)
 
 void FSWebServer::addHandler(const Uri &uri, WebServerClass::THandlerFunction handler)
 {
-    webserver->on(uri, HTTP_ANY, handler);
+    addHandler(uri, HTTP_ANY, handler);
 }
 
 // List all files saved in the selected filesystem
@@ -81,22 +81,22 @@ bool FSWebServer::begin(const char *path)
     m_fsOK = checkDir(m_basePath, 2);
 
 #ifdef INCLUDE_EDIT_HTM
-    webserver->on("/status", HTTP_GET, std::bind(&FSWebServer::handleStatus, this));
-    webserver->on("/list", HTTP_GET, std::bind(&FSWebServer::handleFileList, this));
-    webserver->on("/edit", HTTP_GET, std::bind(&FSWebServer::handleGetEdit, this));
-    webserver->on("/edit", HTTP_PUT, std::bind(&FSWebServer::handleFileCreate, this));
-    webserver->on("/edit", HTTP_DELETE, std::bind(&FSWebServer::handleFileDelete, this));
+    addHandler("/status", HTTP_GET, std::bind(&FSWebServer::handleStatus, this));
+    addHandler("/list", HTTP_GET, std::bind(&FSWebServer::handleFileList, this));
+    addHandler("/edit", HTTP_GET, std::bind(&FSWebServer::handleGetEdit, this));
+    addHandler("/edit", HTTP_PUT, std::bind(&FSWebServer::handleFileCreate, this));
+    addHandler("/edit", HTTP_DELETE, std::bind(&FSWebServer::handleFileDelete, this));
 #endif
-    webserver->onNotFound(std::bind(&FSWebServer::handleRequest, this));
-    webserver->on("/favicon.ico", HTTP_GET, std::bind(&FSWebServer::replyOK, this));
-    webserver->on("/", HTTP_GET, std::bind(&FSWebServer::handleIndex, this));
+    webserver->onNotFound(authMiddleware(std::bind(&FSWebServer::handleRequest, this)));
+    addHandler("/favicon.ico", HTTP_GET, std::bind(&FSWebServer::replyOK, this));
+    addHandler("/", HTTP_GET, std::bind(&FSWebServer::handleIndex, this));
 #ifdef INCLUDE_SETUP_HTM
-    webserver->on("/setup", HTTP_GET, std::bind(&FSWebServer::handleSetup, this));
+    addHandler("/setup", HTTP_GET, std::bind(&FSWebServer::handleSetup, this));
 #endif
-    webserver->on("/scan", HTTP_GET, std::bind(&FSWebServer::handleScanNetworks, this));
-    webserver->on("/connect", HTTP_POST, std::bind(&FSWebServer::doWifiConnection, this));
-    webserver->on("/restart", HTTP_GET, std::bind(&FSWebServer::doRestart, this));
-    webserver->on("/ipaddress", HTTP_GET, std::bind(&FSWebServer::getIpAddress, this));
+    addHandler("/scan", HTTP_GET, std::bind(&FSWebServer::handleScanNetworks, this));
+    addHandler("/connect", HTTP_POST, std::bind(&FSWebServer::doWifiConnection, this));
+    addHandler("/restart", HTTP_GET, std::bind(&FSWebServer::doRestart, this));
+    addHandler("/ipaddress", HTTP_GET, std::bind(&FSWebServer::getIpAddress, this));
 
     // Captive Portal redirect
     webserver->on("/redirect", HTTP_GET, std::bind(&FSWebServer::captivePortal, this));
@@ -111,10 +111,10 @@ bool FSWebServer::begin(const char *path)
     // Upload file
     // - first callback is called after the request has ended with all parsed arguments
     // - second callback handles file upload at that location
-    webserver->on("/edit", HTTP_POST, std::bind(&FSWebServer::replyOK, this), std::bind(&FSWebServer::handleFileUpload, this));
+    webserver->on("/edit", HTTP_POST, std::bind(&FSWebServer::replyOK, this), authMiddleware(std::bind(&FSWebServer::handleFileUpload, this)));
 
     // OTA update via webbrowser
-    m_httpUpdater.setup(webserver);
+    m_httpUpdater.setup(webserver, authUser, authPass);
 
 
     webserver->enableCORS(true);
@@ -410,6 +410,20 @@ void FSWebServer::handleScanNetworks()
     }
     webserver->send(200, "text/json", jsonList);
     DebugPrintln(jsonList);
+}
+
+WebServerClass::THandlerFunction FSWebServer::authMiddleware(WebServerClass::THandlerFunction fn) {
+    if (authUser.isEmpty()) {
+        return fn;
+    }
+
+    return [this, fn]() {
+        if (!webserver->authenticate(authUser.c_str(), authPass.c_str())) {
+            return webserver->requestAuthentication();
+        }
+
+        fn();
+    };
 }
 
 #ifdef INCLUDE_SETUP_HTM

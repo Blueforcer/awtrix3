@@ -166,6 +166,7 @@ void ServerManager_::setup()
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
     if (DEBUG_MODE)
         DEBUG_PRINTF("My IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
+    mws.setAuth(AUTH_USER, AUTH_PASS);
     if (isConnected)
     {
         mws.addOptionBox("Network");
@@ -190,6 +191,9 @@ void ServerManager_::setup()
         mws.addHTML(custom_html, "icon_html");
         mws.addCSS(custom_css);
         mws.addJavascript(custom_script);
+        mws.addOptionBox("Authentication");
+        mws.addOption("Auth Username", AUTH_USER);
+        mws.addOption("Auth Password", AUTH_PASS);
         mws.addHandler("/save", HTTP_POST, saveHandler);
         addHandler();
         udp.begin(localUdpPort);
@@ -295,6 +299,13 @@ void ServerManager_::loadSettings()
         NET_SN = doc["Subnet"].as<String>();
         NET_PDNS = doc["Primary DNS"].as<String>();
         NET_SDNS = doc["Secondary DNS"].as<String>();
+        NET_PDNS = doc["Primary DNS"].as<String>();
+        NET_SDNS = doc["Secondary DNS"].as<String>();
+        if (doc["Auth Username"].is<String>())
+            AUTH_USER = doc["Auth Username"].as<String>();
+        if (doc["Auth Password"].is<String>())
+            AUTH_PASS = doc["Auth Password"].as<String>();
+
         file.close();
         DisplayManager.applyAllSettings();
         if (DEBUG_MODE)

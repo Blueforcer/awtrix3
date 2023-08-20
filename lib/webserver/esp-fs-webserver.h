@@ -96,6 +96,11 @@ public:
 
     WebServerClass *getRequest();
 
+    void setAuth(const String& user, const String& pass) {
+        authUser = user;
+        authPass = pass;
+    }
+
 #ifdef INCLUDE_SETUP_HTM
 
 #define MIN_F -3.4028235E+38
@@ -304,7 +309,9 @@ public:
 private:
     char m_basePath[16];
     UpdateServerClass m_httpUpdater;
-    
+    String authUser;
+    String authPass;
+
     DNSServer m_dnsServer;
     fs::FS *m_filesystem;
     File m_uploadFile;
@@ -334,6 +341,7 @@ private:
     void handleScanNetworks();
     const char *getContentType(const char *filename);
     bool captivePortal();
+    WebServerClass::THandlerFunction authMiddleware(WebServerClass::THandlerFunction fn);
 
     // edit page, in usefull in some situation, but if you need to provide only a web interface, you can disable
 #ifdef INCLUDE_EDIT_HTM
