@@ -359,10 +359,14 @@ bool parseFragmentsText(const JsonArray &fragmentArray, std::vector<uint16_t> &c
     return true;
 }
 
-
 bool DisplayManager_::generateCustomPage(const String &name, const char *json, bool preventSave)
 {
-    DynamicJsonDocument doc(8192);
+    if ((strcmp(json, "") == 0) || (strcmp(json, "{}") == 0))
+    {
+        removeCustomAppFromApps(name, true);
+        return true;
+    }
+    DynamicJsonDocument doc(6144);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
@@ -445,15 +449,15 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json, b
     }
 
     // Handling for "bar" and "line" as they have similar structures
-    const char* dataKeys[] = {"bar", "line"};
-    int* dataArrays[] = {customApp.barData, customApp.lineData};
-    int* dataSizeArrays[] = {&customApp.barSize, &customApp.lineSize};
+    const char *dataKeys[] = {"bar", "line"};
+    int *dataArrays[] = {customApp.barData, customApp.lineData};
+    int *dataSizeArrays[] = {&customApp.barSize, &customApp.lineSize};
 
     for (int i = 0; i < 2; i++)
     {
-        const char* key = dataKeys[i];
-        int* dataArray = dataArrays[i];
-        int* dataSize = dataSizeArrays[i];
+        const char *key = dataKeys[i];
+        int *dataArray = dataArrays[i];
+        int *dataSize = dataSizeArrays[i];
 
         if (doc.containsKey(key))
         {
@@ -591,10 +595,10 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json, b
         fs::File nullPointer;
         customApp.icon = nullPointer;
     }
-
+    doc.clear();
     pushCustomApp(name, pos - 1);
     customApps[name] = customApp;
-    doc.clear();
+
     return true;
 }
 
@@ -681,22 +685,22 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     newNotification.iconPosition = 0;
     newNotification.scrollDelay = 0;
 
-      bool autoscale = true;
+    bool autoscale = true;
     if (doc.containsKey("autoscale"))
     {
         autoscale = doc["autoscale"].as<bool>();
     }
 
     // Handling for "bar" and "line" as they have similar structures
-    const char* dataKeys[] = {"bar", "line"};
-    int* dataArrays[] = {newNotification.barData, newNotification.lineData};
-    int* dataSizeArrays[] = {&newNotification.barSize, &newNotification.lineSize};
+    const char *dataKeys[] = {"bar", "line"};
+    int *dataArrays[] = {newNotification.barData, newNotification.lineData};
+    int *dataSizeArrays[] = {&newNotification.barSize, &newNotification.lineSize};
 
     for (int i = 0; i < 2; i++)
     {
-        const char* key = dataKeys[i];
-        int* dataArray = dataArrays[i];
-        int* dataSize = dataSizeArrays[i];
+        const char *key = dataKeys[i];
+        int *dataArray = dataArrays[i];
+        int *dataSize = dataSizeArrays[i];
 
         if (doc.containsKey(key))
         {
