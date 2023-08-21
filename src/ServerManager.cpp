@@ -299,8 +299,6 @@ void ServerManager_::loadSettings()
         NET_SN = doc["Subnet"].as<String>();
         NET_PDNS = doc["Primary DNS"].as<String>();
         NET_SDNS = doc["Secondary DNS"].as<String>();
-        NET_PDNS = doc["Primary DNS"].as<String>();
-        NET_SDNS = doc["Secondary DNS"].as<String>();
         if (doc["Auth Username"].is<String>())
             AUTH_USER = doc["Auth Username"].as<String>();
         if (doc["Auth Password"].is<String>())
