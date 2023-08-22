@@ -14,7 +14,7 @@ You can get the current matrix screen as an array of colors.
   
 | Topic | URL | Payload/Body | HTTP method |  
 | --- | --- | --- | --- |  
-| `[PREFIX]/screen` | `http://[IP]/api/screen` | - | GET | 
+| `[PREFIX]/sendscreen` | `http://[IP]/api/screen` | - | GET | 
 
 When trigger the MQTT API, awtrix send the array to `[PREFIX]/screen`  
   
