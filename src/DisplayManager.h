@@ -58,7 +58,7 @@ public:
     void setBrightness(int);
     void setTextColor(uint16_t color);
     bool generateNotification(uint8_t source, const char *json);
-    bool generateCustomPage(const String &name, const char *json, bool preventSave);
+    bool generateCustomPage(const String &name, JsonObject  doc, bool preventSave);
     void printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase);
     bool setAutoTransition(bool active);
     bool switchToApp(const char *json);
@@ -93,7 +93,7 @@ public:
     String ledsAsJson();
     String getAppsWithIcon();
     void startArtnet();
-    bool parseCustomPage(const String &name, const char *json);
+    bool parseCustomPage(const String &name, const char *json, bool preventSave);
     bool moodlight(const char *json);
     int *getLedColors();
     void sendBMP(Stream &stream);

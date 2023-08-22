@@ -8,20 +8,11 @@ static const char custom_html[] PROGMEM = R"EOF(
   <div id="iconcontent">
         <div id="form-con">
             <form>
-                <label for="lametric-iconID">Lametric Icon ID</label><br>
+                <label for="lametric-iconID">Icon ID</label><br>
                 <input type="text" id="lametric-iconID" name="lametric-iconID"><br>
                 <div class="button-row">
                     <input class="btn" type="button" value="Preview" onclick="createLametricLink()">
                     <input class="btn" type="button" value="Download" onclick="downloadLametricImage()">
-                </div>
-            </form>
-            <br>
-            <form>
-                <label for="awtrix-iconID">Awtrix Icon ID</label><br>
-                <input type="text" id="awtrix-iconID" name="awtrix-iconID"><br>
-                <div class="button-row">
-                    <input class="btn" type="button" value="Preview" onclick="createAwtrixLink()">
-                    <input class="btn" type="button" value="Download" onclick="downloadAwtrixImage()">
                 </div>
             </form>
         </div>

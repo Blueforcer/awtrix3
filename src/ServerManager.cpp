@@ -111,7 +111,7 @@ void addHandler()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getSettings().c_str()); });
     mws.addHandler("/api/custom", HTTP_POST, []()
                    { 
-                    if (DisplayManager.generateCustomPage(mws.webserver->arg("name"),mws.webserver->arg("plain").c_str(),false)){
+                    if (DisplayManager.parseCustomPage(mws.webserver->arg("name"),mws.webserver->arg("plain").c_str(),false)){
                         mws.webserver->send(200,F("text/plain"),F("OK")); 
                     }else{
                         mws.webserver->send(500,F("text/plain"),F("ErrorParsingJson")); 
@@ -297,6 +297,7 @@ void ServerManager_::loadSettings()
         DisplayManager.applyAllSettings();
         if (DEBUG_MODE)
             DEBUG_PRINTLN(F("Webserver configuration loaded"));
+            doc.clear();
         return;
     }
     else if (DEBUG_MODE)

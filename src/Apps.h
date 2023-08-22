@@ -14,11 +14,9 @@
 #include "LittleFS.h"
 #include <WiFi.h>
 #include <HTTPClient.h>
-#include <Ticker.h>
 #include <ArduinoJson.h>
-
 #include "effects.h"
-Ticker downloader;
+
 
 tm timeInfo;
 uint16_t nativeAppsCount;
@@ -29,6 +27,7 @@ String WEATHER_HUM;
 
 struct CustomApp
 {
+    String iconName;
     String drawInstructions;
     float scrollposition = 0;
     int16_t scrollDelay = 0;
@@ -422,9 +421,24 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     CURRENT_APP = ca->name;
     currentCustomApp = name;
 
-    bool hasIcon = ca->icon;
+if (!ca->icon && ca->iconName.length() > 0)
+{
+    const char* extensions[] = { ".jpg", ".gif" };
+    bool isGifFlags[] = { false, true };
 
-    // matrix->fillRect(x, y, 32, 8, ca->background);
+    for (int i = 0; i < 2; i++)
+    {
+        String filePath = "/ICONS/" + ca->iconName + extensions[i];
+        if (LittleFS.exists(filePath))
+        {
+            ca->isGif = isGifFlags[i];
+            ca->icon = LittleFS.open(filePath);
+            break; // Exit loop if icon was found
+        }
+    }
+}
+
+bool hasIcon = ca->icon;
 
     // Calculate text and available width
     uint16_t textWidth = 0;
@@ -527,7 +541,6 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 ca->scrollposition = 9 + ca->textOffset;
             }
         }
-
         if (!noScrolling)
         {
             if ((ca->scrollDelay > MATRIX_FPS * 1.2) || ((hasIcon ? ca->textOffset + 9 : ca->textOffset) > 31))
@@ -665,7 +678,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
     }
 
     // Set current app name
-    CURRENT_APP = "Notification";
+    CURRENT_APP = F("Notification");
 
     if (notifications[0].wakeup && MATRIX_OFF)
     {
@@ -676,7 +689,7 @@ void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer
     if ((((millis() - notifications[0].startime >= notifications[0].duration) && notifications[0].repeat == -1) || notifications[0].repeat == 0) && !notifications[0].hold)
     {
         // Reset notification flags and exit function
-        DEBUG_PRINTLN("Notification deleted");
+        DEBUG_PRINTLN(F("Notification deleted"));
         PeripheryManager.stopSound();
         if (notifications.size() >= 2)
         {

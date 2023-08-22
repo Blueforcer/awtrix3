@@ -310,7 +310,7 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         if (topic_str.startsWith(prefix))
         {
             topic_str = topic_str.substring(prefix.length());
-            DisplayManager.generateCustomPage(topic_str, payloadCopy,false);
+            DisplayManager.parseCustomPage(topic_str, payloadCopy, false);
         }
 
         delete[] payloadCopy;

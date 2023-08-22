@@ -16,7 +16,6 @@
 #include "GifPlayer.h"
 #include <ArtnetWifi.h>
 
-
 unsigned long lastArtnetStatusTime = 0;
 const int numberOfChannels = 256 * 3;
 // Artnet settings
@@ -81,7 +80,6 @@ void DisplayManager_::setBrightness(int bri)
         actualBri = bri;
     }
 }
-
 
 void DisplayManager_::setTextColor(uint16_t color)
 {
@@ -247,7 +245,7 @@ void pushCustomApp(String name, int position)
         if (availableCallbackIndex == -1)
         {
             if (DEBUG_MODE)
-                DEBUG_PRINTLN("Error adding custom app -> Maximum number of custom apps reached");
+                DEBUG_PRINTLN(F("Error adding custom app -> Maximum number of custom apps reached"));
             return;
         }
 
@@ -358,25 +356,45 @@ bool parseFragmentsText(const JsonArray &fragmentArray, std::vector<uint16_t> &c
     return true;
 }
 
-bool DisplayManager_::generateCustomPage(const String &name, const char *json, bool preventSave)
+bool DisplayManager_::parseCustomPage(const String &name, const char *json, bool preventSave)
 {
     if ((strcmp(json, "") == 0) || (strcmp(json, "{}") == 0))
     {
         removeCustomAppFromApps(name, true);
         return true;
     }
-    DynamicJsonDocument doc(6144);
+
+    DynamicJsonDocument doc(8192);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
     {
-        if (DEBUG_MODE)
-            DEBUG_PRINTLN("PARSING FAILED");
-        if (DEBUG_MODE)
-            DEBUG_PRINTLN(error.c_str());
+        DEBUG_PRINTLN(error.c_str());
         doc.clear();
         return false;
     }
 
+    if (doc.is<JsonObject>())
+    {
+        JsonObject rootObj = doc.as<JsonObject>();
+        return generateCustomPage(name, rootObj, preventSave);
+    }
+    else if (doc.is<JsonArray>())
+    {
+        JsonArray customPagesArray = doc.as<JsonArray>();
+        int cpIndex = 0;
+        for (JsonObject customPageObject : customPagesArray)
+        {
+            generateCustomPage(name + String(cpIndex), customPageObject, preventSave);
+            ++cpIndex;
+        }
+    }
+
+    doc.clear();
+    return true;
+}
+
+bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, bool preventSave)
+{
     CustomApp customApp;
 
     if (customApps.find(name) != customApps.end())
@@ -397,9 +415,6 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json, b
         bool saveApp = doc["save"].as<bool>();
         if (saveApp)
         {
-            // Create the file name based on the app name
-            String fileName = "/CUSTOMAPPS/" + name + ".json";
-
             // Create the directory if it doesn't exist
             if (!LittleFS.exists("/CUSTOMAPPS"))
             {
@@ -407,11 +422,10 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json, b
             }
 
             // Open the file for writing (this will overwrite the file if it already exists)
-            File file = LittleFS.open(fileName, "w");
+            File file = LittleFS.open("/CUSTOMAPPS/" + name + ".json", "w");
             if (!file)
             {
-                if (DEBUG_MODE)
-                    DEBUG_PRINTLN("Failed to open file for writing: " + fileName);
+
                 return false;
             }
 
@@ -514,6 +528,7 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json, b
     int pos = doc.containsKey("pos") ? doc["pos"].as<uint8_t>() : -1;
     customApp.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
     customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
+    customApp.iconName = doc.containsKey("icon") ? doc["icon"].as<String>() : "";
     customApp.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
     customApp.lifetime = doc.containsKey("lifetime") ? doc["lifetime"] : 0;
     customApp.iconOffset = doc.containsKey("iconOffset") ? doc["iconOffset"] : 0;
@@ -562,40 +577,6 @@ bool DisplayManager_::generateCustomPage(const String &name, const char *json, b
         customApp.repeat = -1;
     }
 
-    if (doc.containsKey("icon"))
-    {
-        String iconFileName = String(doc["icon"].as<String>());
-        if (customApp.icon && String(customApp.icon.name()).startsWith(iconFileName))
-        {
-        }
-        else
-        {
-            if (customApp.icon)
-            {
-                customApp.icon.close();
-            }
-            if (LittleFS.exists("/ICONS/" + iconFileName + ".jpg"))
-            {
-                customApp.isGif = false;
-                customApp.icon = LittleFS.open("/ICONS/" + iconFileName + ".jpg");
-            }
-            else if (LittleFS.exists("/ICONS/" + iconFileName + ".gif"))
-            {
-                customApp.isGif = true;
-                customApp.icon = LittleFS.open("/ICONS/" + iconFileName + ".gif");
-            }
-            else
-            {
-                fs::File nullPointer;
-                customApp.icon = nullPointer;
-            }
-        }
-    }
-    else
-    {
-        fs::File nullPointer;
-        customApp.icon = nullPointer;
-    }
     doc.clear();
     pushCustomApp(name, pos - 1);
     customApps[name] = customApp;
@@ -873,7 +854,7 @@ void DisplayManager_::loadCustomApps()
         file.close();
 
         String name = fileName.substring(fileName.lastIndexOf('/') + 1, fileName.lastIndexOf('.')); // remove path and .json extension
-        generateCustomPage(name, json.c_str(), true);
+        parseCustomPage(name, json.c_str(), true);
 
         file = root.openNextFile();
     }
@@ -970,6 +951,7 @@ void ResetCustomApps()
             app.scrollposition = (app.icon ? 9 : 0) + app.textOffset;
             app.iconPosition = 0;
             app.scrollDelay = 0;
+            app.icon.close();
         }
     }
 }
@@ -1181,9 +1163,14 @@ bool DisplayManager_::switchToApp(const char *json)
     DynamicJsonDocument doc(512);
     DeserializationError error = deserializeJson(doc, json);
     if (error)
+    {
+        doc.clear();
         return false;
+    }
+
     String name = doc["name"].as<String>();
     bool fast = doc["fast"] | false;
+    doc.clear();
     int index = findAppIndexByName(name);
     if (index > -1)
     {
@@ -1646,7 +1633,6 @@ bool DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
         }
     }
 
-
     if (doc.containsKey("fade"))
     {
         switch (indicator)
@@ -1681,6 +1667,7 @@ bool DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
             break;
         }
     }
+    doc.clear();
     MQTTManager.setIndicatorState(indicator, ui->indicator1State, ui->indicator1Color);
     return true;
 }
@@ -2159,11 +2146,12 @@ bool DisplayManager_::moodlight(const char *json)
     }
     else
     {
+        doc.clear();
         return true;
     }
 
     MOODLIGHT_MODE = true;
-
+    doc.clear();
     matrix->show();
     return true;
 }

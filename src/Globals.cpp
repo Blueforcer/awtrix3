@@ -104,10 +104,6 @@ void loadDevSettings()
             STATS_INTERVAL = doc["stats_interval"].as<long>();
         }
 
-        if (doc.containsKey("uppercase"))
-        {
-            UPPERCASE_LETTERS = doc["uppercase"].as<bool>();
-        }
 
         if (doc.containsKey("update_check"))
         {
@@ -127,11 +123,6 @@ void loadDevSettings()
          if (doc.containsKey("debug_mode"))
         {
             DEBUG_MODE = doc["debug_mode"].as<bool>();
-        }
-
-        if (doc.containsKey("gamma"))
-        {
-            GAMMA = doc["gamma"].as<float>();
         }
 
         if (doc.containsKey("color_correction"))
@@ -180,6 +171,7 @@ void loadSettings()
     Settings.begin("awtrix", false);
     BRIGHTNESS = Settings.getUInt("BRI", 120);
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", false);
+    UPPERCASE_LETTERS = Settings.getBool("UPPER", true);
     TEXTCOLOR_565 = Settings.getUInt("TCOL", 0xFFFF);
     CALENDAR_COLOR = Settings.getUInt("CCOL", 0xF800);
     CALENDAR_TEXT_COLOR = Settings.getUInt("CTCOL", 0x0000);
@@ -235,6 +227,7 @@ void saveSettings()
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
     Settings.putBool("BLOCKN", BLOCK_NAVIGATION);
     Settings.putBool("ATRANS", AUTO_TRANSITION);
+    Settings.putUInt("UPPER", UPPERCASE_LETTERS);
     Settings.putUInt("TCOL", TEXTCOLOR_565);
     Settings.putUInt("TMODE", TIME_MODE);
     Settings.putUInt("TIME_COL", TIME_COLOR);
@@ -273,7 +266,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.79"; 
+const char *VERSION = "0.80"; 
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
