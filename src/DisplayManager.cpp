@@ -577,8 +577,6 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
         customApp.repeat = -1;
     }
 
-    Serial.println(customApp.repeat);
-
     doc.clear();
     pushCustomApp(name, pos - 1);
     customApps[name] = customApp;

@@ -374,7 +374,14 @@ void onMqttConnected()
 
 bool MQTTManager_::isConnected()
 {
-    return mqtt.isConnected();
+    if (MQTT_HOST != "")
+    {
+        return mqtt.isConnected();
+    }
+    else
+    {
+        return true;
+    }
 }
 
 void connect()
