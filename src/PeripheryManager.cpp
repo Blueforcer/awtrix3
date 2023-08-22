@@ -17,7 +17,7 @@
 #include <LittleFS.h>
 #include <LightDependentResistor.h>
 #include <MenuManager.h>
-
+ 
 #ifdef ULANZI
 // Pinouts für das ULANZI-Environment
 #define BATTERY_PIN 34
