@@ -10,7 +10,7 @@
 MQTT also send some other informations like button presses and current app
 
 ## ScreenMirror  
-You can get the current matrix screen as an array of colors.  
+You can get the current matrix screen as an array of 565 colors.  
   
 | Topic | URL | Payload/Body | HTTP method |  
 | --- | --- | --- | --- |  
