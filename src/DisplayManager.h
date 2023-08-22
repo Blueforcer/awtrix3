@@ -51,7 +51,6 @@ public:
     void previousApp();
     void leftButton();
     void resetTextColor();
-    void setArrayBrightness(uint8_t brightness);
     void clearMatrix();
     void selectButton();
     void selectButtonLong();

@@ -17,7 +17,6 @@
 #include <ArduinoJson.h>
 #include "effects.h"
 
-
 tm timeInfo;
 uint16_t nativeAppsCount;
 
@@ -336,6 +335,26 @@ void TempApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     }
 }
 
+uint16_t fadeColor(uint16_t color, uint32_t interval)
+{
+  float phase = (sin(2 * PI * millis() / float(interval)) + 1) * 0.5;
+  uint8_t r = ((color >> 11) & 0x1F) * phase;
+  uint8_t g = ((color >> 5) & 0x3F) * phase;
+  uint8_t b = (color & 0x1F) * phase;
+  return (r << 11) | (g << 5) | b;
+}
+
+void StatusOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
+{
+  if (!WiFi.isConnected()){
+    matrix->drawPixel(0,0,fadeColor(matrix->Color(255,0,0),2000));
+  }
+  if (!MQTTManager.isConnected()){
+    matrix->drawPixel(0,7,fadeColor(matrix->Color(255,255,0),2000));
+  }
+}
+
+
 void HumApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     if (notifyFlag)
@@ -377,7 +396,7 @@ void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
 }
 #endif
 
-void MenuApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
+void MenuOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
 {
     if (!MenuManager.inMenu)
         return;
@@ -421,27 +440,27 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     CURRENT_APP = ca->name;
     currentCustomApp = name;
 
-if (!ca->icon && ca->iconName.length() > 0)
-{
-    const char* extensions[] = { ".jpg", ".gif" };
-    bool isGifFlags[] = { false, true };
-
-    for (int i = 0; i < 2; i++)
+    if (!ca->icon && ca->iconName.length() > 0)
     {
-        String filePath = "/ICONS/" + ca->iconName + extensions[i];
-        if (LittleFS.exists(filePath))
+        const char *extensions[] = {".jpg", ".gif"};
+        bool isGifFlags[] = {false, true};
+
+        for (int i = 0; i < 2; i++)
         {
-            ca->isGif = isGifFlags[i];
-            ca->icon = LittleFS.open(filePath);
-            break; // Exit loop if icon was found
+            String filePath = "/ICONS/" + ca->iconName + extensions[i];
+            if (LittleFS.exists(filePath))
+            {
+                ca->isGif = isGifFlags[i];
+                ca->icon = LittleFS.open(filePath);
+                break; // Exit loop if icon was found
+            }
         }
     }
-}
 
-bool hasIcon = ca->icon;
+    bool hasIcon = ca->icon;
 
     // Calculate text and available width
-    uint16_t textWidth = 0;
+   uint16_t textWidth = 0;
     if (!ca->fragments.empty())
     {
         for (const auto &fragment : ca->fragments)
@@ -506,7 +525,7 @@ bool hasIcon = ca->icon;
     }
     else
     {
-        if ((ca->repeat > 0) && (getTextWidth(ca->text.c_str(), ca->textCase) > availableWidth) && (state->appState == FIXED))
+        if ((ca->repeat > 0) && (textWidth > availableWidth) && (state->appState == FIXED))
         {
             DisplayManager.setAutoTransition(false);
         }
@@ -536,6 +555,9 @@ bool hasIcon = ca->icon;
                 else if (ca->repeat > 0)
                 {
                     ++ca->currentRepeat;
+                    if ((ca->currentRepeat = ca->repeat) && (ca->repeat > 0)){
+                        return;
+                    }
                 }
                 ca->scrollDelay = 0;
                 ca->scrollposition = 9 + ca->textOffset;
@@ -664,7 +686,7 @@ bool hasIcon = ca->icon;
 
 static unsigned long lastTime = 0;
 
-void NotifyApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
+void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
 {
     // Check if notification flag is set
     if (notifications.empty())
@@ -1089,6 +1111,6 @@ void CApp20(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
-OverlayCallback overlays[] = {MenuApp, NotifyApp};
+OverlayCallback overlays[] = {MenuOverlay, NotifyOverlay, StatusOverlay};
 void (*customAppCallbacks[20])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, GifPlayer *) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};
 #endif

@@ -22,7 +22,8 @@ public:
     void beginPublish(const char *topic, unsigned int plength, boolean retained);
     void writePayload(const char *data, const uint16_t length);
     void endPublish();
-    bool getStatus();
+    bool isConnected();
+
 };
 extern MQTTManager_ &MQTTManager;
 

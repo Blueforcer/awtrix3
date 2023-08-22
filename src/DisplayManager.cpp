@@ -577,6 +577,8 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
         customApp.repeat = -1;
     }
 
+    Serial.println(customApp.repeat);
+
     doc.clear();
     pushCustomApp(name, pos - 1);
     customApps[name] = customApp;
@@ -929,7 +931,7 @@ void DisplayManager_::setup()
     ui->setTargetFPS(MATRIX_FPS);
     ui->setTimePerApp(TIME_PER_APP);
     ui->setTimePerTransition(TIME_PER_TRANSITION);
-    ui->setOverlays(overlays, 2);
+    ui->setOverlays(overlays, 3);
     ui->setBackgroundEffect(BACKGROUND_EFFECT);
     setAutoTransition(AUTO_TRANSITION);
     ui->init();

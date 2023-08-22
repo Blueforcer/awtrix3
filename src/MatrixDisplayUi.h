@@ -132,10 +132,11 @@ private:
   void blinkTransition();
   void reloadTransition();
   void crossfadeTransition();
-  uint16_t  fadeColor(uint16_t  color, uint32_t interval);
+
 
 public:
   MatrixDisplayUi(FastLED_NeoMatrix *matrix);
+    uint16_t  fadeColor(uint16_t  color, uint32_t interval);
   uint8_t AppCount = 0;
   /**
    * Initialise the display
