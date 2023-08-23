@@ -535,6 +535,8 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     customApp.textOffset = doc.containsKey("textOffset") ? doc["textOffset"] : 0;
     customApp.scrollSpeed = doc.containsKey("scrollSpeed") ? doc["scrollSpeed"].as<int>() : -1;
     customApp.topText = doc.containsKey("topText") ? doc["topText"].as<bool>() : false;
+    customApp.fade = doc.containsKey("fadeText") ? doc["fadeText"].as<int>() : 0;
+    customApp.blink = doc.containsKey("blinkText") ? doc["blinkText"].as<int>() : 0;
     customApp.center = doc.containsKey("center") ? doc["center"].as<bool>() : true;
     customApp.noScrolling = doc.containsKey("noScroll") ? doc["noScroll"] : false;
     customApp.name = name;
@@ -569,6 +571,8 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     if (currentCustomApp != name)
     {
         customApp.scrollposition = 9 + customApp.textOffset;
+        customApp.icon.close();
+        customApp.iconSearched = false;
     }
 
     customApp.repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
@@ -660,6 +664,8 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     newNotification.topText = doc.containsKey("topText") ? doc["topText"].as<bool>() : false;
     newNotification.noScrolling = doc.containsKey("noScroll") ? doc["noScroll"] : false;
     newNotification.repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
+    newNotification.fade = doc.containsKey("fadeText") ? doc["fadeText"].as<int>() : 0;
+    newNotification.blink = doc.containsKey("blinkText") ? doc["blinkText"].as<int>() : 0;
     if (newNotification.noScrolling)
     {
         newNotification.repeat = -1;
@@ -951,6 +957,8 @@ void ResetCustomApps()
             app.scrollposition = (app.icon ? 9 : 0) + app.textOffset;
             app.iconPosition = 0;
             app.scrollDelay = 0;
+            app.currentRepeat = 0;
+            app.iconSearched = false;
             app.icon.close();
         }
     }
