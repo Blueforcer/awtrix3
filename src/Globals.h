@@ -133,6 +133,7 @@ extern double movementFactor;
 extern uint8_t MIN_BRIGHTNESS;
 extern uint8_t MAX_BRIGHTNESS;
 extern bool DEBUG_MODE;
-
+extern String AUTH_USER;
+extern String AUTH_PASS;
 
 #endif // Globals_H

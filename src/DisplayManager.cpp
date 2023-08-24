@@ -216,6 +216,65 @@ void DisplayManager_::HSVtext(int16_t x, int16_t y, const char *text, bool clear
         matrix->show();
 }
 
+uint16_t interpolateColor(uint16_t color1, uint16_t color2, float t)
+{
+    if (t <= 0.0f)
+        return color1;
+    if (t >= 1.0f)
+        return color2;
+
+    uint8_t r1 = (color1 >> 11) & 0x1F; // R-Komponente aus Farbe 1
+    uint8_t g1 = (color1 >> 5) & 0x3F;  // G-Komponente aus Farbe 1
+    uint8_t b1 = color1 & 0x1F;         // B-Komponente aus Farbe 1
+
+    uint8_t r2 = (color2 >> 11) & 0x1F; // R-Komponente aus Farbe 2
+    uint8_t g2 = (color2 >> 5) & 0x3F;  // G-Komponente aus Farbe 2
+    uint8_t b2 = color2 & 0x1F;         // B-Komponente aus Farbe 2
+
+    // Interpolation für jede Farbkomponente
+    uint8_t r_interp = r1 + (r2 - r1) * t;
+    uint8_t g_interp = g1 + (g2 - g1) * t;
+    uint8_t b_interp = b1 + (b2 - b1) * t;
+
+    return (r_interp << 11) | (g_interp << 5) | b_interp;
+}
+
+void DisplayManager_::GradientText(int16_t x, int16_t y, const char *text, int color1, int color2, bool clear, byte textCase)
+{
+    if (clear)
+        matrix->clear();
+
+    uint16_t xpos = 0;
+    uint16_t textLength = strlen(text);
+
+    for (uint16_t i = 0; i < textLength; i++)
+    {
+        // Bestimme den Interpolationswert basierend auf der aktuellen Position i im Text
+        float t = (float)i / (textLength - 1);
+
+        // Bestimme die Farbe für das aktuelle Zeichen basierend auf dem Farbverlauf
+        uint32_t textColor = interpolateColor(color1, color2, t);
+        matrix->setTextColor(textColor);
+
+        matrix->setCursor(xpos + x, y);
+        if ((UPPERCASE_LETTERS && textCase == 0) || textCase == 1)
+        {
+            matrix->print((char)toupper(text[i]));
+        }
+        else
+        {
+            matrix->print(&text[i]);
+        }
+
+        char temp_str[2] = {'\0', '\0'};
+        temp_str[0] = text[i];
+        xpos += getTextWidth(temp_str, textCase);
+    }
+
+    if (clear)
+        matrix->show();
+}
+
 void pushCustomApp(String name, int position)
 {
     if (customApps.count(name) == 0)
@@ -542,6 +601,22 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     customApp.name = name;
 
     customApp.lastUpdate = millis();
+    customApp.gradient[0] = -1;
+    customApp.gradient[1] = -1;
+
+    if (doc.containsKey("gradient"))
+    {
+        JsonArray arr = doc["gradient"].as<JsonArray>();
+        if (arr.size() == 2)
+        {
+            auto color1 = arr[0];
+            auto color2 = arr[1];
+
+            customApp.gradient[0] = getColorFromJsonVariant(color1, TEXTCOLOR_565);
+            customApp.gradient[1] = getColorFromJsonVariant(color2, TEXTCOLOR_565);
+            DEBUG_PRINTLN("Gradient: " + String(customApp.gradient[0]) + " " + String(customApp.gradient[1]));
+        }
+    }
 
     if (doc.containsKey("color"))
     {
@@ -674,6 +749,21 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     newNotification.iconWasPushed = false;
     newNotification.iconPosition = 0;
     newNotification.scrollDelay = 0;
+
+    newNotification.gradient[0] = -1;
+    newNotification.gradient[1] = -1;
+    if (doc.containsKey("gradient"))
+    {
+        JsonArray arr = doc["gradient"].as<JsonArray>();
+        if (arr.size() == 2)
+        {
+            auto color1 = arr[0];
+            auto color2 = arr[1];
+
+            newNotification.gradient[0] = getColorFromJsonVariant(color1, TEXTCOLOR_565);
+            newNotification.gradient[1] = getColorFromJsonVariant(color2, TEXTCOLOR_565);
+        }
+    }
 
     bool autoscale = true;
     if (doc.containsKey("autoscale"))

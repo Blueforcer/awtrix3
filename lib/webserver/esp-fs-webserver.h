@@ -83,7 +83,7 @@ public:
 
     void run();
     void onNotFound(WebServerClass::THandlerFunction fn);
-    
+
     void addHandler(const Uri &uri, HTTPMethod method, WebServerClass::THandlerFunction fn);
 
     void addHandler(const Uri &uri, WebServerClass::THandlerFunction handler);
@@ -95,6 +95,12 @@ public:
     IPAddress startWiFi(uint32_t timeout, const char *apSSID, const char *apPsw);
 
     WebServerClass *getRequest();
+
+    void setAuth(const String &user, const String &pass)
+    {
+        authUser = user;
+        authPass = pass;
+    }
 
 #ifdef INCLUDE_SETUP_HTM
 
@@ -304,7 +310,8 @@ public:
 private:
     char m_basePath[16];
     UpdateServerClass m_httpUpdater;
-    
+    String authUser;
+    String authPass;
     DNSServer m_dnsServer;
     fs::FS *m_filesystem;
     File m_uploadFile;
@@ -334,7 +341,7 @@ private:
     void handleScanNetworks();
     const char *getContentType(const char *filename);
     bool captivePortal();
-
+    WebServerClass::THandlerFunction authMiddleware(WebServerClass::THandlerFunction fn);
     // edit page, in usefull in some situation, but if you need to provide only a web interface, you can disable
 #ifdef INCLUDE_EDIT_HTM
     void handleGetEdit();

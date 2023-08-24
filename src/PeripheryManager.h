@@ -39,6 +39,7 @@ public:
     bool parseSound(const char *json);
     bool isPlaying();
     void stopSound();
+    void sendMessage(const char* msg);
     uint8_t getMatrixPin();
 #ifndef ULANZI
     void setVolume(uint8_t);

@@ -50,6 +50,7 @@ struct CustomApp
     bool iconWasPushed = false;
     int barData[16] = {0};
     int lineData[16] = {0};
+    int gradient[2] = {0};
     int barSize;
     int lineSize;
     long lastUpdate;
@@ -112,6 +113,7 @@ struct Notification
     String sound;
     bool loopSound;
     String rtttl;
+    int gradient[2] = {0};
 };
 std::vector<Notification> notifications;
 bool notifyFlag = false;
@@ -473,7 +475,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     CURRENT_APP = ca->name;
     currentCustomApp = name;
 
-    if (!ca->icon && (ca->iconName.length() > 0) && !ca->iconSearched)
+    if ((ca->iconName.length() > 0) && !ca->iconSearched)
     {
         const char *extensions[] = {".jpg", ".gif"};
         bool isGifFlags[] = {false, true};
@@ -675,11 +677,13 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             {
                 DisplayManager.HSVtext(x + textX + ca->textOffset, 6 + y, ca->text.c_str(), false, ca->textCase);
             }
+            else if (ca->gradient[0] > -1 && ca->gradient[1] > -1)
+            {
+                DisplayManager.GradientText(x + textX + ca->textOffset, 6 + y, ca->text.c_str(), ca->gradient[0], ca->gradient[1], false, ca->textCase);
+            }
             else
             {
-
                 matrix->setTextColor(TextEffect(ca->color, ca->fade, ca->blink));
-
                 DisplayManager.printText(x + textX + ca->textOffset, y + 6, ca->text.c_str(), false, ca->textCase);
             }
         }
@@ -701,6 +705,10 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             if (ca->rainbow)
             {
                 DisplayManager.HSVtext(x + ca->scrollposition + ca->textOffset, 6 + y, ca->text.c_str(), false, ca->textCase);
+            }
+            else if (ca->gradient[0] > -1 && ca->gradient[1] > -1)
+            {
+                DisplayManager.GradientText(x + ca->scrollposition + ca->textOffset, 6 + y, ca->text.c_str(), ca->gradient[0], ca->gradient[1], false, ca->textCase);
             }
             else
             {
@@ -927,9 +935,6 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
         textX = hasIcon ? 9 : 0;
     }
 
-    // Set text color
-    matrix->setTextColor(TextEffect(notifications[0].color, notifications[0].fade, notifications[0].blink));
-
     if (noScrolling)
     {
         // Disable repeat if text is not scrolling
@@ -959,8 +964,14 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
             {
                 DisplayManager.HSVtext(textX + notifications[0].textOffset, 6, notifications[0].text.c_str(), false, notifications[0].textCase);
             }
+            else if (notifications[0].gradient[0] > -1 && notifications[0].gradient[1] > -1)
+            {
+                DisplayManager.GradientText(textX + notifications[0].textOffset, 6, notifications[0].text.c_str(), notifications[0].gradient[0], notifications[0].gradient[1], false, notifications[0].textCase);
+            }
             else
             {
+                matrix->setTextColor(TextEffect(notifications[0].color, notifications[0].fade, notifications[0].blink));
+        
                 DisplayManager.printText(textX + notifications[0].textOffset, 6, notifications[0].text.c_str(), false, notifications[0].textCase);
             }
         }
@@ -991,10 +1002,15 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
                 // Display scrolling text in rainbow color if enabled
                 DisplayManager.HSVtext(notifications[0].scrollposition, 6, notifications[0].text.c_str(), false, notifications[0].textCase);
             }
+            else if (notifications[0].gradient[0] > -1 && notifications[0].gradient[1] > -1)
+            {
+                DisplayManager.GradientText(notifications[0].scrollposition + notifications[0].textOffset, 6, notifications[0].text.c_str(), notifications[0].gradient[0], notifications[0].gradient[1], false, notifications[0].textCase);
+            }
             else
             {
-                // Display scrolling text in solid color
-                DisplayManager.printText(notifications[0].scrollposition, 6, notifications[0].text.c_str(), false, notifications[0].textCase);
+                // Set text color
+                matrix->setTextColor(TextEffect(notifications[0].color, notifications[0].fade, notifications[0].blink));
+                DisplayManager.printText(notifications[0].scrollposition + notifications[0].textOffset, 6, notifications[0].text.c_str(), false, notifications[0].textCase);
             }
         }
     }

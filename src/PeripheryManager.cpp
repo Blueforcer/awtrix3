@@ -17,7 +17,13 @@
 #include <LittleFS.h>
 #include <LightDependentResistor.h>
 #include <MenuManager.h>
- 
+ const int buzzerPin = 2;  // Buzzer an GPIO2
+const int baudRate = 50;  // Nachrichtenübertragungsrate
+const char* message = "HELLO";  // Die Nachricht, die gesendet werden soll
+#define LEDC_CHANNEL     0
+#define LEDC_RESOLUTION  8   // 8 bit resolution
+#define LEDC_TIMER       LEDC_TIMER_0
+#define LEDC_MODE        LEDC_LOW_SPEED_MODE
 #ifdef ULANZI
 // Pinouts für das ULANZI-Environment
 #define BATTERY_PIN 34
@@ -378,6 +384,9 @@ void PeripheryManager_::setup()
     dfmp3.begin();
 #endif
     photocell.setPhotocellPositionOnGround(false);
+
+    ledcSetup(LEDC_CHANNEL, 2000, LEDC_RESOLUTION); // Start mit 2kHz
+    ledcAttachPin(BUZZER_PIN, LEDC_CHANNEL);
 }
 
 void PeripheryManager_::tick()
@@ -465,4 +474,13 @@ long PeripheryManager_::readUptime()
     unsigned long elapsedTime = currentTime - startTime;
     long uptimeSeconds = elapsedTime / 1000;
     return uptimeSeconds;
+}
+
+void PeripheryManager_::sendMessage(const char* msg) {
+  for (int i = 0; msg[i] != '\0'; i++) {
+        char c = msg[i];
+        ledcWriteTone(LEDC_CHANNEL, (c - 'A' + 1) * 100);
+        delay(baudRate + 10);
+    }
+    ledcWriteTone(LEDC_CHANNEL, 0); // Ton aus
 }

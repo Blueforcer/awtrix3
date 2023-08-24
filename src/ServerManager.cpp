@@ -149,6 +149,8 @@ void addHandler()
                     }else{
                         mws.webserver->send(404,F("text/plain"),"NoUpdateFound");    
                     } });
+    mws.addHandler("/api/buzz", HTTP_POST, []()
+                   { PeripheryManager.sendMessage(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
 }
 
 void ServerManager_::setup()
@@ -164,6 +166,7 @@ void ServerManager_::setup()
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
     if (DEBUG_MODE)
         DEBUG_PRINTF("My IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
+    mws.setAuth(AUTH_USER, AUTH_PASS);
     if (isConnected)
     {
         mws.addOptionBox("Network");
@@ -188,6 +191,9 @@ void ServerManager_::setup()
         mws.addHTML(custom_html, "icon_html");
         mws.addCSS(custom_css);
         mws.addJavascript(custom_script);
+        mws.addOptionBox("Authentication");
+        mws.addOption("Auth Username", AUTH_USER);
+        mws.addOption("Auth Password", AUTH_PASS);
         mws.addHandler("/save", HTTP_POST, saveHandler);
         addHandler();
         udp.begin(localUdpPort);
@@ -222,7 +228,7 @@ void ServerManager_::tick()
         }
         if (strcmp(incomingPacket, "FIND_AWTRIX") == 0)
         {
-            udp.beginPacket(udp.remoteIP(),4211);
+            udp.beginPacket(udp.remoteIP(), 4211);
             udp.printf(MQTT_PREFIX.c_str());
             udp.endPacket();
         }
@@ -293,11 +299,15 @@ void ServerManager_::loadSettings()
         NET_SN = doc["Subnet"].as<String>();
         NET_PDNS = doc["Primary DNS"].as<String>();
         NET_SDNS = doc["Secondary DNS"].as<String>();
+        if (doc["Auth Username"].is<String>())
+            AUTH_USER = doc["Auth Username"].as<String>();
+        if (doc["Auth Password"].is<String>())
+            AUTH_PASS = doc["Auth Password"].as<String>();
         file.close();
         DisplayManager.applyAllSettings();
         if (DEBUG_MODE)
             DEBUG_PRINTLN(F("Webserver configuration loaded"));
-            doc.clear();
+        doc.clear();
         return;
     }
     else if (DEBUG_MODE)
