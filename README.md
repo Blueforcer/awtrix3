@@ -40,7 +40,7 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
 # 🌟[NEW!] AWTRIX App🌟
 Take your Awtrix experience to the next level with the mobile app, tailored for convenience and full control.
 
-### 🔍 **Features:**
+#### **Features:**
 - **Liveview:** See your Awtrix in real-time.
 - **Settings Customization:** Tweak text colors, set transistion and many more with just your fingertip.
 - **Icon Management:** Update, view, or delete icons effortlessly.
