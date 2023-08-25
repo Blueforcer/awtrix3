@@ -37,7 +37,7 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
   
 
 
-🌟# [NEW!] AWTRIX App🌟
+# 🌟[NEW!] AWTRIX App🌟
 Take your Awtrix experience to the next level with the mobile app, tailored for convenience and full control.
 
 ### 🔍 **Features:**
