@@ -4,11 +4,11 @@
   "home_assistant_domain": "AwtrixLight",
   "funding_url": "https://blueforcer.de",
   "new_install_prompt_erase": true,
-  "builds": [
+"builds": [
     {
       "chipFamily": "ESP32",
       "parts": [
-        { "path": "firmware.bin", "offset": 0 },
+        { "path": "merged-firmware.bin", "offset": 0 },
       ]
     }
   ]
