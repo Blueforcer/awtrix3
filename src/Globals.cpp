@@ -369,3 +369,5 @@ uint8_t MIN_BRIGHTNESS = 2;
 uint8_t MAX_BRIGHTNESS = 180;
 double movementFactor = 0.5;
 int8_t TRANS_EFFECT = 1;
+String AUTH_USER = "";
+String AUTH_PASS = "awtrix";
