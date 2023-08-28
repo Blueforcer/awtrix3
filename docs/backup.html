@@ -12,7 +12,7 @@
 <body class="p-5">
     <h2 class="mb-4">AWTRIX Light Backup & Restore</h2>
     <p>
-        This tool allows you to create a backup of the AWTRIX Light system by downloading all its files into a ZIP
+        This tool allows you to create a backup of your AWTRIX Light by downloading all its files into a ZIP
         archive. You can also restore a backup by uploading a ZIP archive.
     </p>
     <p class="text-danger">
@@ -74,6 +74,7 @@
                         zip.file(trimLeadingSlash(joinPaths(dir, filename)), fileContent);
                     } else {
                         console.error(`Failed to download file ${filename}`);
+                        showModalFeedback('Error', `Failed to download file ${filename}`);
                     }
                 } else if (file_info['type'] === 'dir') {
                     await getFilesFromDirectory(source_ip, `${dir}${file_info['name']}/`, zip);
