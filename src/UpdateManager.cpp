@@ -28,10 +28,12 @@ UpdateManager_ &UpdateManager = UpdateManager.getInstance();
 
 void update_started()
 {
+    
 }
 
 void update_finished()
 {
+
 }
 
 void update_progress(int cur, int total)

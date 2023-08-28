@@ -27,6 +27,7 @@ String WEATHER_HUM;
 struct CustomApp
 {
     String iconName;
+    String iconFile;
     String drawInstructions;
     float scrollposition = 0;
     int16_t scrollDelay = 0;
@@ -472,6 +473,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         callEffect(matrix, x, y, ca->effect);
     }
 
+
     CURRENT_APP = ca->name;
     currentCustomApp = name;
 
@@ -487,6 +489,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             {
                 ca->isGif = isGifFlags[i];
                 ca->icon = LittleFS.open(filePath);
+                ca->iconFile = ca->iconName + extensions[i];
                 DEBUG_PRINTLN("Icon found: " + filePath);
                 break; // Exit loop if icon was found
             }
@@ -742,8 +745,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
         notifyFlag = true;
     }
 
-    // Set current app name
-    CURRENT_APP = F("Notification");
+   
 
     if (notifications[0].wakeup && MATRIX_OFF)
     {
@@ -762,12 +764,22 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
         }
         notifications[0].icon.close();
         notifications.erase(notifications.begin());
+        
         if (notifications[0].wakeup && MATRIX_OFF)
         {
             DisplayManager.setBrightness(0);
         }
+
+        if (notifications.empty())
+        {
+            notifyFlag = false;
+        }
+        DisplayManager.nextApp();
         return;
     }
+
+     // Set current app name
+    CURRENT_APP = F("Notification");
 
     // Check if notification has an icon
     bool hasIcon = notifications[0].icon;

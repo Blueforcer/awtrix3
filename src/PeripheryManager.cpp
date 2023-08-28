@@ -409,7 +409,7 @@ void PeripheryManager_::tick()
         previousMillis_BatTempHum = currentMillis_BatTempHum;
 #ifdef ULANZI
         uint16_t ADCVALUE = analogRead(BATTERY_PIN);
-        BATTERY_PERCENT = max(min((int)map(ADCVALUE, 475, 665, 0, 100), 100), 0);
+        BATTERY_PERCENT = max(min((int)map(ADCVALUE, MIN_BATTERY, MAX_BATTERY, 0, 100), 100), 0);
         BATTERY_RAW = ADCVALUE;
 #endif
         if (SENSOR_READING)

@@ -13,26 +13,31 @@ char *getID()
     WiFi.macAddress(mac);
     char *macStr = new char[24];
     snprintf(macStr, 24, "awtrix_%02x%02x%02x", mac[3], mac[4], mac[5]);
-    if (DEBUG_MODE) DEBUG_PRINTLN(F("Starting filesystem"));
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("Starting filesystem"));
     return macStr;
 }
 
 void startLittleFS()
 {
-    if (DEBUG_MODE) DEBUG_PRINTLN(F("Starting filesystem"));
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("Starting filesystem"));
     if (LittleFS.begin())
     {
 #ifdef ULANZI
         LittleFS.mkdir("/MELODIES");
 #endif
+        LittleFS.mkdir("/PLUGINS");
         LittleFS.mkdir("/ICONS");
         LittleFS.mkdir("/PALETTES");
         LittleFS.mkdir("/CUSTOMAPPS");
-        if (DEBUG_MODE) DEBUG_PRINTLN(F("Filesystem started"));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Filesystem started"));
     }
     else
     {
-        if (DEBUG_MODE) DEBUG_PRINTLN(F("Filesystem currupt. Formating..."));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Filesystem currupt. Formating..."));
         LittleFS.format();
         ESP.restart();
     }
@@ -40,7 +45,8 @@ void startLittleFS()
 
 void loadDevSettings()
 {
-    if (DEBUG_MODE) DEBUG_PRINTLN("Loading Devsettings");
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN("Loading Devsettings");
     if (LittleFS.exists("/dev.json"))
     {
         File file = LittleFS.open("/dev.json", "r");
@@ -48,11 +54,13 @@ void loadDevSettings()
         DeserializationError error = deserializeJson(doc, file);
         if (error)
         {
-            if (DEBUG_MODE) DEBUG_PRINTLN(F("Failed to read dev settings"));
+            if (DEBUG_MODE)
+                DEBUG_PRINTLN(F("Failed to read dev settings"));
             return;
         }
 
-        if (DEBUG_MODE) DEBUG_PRINTF("%i dev settings found", doc.size());
+        if (DEBUG_MODE)
+            DEBUG_PRINTF("%i dev settings found", doc.size());
 
         if (doc.containsKey("bootsound"))
         {
@@ -72,6 +80,16 @@ void loadDevSettings()
         if (doc.containsKey("temp_offset"))
         {
             TEMP_OFFSET = doc["temp_offset"];
+        }
+
+         if (doc.containsKey("min_battery"))
+        {
+            MIN_BATTERY = doc["min_battery"];
+        }
+
+         if (doc.containsKey("max_battery"))
+        {
+            MAX_BATTERY = doc["max_battery"];
         }
 
         if (doc.containsKey("background_effect"))
@@ -104,7 +122,6 @@ void loadDevSettings()
             STATS_INTERVAL = doc["stats_interval"].as<long>();
         }
 
-
         if (doc.containsKey("update_check"))
         {
             UPDATE_CHECK = doc["update_check"].as<bool>();
@@ -120,7 +137,7 @@ void loadDevSettings()
             ROTATE_SCREEN = doc["rotate_screen"].as<bool>();
         }
 
-         if (doc.containsKey("debug_mode"))
+        if (doc.containsKey("debug_mode"))
         {
             DEBUG_MODE = doc["debug_mode"].as<bool>();
         }
@@ -153,7 +170,8 @@ void loadDevSettings()
     }
     else
     {
-        if (DEBUG_MODE) DEBUG_PRINTLN("Devsettings not found");
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN("Devsettings not found");
     }
 }
 
@@ -167,7 +185,8 @@ void formatSettings()
 void loadSettings()
 {
     startLittleFS();
-    if (DEBUG_MODE) DEBUG_PRINTLN(F("Loading Usersettings"));
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("Loading Usersettings"));
     Settings.begin("awtrix", false);
     BRIGHTNESS = Settings.getUInt("BRI", 120);
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", false);
@@ -193,7 +212,7 @@ void loadSettings()
     TIME_FORMAT = Settings.getString("TFORMAT", "%H:%M:%S");
     DATE_FORMAT = Settings.getString("DFORMAT", "%d.%m.%y");
     START_ON_MONDAY = Settings.getBool("SOM", true);
-     BLOCK_NAVIGATION = Settings.getBool("BLOCKN", false);
+    BLOCK_NAVIGATION = Settings.getBool("BLOCKN", false);
     IS_CELSIUS = Settings.getBool("CEL", true);
     SHOW_TIME = Settings.getBool("TIM", true);
     SHOW_DATE = Settings.getBool("DAT", false);
@@ -217,7 +236,8 @@ void loadSettings()
 
 void saveSettings()
 {
-    if (DEBUG_MODE) DEBUG_PRINTLN(F("Saving usersettings"));
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("Saving usersettings"));
     Settings.begin("awtrix", false);
     Settings.putUInt("CCOL", CALENDAR_COLOR);
     Settings.putUInt("CTCOL", CALENDAR_TEXT_COLOR);
@@ -266,7 +286,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.81"; 
+const char *VERSION = "0.82";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -310,6 +330,8 @@ int BRIGHTNESS_PERCENT;
 
 #ifdef ULANZI
 float TEMP_OFFSET = -9;
+uint16_t MIN_BATTERY = 475;
+uint16_t MAX_BATTERY = 665;
 uint8_t BATTERY_PERCENT;
 uint16_t BATTERY_RAW;
 #else
@@ -322,15 +344,12 @@ String DATE_FORMAT = "%d.%m.%y";
 int BACKGROUND_EFFECT = -1;
 bool START_ON_MONDAY;
 
-
-
 // Matrix States
 bool AUTO_TRANSITION = false;
 bool AUTO_BRIGHTNESS = true;
 bool UPPERCASE_LETTERS = true;
 bool AP_MODE;
 bool MATRIX_OFF;
-
 
 uint16_t TEXTCOLOR_565;
 bool SOUND_ACTIVE;

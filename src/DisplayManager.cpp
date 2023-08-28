@@ -103,7 +103,6 @@ bool DisplayManager_::setAutoTransition(bool active)
         ui->disablesetAutoTransition();
         return false;
     }
-    showGif = false;
 }
 
 void DisplayManager_::drawJPG(uint16_t x, uint16_t y, fs::File jpgFile)
@@ -587,7 +586,7 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     int pos = doc.containsKey("pos") ? doc["pos"].as<uint8_t>() : -1;
     customApp.rainbow = doc.containsKey("rainbow") ? doc["rainbow"] : false;
     customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
-    customApp.iconName = doc.containsKey("icon") ? doc["icon"].as<String>() : "";
+
     customApp.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
     customApp.lifetime = doc.containsKey("lifetime") ? doc["lifetime"] : 0;
     customApp.iconOffset = doc.containsKey("iconOffset") ? doc["iconOffset"] : 0;
@@ -599,8 +598,24 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     customApp.center = doc.containsKey("center") ? doc["center"].as<bool>() : true;
     customApp.noScrolling = doc.containsKey("noScroll") ? doc["noScroll"] : false;
     customApp.name = name;
-
     customApp.lastUpdate = millis();
+    if (doc.containsKey("icon"))
+    {
+        String newIconName = doc["icon"].as<String>();
+        if (customApp.iconName != newIconName)
+        {
+            customApp.iconName = newIconName;
+            customApp.icon.close();
+            customApp.iconSearched = false;
+        }
+    }
+    else
+    {
+        customApp.icon.close();
+        customApp.iconSearched = false;
+        customApp.iconName = "";
+    }
+
     customApp.gradient[0] = -1;
     customApp.gradient[1] = -1;
 
@@ -614,7 +629,6 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
             customApp.gradient[0] = getColorFromJsonVariant(color1, TEXTCOLOR_565);
             customApp.gradient[1] = getColorFromJsonVariant(color2, TEXTCOLOR_565);
-            DEBUG_PRINTLN("Gradient: " + String(customApp.gradient[0]) + " " + String(customApp.gradient[1]));
         }
     }
 
@@ -646,8 +660,6 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     if (currentCustomApp != name)
     {
         customApp.scrollposition = 9 + customApp.textOffset;
-        customApp.icon.close();
-        customApp.iconSearched = false;
     }
 
     customApp.repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
@@ -2047,7 +2059,7 @@ String DisplayManager_::getAppsWithIcon()
         CustomApp *customApp = getCustomAppByName(app.first);
         if (customApp != nullptr)
         {
-            appObject["icon"] = customApp->icon.name();
+            appObject["icon"] = customApp->iconFile;
         }
     }
     String jsonString;

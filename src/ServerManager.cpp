@@ -82,6 +82,8 @@ void addHandler()
                    { DisplayManager.nextApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/screen", HTTP_GET, []()
                    { mws.webserver->send(200, "text/html", screen_html); });
+    mws.addHandler("/backup", HTTP_GET, []()
+                   { mws.webserver->send(200, "text/html", backup_html); });
     mws.addHandler("/api/previousapp", HTTP_POST, []()
                    { DisplayManager.previousApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/notify/dismiss", HTTP_POST, []()
@@ -191,7 +193,7 @@ void ServerManager_::setup()
         mws.addHTML(custom_html, "icon_html");
         mws.addCSS(custom_css);
         mws.addJavascript(custom_script);
-        mws.addOptionBox("Authentication");
+        mws.addOptionBox("Auth");
         mws.addOption("Auth Username", AUTH_USER);
         mws.addOption("Auth Password", AUTH_PASS);
         mws.addHandler("/save", HTTP_POST, saveHandler);

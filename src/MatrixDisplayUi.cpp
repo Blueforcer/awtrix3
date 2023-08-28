@@ -120,6 +120,7 @@ void MatrixDisplayUi::setApps(const std::vector<std::pair<String, AppCallback>> 
   }
   this->resetState();
   DisplayManager.sendAppLoop();
+  DisplayManager.setAutoTransition(true);
 }
 
 // -/----- Overlays ------\-
