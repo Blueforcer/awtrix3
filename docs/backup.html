@@ -60,37 +60,37 @@
         }
 
         async function getFilesFromDirectory(source_ip, dir, zip) {
-    try {
-        const response = await fetch(`http://${source_ip}/list?dir=${dir}`);
-        if (!response.ok) {
-            // Falls der Server einen Fehlercode zurückgibt
-            throw new Error('Server responded with status: ' + response.status);
-        }
-        const file_list = await response.json();
-
-        for (let file_info of file_list) {
-            if (file_info['type'] === 'file') {
-                const filename = file_info['name'];
-                const source_file_url = `http://${source_ip}${dir}${filename}`;
-                const fileResponse = await fetch(source_file_url);
-
-                if (fileResponse.status === 200) {
-                    const fileContent = await fileResponse.blob();
-                    zip.file(trimLeadingSlash(joinPaths(dir, filename)), fileContent);
-                } else {
-                    console.error(`Failed to download file ${filename}`);
-                    showModalFeedback('Error', `Failed to download file ${filename}`);
+            try {
+                const response = await fetch(`http://${source_ip}/list?dir=${dir}`);
+                if (!response.ok) {
+                    // Falls der Server einen Fehlercode zurückgibt
+                    throw new Error('Server responded with status: ' + response.status);
                 }
-            } else if (file_info['type'] === 'dir') {
-                await getFilesFromDirectory(source_ip, `${dir}${file_info['name']}/`, zip);
+                const file_list = await response.json();
+
+                for (let file_info of file_list) {
+                    if (file_info['type'] === 'file') {
+                        const filename = file_info['name'];
+                        const source_file_url = `http://${source_ip}${dir}${filename}`;
+                        const fileResponse = await fetch(source_file_url);
+
+                        if (fileResponse.status === 200) {
+                            const fileContent = await fileResponse.blob();
+                            zip.file(trimLeadingSlash(joinPaths(dir, filename)), fileContent);
+                        } else {
+                            console.error(`Failed to download file ${filename}`);
+                            showModalFeedback('Error', `Failed to download file ${filename}`);
+                        }
+                    } else if (file_info['type'] === 'dir') {
+                        await getFilesFromDirectory(source_ip, `${dir}${file_info['name']}/`, zip);
+                    }
+                }
+            } catch (error) {
+                // Fehlermeldung anzeigen, wenn ein Fehler auftritt (z.B. Netzwerkfehler oder Mixed Content Fehler)
+                showModalFeedback('Error', `Failed to fetch data. Make sure you are accessing the page over HTTP or check the console for more details.`);
+                console.error(error); // Fehlerdetails in der Konsole anzeigen
             }
         }
-    } catch (error) {
-        // Fehlermeldung anzeigen, wenn ein Fehler auftritt (z.B. Netzwerkfehler oder Mixed Content Fehler)
-        showModalFeedback('Error', `Failed to fetch data. Make sure you are accessing the page over HTTP or check the console for more details.`);
-        console.error(error); // Fehlerdetails in der Konsole anzeigen
-    }
-}
 
 
         function showModalFeedback(title, message) {
@@ -116,7 +116,7 @@
                 a.click();
 
                 window.URL.revokeObjectURL(url);
-                showModalFeedback('Success', 'Backup downloaded successfully!');
+                //showModalFeedback('Success', 'Backup downloaded successfully!');
             }).catch(function (error) {
                 showModalFeedback('Error', 'Failed to generate backup. ' + error.message);
             });
