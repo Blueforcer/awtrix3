@@ -328,10 +328,11 @@ float CURRENT_LUX;
 int BRIGHTNESS = 120;
 int BRIGHTNESS_PERCENT;
 
-#ifdef ULANZI
-float TEMP_OFFSET = -9;
 uint16_t MIN_BATTERY = 475;
 uint16_t MAX_BATTERY = 665;
+
+#ifdef ULANZI
+float TEMP_OFFSET = -9;
 uint8_t BATTERY_PERCENT;
 uint16_t BATTERY_RAW;
 #else

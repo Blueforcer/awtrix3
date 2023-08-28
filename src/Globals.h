@@ -69,10 +69,8 @@ extern float CURRENT_LUX;
 extern uint16_t LDR_RAW;
 extern String CURRENT_APP;
 extern int BACKGROUND_EFFECT;
-#ifdef ULANZI
 extern uint8_t BATTERY_PERCENT;
 extern uint16_t BATTERY_RAW;
-#endif
 extern float TEMP_OFFSET;
 extern float HUM_OFFSET;
 extern int BRIGHTNESS;
