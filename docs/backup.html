@@ -63,7 +63,6 @@
             try {
                 const response = await fetch(`http://${source_ip}/list?dir=${dir}`);
                 if (!response.ok) {
-                    // Falls der Server einen Fehlercode zurückgibt
                     throw new Error('Server responded with status: ' + response.status);
                 }
                 const file_list = await response.json();
@@ -86,9 +85,8 @@
                     }
                 }
             } catch (error) {
-                // Fehlermeldung anzeigen, wenn ein Fehler auftritt (z.B. Netzwerkfehler oder Mixed Content Fehler)
-                showModalFeedback('Error', `Failed to fetch data. Make sure you are accessing the page over HTTP or check the console for more details.`);
-                console.error(error); // Fehlerdetails in der Konsole anzeigen
+                showModalFeedback('Error', `Failed to fetch data. Please allow Insecure content to use this feature.`);
+                console.error(error);
             }
         }
 
@@ -116,7 +114,6 @@
                 a.click();
 
                 window.URL.revokeObjectURL(url);
-                //showModalFeedback('Success', 'Backup downloaded successfully!');
             }).catch(function (error) {
                 showModalFeedback('Error', 'Failed to generate backup. ' + error.message);
             });
