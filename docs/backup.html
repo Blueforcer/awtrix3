@@ -10,17 +10,18 @@
 </head>
 
 <body class="bg-light p-5">
-    <div class="container bg-white p-5 rounded shadow-lg">
         <h2 class="mb-4">AWTRIX Light Backup & Restore </h2>
-        
         <p>
-            This tool allows you to create a backup of the AWTRIX Light system by downloading all its files into a ZIP archive. You can also restore a backup by uploading a ZIP archive.
+            This tool allows you to create a backup of the AWTRIX Light system by downloading all its files into a ZIP
+            archive. You can also restore a backup by uploading a ZIP archive.
         </p>
-        
         <p class="text-danger">
-            <strong>Note:</strong> Due to browser restrictions, AWTRIX Backup tool is not allowed to upload to a local IP address by default.
-<br>
-            <a class="text-xs text-red-500 underline" href="https://experienceleague.adobe.com/docs/target/using/experiences/vec/troubleshoot-composer/mixed-content.html" target="_blank" rel="noopener noreferrer">Please allow Insecure content to use this feature.</a>
+            <strong>Note:</strong> Due to browser restrictions, AWTRIX Backup tool is not allowed to upload to a local
+            IP address by default.
+            <br>
+            <a class="text-xs text-red-500 underline"
+                href="https://experienceleague.adobe.com/docs/target/using/experiences/vec/troubleshoot-composer/mixed-content.html"
+                target="_blank" rel="noopener noreferrer">Please allow Insecure content to use this feature.</a>
         </p>
 
         <div class="mb-3">
@@ -28,10 +29,10 @@
             <input type="file" id="fileInput" style="display: none;">
             <button class="btn btn-secondary ml-2" id="restoreButton">Upload for Restore</button>
         </div>
-    </div>
-   
+    
+
     <script>
-        
+
         function trimLeadingSlash(path) {
             return path.startsWith('/') ? path.slice(1) : path;
         }
