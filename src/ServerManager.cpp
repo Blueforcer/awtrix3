@@ -305,6 +305,7 @@ void ServerManager_::loadSettings()
             AUTH_USER = doc["Auth Username"].as<String>();
         if (doc["Auth Password"].is<String>())
             AUTH_PASS = doc["Auth Password"].as<String>();
+
         file.close();
         DisplayManager.applyAllSettings();
         if (DEBUG_MODE)

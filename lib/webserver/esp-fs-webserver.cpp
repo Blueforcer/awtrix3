@@ -33,7 +33,9 @@ void FSWebServer::onNotFound(WebServerClass::THandlerFunction fn)
 
 void FSWebServer::addHandler(const Uri &uri, WebServerClass::THandlerFunction handler)
 {
-   addHandler(uri, HTTP_ANY, handler);
+
+addHandler(uri, HTTP_ANY, handler);
+
 }
 
 // List all files saved in the selected filesystem
@@ -112,6 +114,7 @@ bool FSWebServer::begin(const char *path)
     // - first callback is called after the request has ended with all parsed arguments
     // - second callback handles file upload at that location
     webserver->on("/edit", HTTP_POST, std::bind(&FSWebServer::replyOK, this), authMiddleware(std::bind(&FSWebServer::handleFileUpload, this)));
+
     // OTA update via webbrowser
     m_httpUpdater.setup(webserver, authUser, authPass);
 
@@ -423,6 +426,20 @@ void FSWebServer::handleScanNetworks()
     }
     webserver->send(200, "text/json", jsonList);
     DebugPrintln(jsonList);
+}
+
+WebServerClass::THandlerFunction FSWebServer::authMiddleware(WebServerClass::THandlerFunction fn) {
+    if (authUser.isEmpty()) {
+        return fn;
+    }
+
+    return [this, fn]() {
+        if (!webserver->authenticate(authUser.c_str(), authPass.c_str())) {
+            return webserver->requestAuthentication();
+        }
+
+        fn();
+    };
 }
 
 #ifdef INCLUDE_SETUP_HTM

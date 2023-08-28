@@ -96,8 +96,7 @@ public:
 
     WebServerClass *getRequest();
 
-    void setAuth(const String &user, const String &pass)
-    {
+    void setAuth(const String& user, const String& pass) {
         authUser = user;
         authPass = pass;
     }

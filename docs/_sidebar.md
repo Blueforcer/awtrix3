@@ -19,3 +19,6 @@
 - API
   - [MQTT/HTTP](api.md)
 
+- Tools
+  - [Backup/Restore](backup.md)  
+

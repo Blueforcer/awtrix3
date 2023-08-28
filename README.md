@@ -37,11 +37,19 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
   
 
 
-# AWTRIX App
-Manage your Awtrix with unparalleled ease straight from your smartphone. 
-With this intuitive app, get complete control over your device's features and settings. More functions will come soon!  
-By purchasing this app, you play a crucial role in supporting the development of Awtrix Light. Enhance your experience and contribute to innovation.  
-  
+# 🌟[NEW!] AWTRIX App🌟
+Take your Awtrix experience to the next level with the mobile app, tailored for convenience and full control.
+
+#### **Features:**
+- **Liveview:** See your Awtrix in real-time.
+- **Settings Customization:** Tweak text colors, set transistion and many more with just your fingertip.
+- **Icon Management:** Update, view, or delete icons effortlessly.
+- **Exclusive Icon Database:** Get unique icons only available for app users.
+- **Icon Creation & Sharing:** Design and share your icons with our community.
+
+By purchasing the app, you're directly contributing to the future of Awtrix Light. Dive deep, explore more, and be a part of the innovation.
+Support our journey and enhance your Awtrix experience. Your contribution matters. ✨
+
 <a href='https://play.google.com/store/apps/details?id=de.awtrix.light&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'>
   <img style="width: 20%; height: auto;" alt='Get it on Google Play' src='playstore_button.png'/>
 </a>
