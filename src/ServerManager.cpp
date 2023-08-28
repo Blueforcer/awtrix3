@@ -82,6 +82,8 @@ void addHandler()
                    { DisplayManager.nextApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/screen", HTTP_GET, []()
                    { mws.webserver->send(200, "text/html", screen_html); });
+    mws.addHandler("/backup", HTTP_GET, []()
+                   { mws.webserver->send(200, "text/html", backup_html); });
     mws.addHandler("/api/previousapp", HTTP_POST, []()
                    { DisplayManager.previousApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/notify/dismiss", HTTP_POST, []()
@@ -149,6 +151,8 @@ void addHandler()
                     }else{
                         mws.webserver->send(404,F("text/plain"),"NoUpdateFound");    
                     } });
+    mws.addHandler("/api/buzz", HTTP_POST, []()
+                   { PeripheryManager.sendMessage(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
 }
 
 void ServerManager_::setup()
@@ -189,7 +193,7 @@ void ServerManager_::setup()
         mws.addHTML(custom_html, "icon_html");
         mws.addCSS(custom_css);
         mws.addJavascript(custom_script);
-        mws.addOptionBox("Authentication");
+        mws.addOptionBox("Auth");
         mws.addOption("Auth Username", AUTH_USER);
         mws.addOption("Auth Password", AUTH_PASS);
         mws.addHandler("/save", HTTP_POST, saveHandler);
@@ -226,7 +230,7 @@ void ServerManager_::tick()
         }
         if (strcmp(incomingPacket, "FIND_AWTRIX") == 0)
         {
-            udp.beginPacket(udp.remoteIP(),4211);
+            udp.beginPacket(udp.remoteIP(), 4211);
             udp.printf(MQTT_PREFIX.c_str());
             udp.endPacket();
         }
@@ -306,7 +310,7 @@ void ServerManager_::loadSettings()
         DisplayManager.applyAllSettings();
         if (DEBUG_MODE)
             DEBUG_PRINTLN(F("Webserver configuration loaded"));
-            doc.clear();
+        doc.clear();
         return;
     }
     else if (DEBUG_MODE)

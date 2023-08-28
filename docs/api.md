@@ -1,54 +1,85 @@
 # MQTT / HTTP API
-  
-## Status  
-| Topic | URL | Description |
-| --- | --- | --- | 
-| `[PREFIX]/stats` | `http://[IP]/api/stats` | Various device stats like battery, RAM etc.
-| `[PREFIX]/stats/effects` | `http://[IP]/api/effects`   | Returns all effects.
-| `[PREFIX]/stats/transitions` | `http://[IP]/api/transitions`   | Returns all transition effects.
-| `[PREFIX]/stats/loop` | `http://[IP]/api/loop`   | Returns all apps inside the loop.
-MQTT also send some other informations like button presses and current app
 
-## ScreenMirror  
-You can get the current matrix screen as an array of 565 colors.  
-  
-| Topic | URL | Payload/Body | HTTP method |  
-| --- | --- | --- | --- |  
-| `[PREFIX]/sendscreen` | `http://[IP]/api/screen` | - | GET | 
+## Overview
 
-When trigger the MQTT API, awtrix send the array to `[PREFIX]/screen`  
-  
-AWTRIX also provide a liveview screen in your browser at `http://[IP]/screen`.  
-You can also download a screenshot or generate a GIF from the actual display content.  
+This API documentation covers various functionalities such as retrieving device statistics, screen mirroring, notifications, customapps, sound playing, and mood lighting. You can interact with these features via both MQTT and HTTP protocols.
 
+## Status Retrieval
 
-## Turn display on or off    
-  
-| Topic | URL | Payload/Body | HTTP method |  
-| --- | --- | --- | --- |  
-| `[PREFIX]/power` | `http://[IP]/api/power` | {"power":true} or {"power":false}  | POST |  
+Access various device statistics like battery, RAM, and more:
 
+| MQTT Topic                      | HTTP URL                           | Description                                   |
+| ------------------------------- | ---------------------------------- | ---------------------------------------------- |
+| `[PREFIX]/stats`                | `http://[IP]/api/stats`            | General device stats (e.g., battery, RAM)      |
+| `[PREFIX]/stats/effects`        | `http://[IP]/api/effects`          | List of all effects                            |
+| `[PREFIX]/stats/transitions`    | `http://[IP]/api/transitions`      | List of all transition effects                 |
+| `[PREFIX]/stats/loop`           | `http://[IP]/api/loop`             | List of all apps in the loop                   |
 
-## Play a sound
+> **Note:** MQTT also broadcasts other data, such as button presses and the current app.
 
-Plays a RTTTL sound from the MELODIES folder.  
-    
-| Topic | URL | Payload/Body | HTTP method |  
-| --- | --- | --- | --- |  
-| `[PREFIX]/sound` | `http://[IP]/api/sound` | {"sound":"alarm"} | POST |  
-  
+## Screen Mirroring
 
-## Moodlight  
-Allows to set the whole matrix to a custom color or temperature.  
-  
-!> This function causes much higher current draw and heat, because every pixel is lit. Keep calm with the brightness value!  
-  
-Send empty payload to disable moodlight.  
-  
-| Topic | URL | Payload/Body | HTTP method |  
-| --- | --- | --- | --- |  
-| `[PREFIX]/moodlight` | `http://[IP]/api/moodlight` | see below | POST |  
+Retrieve the current matrix screen as an array of 565 colors:
 
+| MQTT Topic              | HTTP URL                     | Payload/Body | HTTP Method |
+| ----------------------- | ---------------------------- | ------------ | ----------- |
+| `[PREFIX]/sendscreen`   | `http://[IP]/api/screen`     | -            | GET         |
+
+When triggering the MQTT API, AWTRIX sends the array to `[PREFIX]/screen`.
+
+**Extras:**
+- Access a live view of the screen in your browser: `http://[IP]/screen`.
+- Options to download a screenshot or generate a GIF from the current display content.
+
+## Power Control
+
+Toggle the matrix on or off:
+
+| MQTT Topic       | HTTP URL                      | Payload/Body              | HTTP Method |
+| ---------------- | ----------------------------- | ------------------------- | ----------- |
+| `[PREFIX]/power` | `http://[IP]/api/power`       | `{"power": true}` or `{"power": false}` | POST        |
+
+#### Reboot Awtrix
+If you need to restart the Awtrix:
+
+| MQTT Topic      | HTTP URL                      | Payload/Body | HTTP Method |
+|-----------------|-------------------------------|---------------|-------------|
+| `[PREFIX]/reboot` | `http://[IP]/api/reboot`     | -             | POST        |
+
+#### Erase Awtrix
+**WARNING**: This action will format the flash memory and EEPROM but will not modify the WiFi Settings. It essentially serves as a factory reset.
+
+| MQTT Topic      | HTTP URL                      | Payload/Body | HTTP Method |
+|-----------------|-------------------------------|---------------|-------------|
+| `N/A`           | `http://[IP]/api/erase`       | -             | POST        |
+
+## Sound Playback
+
+Play a RTTTL sound from the MELODIES folder:
+
+| MQTT Topic        | HTTP URL                     | Payload/Body        | HTTP Method |
+| ----------------- | ---------------------------- | ------------------- | ----------- |
+| `[PREFIX]/sound`  | `http://[IP]/api/sound`      | `{"sound":"alarm"}` | POST        |
+
+## Mood Lighting
+
+Set the entire matrix to a custom color or temperature:
+
+| MQTT Topic             | HTTP URL                          | Payload/Body | HTTP Method |
+| ---------------------- | --------------------------------- | ------------- | ----------- |
+| `[PREFIX]/moodlight`   | `http://[IP]/api/moodlight`       | See below    | POST        |
+
+> ⚠️ **Caution:** Using this function results in a higher current draw and heat, especially when all pixels are lit. Ensure you manage brightness values responsibly.
+
+To disable moodlight, send an empty payload.
+
+**Example:**
+```json
+{
+  "brightness": 170,
+  "kelvin": 2300
+}
+```
 
 Possible moodlight options:  
 ```json
@@ -60,89 +91,98 @@ or
 ```
   
 
-## Colored indicators     
+## Colored Indicators
 
-A colored indicator is like a small notification sign wich will be shown on the upper right (1), right side (2) and lower right corner (3).  
+Colored indicators serve as small notification signs displayed on specific areas of the screen:
 
-| Topic | URL | Payload/Body | HTTP method |  
-| --- | --- | --- | --- |  
-| `[PREFIX]/indicator1` | `http://[IP]/api/indicator1` | `{"color":[255,0,0]}` | POST |  
-| `[PREFIX]/indicator2` | `http://[IP]/api/indicator2` | `{"color":[0,255,0]}` | POST |  
-| `[PREFIX]/indicator3` | `http://[IP]/api/indicator3` | `{"color":[0,255,0]}` | POST |  
+- Upper right corner: Indicator 1
+- Right side: Indicator 2
+- Lower right corner: Indicator 3
 
-Instead of a RGB array you can also sent HEX color strings like `{"color":"#32a852"}`  
-Send the color black  `{"color":[0,0,0]}` or `{"color":"0"}` or a empty payload/body to hide the indicators.    
-Optionally you can make the indicator blinking by adding the key `"blink"` with a value of the blinking interval in milliseconds **or**    
-you can make the indicator fading on and off by adding the key `"fade"` with a value of the fade interval in milliseconds.  
-  
+| MQTT Topic             | HTTP URL                           | Payload/Body       | HTTP Method |
+| ---------------------- | ---------------------------------- | ------------------ | ----------- |
+| `[PREFIX]/indicator1`  | `http://[IP]/api/indicator1`       | `{"color":[255,0,0]}` | POST   |
+| `[PREFIX]/indicator2`  | `http://[IP]/api/indicator2`       | `{"color":[0,255,0]}` | POST   |
+| `[PREFIX]/indicator3`  | `http://[IP]/api/indicator3`       | `{"color":[0,255,0]}` | POST   |
+
+**Color Options:**
+- Use an RGB array, e.g., `{"color":[255,0,0]}`
+- Use HEX color strings, e.g., `{"color":"#32a852"}`
+
+**Hide Indicators:**
+- To hide the indicators, send the color black (`{"color":[0,0,0]}`) or use the shorthand `{"color":"0"}`. Alternatively, send an empty payload.
+
+**Additional Effects:**
+- **Blinking**: To make the indicator blink, add the key `"blink"` with a value specifying the blinking interval in milliseconds.
+- **Fading**: To make the indicator fade on and off, add the key `"fade"` with a value specifying the fade interval in milliseconds.
+
 ## Custom Apps and Notifications
-With AWTRIX Light, you can create custom apps or notifications to display your own text and icons.  
-  
-With MQTT simply send a JSON object to the topic `[PREFIX]/custom/[app]` where [app] is a the name of your app (without spaces).  
-With the HTTP API you have to set the appname in the query parameter  (`name = [appname]`)  
-To update a custom page, simply send a modified JSON object to the same endpoint. The display will be updated immediately.  
 
-You can also send a one-time notification with the same JSON format. Simply send your JSON object to `[PREFIX]/notify` or `http://[IP]/api/notify`.  
-  
-  
-| Topic | URL |  Payload/Body | Query parameters | HTTP method |
-| --- | --- | --- | --- | --- |
-| `[PREFIX]/custom/[appname]` |`http://[IP]/api/custom` | JSON | name = [appname] | POST |
-| `[PREFIX]/notify` |`http://[IP]/api/notify` | JSON | - | POST |
+With AWTRIX Light, you can design custom apps or notifications to showcase your unique text and icons.
 
+### Interaction
+
+- **MQTT**: Send a JSON object to `[PREFIX]/custom/[app]`, where `[app]` denotes your app's name (excluding spaces).
+- **HTTP API**: Incorporate the app name in the query parameter (`name=[appname]`).
+- **Updating**: To refresh a custom page, dispatch a modified JSON object to the identical endpoint. The display updates instantly.
+- **One-Time Notification**: Use the same JSON format. Direct your JSON object to `[PREFIX]/notify` or `http://[IP]/api/notify`.
+
+| MQTT Topic                  | HTTP URL                          | Payload/Body | Query Parameters | HTTP Method |
+| --------------------------- | --------------------------------- | ------------ | ---------------- | ----------- |
+| `[PREFIX]/custom/[appname]` | `http://[IP]/api/custom`          | JSON         | name=[appname]   | POST        |
+| `[PREFIX]/notify`           | `http://[IP]/api/notify`          | JSON         | -                | POST        |
 
 ### JSON Properties
 
-The JSON object has the following properties,  
-**All keys are optional**, so you can send just the properties you want to use.
+Below are the properties you can utilize in the JSON object. **All keys are optional**; only include the properties you require.
+
 
 | Key | Type | Description | Default | Custom App | Notification |
-| --- | ---- | ----------- | ------- | ------- |------- |
+| --- | ---- | ----------- | ------- | ------- | ------- |
 | `text` | string | The text to display. | N/A | X | X |
 | `textCase` | integer | Changes the Uppercase setting. 0=global setting, 1=forces uppercase; 2=shows as it sent. | 0 | X | X |
-| `topText` | boolean | Draw the text on top | false | X | X |
+| `topText` | boolean | Draw the text on top. | false | X | X |
 | `textOffset` | integer | Sets an offset for the x position of a starting text. | 0 | X | X |
 | `center` | boolean | Centers a short, non-scrollable text. | true | X | X |
-| `color` | string or array of integers | The text, bar or line color | N/A | X | X |
-| `background` | string or array of integers | Sets a background color | N/A | X | X |
+| `color` | string or array of integers | The text, bar or line color. | N/A | X | X |
+| `gradient` | Array of string or integers | Colorizes the text in a gradient of two given colors  | N/A | X | X |
+| `background` | string or array of integers | Sets a background color. | N/A | X | X |
 | `rainbow` | boolean | Fades each letter in the text differently through the entire RGB spectrum. | false | X | X |
 | `icon` | string | The icon ID or filename (without extension) to display on the app. | N/A | X | X |
 | `pushIcon` | integer | 0 = Icon doesn't move. 1 = Icon moves with text and will not appear again. 2 = Icon moves with text but appears again when the text starts to scroll again. | 0 | X | X |
 | `repeat` | integer | Sets how many times the text should be scrolled through the matrix before the app ends. | 1 | X | X |
 | `duration` | integer | Sets how long the app or notification should be displayed. | 5 | X | X |
-| `hold` | boolean | Set it to true, to hold your **notification** on top until you press the middle button or dismiss it via HomeAssistant. This key only belongs to notification. | false |   | X |
-| `sound` | string | The filename of your RTTTL ringtone file placed in the MELODIES folder (without extension). | N/A |   | X |
-| `rtttl` | string | Allows to send the RTTTL sound string with the json | N/A |   | X |
-| `loopSound` | boolean | Loops the sound or rtttl as long as the notification is running | false |   | X |
-| `bar` | array of integers | draws a bargraph. Without icon maximum 16 values, with icon 11 values | N/A | X | X |
-| `line` | array of integers | draws a linechart. Without icon maximum 16 values, with icon 11 values | N/A | X | X |
-| `autoscale` | boolean | Enables or disables autoscaling for bar and linechart | true | X | X |
-| `progress` | integer | Shows a progressbar. Value can be 0-100 | -1 | X | X |
-| `progressC` | string or array of integers  | The color of the progressbar | -1 | X | X |
-| `progressBC` | string or array of integers  | The color of the progressbar background | -1 | X | X |
-| `pos` | integer | Defines the position of your custompage in the loop, starting at 0 for the first position. This will only apply with your first push. This function is experimental | N/A |  X |   | 
-| `draw` | array of objects | Array of drawing instructions. Each object represents a drawing command. | See the drawing instructions below | X | X |
-| `lifetime` | integer | Removes the custom app when there is no update after the given time in seconds | 0 | X |   |
-| `stack` | boolean | Defines if the **notification** will be stacked. false will immediately replace the current notification | true |   | X |
-| `wakeup` | boolean | If the Matrix is off, the notification will wake it up for the time of the notification. | false |   | X |
-| `noScroll` | boolean | Disables the textscrolling | false | X | X |
-| `clients` | array of strings | Allows to forward a notification to other awtrix. Use the MQTT prefix for MQTT and IP adresses for HTTP |  |   | X |
-| `scrollSpeed` | integer | Modifies the scrollspeed. You need to enter a percentage value | 100 | X | X |
-| `effect` | string | Shows an [effect](https://blueforcer.github.io/awtrix-light/#/effects) as background |  | X | X |  
-| `effectSettings` | json map | Changes color and speed of the [effect](https://blueforcer.github.io/awtrix-light/#/effects) |  | X | X |  
-| `save` | boolean | Saves your customapp into flash and reload it after boot. You should avoid that with customapps wich has high update frequency because ESPs flashmemory has limited writecycles  |  | X |  |  
+| `hold` | boolean | Set it to true, to hold your **notification** on top until you press the middle button or dismiss it via HomeAssistant. This key only belongs to notification. | false |  | X |
+| `sound` | string | The filename of your RTTTL ringtone file placed in the MELODIES folder (without extension). | N/A |  | X |
+| `rtttl` | string | Allows to send the RTTTL sound string with the json. | N/A |  | X |
+| `loopSound` | boolean | Loops the sound or rtttl as long as the notification is running. | false |  | X |
+| `bar` | array of integers | Draws a bargraph. Without icon maximum 16 values, with icon 11 values. | N/A | X | X |
+| `line` | array of integers | Draws a linechart. Without icon maximum 16 values, with icon 11 values. | N/A | X | X |
+| `autoscale` | boolean | Enables or disables autoscaling for bar and linechart. | true | X | X |
+| `progress` | integer | Shows a progress bar. Value can be 0-100. | -1 | X | X |
+| `progressC` | string or array of integers | The color of the progress bar. | -1 | X | X |
+| `progressBC` | string or array of integers | The color of the progress bar background. | -1 | X | X |
+| `pos` | integer | Defines the position of your custom page in the loop, starting at 0 for the first position. This will only apply with your first push. This function is experimental. | N/A | X |  |
+| `draw` | array of objects | Array of drawing instructions. Each object represents a drawing command. See the drawing instructions below. |  | X | X |
+| `lifetime` | integer | Removes the custom app when there is no update after the given time in seconds. | 0 | X |  |
+| `stack` | boolean | Defines if the **notification** will be stacked. `false` will immediately replace the current notification. | true |  | X |
+| `wakeup` | boolean | If the Matrix is off, the notification will wake it up for the time of the notification. | false |  | X |
+| `noScroll` | boolean | Disables the text scrolling. | false | X | X |
+| `clients` | array of strings | Allows forwarding a notification to other awtrix devices. Use the MQTT prefix for MQTT and IP addresses for HTTP. |  |  | X |
+| `scrollSpeed` | integer | Modifies the scroll speed. Enter a percentage value of the original scroll speed. | 100 | X | X |
+| `effect` | string | Shows an [effect](https://blueforcer.github.io/awtrix-light/#/effects) as background. |  | X | X |
+| `effectSettings` | json map | Changes color and speed of the [effect](https://blueforcer.github.io/awtrix-light/#/effects). |  | X | X |
+| `save` | boolean | Saves your custom app into flash and reloads it after boot. Avoid this for custom apps with high update frequencies because the ESP's flash memory has limited write cycles. |  | X |  |
 
+**Color**: Accepts a hex string or an R,G,B array: `"#FFFFFF"` or `[255,255,0]`.
 
-Color values can have a hex string or an array of R,G,B values:  
-`"#FFFFFF" or [255,255,0]`  
-  
 #### Example
 
-Here's an example JSON object to display the text "Hello, AWTRIX Light!" in rainbow colors, for 10 seconds:
+Here's a sample JSON to present the text "Hello, AWTRIX Light!" in rainbow colors for a duration of 10 seconds:
 
 ```json
 {
-  "text": "Hello!",
+  "text": "Hello, AWTRIX Light!",
   "rainbow": true,
   "duration": 10
 }
@@ -179,9 +219,9 @@ Here's an example JSON object to draw a red circle, a blue rectangle, and the te
 ]}  
 ```  
   
-### Display a text in colored fragments
-You can display a text where you allowed to colorize fragments of the text.  
-Simply send an array of your fragments, containing `"t"` as your textfragment and `"c"` for the color hex value`.  
+### Display Text in Colored Fragments
+
+AWTRIX Light allows you to present text where specific fragments can be colorized. Use an array of fragments with `"t"` representing the text fragment and `"c"` denoting the color's hex value.
 
 ```json
 {
@@ -197,105 +237,121 @@ Simply send an array of your fragments, containing `"t"` as your textfragment an
   ],
   "repeat": 2
 }
-```  
+```
+
+### Sending Multiple Custom Pages Simultaneously
+
+AWTRIX Light enables you to dispatch multiple custom pages in a single action. Instead of transmitting one custom page object, you can forward an array of objects.
+
+**e.g. MQTT Topic:** `/custom/test`
+
+```json
+[
+  {"text":"1"},
+  {"text":"2"}
+]
+```
+
+**Handling of Multiple Custom Pages:**
+- **Suffix Assignment**: Internally, the app name receives a suffix, turning it into formats like `test0`, `test1`, etc.
+- **Updates**: You can refresh each app individually or update all of them collectively.
+- **Deletion**: 
+  - When erasing apps, AWTRIX doesn't match the exact app name. Instead, it identifies apps that begin with the specified name. 
+  - To expunge all associated apps, send an empty payload to `/custom/test`. This action will remove `test0`, `test1`, and so on.
+  - To eradicate a single app, direct the command to, for instance, `/custom/test1`.
+  - Caution: Deleting just one app may upset the sequence of the remaining apps in the loop, as there's no provision for placeholders to retain order.
+
   
-### Send multiple custompage at once  
-This allows you to send multiple custompage at once. Instead of a single custompage object, you can send an array of objects. like
-
-**Topic:**   
-/custom/test
-
-```json 
-`[{"text":"1"},{"text":"2"}]`  
-```  
-Internally the appname gets a suffix like test0, test1 and so on.  
-You can update each app like before, or you can update all apps at once.  
-While removing apps, awtrix doesnt search for the exact name, but uses the app that starts with the given name.  
-So if you want to delete all apps just send empty payload to /custom/test. This will remove test0, test1 and so on.  
-you can also remove one app by removing /custom/test1.  
-Please keep in mind that if you delete only one app, you cant get the correct Order again because all apps in the loop move, since there can be no placeholder.  ^
   
-  
-## Delete a custom app
-To delete a custom app simply send a empty payload/body to the same topic/url.
 
-## Dismiss Notification  
-Dismiss a notification which was set to "hold"=true.
+### Delete a Custom App
 
-| Topic | URL | Payload/Body | HTTP method |
-| --- | --- | --- | --- |
-| `[PREFIX]/notify/dismiss` |`http://[IP]/api/notify/dismiss` | empty payload/body | POST |
+To remove a custom app, dispatch an empty payload/body to the associated topic or URL.
 
-## Switch Apps
-Switch to next or previous app.
+### Dismiss Notification
 
-| Topic | URL | Payload/Body | HTTP method |
-| --- | --- | --- | --- |
-| `[PREFIX]/nextapp` | `http://[IP]/api/nextapp` | empty payload/body | POST |
-| `[PREFIX]/previousapp` | `http://[IP]/api/previousapp` | empty payload/body  | POST |
+Easily dismiss a notification that was configured with `"hold": true`.
 
-## Switch to Specific App  
-Switch to a specific app by name.
+| MQTT Topic                   | HTTP URL                           | Payload/Body     | HTTP Method |
+| ---------------------------- | ---------------------------------- | ---------------- | ----------- |
+| `[PREFIX]/notify/dismiss`    | `http://[IP]/api/notify/dismiss`   | Empty payload/body | POST       |
 
-| Topic | URL | Payload/Body | HTTP method |
-| --- | --- | --- | --- |
-| `[PREFIX]/switch` | `http://[IP]/api/switch` | `{"name":"time"}` | POST |
+### Switch Apps
 
-Built-in app names are:
+Navigate to the next or preceding app.
+
+| MQTT Topic                   | HTTP URL                           | Payload/Body     | HTTP Method |
+| ---------------------------- | ---------------------------------- | ---------------- | ----------- |
+| `[PREFIX]/nextapp`           | `http://[IP]/api/nextapp`          | Empty payload/body | POST       |
+| `[PREFIX]/previousapp`       | `http://[IP]/api/previousapp`      | Empty payload/body | POST       |
+
+### Switch to Specific App
+
+Directly transition to a desired app using its name.
+
+| MQTT Topic                   | HTTP URL                           | Payload/Body     | HTTP Method |
+| ---------------------------- | ---------------------------------- | ---------------- | ----------- |
+| `[PREFIX]/switch`            | `http://[IP]/api/switch`           | `{"name":"time"}` | POST       |
+
+**Built-in App Names**:
 - `time`
 - `date`
 - `temp`
 - `hum`
-- `bat`  
-  
-For custom apps, use the name you set in the topic or http request header.  
-In MQTT for example, if `[PREFIX]/custom/test` is your topic, then `test` is the name.
+- `bat`
+
+For custom apps, employ the name you designated in the topic or HTTP parameter. In MQTT, if `[PREFIX]/custom/test` is your topic, then `test` would be the app's name.
 
 
-## Change Settings  
-Change various settings related to the app display.
 
-| Topic |  URL | Payload/Body |HTTP method |
-| --- | --- | --- |--- |
-| `[PREFIX]/settings` |`http://[IP]/api/settings`| JSON | POST |
+## Change Settings
 
+Adjust various settings related to the app display.
 
-#### JSON Properties
-Each property is optional; you do not need to send all.
+| MQTT Topic            | HTTP URL                          | Payload/Body | HTTP Method |
+| --------------------- | --------------------------------- | ------------- | ----------- |
+| `[PREFIX]/settings`   | `http://[IP]/api/settings`        | JSON          | POST        |
 
-| Key | Type | Description | Value Range | Default |
-| --- | --- | --- | --- | --- |
-| `ATIME` | number | Determines the duration an app is displayed in seconds. | Any positive integer value. | 7 |
-| `TEFF` | number | Choose beween app transision effects. See below for possible transitions. | 0-10 | 1 |
-| `TSPEED` | number | The time the transition to the next app takes in milliseconds. | Any positive integer value. | 500 |
-| `TCOL` | string / array of ints| Sets the textcolor | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FF0000" for red. | N/A |
-| `TMODE` | integer | Changes the time app style | 0-4 | 1 |
-| `CCOL` | string / array of ints| Sets the calendar color of the time app | an array of RGB values hexadecimal color value | N/A |
-| `CTCOL` | string / array of ints| Sets the calendar textcolor in the time app | an array of RGB values hexadecimal color value | N/A |
-| `WD` | bool | Enable or disable the weekday display | true/false | true |
-| `WDCA` | string / array of ints| Sets the active weekday color | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FF0000" for red. | N/A |
-| `WDCI` | string / array of ints| Sets the inactive weekday color | an array of RGB values `[255,0,0]` or any valid 6-digit hexadecimal color value, e.g. "#FFFF" for white. | N/A |
-| `BRI` | number | Determines the brightness of the matrix. | An integer between 0 and 255. | N/A |
-| `ABRI` | boolean | Determines if automatic brightness control is active. | `true` or `false`. | N/A |
-| `ATRANS` | boolean | Determines if automatic switching to the next app is active. | `true` or `false`. | N/A |
-| `CCORRECTION` | array of ints | Sets the color correction for the matrix | an array of RGB values | N/A |
-| `CTEMP` | array of ints | Sets the color temperature for the matrix | an array of RGB values | N/A |
-| `TFORMAT` | string | Sets the timeformat for the TimeApp | see below | N/A |
-| `DFORMAT` | string | Sets the dateformat for the DateApp | see below | N/A |
-| `SOM` | bool | Sets the start of the week to monday | true/false | true |
-| `BLOCKN` | bool | Blocks the physical navigation keys, but still sends the input to MQTT | true/false | false |
-| `UPPERCASE` | bool | Shows text in uppercase | true/false | true |
-| `TIME_COL` | string / array of ints| Sets the textcolor of the time app. Set 0 for global textcolor | an array of RGB values hexadecimal color value | N/A |
-| `DATE_COL` | string / array of ints| Sets the textcolor of the date app . Set 0 for global textcolor | an array of RGB values hexadecimal color value | N/A |
-| `TEMP_COL` | string / array of ints| Sets the textcolor of the temp app. Set 0 for global textcolor  | an array of RGB values hexadecimal color value | N/A |
-| `HUM_COL` | string / array of ints| Sets the textcolor of the humidity app. Set 0 for global textcolor  | an array of RGB values hexadecimal color value | N/A |
-| `BAT_COL` | string / array of ints| Sets the textcolor of the battery app. Set 0 for global textcolor  | an array of RGB values hexadecimal color value | N/A |
-| `SSPEED` | integer | Modifies the scrollspeed | percentage value of the original scrollspeed | 100 |
-| `TIM` | boolean | Enable or disable the native time app (needs a reboot) | true/false | true |
-| `DAT` | boolean | Enable or disable the native date app (needs a reboot) | true/false | true |
-| `HUM` | boolean | Enable or disable the native humidity app (needs a reboot) | true/false | true |
-| `TEMP` | boolean | Enable or disable the native temperature app (needs a reboot) | true/false | true |
-| `BAT` | boolean | Enable or disable the native battery app (needs a reboot) | true/false | true |
+### JSON Properties
+
+You can adjust each property in the JSON object according to your preferences. Including a property is optional.
+
+| Key           | Type                      | Description                                                                                          | Value Range                                        | Default |
+| ------------- | ------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------- |
+| `ATIME`       | number                    | Duration an app is displayed in seconds.                                                            | Positive integer                                   | 7       |
+| `TEFF`        | number                    | Choose between app transition effects.                                                               | 0-10                                               | 1       |
+| `TSPEED`      | number                    | Time taken for the transition to the next app in milliseconds.                                       | Positive integer                                   | 500     |
+| `TCOL`        | string/array of ints      | Global text color.                                                                                  | RGB array or hex color                             | N/A     |
+| `TMODE`       | integer                   | Changes the time app style.                                                                         | 0-4                                                | 1       |
+| `CCOL`        | string/array of ints      | Calendar color of the time app.                                                                     | RGB array or hex color                             | N/A     |
+| `CTCOL`       | string/array of ints      | Calendar text color in the time app.                                                                | RGB array or hex color                             | N/A     |
+| `WD`          | boolean                   | Enable or disable the weekday display.                                                              | `true`/`false`                                     | true    |
+| `WDCA`        | string/array of ints      | Active weekday color.                                                                               | RGB array or hex color                             | N/A     |
+| `WDCI`        | string/array of ints      | Inactive weekday color.                                                                             | RGB array or hex color                             | N/A     |
+| `BRI`         | number                    | Matrix brightness.                                                                                  | 0-255                                              | N/A     |
+| `ABRI`        | boolean                   | Automatic brightness control.                                                                       | `true`/`false`                                     | N/A     |
+| `ATRANS`      | boolean                   | Automatic switching to the next app.                                                                 | `true`/`false`                                     | N/A     |
+| `CCORRECTION` | array of ints             | Color correction for the matrix.                                                                    | RGB array                                          | N/A     |
+| `CTEMP`       | array of ints             | Color temperature for the matrix.                                                                   | RGB array                                          | N/A     |
+| `TFORMAT`     | string                    | Time format for the TimeApp.                                                                        | Varies (see documentation)                         | N/A     |
+| `DFORMAT`     | string                    | Date format for the DateApp.                                                                        | Varies (see documentation)                         | N/A     |
+| `SOM`         | boolean                   | Start the week on Monday.                                                                           | `true`/`false`                                     | true    |
+| `BLOCKN`      | boolean                   | Block physical navigation keys (still sends input to MQTT).                                         | `true`/`false`                                     | false   |
+| `UPPERCASE`   | boolean                   | Display text in uppercase.                                                                          | `true`/`false`                                     | true    |
+| `TIME_COL`    | string/array of ints      | Text color of the time app. Use 0 for global text color.                                            | RGB array or hex color                             | N/A     |
+| `DATE_COL`    | string/array of ints      | Text color of the date app. Use 0 for global text color.                                            | RGB array or hex color                             | N/A     |
+| `TEMP_COL`    | string/array of ints      | Text color of the temperature app. Use 0 for global text color.                                     | RGB array or hex color                             | N/A     |
+| `HUM_COL`     | string/array of ints      | Text color of the humidity app. Use 0 for global text color.                                        | RGB array or hex color                             | N/A     |
+| `BAT_COL`     | string/array of ints      | Text color of the battery app. Use 0 for global text color.                                         | RGB array or hex color                             | N/A     |
+| `SSPEED`      | integer                   | Scroll speed modification.                                                                          | Percentage of original scroll speed                | 100     |
+| `TIM`         | boolean                   | Enable or disable the native time app (requires reboot).                                            | `true`/`false`                                     | true    |
+| `DAT`         | boolean                   | Enable or disable the native date app (requires reboot).                                            | `true`/`false`                                     | true    |
+| `HUM`         | boolean                   | Enable or disable the native humidity app (requires reboot).                                        | `true`/`false`                                     | true    |
+| `TEMP`        | boolean                   | Enable or disable the native temperature app (requires reboot).                                     | `true`/`false`                                     | true    |
+| `BAT`         | boolean                   | Enable or disable the native battery app (requires reboot).                                         | `true`/`false`                                     | true    |
+
+**Color Values**: Can either be an RGB array (e.g., `[255,0,0]`) or a valid 6-digit hexadecimal color value (e.g., "#FF0000" for red).
+
 
 **Transision effects:**  
 ```bash  
@@ -337,25 +393,12 @@ Each property is optional; you do not need to send all.
 %m-%d-%y     04-16-22  
 ```  
     
-## Update  
-You can start the firmware update with update button in HA or:   
-   
-| Topic | URL | Payload/Body | HTTP Header | HTTP method |  
-| --- | --- | --- | --- | --- |  
-| `[PREFIX]/doupdate` |`http://[IP]/api/doupdate` | JSON | empty payload/body | POST |  
+## Update
+
+You can initiate the firmware update either through the update button in HA or using the following:
+
+| MQTT Topic          | HTTP URL                          | Payload/Body | HTTP Header        | HTTP Method |
+|---------------------|-----------------------------------|---------------|--------------------|-------------|
+| `[PREFIX]/doupdate` | `http://[IP]/api/doupdate`        | JSON          | empty payload/body | POST        |
 
 
-## Reboot Awtrix    
-  
-| Topic | URL | Payload/Body | HTTP method |  
-| --- | --- | --- | --- |  
-| `[PREFIX]/reboot` | `http://[IP]/api/reboot` | - | POST |  
-
-
-## Erase Awtrix    
-WARNING: this will format the flashmemory and EEPROM but dont touches the Wifi Settings.
-This is kind of a factoryreset!  
-  
-| Topic | URL | Payload/Body | HTTP method |  
-| --- | --- | --- | --- |  
-| `N/A` | `http://[IP]/api/erase` | - | POST |  

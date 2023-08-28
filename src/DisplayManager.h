@@ -59,6 +59,7 @@ public:
     bool generateNotification(uint8_t source, const char *json);
     bool generateCustomPage(const String &name, JsonObject  doc, bool preventSave);
     void printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase);
+    void GradientText(int16_t x, int16_t y, const char *text, int color1, int color2, bool clear, byte textCase);
     bool setAutoTransition(bool active);
     bool switchToApp(const char *json);
     void setNewSettings(const char *json);

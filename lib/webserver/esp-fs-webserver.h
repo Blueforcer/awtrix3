@@ -83,7 +83,7 @@ public:
 
     void run();
     void onNotFound(WebServerClass::THandlerFunction fn);
-    
+
     void addHandler(const Uri &uri, HTTPMethod method, WebServerClass::THandlerFunction fn);
 
     void addHandler(const Uri &uri, WebServerClass::THandlerFunction handler);
@@ -311,7 +311,6 @@ private:
     UpdateServerClass m_httpUpdater;
     String authUser;
     String authPass;
-
     DNSServer m_dnsServer;
     fs::FS *m_filesystem;
     File m_uploadFile;
@@ -342,7 +341,6 @@ private:
     const char *getContentType(const char *filename);
     bool captivePortal();
     WebServerClass::THandlerFunction authMiddleware(WebServerClass::THandlerFunction fn);
-
     // edit page, in usefull in some situation, but if you need to provide only a web interface, you can disable
 #ifdef INCLUDE_EDIT_HTM
     void handleGetEdit();

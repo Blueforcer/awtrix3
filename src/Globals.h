@@ -106,6 +106,8 @@ extern uint8_t VOLUME;
 extern int MATRIX_LAYOUT;
 extern bool UPDATE_AVAILABLE;
 extern long RECEIVED_MESSAGES;
+extern uint16_t MIN_BATTERY;
+extern uint16_t MAX_BATTERY;
 extern CRGB COLOR_CORRECTION;
 extern CRGB COLOR_TEMPERATURE;
 extern uint16_t WDC_ACTIVE;

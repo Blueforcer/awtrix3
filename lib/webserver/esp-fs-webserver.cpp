@@ -33,7 +33,9 @@ void FSWebServer::onNotFound(WebServerClass::THandlerFunction fn)
 
 void FSWebServer::addHandler(const Uri &uri, WebServerClass::THandlerFunction handler)
 {
-    addHandler(uri, HTTP_ANY, handler);
+
+addHandler(uri, HTTP_ANY, handler);
+
 }
 
 // List all files saved in the selected filesystem
@@ -123,6 +125,20 @@ bool FSWebServer::begin(const char *path)
     webserver->begin();
 
     return true;
+}
+
+WebServerClass::THandlerFunction FSWebServer::authMiddleware(WebServerClass::THandlerFunction fn) {
+    if (authUser.isEmpty()) {
+        return fn;
+    }
+
+    return [this, fn]() {
+        if (!webserver->authenticate(authUser.c_str(), authPass.c_str())) {
+            return webserver->requestAuthentication();
+        }
+
+        fn();
+    };
 }
 
 void FSWebServer::setCaptiveWebage(const char *url)

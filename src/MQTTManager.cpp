@@ -701,14 +701,22 @@ void MQTTManager_::rawPublish(const char *prefix, const char *topic, const char 
     mqtt.publish(result, payload, false);
 }
 
+
+
 void MQTTManager_::setCurrentApp(String appName)
 {
+    static String lastApp = "";
+
+    if (lastApp == appName)
+        return;
+
     if (DEBUG_MODE)
         DEBUG_PRINTF("Publish current app %s", appName.c_str());
     if (HA_DISCOVERY)
         curApp->setValue(appName.c_str());
 
     publish("stats/currentApp", appName.c_str());
+    lastApp = appName;
 }
 
 void MQTTManager_::sendButton(byte btn, bool state)

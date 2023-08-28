@@ -37,18 +37,11 @@
 #include "ServerManager.h"
 #include "Globals.h"
 #include "UpdateManager.h"
-#ifdef ULANZI
-// Pinouts für das ULANZI-Environment
 
-#define BUTTON_SELECT_PIN 27
-#else
-// Pinouts für das WEMOS_D1_MINI32-Environment
-#define BUTTON_SELECT_PIN D4
-
-#endif
 TaskHandle_t taskHandle;
 volatile bool StopTask = false;
 bool stopBoot;
+
 void BootAnimation(void *parameter)
 {
   const TickType_t xDelay = 1 / portTICK_PERIOD_MS;
@@ -78,7 +71,6 @@ void setup()
   delay(500);
   xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 0);
   ServerManager.setup();
-  // PeripheryManager.playBootSound();
   if (ServerManager.isConnected)
   {
     DisplayManager.loadNativeApps();
@@ -110,11 +102,11 @@ void setup()
 
 void loop()
 {
-    ServerManager.tick();
-    DisplayManager.tick();
-    PeripheryManager.tick();
-    if (ServerManager.isConnected)
-    {
-      MQTTManager.tick();
-    }
+  ServerManager.tick();
+  DisplayManager.tick();
+  PeripheryManager.tick();
+  if (ServerManager.isConnected)
+  {
+    MQTTManager.tick();
+  }
 }
