@@ -151,8 +151,8 @@ void addHandler()
                     }else{
                         mws.webserver->send(404,F("text/plain"),"NoUpdateFound");    
                     } });
-    mws.addHandler("/api/buzz", HTTP_POST, []()
-                   { PeripheryManager.sendMessage(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
+    mws.addHandler("/api/r2d2", HTTP_POST, []()
+                   { PeripheryManager.r2d2(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
 }
 
 void ServerManager_::setup()

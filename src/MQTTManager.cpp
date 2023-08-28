@@ -225,6 +225,13 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         return;
     }
 
+    if (strTopic.equals(MQTT_PREFIX + "/r2d2"))
+    {
+        PeripheryManager.r2d2(payloadCopy);
+        delete[] payloadCopy;
+        return;
+    }
+
     if (strTopic.equals(MQTT_PREFIX + "/nextapp"))
     {
         DisplayManager.nextApp();
@@ -353,7 +360,8 @@ void onMqttConnected()
         "/reboot",
         "/moodlight",
         "/sound",
-        "/sendscreen"};
+        "/sendscreen",
+        "/r2d2"};
     for (const char *topic : topics)
     {
         if (DEBUG_MODE)
@@ -700,8 +708,6 @@ void MQTTManager_::rawPublish(const char *prefix, const char *topic, const char 
     strcat(result, topic);
     mqtt.publish(result, payload, false);
 }
-
-
 
 void MQTTManager_::setCurrentApp(String appName)
 {

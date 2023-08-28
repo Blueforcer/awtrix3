@@ -428,19 +428,6 @@ void FSWebServer::handleScanNetworks()
     DebugPrintln(jsonList);
 }
 
-WebServerClass::THandlerFunction FSWebServer::authMiddleware(WebServerClass::THandlerFunction fn) {
-    if (authUser.isEmpty()) {
-        return fn;
-    }
-
-    return [this, fn]() {
-        if (!webserver->authenticate(authUser.c_str(), authPass.c_str())) {
-            return webserver->requestAuthentication();
-        }
-
-        fn();
-    };
-}
 
 #ifdef INCLUDE_SETUP_HTM
 

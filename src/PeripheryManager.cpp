@@ -17,13 +17,13 @@
 #include <LittleFS.h>
 #include <LightDependentResistor.h>
 #include <MenuManager.h>
- const int buzzerPin = 2;  // Buzzer an GPIO2
-const int baudRate = 50;  // Nachrichtenübertragungsrate
-const char* message = "HELLO";  // Die Nachricht, die gesendet werden soll
-#define LEDC_CHANNEL     0
-#define LEDC_RESOLUTION  8   // 8 bit resolution
-#define LEDC_TIMER       LEDC_TIMER_0
-#define LEDC_MODE        LEDC_LOW_SPEED_MODE
+const int buzzerPin = 2;       // Buzzer an GPIO2
+const int baudRate = 50;       // Nachrichtenübertragungsrate
+const char *message = "HELLO"; // Die Nachricht, die gesendet werden soll
+#define LEDC_CHANNEL 0
+#define LEDC_RESOLUTION 8 // 8 bit resolution
+#define LEDC_TIMER LEDC_TIMER_0
+#define LEDC_MODE LEDC_LOW_SPEED_MODE
 #ifdef ULANZI
 // Pinouts für das ULANZI-Environment
 #define BATTERY_PIN 34
@@ -182,7 +182,7 @@ void select_button_pressed_long()
 #ifndef ULANZI
         PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
 #endif
-     
+
         MenuManager.selectButtonLong();
 
         DisplayManager.selectButtonLong();
@@ -466,8 +466,6 @@ void PeripheryManager_::tick()
     }
 }
 
-
-
 long PeripheryManager_::readUptime()
 {
     unsigned long currentTime = millis();
@@ -476,11 +474,13 @@ long PeripheryManager_::readUptime()
     return uptimeSeconds;
 }
 
-void PeripheryManager_::sendMessage(const char* msg) {
-  for (int i = 0; msg[i] != '\0'; i++) {
+void PeripheryManager_::r2d2(const char *msg)
+{
+    for (int i = 0; msg[i] != '\0'; i++)
+    {
         char c = msg[i];
-        ledcWriteTone(LEDC_CHANNEL, (c - 'A' + 1) * 100);
+        tone(BUZZER_PIN, (c - 'A' + 1) * 50);
         delay(baudRate + 10);
     }
-    ledcWriteTone(LEDC_CHANNEL, 0); // Ton aus
+    noTone(BUZZER_PIN);
 }
