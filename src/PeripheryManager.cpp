@@ -384,9 +384,6 @@ void PeripheryManager_::setup()
     dfmp3.begin();
 #endif
     photocell.setPhotocellPositionOnGround(false);
-
-    ledcSetup(LEDC_CHANNEL, 2000, LEDC_RESOLUTION); // Start mit 2kHz
-    ledcAttachPin(BUZZER_PIN, LEDC_CHANNEL);
 }
 
 void PeripheryManager_::tick()
@@ -476,6 +473,7 @@ long PeripheryManager_::readUptime()
 
 void PeripheryManager_::r2d2(const char *msg)
 {
+#ifdef ULANZI
     for (int i = 0; msg[i] != '\0'; i++)
     {
         char c = msg[i];
@@ -483,4 +481,5 @@ void PeripheryManager_::r2d2(const char *msg)
         delay(baudRate + 10);
     }
     noTone(BUZZER_PIN);
+#endif
 }
