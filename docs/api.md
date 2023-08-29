@@ -146,8 +146,8 @@ Below are the properties you can utilize in the JSON object. **All keys are opti
 | `center` | boolean | Centers a short, non-scrollable text. | true | X | X |
 | `color` | string or array of integers | The text, bar or line color. | N/A | X | X |
 | `gradient` | Array of string or integers | Colorizes the text in a gradient of two given colors  | N/A | X | X |
-| `blinkText` | Integer | Blinks the text in an given interval | N/A | X | X |
-| `fadeText` | Integer | Fades the text on and off in an given interval | N/A | X | X |
+| `blinkText` | Integer | Blinks the text in an given interval, not compatible with gradient or rainbow | N/A | X | X |
+| `fadeText` | Integer | Fades the text on and off in an given interval, not compatible with gradient or rainbow  | N/A | X | X |
 | `background` | string or array of integers | Sets a background color. | N/A | X | X |
 | `rainbow` | boolean | Fades each letter in the text differently through the entire RGB spectrum. | false | X | X |
 | `icon` | string | The icon ID or filename (without extension) to display on the app. | N/A | X | X |
