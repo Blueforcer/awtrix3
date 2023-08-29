@@ -1487,20 +1487,16 @@ String DisplayManager_::getStats()
 #else
     doc[F("type")] = 1;
 #endif
-
     doc[LuxKey] = static_cast<int>(CURRENT_LUX);
     doc[LDRRawKey] = LDR_RAW;
-
     uint32_t freeHeap = ESP.getFreeHeap();
     doc[RamKey] = freeHeap;
     doc[BrightnessKey] = BRIGHTNESS;
-
     if (SENSOR_READING)
     {
         doc[TempKey] = static_cast<uint8_t>(CURRENT_TEMP);
         doc[HumKey] = static_cast<uint8_t>(CURRENT_HUM);
     }
-
     doc[UpTimeKey] = PeripheryManager.readUptime();
     doc[SignalStrengthKey] = WiFi.RSSI();
     doc[MessagesKey] = RECEIVED_MESSAGES;
@@ -1509,7 +1505,6 @@ String DisplayManager_::getStats()
     doc[F("indicator2")] = ui->indicator2State;
     doc[F("indicator3")] = ui->indicator3State;
     doc[F("app")] = CURRENT_APP;
-    // doc[F("freeFlash")] = LittleFS.totalBytes() - LittleFS.usedBytes();
     String jsonString;
     serializeJson(doc, jsonString);
     return jsonString;
@@ -1807,6 +1802,19 @@ void DisplayManager_::gammaCorrection()
     for (int i = 0; i < 256; i++)
     {
         leds[i] = applyGamma_video(leds[i], gamma);
+    }
+
+    if (MIRROR_DISPLAY)
+    {
+        for (int y = 0; y < MATRIX_HEIGHT; y++)
+        {
+            for (int x = 0; x < MATRIX_WIDTH / 2; x++)
+            {
+                int index1 = y * MATRIX_WIDTH + x;
+                int index2 = y * MATRIX_WIDTH + (MATRIX_WIDTH - x - 1);
+                std::swap(leds[index1], leds[index2]);
+            }
+        }
     }
 }
 

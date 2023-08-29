@@ -77,6 +77,11 @@ void loadDevSettings()
             MATRIX_LAYOUT = doc["matrix"];
         }
 
+        if (doc.containsKey("mirror_screen"))
+        {
+            MIRROR_DISPLAY = doc["mirror_screen"].as<bool>();
+        }
+
         if (doc.containsKey("temp_offset"))
         {
             TEMP_OFFSET = doc["temp_offset"];
@@ -351,7 +356,7 @@ bool AUTO_BRIGHTNESS = true;
 bool UPPERCASE_LETTERS = true;
 bool AP_MODE;
 bool MATRIX_OFF;
-
+bool MIRROR_DISPLAY=false;
 uint16_t TEXTCOLOR_565;
 bool SOUND_ACTIVE;
 String BOOT_SOUND = "";

@@ -18,6 +18,7 @@ The JSON object has the following properties:
 | `color_correction` | array of int | Sets the colorcorrection of the matrix | `[255,255,255]` |
 | `color_temperature` | array of int | Sets the colortemperature of the matrix | `[255,255,255]` |
 | `rotate_screen` | boolean | Rotates the screen upside down | `false` |
+| `mirror_screen` | boolean | Mirrors the screen | `false` |
 | `temp_dec_places` | integer | Number of decimal places for temperature measurements | `0` |
 | `sensor_reading` | boolean | Enables or disables the reading of the Temp&Hum sensor | `true` |
 | `temp_offset` | float | Sets the offset for the internal temperature messurement | `-9` |

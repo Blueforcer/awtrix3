@@ -473,7 +473,6 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         callEffect(matrix, x, y, ca->effect);
     }
 
-
     CURRENT_APP = ca->name;
     currentCustomApp = name;
 
@@ -600,7 +599,8 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             {
                 DisplayManager.setAutoTransition(true);
                 ca->currentRepeat = 0;
-                DisplayManager.nextApp();
+                if (AUTO_TRANSITION)
+                    DisplayManager.nextApp();
                 ca->scrollDelay = 0;
                 ca->scrollposition = 9 + ca->textOffset;
                 return;
@@ -745,8 +745,6 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
         notifyFlag = true;
     }
 
-   
-
     if (notifications[0].wakeup && MATRIX_OFF)
     {
         DisplayManager.setBrightness(BRIGHTNESS);
@@ -764,7 +762,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
         }
         notifications[0].icon.close();
         notifications.erase(notifications.begin());
-        
+
         if (notifications[0].wakeup && MATRIX_OFF)
         {
             DisplayManager.setBrightness(0);
@@ -773,12 +771,14 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
         if (notifications.empty())
         {
             notifyFlag = false;
+            if (AUTO_TRANSITION)
+                DisplayManager.nextApp();
         }
-        DisplayManager.nextApp();
+
         return;
     }
 
-     // Set current app name
+    // Set current app name
     CURRENT_APP = F("Notification");
 
     // Check if notification has an icon
@@ -983,7 +983,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
             else
             {
                 matrix->setTextColor(TextEffect(notifications[0].color, notifications[0].fade, notifications[0].blink));
-        
+
                 DisplayManager.printText(textX + notifications[0].textOffset, 6, notifications[0].text.c_str(), false, notifications[0].textCase);
             }
         }
