@@ -17,8 +17,6 @@ void FSWebServer::run()
     webserver->handleClient();
     if (m_apmode)
         m_dnsServer.processNextRequest();
-
-
 }
 
 void FSWebServer::addHandler(const Uri &uri, HTTPMethod method, WebServerClass::THandlerFunction fn)
@@ -34,8 +32,7 @@ void FSWebServer::onNotFound(WebServerClass::THandlerFunction fn)
 void FSWebServer::addHandler(const Uri &uri, WebServerClass::THandlerFunction handler)
 {
 
-addHandler(uri, HTTP_ANY, handler);
-
+    addHandler(uri, HTTP_ANY, handler);
 }
 
 // List all files saved in the selected filesystem
@@ -118,7 +115,6 @@ bool FSWebServer::begin(const char *path)
     // OTA update via webbrowser
     m_httpUpdater.setup(webserver, authUser, authPass);
 
-
     webserver->enableCORS(true);
 
     webserver->setContentLength(1024);
@@ -127,13 +123,17 @@ bool FSWebServer::begin(const char *path)
     return true;
 }
 
-WebServerClass::THandlerFunction FSWebServer::authMiddleware(WebServerClass::THandlerFunction fn) {
-    if (authUser.isEmpty()) {
+WebServerClass::THandlerFunction FSWebServer::authMiddleware(WebServerClass::THandlerFunction fn)
+{
+    if (authUser.isEmpty())
+    {
         return fn;
     }
 
-    return [this, fn]() {
-        if (!webserver->authenticate(authUser.c_str(), authPass.c_str())) {
+    return [this, fn]()
+    {
+        if (!webserver->authenticate(authUser.c_str(), authPass.c_str()))
+        {
             return webserver->requestAuthentication();
         }
 
@@ -428,7 +428,6 @@ void FSWebServer::handleScanNetworks()
     DebugPrintln(jsonList);
 }
 
-
 #ifdef INCLUDE_SETUP_HTM
 
 void FSWebServer::addDropdownList(const char *label, const char **array, size_t size)
@@ -624,7 +623,7 @@ void FSWebServer::replyOK()
 
 void FSWebServer::replyToCLient(int msg_type = 0, const char *msg = "")
 {
-    //webserver->sendHeader("Access-Control-Allow-Origin", "*");
+    // webserver->sendHeader("Access-Control-Allow-Origin", "*");
     switch (msg_type)
     {
     case OK:
@@ -916,16 +915,18 @@ void FSWebServer::handleStatus()
     totalBytes = fs_info.totalBytes;
     usedBytes = fs_info.usedBytes;
 #elif defined(ESP32)
-     totalBytes = LittleFS.totalBytes();
-     usedBytes = LittleFS.usedBytes();
+    totalBytes = LittleFS.totalBytes();
+    usedBytes = LittleFS.usedBytes();
 #endif
 
     String json;
-    json.reserve(128);
+    json.reserve(256); // Increased the size to accommodate the SSID
     json = "{\"type\":\"Filesystem\", \"isOk\":";
     if (m_fsOK)
     {
         uint32_t ip = (WiFi.status() == WL_CONNECTED) ? WiFi.localIP() : WiFi.softAPIP();
+        String ssid = WiFi.SSID(); // Get the current SSID
+
         json += PSTR("\"true\", \"totalBytes\":\"");
         json += totalBytes;
         json += PSTR("\", \"usedBytes\":\"");
@@ -934,12 +935,16 @@ void FSWebServer::handleStatus()
         json += WiFi.status() == WL_CONNECTED ? "Station" : "Access Point";
         json += PSTR("\", \"ip\":\"");
         json += ip;
+        json += PSTR("\", \"ssid\":\""); // Add SSID here
+        json += ssid;                    // Add the actual SSID
         json += "\"";
     }
     else
+    {
         json += "\"false\"";
-    json += PSTR(",\"unsupportedFiles\":\"\"}");
+    }
+
+    json += "}"; // Closing the JSON object
     webserver->send(200, "application/json", json);
 }
-
 #endif // INCLUDE_EDIT_HTM

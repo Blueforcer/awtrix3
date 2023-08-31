@@ -57,7 +57,7 @@ public:
     void setBrightness(int);
     void setTextColor(uint16_t color);
     bool generateNotification(uint8_t source, const char *json);
-    bool generateCustomPage(const String &name, JsonObject  doc, bool preventSave);
+    bool generateCustomPage(const String &name, JsonObject doc, bool preventSave);
     void printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase);
     void GradientText(int16_t x, int16_t y, const char *text, int color1, int color2, bool clear, byte textCase);
     bool setAutoTransition(bool active);
@@ -99,8 +99,15 @@ public:
     void sendBMP(Stream &stream);
     CRGB getPixelColor(int16_t x, int16_t y);
     CRGB *getLeds();
+    void forceNextApp();
     String getEffectNames();
     String getTransistionNames();
+    void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint32_t color);
+    void drawFilledRect(int16_t x, int16_t y, int16_t w, int16_t h, uint32_t color);
+    void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint32_t color);
+    void drawRGBBitmap(int16_t x, int16_t y, uint32_t *bitmap, int16_t w, int16_t h);
+    void drawCircle(int16_t x0, int16_t y0, int16_t r, uint32_t color);
+    void fillCircle(int16_t x0, int16_t y0, int16_t r, uint32_t color);
 };
 
 extern DisplayManager_ &DisplayManager;

@@ -401,7 +401,7 @@ bool parseFragmentsText(const JsonArray &fragmentArray, std::vector<uint16_t> &c
         if (fragmentObj.containsKey("c"))
         {
             auto fragColor = fragmentObj["c"];
-            color = getColorFromJsonVariant(fragColor, standardColor);
+            color = getColor16FromJsonVariant(fragColor, standardColor);
         }
         else
         {
@@ -465,7 +465,7 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     if (doc.containsKey("background"))
     {
         auto background = doc["background"];
-        customApp.background = getColorFromJsonVariant(background, 0);
+        customApp.background = get24ColorFromJsonVariant(background, 0);
     }
 
     if (doc.containsKey("save") && preventSave == false)
@@ -496,7 +496,7 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     if (doc.containsKey("progressC"))
     {
         auto progressC = doc["progressC"];
-        customApp.pColor = getColorFromJsonVariant(progressC, matrix->Color(0, 255, 0));
+        customApp.pColor = getColor16FromJsonVariant(progressC, matrix->Color(0, 255, 0));
     }
     else
     {
@@ -506,7 +506,7 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     if (doc.containsKey("progressBC"))
     {
         auto progressBC = doc["progressBC"];
-        customApp.pbColor = getColorFromJsonVariant(progressBC, matrix->Color(255, 255, 255));
+        customApp.pbColor = getColor16FromJsonVariant(progressBC, matrix->Color(255, 255, 255));
     }
     else
     {
@@ -627,15 +627,15 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
             auto color1 = arr[0];
             auto color2 = arr[1];
 
-            customApp.gradient[0] = getColorFromJsonVariant(color1, TEXTCOLOR_565);
-            customApp.gradient[1] = getColorFromJsonVariant(color2, TEXTCOLOR_565);
+            customApp.gradient[0] = getColor16FromJsonVariant(color1, TEXTCOLOR_565);
+            customApp.gradient[1] = getColor16FromJsonVariant(color2, TEXTCOLOR_565);
         }
     }
 
     if (doc.containsKey("color"))
     {
         auto color = doc["color"];
-        customApp.color = getColorFromJsonVariant(color, TEXTCOLOR_565);
+        customApp.color = getColor16FromJsonVariant(color, TEXTCOLOR_565);
     }
     else
     {
@@ -694,7 +694,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     if (doc.containsKey("progressC"))
     {
         auto progressC = doc["progressC"];
-        newNotification.pColor = getColorFromJsonVariant(progressC, matrix->Color(0, 255, 0));
+        newNotification.pColor = getColor16FromJsonVariant(progressC, matrix->Color(0, 255, 0));
     }
     else
     {
@@ -704,7 +704,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     if (doc.containsKey("progressBC"))
     {
         auto progressBC = doc["progressBC"];
-        newNotification.pbColor = getColorFromJsonVariant(progressBC, matrix->Color(255, 255, 255));
+        newNotification.pbColor = getColor16FromJsonVariant(progressBC, matrix->Color(255, 255, 255));
     }
     else
     {
@@ -714,7 +714,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     if (doc.containsKey("background"))
     {
         auto background = doc["background"];
-        newNotification.background = getColorFromJsonVariant(background, 0);
+        newNotification.background = get24ColorFromJsonVariant(background, 0);
     }
 
     if (doc.containsKey("draw"))
@@ -772,8 +772,8 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
             auto color1 = arr[0];
             auto color2 = arr[1];
 
-            newNotification.gradient[0] = getColorFromJsonVariant(color1, TEXTCOLOR_565);
-            newNotification.gradient[1] = getColorFromJsonVariant(color2, TEXTCOLOR_565);
+            newNotification.gradient[0] = getColor16FromJsonVariant(color1, TEXTCOLOR_565);
+            newNotification.gradient[1] = getColor16FromJsonVariant(color2, TEXTCOLOR_565);
         }
     }
 
@@ -832,7 +832,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     if (doc.containsKey("color"))
     {
         auto color = doc["color"];
-        newNotification.color = getColorFromJsonVariant(color, TEXTCOLOR_565);
+        newNotification.color = getColor16FromJsonVariant(color, TEXTCOLOR_565);
     }
     else
     {
@@ -998,16 +998,16 @@ void DisplayManager_::loadNativeApps()
         }
     };
 
-    updateApp("time", TimeApp, SHOW_TIME, 0);
-    updateApp("date", DateApp, SHOW_DATE, 1);
+    updateApp("Time", TimeApp, SHOW_TIME, 0);
+    updateApp("Date", DateApp, SHOW_DATE, 1);
 
     if (SENSOR_READING)
     {
-        updateApp("temp", TempApp, SHOW_TEMP, 2);
-        updateApp("hum", HumApp, SHOW_HUM, 3);
+        updateApp("Temperature", TempApp, SHOW_TEMP, 2);
+        updateApp("Humidity", HumApp, SHOW_HUM, 3);
     }
 #ifdef ULANZI
-    updateApp("bat", BatApp, SHOW_BAT, 4);
+    updateApp("Battery", BatApp, SHOW_BAT, 4);
 #endif
 
     ui->setApps(Apps);
@@ -1227,6 +1227,13 @@ void DisplayManager_::nextApp()
     }
 }
 
+void DisplayManager_::forceNextApp()
+{
+        ui->switchToApp(ui->getUiState()->currentApp);
+        setAppTime(TIME_PER_APP);
+        MQTTManager.setCurrentApp(getAppNameAtIndex(ui->getUiState()->currentApp));
+}
+
 void DisplayManager_::previousApp()
 {
     if (!MenuManager.inMenu)
@@ -1370,26 +1377,26 @@ void DisplayManager_::drawLineChart(int16_t x, int16_t y, const int newData[], b
 
 std::pair<String, AppCallback> getNativeAppByName(const String &appName)
 {
-    if (appName == "time")
+    if (appName == "Time")
     {
-        return std::make_pair("time", TimeApp);
+        return std::make_pair("Time", TimeApp);
     }
-    else if (appName == "date")
+    else if (appName == "Date")
     {
-        return std::make_pair("date", DateApp);
+        return std::make_pair("Date", DateApp);
     }
-    else if (appName == "temp")
+    else if (appName == "Temperature")
     {
-        return std::make_pair("temp", TempApp);
+        return std::make_pair("Temperature", TempApp);
     }
-    else if (appName == "hum")
+    else if (appName == "Humidity")
     {
-        return std::make_pair("hum", HumApp);
+        return std::make_pair("Humidity", HumApp);
     }
 #ifdef ULANZI
-    else if (appName == "bat")
+    else if (appName == "Battery")
     {
-        return std::make_pair("bat", BatApp);
+        return std::make_pair("Battery", BatApp);
     }
 #endif
     return std::make_pair("", nullptr);
@@ -1662,7 +1669,7 @@ bool DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
     {
         auto color = doc["color"];
 
-        uint16_t col = getColorFromJsonVariant(color, TEXTCOLOR_565);
+        uint16_t col = getColor16FromJsonVariant(color, TEXTCOLOR_565);
 
         if (col > 0)
         {
@@ -1842,8 +1849,9 @@ String DisplayManager_::getSettings()
     doc["TSPEED"] = TIME_PER_TRANSITION;
     doc["ATIME"] = TIME_PER_APP / 1000;
     doc["TMODE"] = TIME_MODE;
-    doc["CCOL"] = CALENDAR_COLOR;
+    doc["CHCOL"] = CALENDAR_HEADER_COLOR;
     doc["CTCOL"] = CALENDAR_TEXT_COLOR;
+    doc["CBCOL"] = CALENDAR_BODY_COLOR;
     doc["TFORMAT"] = TIME_FORMAT;
     doc["DFORMAT"] = DATE_FORMAT;
     doc["SOM"] = START_ON_MONDAY;
@@ -1973,27 +1981,32 @@ void DisplayManager_::setNewSettings(const char *json)
     if (doc.containsKey("WDCA"))
     {
         auto WDCA = doc["WDCA"];
-        WDC_ACTIVE = getColorFromJsonVariant(WDCA, matrix->Color(255, 255, 255));
+        WDC_ACTIVE = getColor16FromJsonVariant(WDCA, matrix->Color(255, 255, 255));
     }
-    if (doc.containsKey("CCOL"))
+    if (doc.containsKey("CHCOL"))
     {
-        auto CCOL = doc["CCOL"];
-        CALENDAR_COLOR = getColorFromJsonVariant(CCOL, matrix->Color(255, 0, 0));
+        auto CHCOL = doc["CHCOL"];
+        CALENDAR_HEADER_COLOR = getColor16FromJsonVariant(CHCOL, matrix->Color(255, 0, 0));
     }
     if (doc.containsKey("CTCOL"))
     {
         auto CTCOL = doc["CTCOL"];
-        CALENDAR_TEXT_COLOR = getColorFromJsonVariant(CTCOL, matrix->Color(0, 0, 0));
+        CALENDAR_TEXT_COLOR = getColor16FromJsonVariant(CTCOL, matrix->Color(0, 0, 0));
+    }
+    if (doc.containsKey("CBCOL"))
+    {
+        auto CBCOL = doc["CBCOL"];
+        CALENDAR_BODY_COLOR = getColor16FromJsonVariant(CBCOL, matrix->Color(255, 255, 255));
     }
     if (doc.containsKey("WDCI"))
     {
         auto WDCI = doc["WDCI"];
-        WDC_INACTIVE = getColorFromJsonVariant(WDCI, matrix->Color(120, 120, 120));
+        WDC_INACTIVE = getColor16FromJsonVariant(WDCI, matrix->Color(120, 120, 120));
     }
     if (doc.containsKey("TCOL"))
     {
         auto TCOL = doc["TCOL"];
-        uint16_t TempColor = getColorFromJsonVariant(TCOL, matrix->Color(255, 255, 255));
+        uint16_t TempColor = getColor16FromJsonVariant(TCOL, matrix->Color(255, 255, 255));
         for (auto it = customApps.begin(); it != customApps.end(); ++it)
         {
             CustomApp &app = it->second;
@@ -2008,27 +2021,27 @@ void DisplayManager_::setNewSettings(const char *json)
     if (doc.containsKey("TIME_COL"))
     {
         auto TIME_COL = doc["TIME_COL"];
-        TIME_COLOR = getColorFromJsonVariant(TIME_COL, 0);
+        TIME_COLOR = getColor16FromJsonVariant(TIME_COL, 0);
     }
     if (doc.containsKey("DATE_COL"))
     {
         auto DATE_COL = doc["DATE_COL"];
-        DATE_COLOR = getColorFromJsonVariant(DATE_COL, 0);
+        DATE_COLOR = getColor16FromJsonVariant(DATE_COL, 0);
     }
     if (doc.containsKey("TEMP_COL"))
     {
         auto TEMP_COL = doc["TEMP_COL"];
-        TEMP_COLOR = getColorFromJsonVariant(TEMP_COL, 0);
+        TEMP_COLOR = getColor16FromJsonVariant(TEMP_COL, 0);
     }
     if (doc.containsKey("HUM_COL"))
     {
         auto HUM_COL = doc["HUM_COL"];
-        HUM_COLOR = getColorFromJsonVariant(HUM_COL, 0);
+        HUM_COLOR = getColor16FromJsonVariant(HUM_COL, 0);
     }
     if (doc.containsKey("BAT_COL"))
     {
         auto BAT_COL = doc["BAT_COL"];
-        BAT_COLOR = getColorFromJsonVariant(BAT_COL, 0);
+        BAT_COLOR = getColor16FromJsonVariant(BAT_COL, 0);
     }
     doc.clear();
     applyAllSettings();
@@ -2138,7 +2151,7 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
                 int x = params[0].as<int>();
                 int y = params[1].as<int>();
                 auto color1 = params[2];
-                uint16_t color = getColorFromJsonVariant(color1, TEXTCOLOR_565);
+                uint32_t color = get24ColorFromJsonVariant(color1, TEXTCOLOR_565);
                 matrix->drawPixel(x + xOffset, y + yOffset, color);
             }
             else if (command == "dl")
@@ -2148,8 +2161,8 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
                 int x1 = params[2].as<int>();
                 int y1 = params[3].as<int>();
                 auto color2 = params[4];
-                uint16_t color = getColorFromJsonVariant(color2, TEXTCOLOR_565);
-                matrix->drawLine(x0 + xOffset, y0 + yOffset, x1 + xOffset, y1 + yOffset, color);
+                uint32_t color = get24ColorFromJsonVariant(color2, TEXTCOLOR_565);
+                DisplayManager.drawLine(x0 + xOffset, y0 + yOffset, x1 + xOffset, y1 + yOffset, color);
             }
             else if (command == "dr")
             {
@@ -2158,8 +2171,8 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
                 int w = params[2].as<int>();
                 int h = params[3].as<int>();
                 auto color3 = params[4];
-                uint16_t color = getColorFromJsonVariant(color3, TEXTCOLOR_565);
-                matrix->drawRect(x + xOffset, y + yOffset, w, h, color);
+                uint32_t color = get24ColorFromJsonVariant(color3, TEXTCOLOR_565);
+                DisplayManager.drawRect(x + xOffset, y + yOffset, w, h, color);
             }
             else if (command == "df")
             {
@@ -2168,8 +2181,8 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
                 int w = params[2].as<int>();
                 int h = params[3].as<int>();
                 auto color4 = params[4];
-                uint16_t color = getColorFromJsonVariant(color4, TEXTCOLOR_565);
-                matrix->fillRect(x + xOffset, y + yOffset, w, h, color);
+                uint32_t color = get24ColorFromJsonVariant(color4, TEXTCOLOR_565);
+                DisplayManager.drawFilledRect(x + xOffset, y + yOffset, w, h, color);
             }
             else if (command == "dc")
             {
@@ -2177,7 +2190,7 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
                 int y = params[1].as<int>();
                 int r = params[2].as<int>();
                 auto color5 = params[3];
-                uint16_t color = getColorFromJsonVariant(color5, TEXTCOLOR_565);
+                uint32_t color = get24ColorFromJsonVariant(color5, TEXTCOLOR_565);
                 matrix->drawCircle(x + xOffset, y + yOffset, r, color);
             }
             else if (command == "dfc")
@@ -2186,7 +2199,7 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
                 double y = params[1].as<double>();
                 double r = params[2].as<double>();
                 auto color6 = params[3];
-                uint16_t color = getColorFromJsonVariant(color6, TEXTCOLOR_565);
+                uint32_t color = get24ColorFromJsonVariant(color6, TEXTCOLOR_565);
                 matrix->fillCircle(x + xOffset, y + yOffset, r, color);
             }
             else if (command == "dt")
@@ -2195,7 +2208,7 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
                 int y = params[1].as<int>();
                 String text = params[2].as<String>();
                 auto color7 = params[3];
-                uint16_t color = getColorFromJsonVariant(color7, TEXTCOLOR_565);
+                uint16_t color = getColor16FromJsonVariant(color7, TEXTCOLOR_565);
                 matrix->setCursor(x + xOffset, y + yOffset + 5);
                 matrix->setTextColor(color);
                 matrix->print(utf8ascii(text));
@@ -2259,7 +2272,7 @@ bool DisplayManager_::moodlight(const char *json)
     else if (doc.containsKey("color"))
     {
         auto c = doc["color"];
-        uint16_t color565 = getColorFromJsonVariant(c, TEXTCOLOR_565);
+        uint16_t color565 = getColor16FromJsonVariant(c, TEXTCOLOR_565);
         matrix->fillScreen(color565);
     }
     else
@@ -2411,4 +2424,150 @@ String DisplayManager_::getTransistionNames()
     serializeJson(doc, json);
     doc.clear();
     return json;
+}
+
+// ### DRAWING FUNCTIONS ###
+
+void DisplayManager_::drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint32_t color)
+{
+    for (int16_t i = x; i < x + w; i++)
+    {
+        matrix->drawPixel(i, y, color);         // Obere Seite
+        matrix->drawPixel(i, y + h - 1, color); // Untere Seite
+    }
+    for (int16_t i = y; i < y + h; i++)
+    {
+        matrix->drawPixel(x, i, color);         // Linke Seite
+        matrix->drawPixel(x + w - 1, i, color); // Rechte Seite
+    }
+}
+
+void DisplayManager_::drawFilledRect(int16_t x, int16_t y, int16_t w, int16_t h, uint32_t color)
+{
+    for (int16_t i = x; i < x + w; i++)
+    {
+        for (int16_t j = y; j < y + h; j++)
+        {
+            matrix->drawPixel(i, j, color);
+        }
+    }
+}
+
+void DisplayManager_::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint32_t color)
+{
+    int16_t dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+    int16_t dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+    int16_t err = dx + dy, e2;
+
+    while (true)
+    {
+        matrix->drawPixel(x0, y0, color);
+        if (x0 == x1 && y0 == y1)
+            break;
+        e2 = 2 * err;
+        if (e2 >= dy)
+        {
+            err += dy;
+            x0 += sx;
+        }
+        if (e2 <= dx)
+        {
+            err += dx;
+            y0 += sy;
+        }
+    }
+}
+
+void DisplayManager_::drawRGBBitmap(int16_t x, int16_t y, uint32_t *bitmap, int16_t w, int16_t h)
+{
+    for (int16_t i = 0; i < w; i++)
+    {
+        for (int16_t j = 0; j < h; j++)
+        {
+            uint32_t pixelColor = bitmap[j * w + i];
+            matrix->drawPixel(x + i, y + j, pixelColor);
+        }
+    }
+}
+
+void DisplayManager_::drawCircle(int16_t x0, int16_t y0, int16_t r, uint32_t color)
+{
+    int16_t x = r;
+    int16_t y = 0;
+    int16_t p = 1 - r;
+
+    if (r == 0)
+    {
+        matrix->drawPixel(x0, y0, color);
+        return;
+    }
+
+    matrix->drawPixel(x0 + r, y0, color);
+    matrix->drawPixel(x0 - r, y0, color);
+    matrix->drawPixel(x0, y0 + r, color);
+    matrix->drawPixel(x0, y0 - r, color);
+    matrix->drawPixel(x0 + x, y0 - y, color);
+    while (x > y)
+    {
+        y++;
+
+        if (p <= 0)
+            p = p + 2 * y + 1;
+        else
+        {
+            x--;
+            p = p + 2 * y - 2 * x + 1;
+        }
+
+        if (x < y)
+            break;
+
+        matrix->drawPixel(x0 + x, y0 - y, color);
+        matrix->drawPixel(x0 - x, y0 - y, color);
+        matrix->drawPixel(x0 + x, y0 + y, color);
+        matrix->drawPixel(x0 - x, y0 + y, color);
+
+        if (x != y)
+        {
+            matrix->drawPixel(x0 + y, y0 - x, color);
+            matrix->drawPixel(x0 - y, y0 - x, color);
+            matrix->drawPixel(x0 + y, y0 + x, color);
+            matrix->drawPixel(x0 - y, y0 + x, color);
+        }
+    }
+}
+
+void DisplayManager_::fillCircle(int16_t x0, int16_t y0, int16_t r, uint32_t color)
+{
+    matrix->drawPixel(x0, y0, color);
+    drawLine(x0 - r, y0, x0 + r, y0, color);
+
+    int16_t x = r;
+    int16_t y = 0;
+    int16_t p = 1 - r;
+
+    while (x > y)
+    {
+        y++;
+
+        if (p <= 0)
+            p = p + 2 * y + 1;
+        else
+        {
+            x--;
+            p = p + 2 * y - 2 * x + 1;
+        }
+
+        if (x < y)
+            break;
+
+        drawLine(x0 - x, y0 - y, x0 + x, y0 - y, color);
+        drawLine(x0 - x, y0 + y, x0 + x, y0 + y, color);
+
+        if (x != y)
+        {
+            drawLine(x0 - y, y0 - x, x0 + y, y0 - x, color);
+            drawLine(x0 - y, y0 + x, x0 + y, y0 + x, color);
+        }
+    }
 }

@@ -62,7 +62,7 @@ struct CustomApp
     int iconOffset;
     int progress = -1;
     uint16_t pColor;
-    uint16_t background = 0;
+    uint32_t background = 0;
     uint16_t pbColor;
     float scrollSpeed = 100;
     bool topText = true;
@@ -105,7 +105,7 @@ struct Notification
     int progress = -1;
     uint16_t pColor;
     int effect = -1;
-    uint16_t background = 0;
+    uint32_t background = 0;
     uint16_t pbColor;
     bool wakeup;
     float scrollSpeed = 100;
@@ -136,6 +136,14 @@ String getAppNameByFunction(AppCallback AppFunction)
     }
 
     return "";
+}
+
+String getAppNameAtIndex(int index) {
+  if(index >= 0 && index < Apps.size()) {
+    return Apps[index].first;
+  } else {
+    return "";
+  }
 }
 
 int findAppIndexByName(const String &name)
@@ -215,15 +223,15 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         wdPosY = TIME_MODE == 1 ? 7 : 0;
         timePosY = TIME_MODE == 1 ? 6 : 7;
         DisplayManager.printText(12 + x, timePosY + y, t, false, 2);
-        matrix->drawRect(0 + x, 0 + y, 9 + x, 2 + y, CALENDAR_COLOR);
-        matrix->fillRect(0 + x, 2 + y, 9 + x, 7 + y, matrix->Color(255, 255, 255));
+        matrix->drawRect(0 + x, 0 + y, 9 + x, 2 + y, CALENDAR_HEADER_COLOR);
+        matrix->fillRect(0 + x, 2 + y, 9 + x, 7 + y, CALENDAR_BODY_COLOR);
     }
     else if (TIME_MODE == 3 || TIME_MODE == 4)
     {
         wdPosY = TIME_MODE == 3 ? 7 : 0;
         timePosY = TIME_MODE == 3 ? 6 : 7;
         DisplayManager.printText(12 + x, timePosY + y, t, false, 2);
-        matrix->fillRect(0 + x, 0 + y, 9 + x, 8 + y, CALENDAR_COLOR);
+        matrix->fillRect(0 + x, 0 + y, 9 + x, 8 + y, CALENDAR_BODY_COLOR);
         matrix->drawLine(1, 0, 2, 0, matrix->Color(0, 0, 0));
         matrix->drawLine(6, 0, 7, 0, matrix->Color(0, 0, 0));
     }
@@ -466,7 +474,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         }
     }
 
-    matrix->fillRect(x, y, 32, 8, ca->background);
+    DisplayManager.drawFilledRect(x, y, 32, 8, ca->background);
 
     if (ca->effect > -1)
     {
@@ -599,8 +607,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             {
                 DisplayManager.setAutoTransition(true);
                 ca->currentRepeat = 0;
-                if (AUTO_TRANSITION)
-                    DisplayManager.nextApp();
+                DisplayManager.nextApp();
                 ca->scrollDelay = 0;
                 ca->scrollposition = 9 + ca->textOffset;
                 return;
@@ -772,7 +779,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
         {
             notifyFlag = false;
             if (AUTO_TRANSITION)
-                DisplayManager.nextApp();
+                DisplayManager.forceNextApp();
         }
 
         return;
@@ -785,7 +792,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
     bool hasIcon = notifications[0].icon;
 
     // Clear the matrix display
-    matrix->fillRect(0, 0, 32, 8, notifications[0].background);
+    DisplayManager.drawFilledRect(0, 0, 32, 8, notifications[0].background);
 
     if (notifications[0].effect > -1)
     {
@@ -823,11 +830,11 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
                     notifications[0].iconPosition += movementFactor;
                 }
 
-                if (notifications[0].scrollposition < 9 && !notifications[0].iconWasPushed)
+                if (notifications[0].scrollposition < (9 - notifications[0].textOffset) && !notifications[0].iconWasPushed)
                 {
-                    notifications[0].iconPosition = notifications[0].scrollposition - 9;
+                    notifications[0].iconPosition = notifications[0].scrollposition - 9 + notifications[0].textOffset;
 
-                    if (notifications[0].iconPosition <= -9)
+                    if (notifications[0].iconPosition <= -9 - notifications[0].textOffset)
                     {
                         notifications[0].iconWasPushed = true;
                     }
