@@ -338,12 +338,12 @@ int BRIGHTNESS_PERCENT;
 uint16_t MIN_BATTERY = 475;
 uint16_t MAX_BATTERY = 665;
 
-#ifdef ULANZI
+#ifdef awtrix2_upgrade
+float TEMP_OFFSET;
+#else
 float TEMP_OFFSET = -9;
 uint8_t BATTERY_PERCENT;
 uint16_t BATTERY_RAW;
-#else
-float TEMP_OFFSET;
 #endif
 float HUM_OFFSET;
 uint16_t LDR_RAW;

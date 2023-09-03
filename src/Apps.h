@@ -138,12 +138,16 @@ String getAppNameByFunction(AppCallback AppFunction)
     return "";
 }
 
-String getAppNameAtIndex(int index) {
-  if(index >= 0 && index < Apps.size()) {
-    return Apps[index].first;
-  } else {
-    return "";
-  }
+String getAppNameAtIndex(int index)
+{
+    if (index >= 0 && index < Apps.size())
+    {
+        return Apps[index].first;
+    }
+    else
+    {
+        return "";
+    }
 }
 
 int findAppIndexByName(const String &name)
@@ -419,7 +423,7 @@ uint16_t TextEffect(uint16_t color, uint32_t fade, uint32_t blink)
     }
 }
 
-#ifdef ULANZI
+#ifndef awtrix2_upgrade
 void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     if (notifyFlag)
@@ -523,7 +527,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     uint16_t availableWidth = (hasIcon) ? 24 : 32;
 
     bool noScrolling = textWidth <= availableWidth;
-
+    int iconWidth;
     auto renderFirst = [&]()
     {
         if (hasIcon)
@@ -547,15 +551,16 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             }
             if (ca->isGif)
             {
-                gifPlayer->playGif(x + ca->iconPosition + ca->iconOffset, y, &ca->icon);
+                iconWidth = gifPlayer->playGif(x + ca->iconPosition + ca->iconOffset, y, &ca->icon);
             }
             else
             {
                 DisplayManager.drawJPG(x + ca->iconPosition + ca->iconOffset, y, ca->icon);
+                iconWidth = 8;
             }
             if (!noScrolling)
             {
-                matrix->drawLine(8 + x + ca->iconPosition, 0 + y, 8 + x + ca->iconPosition, 7 + y, 0);
+                DisplayManager.drawLine(iconWidth + x + ca->iconPosition, 0 + y, iconWidth + x + ca->iconPosition, 6 + y, ca->background);
             }
         }
 
@@ -566,7 +571,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 
         if (ca->progress > -1)
         {
-            DisplayManager.drawProgressBar((hasIcon ? 9 : 0), 7 + y, ca->progress, ca->pColor, ca->pbColor);
+            DisplayManager.drawProgressBar((hasIcon ? 8 : 0), 7 + y, ca->progress, ca->pColor, ca->pbColor);
         }
 
         if (ca->barSize > 0)
@@ -817,12 +822,11 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
 
     // Check if text is scrolling
     bool noScrolling = (textWidth <= availableWidth);
-
+    int iconWidth;
     auto renderFirst = [&]()
     {
         if (hasIcon)
         {
-            // Push icon if enabled and text is scrolling
             if (notifications[0].pushIcon > 0 && !noScrolling)
             {
                 if (notifications[0].iconPosition < 0 && notifications[0].iconWasPushed == false && notifications[0].scrollposition > 8)
@@ -841,29 +845,24 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
                 }
             }
 
-            // Display animated GIF if
             if (notifications[0].isGif)
             {
-                // Display GIF if present
-
-                gifPlayer->playGif(notifications[0].iconPosition + notifications[0].iconOffset, 0, &notifications[0].icon);
+                iconWidth = gifPlayer->playGif(notifications[0].iconPosition + notifications[0].iconOffset, 0, &notifications[0].icon);
             }
             else
             {
-                // Display JPG image if present
                 DisplayManager.drawJPG(notifications[0].iconPosition + notifications[0].iconOffset, 0, notifications[0].icon);
+                iconWidth = 8;
             }
-
-            // Display icon divider line if text is scrolling
             if (!noScrolling)
             {
-                matrix->drawLine(8 + notifications[0].iconPosition + notifications[0].iconOffset, 0, 8 + notifications[0].iconPosition, 7, 0);
+                DisplayManager.drawLine(iconWidth + notifications[0].iconPosition + notifications[0].iconOffset, 0, iconWidth + notifications[0].iconPosition, 6,  notifications[0].background);
             }
         }
 
         if (notifications[0].progress > -1)
         {
-            DisplayManager.drawProgressBar((hasIcon ? 9 : 0), 7, notifications[0].progress, notifications[0].pColor, notifications[0].pbColor);
+            DisplayManager.drawProgressBar((hasIcon ? 8 : 0), 7, notifications[0].progress, notifications[0].pColor, notifications[0].pbColor);
         }
 
         if (notifications[0].drawInstructions.length() > 0)

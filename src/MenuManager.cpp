@@ -47,16 +47,17 @@ const char *menuItems[] PROGMEM = {
     "TEMP",
     "APPS",
     "SOUND",
-#ifndef ULANZI
+#ifdef awtrix2_upgrade
     "VOLUME",
 #endif
     "UPDATE"};
 
 int8_t menuIndex = 0;
-#ifdef ULANZI
-uint8_t menuItemCount = 12;
-#else
+#ifdef awtrix2_upgrade
 uint8_t menuItemCount = 13;
+
+#else
+uint8_t menuItemCount = 12;
 #endif
 
 const char *timeFormat[] PROGMEM = {
@@ -197,7 +198,7 @@ String MenuManager_::menutext()
         case 3:
             DisplayManager.drawBMP(0, 0, icon_2075, 8, 8);
             return SHOW_HUM ? "ON" : "OFF";
-#ifdef ULANZI
+#ifndef awtrix2_upgrade
         case 4:
             DisplayManager.drawBMP(0, 0, icon_1486, 8, 8);
             return SHOW_BAT ? "ON" : "OFF";
@@ -263,7 +264,7 @@ void MenuManager_::rightButton()
     case TempMenu:
         IS_CELSIUS = !IS_CELSIUS;
         break;
-#ifndef ULANZI
+#ifdef awtrix2_upgrade
     case VolumeMenu:
         if ((VOLUME_PERCENT + 1) > 100)
             VOLUME_PERCENT = 0;
@@ -324,7 +325,7 @@ void MenuManager_::leftButton()
     case SoundMenu:
         SOUND_ACTIVE = !SOUND_ACTIVE;
         break;
-#ifndef ULANZI
+#ifdef awtrix2_upgrade
     case VolumeMenu:
         if ((VOLUME_PERCENT - 1) < 0)
             VOLUME_PERCENT = 100;
@@ -387,7 +388,7 @@ void MenuManager_::selectButton()
             currentState = SoundMenu;
             break;
         case 11:
-#ifndef ULANZI
+#ifdef awtrix2_upgrade
             currentState = VolumeMenu;
             break;
 #endif
@@ -424,7 +425,7 @@ void MenuManager_::selectButton()
         case 3:
             SHOW_HUM = !SHOW_HUM;
             break;
-#ifdef ULANZI
+#ifndef awtrix2_upgrade
         case 4:
             SHOW_BAT = !SHOW_BAT;
             break;
@@ -480,7 +481,7 @@ void MenuManager_::selectButtonLong()
             DisplayManager.loadNativeApps();
             saveSettings();
             break;
-#ifndef ULANZI
+#ifdef awtrix2_upgrade
         case VolumeMenu:
             VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
             PeripheryManager.setVolume(VOLUME);

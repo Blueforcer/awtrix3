@@ -135,7 +135,7 @@ const char HAramClass[] PROGMEM = {"data_size"};
 const char HAramUnit[] PROGMEM = {"B"};
 
 // JSON properites
-#ifdef ULANZI
+#ifndef awtrix2_upgrade
 const char BatKey[] PROGMEM = {"bat"};
 const char BatRawKey[] PROGMEM = {"bat_raw"};
 #endif

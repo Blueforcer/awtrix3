@@ -132,7 +132,7 @@ extern const char HAramClass[];
 extern const char HAramUnit[];
 
 // JSON properites
-#ifdef ULANZI
+#ifndef awtrix2_upgrade
 extern const char BatKey[];
 extern const char BatRawKey[];
 #endif

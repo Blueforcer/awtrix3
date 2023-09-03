@@ -2,7 +2,7 @@
 #include "Globals.h"
 #include <WebServer.h>
 #include <esp-fs-webserver.h>
-#include "icondownloader.h"
+#include "htmls.h"
 #include <Update.h>
 #include <ESPmDNS.h>
 #include <LittleFS.h>
@@ -220,19 +220,23 @@ void ServerManager_::setup()
 void ServerManager_::tick()
 {
     mws.run();
-    int packetSize = udp.parsePacket();
-    if (packetSize)
+
+    if (!AP_MODE)
     {
-        int len = udp.read(incomingPacket, 255);
-        if (len > 0)
+        int packetSize = udp.parsePacket();
+        if (packetSize)
         {
-            incomingPacket[len] = 0;
-        }
-        if (strcmp(incomingPacket, "FIND_AWTRIX") == 0)
-        {
-            udp.beginPacket(udp.remoteIP(), 4211);
-            udp.printf(MQTT_PREFIX.c_str());
-            udp.endPacket();
+            int len = udp.read(incomingPacket, 255);
+            if (len > 0)
+            {
+                incomingPacket[len] = 0;
+            }
+            if (strcmp(incomingPacket, "FIND_AWTRIX") == 0)
+            {
+                udp.beginPacket(udp.remoteIP(), 4211);
+                udp.printf(MQTT_PREFIX.c_str());
+                udp.endPacket();
+            }
         }
     }
 }
@@ -279,9 +283,9 @@ String colorToString(uint16_t color)
 
 void ServerManager_::loadSettings()
 {
-    if (LittleFS.exists("/config.json"))
+    if (LittleFS.exists("/DoNotTouch.json"))
     {
-        File file = LittleFS.open("/config.json", "r");
+        File file = LittleFS.open("/DoNotTouch.json", "r");
         DynamicJsonDocument doc(file.size() * 1.33);
         DeserializationError error = deserializeJson(doc, file);
         if (error)

@@ -17,7 +17,8 @@ private:
   long lastFrameTime;
   bool firstFrameDone;
   int newframeDelay;
-  int lastFrame[WIDTH * HEIGHT];
+  CRGB FrameBuffer[HEIGHT][WIDTH];
+
   bool lastFrameDrawn = false;
   unsigned long nextFrameTime = 0;
 #define GIFHDRTAGNORM "GIF87a"
@@ -91,11 +92,11 @@ public:
     return (b1 << 8) | b0;
   }
 
-int readIntoBuffer(void *buffer, int numberOfBytes)
-{
+  int readIntoBuffer(void *buffer, int numberOfBytes)
+  {
     int result = file.read(static_cast<uint8_t *>(buffer), numberOfBytes);
     return result;
-}
+  }
 
   void fillImageDataRect(byte colorIndex, int x, int y, int width, int height)
   {
@@ -238,7 +239,7 @@ int readIntoBuffer(void *buffer, int numberOfBytes)
 
     if ((prevDisposalMethod != DISPOSAL_NONE) && (prevDisposalMethod != DISPOSAL_LEAVE))
     {
-      // mtx->clear();
+      mtx->fillRect(offsetX, offsetY, lsdWidth, lsdHeight, 0);
     }
 
     if (prevDisposalMethod == DISPOSAL_BACKGROUND)
@@ -447,32 +448,30 @@ int readIntoBuffer(void *buffer, int numberOfBytes)
 
   void redrawLastFrame()
   {
-    if (needNewFrame)
-      return;
-    CRGB color;
-    int yOffset, pixel;
-    for (int y = tbiImageY; y < tbiHeight + tbiImageY; y++)
+    for (int y = 0; y < lsdHeight; y++)
     {
-      yOffset = y * WIDTH;
-      for (int x = tbiImageX; x < tbiWidth + tbiImageX; x++)
+      if (y >= sizeof(FrameBuffer) / sizeof(FrameBuffer[0]))
       {
-        pixel = lastFrame[yOffset + x];
-        if (pixel == -99)
+        // y is out of bounds for FrameBuffer
+        break;
+      }
+
+      for (int x = 0; x < lsdWidth; x++)
+      {
+        if (x >= sizeof(FrameBuffer[0]) / sizeof(FrameBuffer[0][0]))
         {
-          mtx->drawPixel(x + offsetX, y + offsetY, mtx->Color(0, 0, 0));
-          continue;
+          // x is out of bounds for FrameBuffer
+          break;
         }
-        color.red = gifPalette[pixel].Red;
-        color.green = gifPalette[pixel].Green;
-        color.blue = gifPalette[pixel].Blue;
-        mtx->drawPixel(x + offsetX, y + offsetY, color);
+        int xDraw = x + offsetX;
+        int yDraw = y + offsetY;
+        mtx->drawPixel(xDraw, yDraw, FrameBuffer[y][x]);
       }
     }
   }
 
   void decompressAndDisplayFrame()
   {
-    CRGB color;
     if (tbiInterlaced)
     {
       for (int line = tbiImageY + 0; line < tbiHeight + tbiImageY; line += 8)
@@ -500,15 +499,6 @@ int readIntoBuffer(void *buffer, int numberOfBytes)
       }
     }
 
-    // Ersetze alle transparenten Pixel durch schwarze Pixel
-    for (int i = 0; i < tbiWidth * tbiHeight; i++)
-    {
-      if (imageData[i] == transparentColorIndex)
-      {
-        imageData[i] = -99; // Indexwert für Schwarz
-      }
-    }
-
     int pixel, yOffset;
     for (int y = tbiImageY; y < tbiHeight + tbiImageY; y++)
     {
@@ -516,46 +506,48 @@ int readIntoBuffer(void *buffer, int numberOfBytes)
       for (int x = tbiImageX; x < tbiWidth + tbiImageX; x++)
       {
         pixel = imageData[yOffset + x];
-        if (pixel == transparentColorIndex) // Check if the pixel index is the transparent index
+        if (pixel != transparentColorIndex)
         {
-          mtx->drawPixel(x + offsetX, y + offsetY, mtx->Color(0, 0, 0)); // Draw a black pixel
-          lastFrame[yOffset + x] = -99;                                  // Save it as a special value
+          CRGB color;
+          color.r = gifPalette[pixel].Red;
+          color.g = gifPalette[pixel].Green;
+          color.b = gifPalette[pixel].Blue;
+          FrameBuffer[y][x] = color;
         }
         else
         {
-          color.red = gifPalette[pixel].Red;
-          color.green = gifPalette[pixel].Green;
-          color.blue = gifPalette[pixel].Blue;
-          mtx->drawPixel(x + offsetX, y + offsetY, color);
-          lastFrame[yOffset + x] = pixel;
+          FrameBuffer[y][x] = CRGB::Black;
         }
       }
     }
+
+    redrawLastFrame();
     needNewFrame = false;
     lastFrameTime = millis();
   }
 
 public:
-  void setMatrix(FastLED_NeoMatrix *matrix)
+  void
+  setMatrix(FastLED_NeoMatrix *matrix)
   {
     mtx = matrix;
   }
 
-  void playGif(int x, int y, File *imageFile)
+  int playGif(int x, int y, File *imageFile)
   {
     offsetX = x;
     offsetY = y;
-    
+
     if (imageFile->name() == file.name())
     {
       drawFrame();
-      return;
+      return tbiWidth;
     }
     else
     {
       needNewFrame = true;
       file = *imageFile;
-      memset(lastFrame, 0, sizeof(lastFrame));
+      memset(FrameBuffer, 0, sizeof(FrameBuffer));
       memset(gifPalette, 0, sizeof(gifPalette));
       memset(lzwImageData, 0, sizeof(lzwImageData));
       memset(imageData, 0, sizeof(imageData));
@@ -568,6 +560,7 @@ public:
       parseGlobalColorTable();
       drawFrame();
     }
+    return tbiWidth;
   }
 
   boolean parseGifHeader()
@@ -606,9 +599,9 @@ public:
 
   unsigned long drawFrame()
   {
+    redrawLastFrame();
     if (millis() - lastFrameTime < newframeDelay)
     {
-      redrawLastFrame();
       return 0;
     }
 

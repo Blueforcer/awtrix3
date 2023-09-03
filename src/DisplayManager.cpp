@@ -27,10 +27,10 @@ const int maxUniverses = numberOfChannels / 512 + ((numberOfChannels % 512) ? 1 
 bool universesReceived[maxUniverses];
 bool sendFrame = 1;
 int previousDataLength = 0;
-#ifdef ULANZI
-#define MATRIX_PIN 32
-#else
+#ifdef awtrix2_upgrade
 #define MATRIX_PIN D2
+#else
+#define MATRIX_PIN 32
 #endif
 
 #define MATRIX_WIDTH 32
@@ -42,13 +42,6 @@ uint16_t gifX, gifY;
 CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
 CRGB ledsCopy[MATRIX_WIDTH * MATRIX_HEIGHT];
 float actualBri;
-// BMP Creation
-const int w = 32;             // image width in pixels
-const int h = 8;              // " height
-const bool debugPrint = true; // print details of process over serial?
-
-const int imgSize = w * h;
-int px[w * h]; // actual pixel data (grayscale - added programatically below)
 
 // NeoMatrix
 FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
@@ -466,6 +459,8 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     {
         auto background = doc["background"];
         customApp.background = get24ColorFromJsonVariant(background, 0);
+    }else{
+        customApp.background = 0;
     }
 
     if (doc.containsKey("save") && preventSave == false)
@@ -715,6 +710,8 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     {
         auto background = doc["background"];
         newNotification.background = get24ColorFromJsonVariant(background, 0);
+    }else{
+        newNotification.background = 0;
     }
 
     if (doc.containsKey("draw"))
@@ -1487,17 +1484,17 @@ String DisplayManager_::getStats()
     StaticJsonDocument<1024> doc;
     char buffer[20];
 
-#ifdef ULANZI
+#ifdef awtrix2_upgrade
+       doc[F("type")] = 1; 
+#else
     doc[BatKey] = BATTERY_PERCENT;
     doc[BatRawKey] = BATTERY_RAW;
     doc[F("type")] = 0;
-#else
-    doc[F("type")] = 1;
 #endif
     doc[LuxKey] = static_cast<int>(CURRENT_LUX);
     doc[LDRRawKey] = LDR_RAW;
     uint32_t freeHeap = ESP.getFreeHeap();
-    doc[RamKey] = freeHeap;
+    doc[RamKey] = freeHeap + ESP.getFreePsram();
     doc[BrightnessKey] = BRIGHTNESS;
     if (SENSOR_READING)
     {
@@ -2302,92 +2299,6 @@ int *DisplayManager_::getLedColors()
         }
     }
     return ledColors;
-}
-
-void DisplayManager_::sendBMP(Stream &stream)
-{
-    // Scaling factor and grid size
-    int scaleFactor = 10;
-    int gridSize = 1;
-
-    // Calculate dimensions of the new scaled image
-    int scaledW = w * scaleFactor + (w - 1) * gridSize;
-    int scaledH = h * scaleFactor + (h - 1) * gridSize;
-
-    // Calculate file size for bmp header
-    int rowSize = 4 * ((3 * scaledW + 3) / 4);
-    int fileSize = 54 + scaledH * rowSize;
-
-    // Create image data
-    char *img = (char *)malloc(3 * scaledW * scaledH);
-    memset(img, 0, 3 * scaledW * scaledH); // initialize all pixels to black
-
-    for (int y = 0; y < h; y++)
-    {
-        for (int x = 0; x < w; x++)
-        {
-            int index = matrix->XY(x, y);
-            int r = leds[index].r;
-            int g = leds[index].g;
-            int b = leds[index].b;
-
-            // Write the same color to the corresponding cells in the scaled image
-            for (int i = 0; i < scaleFactor; i++)
-            {
-                for (int j = 0; j < scaleFactor; j++)
-                {
-                    int scaledX = x * (scaleFactor + gridSize) + i;
-                    int scaledY = y * (scaleFactor + gridSize) + j;
-                    int scaledIndex = scaledY * scaledW + scaledX;
-                    img[scaledIndex * 3 + 0] = (unsigned char)b; // B
-                    img[scaledIndex * 3 + 1] = (unsigned char)g; // G
-                    img[scaledIndex * 3 + 2] = (unsigned char)r; // R
-                }
-            }
-        }
-    }
-
-    // Create padding
-    char bmpPad[rowSize - 3 * scaledW];
-    for (int i = 0; i < sizeof(bmpPad); i++)
-    { // fill with 0s
-        bmpPad[i] = 0;
-    }
-
-    // Create file headers
-    char bmpFileHeader[14] = {'B', 'M', 0, 0, 0, 0, 0, 0, 0, 0, 54, 0, 0, 0};
-    char bmpInfoHeader[40] = {40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 24, 0};
-
-    bmpFileHeader[2] = (unsigned char)(fileSize);
-    bmpFileHeader[3] = (unsigned char)(fileSize >> 8);
-    bmpFileHeader[4] = (unsigned char)(fileSize >> 16);
-    bmpFileHeader[5] = (unsigned char)(fileSize >> 24);
-
-    bmpInfoHeader[4] = (unsigned char)(scaledW);
-    bmpInfoHeader[5] = (unsigned char)(scaledW >> 8);
-    bmpInfoHeader[6] = (unsigned char)(scaledW >> 16);
-    bmpInfoHeader[7] = (unsigned char)(scaledW >> 24);
-    bmpInfoHeader[8] = (unsigned char)(scaledH);
-    bmpInfoHeader[9] = (unsigned char)(scaledH >> 8);
-    bmpInfoHeader[10] = (unsigned char)(scaledH >> 16);
-    bmpInfoHeader[11] = (unsigned char)(scaledH >> 24);
-
-    int payloadSize = sizeof(bmpFileHeader)   // size of file header
-                      + sizeof(bmpInfoHeader) // size of info header
-                      + scaledH * rowSize;    // size of image data (pixel data + padding)
-
-    // Write the file
-    stream.write(bmpFileHeader, sizeof(bmpFileHeader)); // write file header
-    stream.write(bmpInfoHeader, sizeof(bmpInfoHeader)); // info header
-
-    for (int i = 0; i < scaledH; i++)
-    {                                                                       // iterate image array
-        stream.write(img + (scaledW * (scaledH - i - 1) * 3), 3 * scaledW); // write pixel data
-        stream.write(bmpPad, (4 - (scaledW * 3) % 4) % 4);                  // and padding as needed
-    }
-
-    // Clean up
-    free(img);
 }
 
 CRGB *DisplayManager_::getLeds()

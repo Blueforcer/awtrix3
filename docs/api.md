@@ -17,7 +17,7 @@ Access various device statistics like battery, RAM, and more:
 
 > **Note:** MQTT also broadcasts other data, such as button presses and the current app.
 
-## Screen Mirroring
+## LiveView
 
 Retrieve the current matrix screen as an array of 565 colors:
 

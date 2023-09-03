@@ -17,7 +17,7 @@ HALight *Matrix, *Indikator1, *Indikator2, *Indikator3 = nullptr;
 HASelect *BriMode, *transEffect = nullptr;
 HAButton *dismiss, *nextApp, *prevApp, *doUpdate = nullptr;
 HASwitch *transition = nullptr;
-#ifdef ULANZI
+#ifndef awtrix2_upgrade
 HASensor *battery = nullptr;
 #endif
 HASensor *temperature, *humidity, *illuminance, *uptime, *strength, *version, *ram, *curApp, *myOwnID = nullptr;
@@ -418,7 +418,7 @@ void MQTTManager_::sendStats()
         if (HA_DISCOVERY)
         {
             char buffer[5];
-#ifdef ULANZI
+#ifndef awtrix2_upgrade
             snprintf(buffer, 5, "%d", BATTERY_PERCENT);
             battery->setValue(buffer);
 #endif
