@@ -27,7 +27,6 @@ void startLittleFS()
 #ifdef ULANZI
         LittleFS.mkdir("/MELODIES");
 #endif
-        LittleFS.mkdir("/PLUGINS");
         LittleFS.mkdir("/ICONS");
         LittleFS.mkdir("/PALETTES");
         LittleFS.mkdir("/CUSTOMAPPS");
