@@ -53,32 +53,21 @@ uint32_t hsvToRgb(uint8_t h, uint8_t s, uint8_t v)
     CHSV hsv(h, s, v);
     CRGB rgb;
     hsv2rgb_spectrum(hsv, rgb);
-    return ((uint16_t)(rgb.r & 0xF8) << 8) |
-           ((uint16_t)(rgb.g & 0xFC) << 3) |
-           (rgb.b >> 3);
+    return ((uint32_t)rgb.r << 16) | 
+           ((uint32_t)rgb.g << 8)  | 
+           (uint32_t)rgb.b;
 }
 
-uint16_t hexToRgb565(String hexValue, uint16_t defaultColor)
-{
-    hexValue.replace("#", "");
-    uint8_t r = strtol(hexValue.substring(0, 2).c_str(), NULL, 16);
-    uint8_t g = strtol(hexValue.substring(2, 4).c_str(), NULL, 16);
-    uint8_t b = strtol(hexValue.substring(4, 6).c_str(), NULL, 16);
-    if ((errno == ERANGE) || (r > 255) || (g > 255) || (b > 255))
-    {
-        return defaultColor;
-    }
-    uint16_t color = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
-    return color;
-}
 
 uint32_t hexToUint32(const char *hexString)
 {
     uint32_t rgbValue = (uint32_t)strtol(hexString, NULL, 16);
-    return 0xFF000000 | rgbValue; // Set alpha to full opacity (0xFF)
+    Serial.println(rgbValue);
+    return rgbValue; // Nur RGB, kein Alpha-Kanal
 }
 
-uint32_t get24ColorFromJsonVariant(JsonVariant colorVariant, uint32_t defaultColor)
+
+uint32_t getColorFromJsonVariant(JsonVariant colorVariant, uint32_t defaultColor)
 {
     if (colorVariant.is<String>())
     {
@@ -111,35 +100,6 @@ uint32_t get24ColorFromJsonVariant(JsonVariant colorVariant, uint32_t defaultCol
     return defaultColor;
 }
 
-uint16_t getColor16FromJsonVariant(JsonVariant colorVariant, uint16_t defaultColor)
-{
-    if (colorVariant.is<String>())
-    {
-        return hexToRgb565(colorVariant.as<String>(), defaultColor);
-    }
-    else if (colorVariant.is<JsonArray>())
-    {
-        JsonArray colorArray = colorVariant.as<JsonArray>();
-        if (colorArray.size() == 3) // RGB
-        {
-            uint8_t r = colorArray[0];
-            uint8_t g = colorArray[1];
-            uint8_t b = colorArray[2];
-            return ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
-        }
-        else if (colorArray.size() == 4 && colorArray[0] == "HSV") // HSV
-        {
-            uint8_t h = colorArray[1];
-            uint8_t s = colorArray[2];
-            uint8_t v = colorArray[3];
-            CRGB rgb;
-            hsv2rgb_spectrum(CHSV(h, s, v), rgb);
-            return (rgb.red << 11) | (rgb.green << 5) | rgb.blue;
-        }
-    }
-
-    return defaultColor;
-}
 
 float getTextWidth(const char *text, byte textCase)
 {

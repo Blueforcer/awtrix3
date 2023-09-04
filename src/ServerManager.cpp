@@ -241,45 +241,6 @@ void ServerManager_::tick()
     }
 }
 
-uint16_t stringToColor(const String &str)
-{
-    int comma1 = str.indexOf(',');
-    int comma2 = str.lastIndexOf(',');
-    if (comma1 < 0 || comma2 < 0 || comma2 == comma1)
-    {
-        return 0xFFFF;
-    }
-    String rStr = str.substring(0, comma1);
-    String gStr = str.substring(comma1 + 1, comma2);
-    String bStr = str.substring(comma2 + 1);
-
-    int r = rStr.toInt();
-    int g = gStr.toInt();
-    int b = bStr.toInt();
-
-    if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
-    {
-        return 0xFFFF;
-    }
-
-    uint16_t color = ((r >> 3) << 11) | ((g >> 2) & 0x3F) << 5 | (b >> 3);
-    return color;
-}
-
-String colorToString(uint16_t color)
-{
-    uint8_t r = (color >> 11) << 3;
-    uint8_t g = ((color >> 5) & 0x3F) << 2;
-    uint8_t b = (color & 0x1F) << 3;
-    if (r > 255 || g > 255 || b > 255)
-    {
-        return "#FFFFFF";
-    }
-    String rStr = String(r);
-    String gStr = String(g);
-    String bStr = String(b);
-    return rStr + "," + gStr + "," + bStr;
-}
 
 void ServerManager_::loadSettings()
 {

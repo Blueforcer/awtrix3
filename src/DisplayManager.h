@@ -55,7 +55,6 @@ public:
     void selectButton();
     void selectButtonLong();
     void setBrightness(int);
-    void setTextColor(uint16_t color);
     bool generateNotification(uint8_t source, const char *json);
     bool generateCustomPage(const String &name, JsonObject doc, bool preventSave);
     void printText(int16_t x, int16_t y, const char *text, bool centered, byte textCase);
@@ -65,10 +64,10 @@ public:
     void setNewSettings(const char *json);
     void drawJPG(uint16_t x, uint16_t y, fs::File jpgFile);
     void drawProgressBar(int16_t x, int16_t y, int progress, uint16_t pColor, uint16_t pbColor);
-    void drawMenuIndicator(int cur, int total, uint16_t color);
+    void drawMenuIndicator(int cur, int total, uint32_t color);
     void drawBMP(int16_t x, int16_t y, const uint16_t bitmap[], int16_t w, int16_t h);
-    void drawBarChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint16_t color);
-    void drawLineChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint16_t color);
+    void drawBarChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint32_t color);
+    void drawLineChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint32_t color);
     void updateAppVector(const char *json);
     void setMatrixLayout(int layout);
     void setAppTime(long duration);
@@ -77,11 +76,11 @@ public:
     String getSettings();
     void setPower(bool state);
     void powerStateParse(const char *json);
-    void setIndicator1Color(uint16_t color);
+    void setIndicator1Color(uint32_t color);
     void setIndicator1State(bool state);
-    void setIndicator2Color(uint16_t color);
+    void setIndicator2Color(uint32_t color);
     void setIndicator2State(bool state);
-    void setIndicator3Color(uint16_t color);
+    void setIndicator3Color(uint32_t color);
     void setIndicator3State(bool state);
     void reorderApps(const String &jsonString);
     void gammaCorrection();
@@ -108,6 +107,14 @@ public:
     void drawRGBBitmap(int16_t x, int16_t y, uint32_t *bitmap, int16_t w, int16_t h);
     void drawCircle(int16_t x0, int16_t y0, int16_t r, uint32_t color);
     void fillCircle(int16_t x0, int16_t y0, int16_t r, uint32_t color);
+    void matrixPrint(const char *str);
+    void matrixPrint(char c);
+    void matrixPrint(String str);
+    void matrixPrint(char *str);
+    void matrixPrint(char str[], size_t length);
+    void setCursor(int16_t x, int16_t y);
+    void setTextColor(uint32_t color);
+    void matrixPrint(double number, uint8_t digits);
 };
 
 extern DisplayManager_ &DisplayManager;

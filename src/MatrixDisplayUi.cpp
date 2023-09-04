@@ -45,7 +45,6 @@ void MatrixDisplayUi::init()
   this->matrix->begin();
   this->matrix->setTextWrap(false);
   this->matrix->setBrightness(70);
-  this->matrix->setFont(&AwtrixFont);
   gif1.setMatrix(this->matrix);
   gif2.setMatrix(this->matrix);
 
@@ -261,7 +260,7 @@ void MatrixDisplayUi::tick()
 
 void MatrixDisplayUi::drawIndicators()
 {
-  uint16_t drawColor;
+  uint32_t drawColor;
 
   // Indicator 1
   if (indicator1State) {
@@ -317,14 +316,13 @@ void MatrixDisplayUi::drawIndicators()
   }
 }
 
-
-uint16_t MatrixDisplayUi::fadeColor(uint16_t color, uint32_t interval)
+uint32_t MatrixDisplayUi::fadeColor(uint32_t color, uint32_t interval)
 {
-  float phase = (sin(2 * PI * millis() / float(interval)) + 1) * 0.5;
-  uint8_t r = ((color >> 11) & 0x1F) * phase;
-  uint8_t g = ((color >> 5) & 0x3F) * phase;
-  uint8_t b = (color & 0x1F) * phase;
-  return (r << 11) | (g << 5) | b;
+    float phase = (sin(2 * PI * millis() / float(interval)) + 1) * 0.5;
+    uint8_t r = ((color >> 16) & 0xFF) * phase;
+    uint8_t g = ((color >> 8) & 0xFF) * phase;
+    uint8_t b = (color & 0xFF) * phase;
+    return (r << 16) | (g << 8) | b;
 }
 
 uint8_t currentTransition;
@@ -453,7 +451,7 @@ uint8_t MatrixDisplayUi::getnextAppNumber()
   return (this->state.currentApp + this->AppCount + this->state.appTransitionDirection) % this->AppCount;
 }
 
-void MatrixDisplayUi::setIndicator1Color(uint16_t color)
+void MatrixDisplayUi::setIndicator1Color(uint32_t color)
 {
   this->indicator1Color = color;
 }
@@ -473,7 +471,7 @@ void MatrixDisplayUi::setIndicator1Fade(int fade)
   this->indicator1Fade = fade;
 }
 
-void MatrixDisplayUi::setIndicator2Color(uint16_t color)
+void MatrixDisplayUi::setIndicator2Color(uint32_t color)
 {
   this->indicator2Color = color;
 }
@@ -493,7 +491,7 @@ void MatrixDisplayUi::setIndicator2Fade(int fade)
   this->indicator2Fade = fade;
 }
 
-void MatrixDisplayUi::setIndicator3Color(uint16_t color)
+void MatrixDisplayUi::setIndicator3Color(uint32_t color)
 {
   this->indicator3Color = color;
 }

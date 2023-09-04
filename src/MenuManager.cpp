@@ -92,20 +92,23 @@ uint8_t appsCount = 5;
 
 MenuState currentState = MainMenu;
 
-uint16_t textColors[] PROGMEM = {
-    0xFFFF,  // White
-    0xF800,  // Red
-    0xF812,  // Dark orange
-    0xF81F,  // Yellow
-    0x881F,  // Dark green
-    0x001F,  // Blue
-    0x04FF,  // Light blue
-    0x07FC,  // Cyan
-    0x07E2,  // Seafoam green
-    0xAFE0,  // Light green
-    0xFFE0,  // Light yellow
-    0xFD60,  // Dark yellow
-    0xFBC0}; // Pink
+uint32_t textColors[] = {
+    0xFFFFFF, // White
+    0xFF0000, // Red
+    0x00FF00, // Green
+    0x0000FF, // Blue
+    0xFFFF00, // Yellow
+    0xFF00FF, // Magenta
+    0x00FFFF, // Cyan
+    0xFFA500, // Orange
+    0x800080, // Purple
+    0x008080, // Teal
+    0x808000, // Olive
+    0x800000, // Maroon
+    0x008000, // Dark Green
+    0x000080, // Navy
+    0x808080  // Gray
+};
 
 uint8_t currentColor;
 
@@ -121,14 +124,17 @@ MenuManager_ &MenuManager = MenuManager.getInstance();
 int convertBRIPercentTo8Bit(int brightness_percent)
 {
     int brightness;
-    if (brightness_percent <= 10) {
+    if (brightness_percent <= 10)
+    {
         // Map 10 % or lower 1:1 to 0:255 range. Reasons:
         // * 1% would be mapped to 2 so lowest value would be inaccessible.
         // * Small changes in lower brightness are perceived by humans
         //   as big changes, so it makes sense to give higher
         //   "resolution" here.
         brightness = brightness_percent;
-    } else {
+    }
+    else
+    {
         brightness = map(brightness_percent, 0, 100, 0, 255);
     }
     return brightness;
@@ -149,7 +155,7 @@ String MenuManager_::menutext()
     case ColorMenu:
         DisplayManager.drawMenuIndicator(currentColor, sizeof(textColors) / sizeof(textColors[0]), 0xFBC0);
         DisplayManager.setTextColor(textColors[currentColor]);
-        return "0x" + String(textColors[currentColor], HEX);
+        return "0X" + String(textColors[currentColor], HEX);
     case SwitchMenu:
         return AUTO_TRANSITION ? "ON" : "OFF";
     case SoundMenu:
@@ -350,9 +356,12 @@ void MenuManager_::selectButton()
         {
         case 0:
             // reverse of convertBRIPercentTo8Bit.
-            if (BRIGHTNESS <= 10) {
+            if (BRIGHTNESS <= 10)
+            {
                 BRIGHTNESS_PERCENT = BRIGHTNESS;
-            } else {
+            }
+            else
+            {
                 BRIGHTNESS_PERCENT = map(BRIGHTNESS, 0, 255, 0, 100);
             }
             currentState = BrightnessMenu;
@@ -446,7 +455,7 @@ void MenuManager_::selectButtonLong()
         switch (currentState)
         {
         case BrightnessMenu:
-            //BRIGHTNESS = map(BRIGHTNESS_PERCENT, 0, 100, 0, 255);
+            // BRIGHTNESS = map(BRIGHTNESS_PERCENT, 0, 100, 0, 255);
             saveSettings();
             break;
         case ColorMenu:
