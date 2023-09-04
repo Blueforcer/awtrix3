@@ -459,7 +459,9 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     {
         auto background = doc["background"];
         customApp.background = get24ColorFromJsonVariant(background, 0);
-    }else{
+    }
+    else
+    {
         customApp.background = 0;
     }
 
@@ -583,7 +585,17 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     customApp.pushIcon = doc.containsKey("pushIcon") ? doc["pushIcon"] : 0;
 
     customApp.textCase = doc.containsKey("textCase") ? doc["textCase"] : 0;
-    customApp.lifetime = doc.containsKey("lifetime") ? doc["lifetime"] : 0;
+
+    if (doc.containsKey("lifetime"))
+    {
+        customApp.lifetime = doc["lifetime"];
+        customApp.lifetimeMode = doc.containsKey("lifetimeMode") ? doc["lifetimeMode"] : 0;
+    }
+    else
+    {
+        customApp.lifetime = 0;
+    }
+
     customApp.iconOffset = doc.containsKey("iconOffset") ? doc["iconOffset"] : 0;
     customApp.textOffset = doc.containsKey("textOffset") ? doc["textOffset"] : 0;
     customApp.scrollSpeed = doc.containsKey("scrollSpeed") ? doc["scrollSpeed"].as<int>() : -1;
@@ -593,7 +605,7 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     customApp.center = doc.containsKey("center") ? doc["center"].as<bool>() : true;
     customApp.noScrolling = doc.containsKey("noScroll") ? doc["noScroll"] : false;
     customApp.name = name;
-    customApp.lastUpdate = millis();
+
     if (doc.containsKey("icon"))
     {
         String newIconName = doc["icon"].as<String>();
@@ -663,6 +675,8 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
         customApp.repeat = -1;
     }
 
+    customApp.lastUpdate = millis();
+    customApp.lifeTimeEnd = false;
     doc.clear();
     pushCustomApp(name, pos - 1);
     customApps[name] = customApp;
@@ -710,7 +724,9 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     {
         auto background = doc["background"];
         newNotification.background = get24ColorFromJsonVariant(background, 0);
-    }else{
+    }
+    else
+    {
         newNotification.background = 0;
     }
 
@@ -1065,6 +1081,7 @@ void ResetCustomApps()
 
 void checkLifetime(uint8_t pos)
 {
+
     if (customApps.empty())
     {
         return;
@@ -1081,15 +1098,23 @@ void checkLifetime(uint8_t pos)
     if (appIt != customApps.end())
     {
         CustomApp &app = appIt->second;
+
         if (app.lifetime > 0 && (millis() - app.lastUpdate) / 1000 >= app.lifetime)
         {
-            if (DEBUG_MODE)
-                DEBUG_PRINTLN("Removing " + appName + " -> Lifetime over");
-            removeCustomAppFromApps(appName, false);
+            if (app.lifetimeMode == 0)
+            {
+                if (DEBUG_MODE)
+                    DEBUG_PRINTLN("Removing " + appName + " -> Lifetime over");
+                removeCustomAppFromApps(appName, false);
 
-            if (DEBUG_MODE)
-                DEBUG_PRINTLN("Set new Apploop");
-            ui->setApps(Apps);
+                if (DEBUG_MODE)
+                    DEBUG_PRINTLN("Set new Apploop");
+                ui->setApps(Apps);
+            }
+            else if (app.lifetimeMode == 1)
+            {
+                app.lifeTimeEnd = true;
+            }
         }
     }
 }
@@ -1226,9 +1251,9 @@ void DisplayManager_::nextApp()
 
 void DisplayManager_::forceNextApp()
 {
-        ui->switchToApp(ui->getUiState()->currentApp);
-        setAppTime(TIME_PER_APP);
-        MQTTManager.setCurrentApp(getAppNameAtIndex(ui->getUiState()->currentApp));
+    ui->switchToApp(ui->getUiState()->currentApp);
+    setAppTime(TIME_PER_APP);
+    MQTTManager.setCurrentApp(getAppNameAtIndex(ui->getUiState()->currentApp));
 }
 
 void DisplayManager_::previousApp()
@@ -1485,7 +1510,7 @@ String DisplayManager_::getStats()
     char buffer[20];
 
 #ifdef awtrix2_upgrade
-       doc[F("type")] = 1; 
+    doc[F("type")] = 1;
 #else
     doc[BatKey] = BATTERY_PERCENT;
     doc[BatRawKey] = BATTERY_RAW;

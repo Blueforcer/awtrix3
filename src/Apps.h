@@ -31,6 +31,7 @@ struct CustomApp
     String drawInstructions;
     float scrollposition = 0;
     int16_t scrollDelay = 0;
+    byte lifetimeMode = 0;
     String text;
     uint16_t color;
     File icon;
@@ -67,6 +68,7 @@ struct CustomApp
     float scrollSpeed = 100;
     bool topText = true;
     bool noScrolling = true;
+    bool lifeTimeEnd = false;
 };
 
 String currentCustomApp;
@@ -738,7 +740,11 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         renderFirst();
     }
 
-    // Reset text color
+    if (ca->lifeTimeEnd)
+    {
+        DisplayManager.drawRect(x, y, 32 + x, 8 + y, 0x6e0700);
+    }
+
     DisplayManager.getInstance().resetTextColor();
 }
 
@@ -856,7 +862,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
             }
             if (!noScrolling)
             {
-                DisplayManager.drawLine(iconWidth + notifications[0].iconPosition + notifications[0].iconOffset, 0, iconWidth + notifications[0].iconPosition, 6,  notifications[0].background);
+                DisplayManager.drawLine(iconWidth + notifications[0].iconPosition + notifications[0].iconOffset, 0, iconWidth + notifications[0].iconPosition, 6, notifications[0].background);
             }
         }
 
