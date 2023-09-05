@@ -63,7 +63,7 @@ public:
     bool switchToApp(const char *json);
     void setNewSettings(const char *json);
     void drawJPG(uint16_t x, uint16_t y, fs::File jpgFile);
-    void drawProgressBar(int16_t x, int16_t y, int progress, uint16_t pColor, uint16_t pbColor);
+    void drawProgressBar(int16_t x, int16_t y, int progress, uint32_t pColor, uint32_t pbColor);
     void drawMenuIndicator(int cur, int total, uint32_t color);
     void drawBMP(int16_t x, int16_t y, const uint16_t bitmap[], int16_t w, int16_t h);
     void drawBarChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint32_t color);

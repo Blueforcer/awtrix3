@@ -44,7 +44,7 @@ CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
 CRGB ledsCopy[MATRIX_WIDTH * MATRIX_HEIGHT];
 float actualBri;
 int16_t cursor_x, cursor_y;
-uint32_t  textColor;
+uint32_t textColor;
 
 // NeoMatrix
 FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
@@ -76,7 +76,6 @@ void DisplayManager_::setBrightness(int bri)
         actualBri = bri;
     }
 }
-
 
 bool DisplayManager_::setAutoTransition(bool active)
 {
@@ -228,7 +227,6 @@ uint32_t interpolateColor(uint32_t color1, uint32_t color2, float t)
 
     return (r_interp << 16) | (g_interp << 8) | b_interp;
 }
-
 
 void DisplayManager_::GradientText(int16_t x, int16_t y, const char *text, int color1, int color2, bool clear, byte textCase)
 {
@@ -492,21 +490,21 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     if (doc.containsKey("progressC"))
     {
         auto progressC = doc["progressC"];
-        customApp.pColor = getColorFromJsonVariant(progressC, matrix->Color(0, 255, 0));
+        customApp.pColor = getColorFromJsonVariant(progressC, 0x00FF00);
     }
     else
     {
-        customApp.pColor = matrix->Color(0, 255, 0);
+        customApp.pColor = 0x00FF00;
     }
 
     if (doc.containsKey("progressBC"))
     {
         auto progressBC = doc["progressBC"];
-        customApp.pbColor = getColorFromJsonVariant(progressBC, matrix->Color(255, 255, 255));
+        customApp.pbColor = getColorFromJsonVariant(progressBC, 0xFFFFFF);
     }
     else
     {
-        customApp.pbColor = matrix->Color(255, 255, 255);
+        customApp.pbColor = 0xFFFFFF;
     }
 
     bool autoscale = true;
@@ -702,21 +700,21 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     if (doc.containsKey("progressC"))
     {
         auto progressC = doc["progressC"];
-        newNotification.pColor = getColorFromJsonVariant(progressC, matrix->Color(0, 255, 0));
+        newNotification.pColor = getColorFromJsonVariant(progressC, 0x00FF00);
     }
     else
     {
-        newNotification.pColor = matrix->Color(0, 255, 0);
+        newNotification.pColor =0x00FF00;
     }
 
     if (doc.containsKey("progressBC"))
     {
         auto progressBC = doc["progressBC"];
-        newNotification.pbColor = getColorFromJsonVariant(progressBC, matrix->Color(255, 255, 255));
+        newNotification.pbColor = getColorFromJsonVariant(progressBC, 0xFFFFFF);
     }
     else
     {
-        newNotification.pbColor = matrix->Color(255, 255, 255);
+        newNotification.pbColor = 0xFFFFFF;
     }
 
     if (doc.containsKey("background"))
@@ -726,7 +724,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     }
     else
     {
-        newNotification.background = 0;
+        newNotification.background = 0x000000;
     }
 
     if (doc.containsKey("draw"))
@@ -1329,13 +1327,15 @@ bool DisplayManager_::switchToApp(const char *json)
     }
 }
 
-void DisplayManager_::drawProgressBar(int16_t x, int16_t y, int progress, uint16_t pColor, uint16_t pbColor)
+void DisplayManager_::drawProgressBar(int16_t x, int16_t y, int progress, uint32_t pColor, uint32_t pbColor)
 {
     int available_length = 32 - x;
     int leds_for_progress = (progress * available_length) / 100;
-    matrix->drawFastHLine(x, y, available_length, pbColor);
+
+    // Ersetze drawFastHLine mit drawLine
+    drawLine(x, y, x + available_length - 1, y, pbColor);
     if (leds_for_progress > 0)
-        matrix->drawFastHLine(x, y, leds_for_progress, pColor);
+        drawLine(x, y, x + leds_for_progress - 1, y, pColor);
 }
 
 void DisplayManager_::drawMenuIndicator(int cur, int total, uint32_t color)
@@ -2027,7 +2027,7 @@ void DisplayManager_::setNewSettings(const char *json)
     if (doc.containsKey("TCOL"))
     {
         auto TCOL = doc["TCOL"];
-        uint16_t TempColor = getColorFromJsonVariant(TCOL, matrix->Color(255, 255, 255));
+        uint32_t TempColor = getColorFromJsonVariant(TCOL, matrix->Color(255, 255, 255));
         for (auto it = customApps.begin(); it != customApps.end(); ++it)
         {
             CustomApp &app = it->second;
@@ -2507,15 +2507,18 @@ void DisplayManager_::fillCircle(int16_t x0, int16_t y0, int16_t r, uint32_t col
 
 void DisplayManager_::matrixPrint(char c)
 {
-    if (c == '\n') {
-        cursor_y += AwtrixFont.yAdvance;  // Zeilenhöhe hinzufügen
-        cursor_x  = 0;  // Zurück zum Start der Zeile
+    if (c == '\n')
+    {
+        cursor_y += AwtrixFont.yAdvance; // Zeilenhöhe hinzufügen
+        cursor_x = 0;                    // Zurück zum Start der Zeile
         return;
-    } else if (c == '\r') {
+    }
+    else if (c == '\r')
+    {
         // Handle carriage return, if needed
         return;
     }
-    
+
     c -= (uint8_t)pgm_read_byte(&AwtrixFont.first);
     GFXglyph *glyph = &AwtrixFont.glyph[c];
     uint8_t *bitmap = AwtrixFont.bitmap;
@@ -2526,21 +2529,24 @@ void DisplayManager_::matrixPrint(char c)
            yo = glyph->yOffset;
 
     uint8_t xx, yy, bits = 0, bit = 0;
-    for (yy = 0; yy < h; yy++) {
-        for (xx = 0; xx < w; xx++) {
-            if (!(bit++ & 7)) {
+    for (yy = 0; yy < h; yy++)
+    {
+        for (xx = 0; xx < w; xx++)
+        {
+            if (!(bit++ & 7))
+            {
                 bits = pgm_read_byte(&bitmap[bo++]);
             }
-            if (bits & 0x80) {
+            if (bits & 0x80)
+            {
                 matrix->drawPixel(cursor_x + xo + xx, cursor_y + yo + yy, textColor);
             }
             bits <<= 1;
         }
     }
-    
-    cursor_x += glyph->xAdvance;  // Cursor x-Position aktualisieren
-}
 
+    cursor_x += glyph->xAdvance; // Cursor x-Position aktualisieren
+}
 
 void DisplayManager_::matrixPrint(const char *str)
 {

@@ -5,7 +5,7 @@
 #define	JD_SZBUF		512
 /* Specifies size of stream input buffer */
 
-#define JD_FORMAT		0
+#define JD_FORMAT		1
 /* Specifies output pixel format.
 /  0: RGB888 (24-bit/pix)
 /  1: RGB565 (16-bit/pix)

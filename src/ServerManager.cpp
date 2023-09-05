@@ -52,7 +52,7 @@ void addHandler()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getEffectNames().c_str()); });
     mws.addHandler("/api/transitions", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getTransistionNames().c_str()); });
-    mws.addHandler("/api/reboot", HTTP_POST, []()
+    mws.addHandler("/api/reboot", HTTP_ANY, []()
                    { mws.webserver->send(200,F("text/plain"),F("OK")); delay(200); ESP.restart(); });
     mws.addHandler("/api/sound", HTTP_POST, []()
                    { if (PeripheryManager.parseSound(mws.webserver->arg("plain").c_str())){
@@ -78,7 +78,7 @@ void addHandler()
                        }else{
                         mws.webserver->send(500, F("text/plain"), F("ErrorParsingJson"));
                        } });
-    mws.addHandler("/api/nextapp", HTTP_POST, []()
+    mws.addHandler("/api/nextapp", HTTP_ANY, []()
                    { DisplayManager.nextApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/screen", HTTP_GET, []()
                    { mws.webserver->send(200, "text/html", screen_html); });
@@ -86,7 +86,7 @@ void addHandler()
                    { mws.webserver->send(200, "text/html", backup_html); });
     mws.addHandler("/api/previousapp", HTTP_POST, []()
                    { DisplayManager.previousApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
-    mws.addHandler("/api/notify/dismiss", HTTP_POST, []()
+    mws.addHandler("/api/notify/dismiss", HTTP_ANY, []()
                    { DisplayManager.dismissNotify(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/apps", HTTP_POST, []()
                    { DisplayManager.updateAppVector(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
@@ -105,8 +105,10 @@ void addHandler()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getAppsWithIcon().c_str()); });
     mws.addHandler("/api/settings", HTTP_POST, []()
                    { DisplayManager.setNewSettings(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
-    mws.addHandler("/api/erase", HTTP_POST, []()
+    mws.addHandler("/api/erase", HTTP_ANY, []()
                    { LittleFS.format(); delay(200); formatSettings();   mws.webserver->send(200,F("text/plain"),F("OK"));delay(200); ESP.restart(); });
+    mws.addHandler("/api/resetSettings", HTTP_ANY, []()
+                   { formatSettings();   mws.webserver->send(200,F("text/plain"),F("OK"));delay(200); ESP.restart(); });
     mws.addHandler("/api/reorder", HTTP_POST, []()
                    { DisplayManager.reorderApps(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/settings", HTTP_GET, []()
@@ -240,7 +242,6 @@ void ServerManager_::tick()
         }
     }
 }
-
 
 void ServerManager_::loadSettings()
 {

@@ -26,7 +26,6 @@
  * SOFTWARE.
  *
  */
-int pixelDelays[32][8];
 #include "MatrixDisplayUi.h"
 #include "AwtrixFont.h"
 #include "effects.h"
@@ -47,14 +46,6 @@ void MatrixDisplayUi::init()
   this->matrix->setBrightness(70);
   gif1.setMatrix(this->matrix);
   gif2.setMatrix(this->matrix);
-
-  for (int i = 0; i < 32; i++)
-  {
-    for (int j = 0; j < 8; j++)
-    {
-      pixelDelays[i][j] = random(256);
-    }
-  }
 }
 
 void MatrixDisplayUi::setTargetFPS(uint8_t fps)
@@ -263,16 +254,25 @@ void MatrixDisplayUi::drawIndicators()
   uint32_t drawColor;
 
   // Indicator 1
-  if (indicator1State) {
-    if (indicator1Blink) {
-      if (millis() % (2 * indicator1Blink) < indicator1Blink) {
+  if (indicator1State)
+  {
+    if (indicator1Blink)
+    {
+      if (millis() % (2 * indicator1Blink) < indicator1Blink)
+      {
         drawColor = indicator1Color;
-      } else {
+      }
+      else
+      {
         drawColor = 0; // Schwarz
       }
-    } else if (indicator1Fade) {
+    }
+    else if (indicator1Fade)
+    {
       drawColor = fadeColor(indicator1Color, indicator1Fade);
-    } else {
+    }
+    else
+    {
       drawColor = indicator1Color;
     }
     matrix->drawPixel(31, 0, drawColor);
@@ -281,16 +281,25 @@ void MatrixDisplayUi::drawIndicators()
   }
 
   // Indicator 2
-  if (indicator2State) {
-    if (indicator2Blink) {
-      if (millis() % (2 * indicator2Blink) < indicator2Blink) {
+  if (indicator2State)
+  {
+    if (indicator2Blink)
+    {
+      if (millis() % (2 * indicator2Blink) < indicator2Blink)
+      {
         drawColor = indicator2Color;
-      } else {
+      }
+      else
+      {
         drawColor = 0; // Schwarz
       }
-    } else if (indicator2Fade) {
+    }
+    else if (indicator2Fade)
+    {
       drawColor = fadeColor(indicator2Color, indicator2Fade);
-    } else {
+    }
+    else
+    {
       drawColor = indicator2Color;
     }
     matrix->drawPixel(31, 3, drawColor);
@@ -298,16 +307,25 @@ void MatrixDisplayUi::drawIndicators()
   }
 
   // Indicator 3
-  if (indicator3State) {
-    if (indicator3Blink) {
-      if (millis() % (2 * indicator3Blink) < indicator3Blink) {
+  if (indicator3State)
+  {
+    if (indicator3Blink)
+    {
+      if (millis() % (2 * indicator3Blink) < indicator3Blink)
+      {
         drawColor = indicator3Color;
-      } else {
+      }
+      else
+      {
         drawColor = 0; // Schwarz
       }
-    } else if (indicator3Fade) {
+    }
+    else if (indicator3Fade)
+    {
       drawColor = fadeColor(indicator3Color, indicator3Fade);
-    } else {
+    }
+    else
+    {
       drawColor = indicator3Color;
     }
     matrix->drawPixel(31, 7, drawColor);
@@ -318,11 +336,11 @@ void MatrixDisplayUi::drawIndicators()
 
 uint32_t MatrixDisplayUi::fadeColor(uint32_t color, uint32_t interval)
 {
-    float phase = (sin(2 * PI * millis() / float(interval)) + 1) * 0.5;
-    uint8_t r = ((color >> 16) & 0xFF) * phase;
-    uint8_t g = ((color >> 8) & 0xFF) * phase;
-    uint8_t b = (color & 0xFF) * phase;
-    return (r << 16) | (g << 8) | b;
+  float phase = (sin(2 * PI * millis() / float(interval)) + 1) * 0.5;
+  uint8_t r = ((color >> 16) & 0xFF) * phase;
+  uint8_t g = ((color >> 8) & 0xFF) * phase;
+  uint8_t b = (color & 0xFF) * phase;
+  return (r << 16) | (g << 8) | b;
 }
 
 uint8_t currentTransition;
