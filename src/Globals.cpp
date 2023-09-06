@@ -24,10 +24,14 @@ void startLittleFS()
         DEBUG_PRINTLN(F("Starting filesystem"));
     if (LittleFS.begin())
     {
+        if (LittleFS.exists("/config.json"))
+        {
+            LittleFS.rename("/config.json", "/DoNotTouch.json");
+        }
+
 #ifdef ULANZI
         LittleFS.mkdir("/MELODIES");
 #endif
-        LittleFS.mkdir("/PLUGINS");
         LittleFS.mkdir("/ICONS");
         LittleFS.mkdir("/PALETTES");
         LittleFS.mkdir("/CUSTOMAPPS");
@@ -87,12 +91,12 @@ void loadDevSettings()
             TEMP_OFFSET = doc["temp_offset"];
         }
 
-         if (doc.containsKey("min_battery"))
+        if (doc.containsKey("min_battery"))
         {
             MIN_BATTERY = doc["min_battery"];
         }
 
-         if (doc.containsKey("max_battery"))
+        if (doc.containsKey("max_battery"))
         {
             MAX_BATTERY = doc["max_battery"];
         }
@@ -196,9 +200,10 @@ void loadSettings()
     BRIGHTNESS = Settings.getUInt("BRI", 120);
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", false);
     UPPERCASE_LETTERS = Settings.getBool("UPPER", true);
-    TEXTCOLOR_565 = Settings.getUInt("TCOL", 0xFFFF);
-    CALENDAR_COLOR = Settings.getUInt("CCOL", 0xF800);
-    CALENDAR_TEXT_COLOR = Settings.getUInt("CTCOL", 0x0000);
+    TEXTCOLOR_888 = Settings.getUInt("TCOL", 0xFFFFFF);
+    CALENDAR_HEADER_COLOR = Settings.getUInt("CHCOL", 0xFF0000);
+    CALENDAR_TEXT_COLOR = Settings.getUInt("CTCOL", 0x000000);
+    CALENDAR_BODY_COLOR = Settings.getUInt("CBCOL", 0xFFFFFF);
     TRANS_EFFECT = Settings.getUInt("TEFF", 1);
     TIME_MODE = Settings.getUInt("TMODE", 1);
     TIME_COLOR = Settings.getUInt("TIME_COL", 0);
@@ -208,13 +213,13 @@ void loadSettings()
 #ifdef ULANZI
     BAT_COLOR = Settings.getUInt("BAT_COL", 0);
 #endif
-    WDC_ACTIVE = Settings.getUInt("WDCA", 0xFFFF);
-    WDC_INACTIVE = Settings.getUInt("WDCI", 0x6B6D);
+    WDC_ACTIVE = Settings.getUInt("WDCA", 0xFFFFFF);
+    WDC_INACTIVE = Settings.getUInt("WDCI", 0x666666);
     AUTO_TRANSITION = Settings.getBool("ATRANS", true);
     SHOW_WEEKDAY = Settings.getBool("WD", true);
     TIME_PER_TRANSITION = Settings.getUInt("TSPEED", 400);
     TIME_PER_APP = Settings.getUInt("ATIME", 7000);
-    TIME_FORMAT = Settings.getString("TFORMAT", "%H:%M:%S");
+    TIME_FORMAT = Settings.getString("TFORMAT", "%H %M");
     DATE_FORMAT = Settings.getString("DFORMAT", "%d.%m.%y");
     START_ON_MONDAY = Settings.getBool("SOM", true);
     BLOCK_NAVIGATION = Settings.getBool("BLOCKN", false);
@@ -244,8 +249,9 @@ void saveSettings()
     if (DEBUG_MODE)
         DEBUG_PRINTLN(F("Saving usersettings"));
     Settings.begin("awtrix", false);
-    Settings.putUInt("CCOL", CALENDAR_COLOR);
+    Settings.putUInt("CHCOL", CALENDAR_HEADER_COLOR);
     Settings.putUInt("CTCOL", CALENDAR_TEXT_COLOR);
+    Settings.putUInt("CBCOL", CALENDAR_BODY_COLOR);
     Settings.putUInt("TEFF", TRANS_EFFECT);
     Settings.putUInt("BRI", BRIGHTNESS);
     Settings.putBool("WD", SHOW_WEEKDAY);
@@ -253,7 +259,7 @@ void saveSettings()
     Settings.putBool("BLOCKN", BLOCK_NAVIGATION);
     Settings.putBool("ATRANS", AUTO_TRANSITION);
     Settings.putUInt("UPPER", UPPERCASE_LETTERS);
-    Settings.putUInt("TCOL", TEXTCOLOR_565);
+    Settings.putUInt("TCOL", TEXTCOLOR_888);
     Settings.putUInt("TMODE", TIME_MODE);
     Settings.putUInt("TIME_COL", TIME_COLOR);
     Settings.putUInt("DATE_COL", DATE_COLOR);
@@ -291,7 +297,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.83";
+const char *VERSION = "0.84";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -336,12 +342,12 @@ int BRIGHTNESS_PERCENT;
 uint16_t MIN_BATTERY = 475;
 uint16_t MAX_BATTERY = 665;
 
-#ifdef ULANZI
+#ifdef awtrix2_upgrade
+float TEMP_OFFSET;
+#else
 float TEMP_OFFSET = -9;
 uint8_t BATTERY_PERCENT;
 uint16_t BATTERY_RAW;
-#else
-float TEMP_OFFSET;
 #endif
 float HUM_OFFSET;
 uint16_t LDR_RAW;
@@ -356,8 +362,8 @@ bool AUTO_BRIGHTNESS = true;
 bool UPPERCASE_LETTERS = true;
 bool AP_MODE;
 bool MATRIX_OFF;
-bool MIRROR_DISPLAY=false;
-uint16_t TEXTCOLOR_565;
+bool MIRROR_DISPLAY = false;
+uint32_t TEXTCOLOR_888 = 0xFFFFFF;
 bool SOUND_ACTIVE;
 String BOOT_SOUND = "";
 int TEMP_DECIMAL_PLACES = 0;
@@ -370,8 +376,8 @@ bool UPDATE_AVAILABLE = false;
 long RECEIVED_MESSAGES;
 CRGB COLOR_CORRECTION;
 CRGB COLOR_TEMPERATURE;
-uint16_t WDC_ACTIVE;
-uint16_t WDC_INACTIVE;
+uint32_t WDC_ACTIVE;
+uint32_t WDC_INACTIVE;
 bool BLOCK_NAVIGATION = false;
 bool UPDATE_CHECK = false;
 float GAMMA = 0;
@@ -379,17 +385,18 @@ bool SENSOR_READING = true;
 bool ROTATE_SCREEN = false;
 uint8_t TIME_MODE = 1;
 uint8_t SCROLL_SPEED = 100;
-uint16_t TIME_COLOR = 0;
-uint16_t CALENDAR_COLOR = 0;
-uint16_t CALENDAR_TEXT_COLOR = 0;
-uint16_t DATE_COLOR = 0;
-uint16_t BAT_COLOR = 0;
-uint16_t TEMP_COLOR = 0;
-uint16_t HUM_COLOR = 0;
+uint32_t TIME_COLOR = 0;
+uint32_t CALENDAR_HEADER_COLOR = 0xFF0000;
+uint32_t CALENDAR_TEXT_COLOR = 0x000000;
+uint32_t CALENDAR_BODY_COLOR = 0xFFFFFF;
+uint32_t DATE_COLOR = 0;
+uint32_t BAT_COLOR = 0;
+uint32_t TEMP_COLOR = 0;
+uint32_t HUM_COLOR = 0;
 bool ARTNET_MODE;
 bool MOODLIGHT_MODE;
 long STATS_INTERVAL = 10000;
-bool DEBUG_MODE = false;
+bool DEBUG_MODE = true;
 uint8_t MIN_BRIGHTNESS = 2;
 uint8_t MAX_BRIGHTNESS = 180;
 double movementFactor = 0.5;

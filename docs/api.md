@@ -17,7 +17,7 @@ Access various device statistics like battery, RAM, and more:
 
 > **Note:** MQTT also broadcasts other data, such as button presses and the current app.
 
-## Screen Mirroring
+## LiveView
 
 Retrieve the current matrix screen as an array of 565 colors:
 
@@ -39,19 +39,6 @@ Toggle the matrix on or off:
 | ---------------- | ----------------------------- | ------------------------- | ----------- |
 | `[PREFIX]/power` | `http://[IP]/api/power`       | `{"power": true}` or `{"power": false}` | POST        |
 
-#### Reboot Awtrix
-If you need to restart the Awtrix:
-
-| MQTT Topic      | HTTP URL                      | Payload/Body | HTTP Method |
-|-----------------|-------------------------------|---------------|-------------|
-| `[PREFIX]/reboot` | `http://[IP]/api/reboot`     | -             | POST        |
-
-#### Erase Awtrix
-**WARNING**: This action will format the flash memory and EEPROM but will not modify the WiFi Settings. It essentially serves as a factory reset.
-
-| MQTT Topic      | HTTP URL                      | Payload/Body | HTTP Method |
-|-----------------|-------------------------------|---------------|-------------|
-| `N/A`           | `http://[IP]/api/erase`       | -             | POST        |
 
 ## Sound Playback
 
@@ -167,6 +154,7 @@ Below are the properties you can utilize in the JSON object. **All keys are opti
 | `pos` | integer | Defines the position of your custom page in the loop, starting at 0 for the first position. This will only apply with your first push. This function is experimental. | N/A | X |  |
 | `draw` | array of objects | Array of drawing instructions. Each object represents a drawing command. See the drawing instructions below. |  | X | X |
 | `lifetime` | integer | Removes the custom app when there is no update after the given time in seconds. | 0 | X |  |
+| `lifetimeMode` | integer | 0 = deletes the app, 1 = marks it as staled with a red rectangle around the app | 0 | X |  |
 | `stack` | boolean | Defines if the **notification** will be stacked. `false` will immediately replace the current notification. | true |  | X |
 | `wakeup` | boolean | If the Matrix is off, the notification will wake it up for the time of the notification. | false |  | X |
 | `noScroll` | boolean | Disables the text scrolling. | false | X | X |
@@ -296,21 +284,20 @@ Directly transition to a desired app using its name.
 | `[PREFIX]/switch`            | `http://[IP]/api/switch`           | `{"name":"time"}` | POST       |
 
 **Built-in App Names**:
-- `time`
-- `date`
-- `temp`
-- `hum`
-- `bat`
+- `Time`
+- `Date`
+- `Temperature`
+- `Humidity`
+- `Battery`
 
 For custom apps, employ the name you designated in the topic or HTTP parameter. In MQTT, if `[PREFIX]/custom/test` is your topic, then `test` would be the app's name.
-
-
+  
 
 ## Change Settings
 
 Adjust various settings related to the app display.
 
-| MQTT Topic            | HTTP URL                          | Payload/Body | HTTP Method |
+| MQTT Topic            | HTTP URL                          | Payload/Body  | HTTP Method |
 | --------------------- | --------------------------------- | ------------- | ----------- |
 | `[PREFIX]/settings`   | `http://[IP]/api/settings`        | JSON          | POST        |
 
@@ -318,21 +305,22 @@ Adjust various settings related to the app display.
 
 You can adjust each property in the JSON object according to your preferences. Including a property is optional.
 
-| Key           | Type                      | Description                                                                                          | Value Range                                        | Default |
-| ------------- | ------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------- |
+| Key           | Type                      | Description                                                                                         | Value Range                                        | Default |
+| ------------- | ------------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------- |
 | `ATIME`       | number                    | Duration an app is displayed in seconds.                                                            | Positive integer                                   | 7       |
-| `TEFF`        | number                    | Choose between app transition effects.                                                               | 0-10                                               | 1       |
-| `TSPEED`      | number                    | Time taken for the transition to the next app in milliseconds.                                       | Positive integer                                   | 500     |
+| `TEFF`        | number                    | Choose between app transition effects.                                                              | 0-10                                               | 1       |
+| `TSPEED`      | number                    | Time taken for the transition to the next app in milliseconds.                                      | Positive integer                                   | 500     |
 | `TCOL`        | string/array of ints      | Global text color.                                                                                  | RGB array or hex color                             | N/A     |
 | `TMODE`       | integer                   | Changes the time app style.                                                                         | 0-4                                                | 1       |
-| `CCOL`        | string/array of ints      | Calendar color of the time app.                                                                     | RGB array or hex color                             | N/A     |
-| `CTCOL`       | string/array of ints      | Calendar text color in the time app.                                                                | RGB array or hex color                             | N/A     |
+| `CHCOL`       | string/array of ints      | Calendar header color of the time app.                                                              | RGB array or hex color                             |`#FF0000`|
+| `CBCOL`       | string/array of ints      | Calendar body color of the time app.                                                                | RGB array or hex color                             |`#FFFFFF`|
+| `CTCOL`       | string/array of ints      | Calendar text color in the time app.                                                                | RGB array or hex color                             |`#000000` |
 | `WD`          | boolean                   | Enable or disable the weekday display.                                                              | `true`/`false`                                     | true    |
 | `WDCA`        | string/array of ints      | Active weekday color.                                                                               | RGB array or hex color                             | N/A     |
 | `WDCI`        | string/array of ints      | Inactive weekday color.                                                                             | RGB array or hex color                             | N/A     |
 | `BRI`         | number                    | Matrix brightness.                                                                                  | 0-255                                              | N/A     |
 | `ABRI`        | boolean                   | Automatic brightness control.                                                                       | `true`/`false`                                     | N/A     |
-| `ATRANS`      | boolean                   | Automatic switching to the next app.                                                                 | `true`/`false`                                     | N/A     |
+| `ATRANS`      | boolean                   | Automatic switching to the next app.                                                                | `true`/`false`                                     | N/A     |
 | `CCORRECTION` | array of ints             | Color correction for the matrix.                                                                    | RGB array                                          | N/A     |
 | `CTEMP`       | array of ints             | Color temperature for the matrix.                                                                   | RGB array                                          | N/A     |
 | `TFORMAT`     | string                    | Time format for the TimeApp.                                                                        | Varies (see documentation)                         | N/A     |
@@ -403,4 +391,23 @@ You can initiate the firmware update either through the update button in HA or u
 |---------------------|-----------------------------------|---------------|--------------------|-------------|
 | `[PREFIX]/doupdate` | `http://[IP]/api/doupdate`        | JSON          | empty payload/body | POST        |
 
+#### Reboot Awtrix
+If you need to restart the Awtrix:
 
+| MQTT Topic      | HTTP URL                      | Payload/Body | HTTP Method |
+|-----------------|-------------------------------|---------------|-------------|
+| `[PREFIX]/reboot` | `http://[IP]/api/reboot`     | -             | POST        |
+
+#### Erase Awtrix
+**WARNING**: This action will format the flash memory and EEPROM but will not modify the WiFi Settings. It essentially serves as a factory reset.
+
+| MQTT Topic      | HTTP URL                      | Payload/Body | HTTP Method |
+|-----------------|-------------------------------|---------------|-------------|
+| `N/A`           | `http://[IP]/api/erase`       | -             | POST        |
+
+#### Clear Settings
+**WARNING**: This action will clear all you settings from the settings API. This does not belong to flash files and WiFi Settings.
+
+| MQTT Topic      | HTTP URL                      | Payload/Body | HTTP Method |
+|-----------------|-------------------------------|---------------|-------------|
+| `N/A`           | `http://[IP]/api/clearSettings`       | -             | POST        |

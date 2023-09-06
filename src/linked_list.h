@@ -73,7 +73,7 @@ class VariableList
 
 
     bool saveValues(fs::FS *fs, const char* filename) {
-      File file = fs->open("/config.json", "w");
+      File file = fs->open("/DoNotTouch.json", "w");
       int sz = file.size() * 1.33;
       int docSize = max(sz, 2048);
       DynamicJsonDocument root((size_t)docSize);
@@ -108,7 +108,7 @@ class VariableList
     }
 
     bool loadValues(fs::FS *fs, const char* filename) {
-      File file = fs->open("/config.json", "r");
+      File file = fs->open("/DoNotTouch.json", "r");
       DynamicJsonDocument doc(file.size() * 1.33);
       if (file)
       {

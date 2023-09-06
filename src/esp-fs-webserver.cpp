@@ -18,7 +18,29 @@ void FSWebServer::run()
     if (m_apmode)
         m_dnsServer.processNextRequest();
 
-
+    unsigned long currentMillis = millis();
+    // if WiFi is down, try reconnecting
+    if ((WiFi.status() != WL_CONNECTED) && (currentMillis - previousMillis >= interval))
+    {
+        Serial.println("Reconnecting to WiFi...");
+        WiFi.disconnect();
+        WiFi.reconnect();
+        previousMillis = currentMillis;
+        if (WiFi.status() != WL_CONNECTED)
+        {
+            failedAttempts++;
+            if (failedAttempts >= 10)
+            {
+                Serial.println("10 failed attempts to connect. Restarting ESP...");
+                ESP.restart();
+            }
+        }
+        else
+        {
+            Serial.println("Reconnected!");
+            failedAttempts = 0;
+        }
+    }
 }
 
 void FSWebServer::addHandler(const Uri &uri, HTTPMethod method, WebServerClass::THandlerFunction fn)
@@ -34,8 +56,7 @@ void FSWebServer::onNotFound(WebServerClass::THandlerFunction fn)
 void FSWebServer::addHandler(const Uri &uri, WebServerClass::THandlerFunction handler)
 {
 
-addHandler(uri, HTTP_ANY, handler);
-
+    addHandler(uri, HTTP_ANY, handler);
 }
 
 // List all files saved in the selected filesystem
@@ -118,7 +139,6 @@ bool FSWebServer::begin(const char *path)
     // OTA update via webbrowser
     m_httpUpdater.setup(webserver, authUser, authPass);
 
-
     webserver->enableCORS(true);
 
     webserver->setContentLength(1024);
@@ -127,13 +147,17 @@ bool FSWebServer::begin(const char *path)
     return true;
 }
 
-WebServerClass::THandlerFunction FSWebServer::authMiddleware(WebServerClass::THandlerFunction fn) {
-    if (authUser.isEmpty()) {
+WebServerClass::THandlerFunction FSWebServer::authMiddleware(WebServerClass::THandlerFunction fn)
+{
+    if (authUser.isEmpty())
+    {
         return fn;
     }
 
-    return [this, fn]() {
-        if (!webserver->authenticate(authUser.c_str(), authPass.c_str())) {
+    return [this, fn]()
+    {
+        if (!webserver->authenticate(authUser.c_str(), authPass.c_str()))
+        {
             return webserver->requestAuthentication();
         }
 
@@ -176,7 +200,7 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
 
     if (strlen(_ssid) && strlen(_pass))
     {
-        WiFi.begin(_ssid, _pass);
+        WiFi.begin(_ssid, _pass, 0, 0, true);
         Serial.print(F("Connecting to "));
         Serial.println(_ssid);
 
@@ -188,7 +212,6 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
             if (WiFi.status() == WL_CONNECTED)
             {
                 ip = WiFi.localIP();
-                WiFi.setAutoReconnect(true);
                 WiFi.persistent(true);
                 return ip;
             }
@@ -313,7 +336,7 @@ void FSWebServer::doWifiConnection()
         // Try to connect to new ssid
         Serial.print("\nConnecting to ");
         Serial.println(ssid);
-        WiFi.begin(ssid.c_str(), pass.c_str());
+        WiFi.begin(ssid.c_str(), pass.c_str(), 0, 0, true);
 
         uint32_t beginTime = millis();
         while (WiFi.status() != WL_CONNECTED)
@@ -428,12 +451,11 @@ void FSWebServer::handleScanNetworks()
     DebugPrintln(jsonList);
 }
 
-
 #ifdef INCLUDE_SETUP_HTM
 
 void FSWebServer::addDropdownList(const char *label, const char **array, size_t size)
 {
-    File file = m_filesystem->open("/config.json", "r");
+    File file = m_filesystem->open("/DoNotTouch.json", "r");
     int sz = file.size() * 1.33;
     int docSize = max(sz, 2048);
     DynamicJsonDocument doc((size_t)docSize);
@@ -469,7 +491,7 @@ void FSWebServer::addDropdownList(const char *label, const char **array, size_t 
         arr.add(array[i]);
     }
 
-    file = m_filesystem->open("/config.json", "w");
+    file = m_filesystem->open("/DoNotTouch.json", "w");
     if (serializeJsonPretty(doc, file) == 0)
     {
         DebugPrintln(F("Failed to write to file"));
@@ -624,7 +646,7 @@ void FSWebServer::replyOK()
 
 void FSWebServer::replyToCLient(int msg_type = 0, const char *msg = "")
 {
-    //webserver->sendHeader("Access-Control-Allow-Origin", "*");
+    // webserver->sendHeader("Access-Control-Allow-Origin", "*");
     switch (msg_type)
     {
     case OK:
@@ -916,16 +938,18 @@ void FSWebServer::handleStatus()
     totalBytes = fs_info.totalBytes;
     usedBytes = fs_info.usedBytes;
 #elif defined(ESP32)
-     totalBytes = LittleFS.totalBytes();
-     usedBytes = LittleFS.usedBytes();
+    totalBytes = LittleFS.totalBytes();
+    usedBytes = LittleFS.usedBytes();
 #endif
 
     String json;
-    json.reserve(128);
+    json.reserve(256); // Increased the size to accommodate the SSID
     json = "{\"type\":\"Filesystem\", \"isOk\":";
     if (m_fsOK)
     {
         uint32_t ip = (WiFi.status() == WL_CONNECTED) ? WiFi.localIP() : WiFi.softAPIP();
+        String ssid = WiFi.SSID(); // Get the current SSID
+
         json += PSTR("\"true\", \"totalBytes\":\"");
         json += totalBytes;
         json += PSTR("\", \"usedBytes\":\"");
@@ -934,12 +958,16 @@ void FSWebServer::handleStatus()
         json += WiFi.status() == WL_CONNECTED ? "Station" : "Access Point";
         json += PSTR("\", \"ip\":\"");
         json += ip;
+        json += PSTR("\", \"ssid\":\""); // Add SSID here
+        json += ssid;                    // Add the actual SSID
         json += "\"";
     }
     else
+    {
         json += "\"false\"";
-    json += PSTR(",\"unsupportedFiles\":\"\"}");
+    }
+
+    json += "}"; // Closing the JSON object
     webserver->send(200, "application/json", json);
 }
-
 #endif // INCLUDE_EDIT_HTM

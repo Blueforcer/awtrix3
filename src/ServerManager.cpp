@@ -2,7 +2,7 @@
 #include "Globals.h"
 #include <WebServer.h>
 #include <esp-fs-webserver.h>
-#include "icondownloader.h"
+#include "htmls.h"
 #include <Update.h>
 #include <ESPmDNS.h>
 #include <LittleFS.h>
@@ -52,7 +52,7 @@ void addHandler()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getEffectNames().c_str()); });
     mws.addHandler("/api/transitions", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getTransistionNames().c_str()); });
-    mws.addHandler("/api/reboot", HTTP_POST, []()
+    mws.addHandler("/api/reboot", HTTP_ANY, []()
                    { mws.webserver->send(200,F("text/plain"),F("OK")); delay(200); ESP.restart(); });
     mws.addHandler("/api/sound", HTTP_POST, []()
                    { if (PeripheryManager.parseSound(mws.webserver->arg("plain").c_str())){
@@ -78,7 +78,7 @@ void addHandler()
                        }else{
                         mws.webserver->send(500, F("text/plain"), F("ErrorParsingJson"));
                        } });
-    mws.addHandler("/api/nextapp", HTTP_POST, []()
+    mws.addHandler("/api/nextapp", HTTP_ANY, []()
                    { DisplayManager.nextApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/screen", HTTP_GET, []()
                    { mws.webserver->send(200, "text/html", screen_html); });
@@ -86,7 +86,7 @@ void addHandler()
                    { mws.webserver->send(200, "text/html", backup_html); });
     mws.addHandler("/api/previousapp", HTTP_POST, []()
                    { DisplayManager.previousApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
-    mws.addHandler("/api/notify/dismiss", HTTP_POST, []()
+    mws.addHandler("/api/notify/dismiss", HTTP_ANY, []()
                    { DisplayManager.dismissNotify(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/apps", HTTP_POST, []()
                    { DisplayManager.updateAppVector(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
@@ -105,8 +105,10 @@ void addHandler()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getAppsWithIcon().c_str()); });
     mws.addHandler("/api/settings", HTTP_POST, []()
                    { DisplayManager.setNewSettings(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
-    mws.addHandler("/api/erase", HTTP_POST, []()
+    mws.addHandler("/api/erase", HTTP_ANY, []()
                    { LittleFS.format(); delay(200); formatSettings();   mws.webserver->send(200,F("text/plain"),F("OK"));delay(200); ESP.restart(); });
+    mws.addHandler("/api/resetSettings", HTTP_ANY, []()
+                   { formatSettings();   mws.webserver->send(200,F("text/plain"),F("OK"));delay(200); ESP.restart(); });
     mws.addHandler("/api/reorder", HTTP_POST, []()
                    { DisplayManager.reorderApps(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/settings", HTTP_GET, []()
@@ -220,68 +222,32 @@ void ServerManager_::setup()
 void ServerManager_::tick()
 {
     mws.run();
-    int packetSize = udp.parsePacket();
-    if (packetSize)
+
+    if (!AP_MODE)
     {
-        int len = udp.read(incomingPacket, 255);
-        if (len > 0)
+        int packetSize = udp.parsePacket();
+        if (packetSize)
         {
-            incomingPacket[len] = 0;
+            int len = udp.read(incomingPacket, 255);
+            if (len > 0)
+            {
+                incomingPacket[len] = 0;
+            }
+            if (strcmp(incomingPacket, "FIND_AWTRIX") == 0)
+            {
+                udp.beginPacket(udp.remoteIP(), 4211);
+                udp.printf(MQTT_PREFIX.c_str());
+                udp.endPacket();
+            }
         }
-        if (strcmp(incomingPacket, "FIND_AWTRIX") == 0)
-        {
-            udp.beginPacket(udp.remoteIP(), 4211);
-            udp.printf(MQTT_PREFIX.c_str());
-            udp.endPacket();
-        }
     }
-}
-
-uint16_t stringToColor(const String &str)
-{
-    int comma1 = str.indexOf(',');
-    int comma2 = str.lastIndexOf(',');
-    if (comma1 < 0 || comma2 < 0 || comma2 == comma1)
-    {
-        return 0xFFFF;
-    }
-    String rStr = str.substring(0, comma1);
-    String gStr = str.substring(comma1 + 1, comma2);
-    String bStr = str.substring(comma2 + 1);
-
-    int r = rStr.toInt();
-    int g = gStr.toInt();
-    int b = bStr.toInt();
-
-    if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255)
-    {
-        return 0xFFFF;
-    }
-
-    uint16_t color = ((r >> 3) << 11) | ((g >> 2) & 0x3F) << 5 | (b >> 3);
-    return color;
-}
-
-String colorToString(uint16_t color)
-{
-    uint8_t r = (color >> 11) << 3;
-    uint8_t g = ((color >> 5) & 0x3F) << 2;
-    uint8_t b = (color & 0x1F) << 3;
-    if (r > 255 || g > 255 || b > 255)
-    {
-        return "#FFFFFF";
-    }
-    String rStr = String(r);
-    String gStr = String(g);
-    String bStr = String(b);
-    return rStr + "," + gStr + "," + bStr;
 }
 
 void ServerManager_::loadSettings()
 {
-    if (LittleFS.exists("/config.json"))
+    if (LittleFS.exists("/DoNotTouch.json"))
     {
-        File file = LittleFS.open("/config.json", "r");
+        File file = LittleFS.open("/DoNotTouch.json", "r");
         DynamicJsonDocument doc(file.size() * 1.33);
         DeserializationError error = deserializeJson(doc, file);
         if (error)

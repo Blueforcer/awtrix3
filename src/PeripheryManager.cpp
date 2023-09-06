@@ -1,14 +1,14 @@
 #include <PeripheryManager.h>
-#ifdef ULANZI
-#include <melody_player.h>
-#include <melody_factory.h>
-#include "Adafruit_SHT31.h"
-#else
+#ifdef awtrix2_upgrade
 #include "Adafruit_BME280.h"
 #include "Adafruit_BMP280.h"
 #include "Adafruit_HTU21DF.h"
 #include "SoftwareSerial.h"
 #include <DFMiniMp3.h>
+#else
+#include <melody_player.h>
+#include <melody_factory.h>
+#include "Adafruit_SHT31.h"
 #endif
 #include "Globals.h"
 #include "DisplayManager.h"
@@ -24,17 +24,8 @@ const char *message = "HELLO"; // Die Nachricht, die gesendet werden soll
 #define LEDC_RESOLUTION 8 // 8 bit resolution
 #define LEDC_TIMER LEDC_TIMER_0
 #define LEDC_MODE LEDC_LOW_SPEED_MODE
-#ifdef ULANZI
-// Pinouts für das ULANZI-Environment
-#define BATTERY_PIN 34
-#define BUZZER_PIN 15
-#define LDR_PIN 35
-#define BUTTON_UP_PIN 26
-#define BUTTON_DOWN_PIN 14
-#define BUTTON_SELECT_PIN 27
-#define I2C_SCL_PIN 22
-#define I2C_SDA_PIN 21
-#else
+
+#ifdef awtrix2_upgrade
 // Pinouts für das WEMOS_D1_MINI32-Environment
 #define LDR_PIN A0
 #define BUTTON_UP_PIN D0
@@ -44,36 +35,48 @@ const char *message = "HELLO"; // Die Nachricht, die gesendet werden soll
 #define DFPLAYER_TX D5
 #define I2C_SCL_PIN D1
 #define I2C_SDA_PIN D3
+#elif ESP32_S3
+#define BATTERY_PIN 4
+#define BUZZER_PIN 5
+#define LDR_PIN 6
+#define BUTTON_UP_PIN 7
+#define BUTTON_DOWN_PIN 8
+#define BUTTON_SELECT_PIN 10
+#define I2C_SCL_PIN 10
+#define I2C_SDA_PIN 11
+#else
+// Pinouts für das ULANZI-Environment
+#define BATTERY_PIN 34
+#define BUZZER_PIN 15
+#define LDR_PIN 35
+#define BUTTON_UP_PIN 26
+#define BUTTON_DOWN_PIN 14
+#define BUTTON_SELECT_PIN 27
+#define I2C_SCL_PIN 22
+#define I2C_SDA_PIN 21
 #endif
 
-#ifdef ULANZI
-Adafruit_SHT31 sht31;
-#else
+#ifdef awtrix2_upgrade
 Adafruit_BME280 bme280;
 Adafruit_BMP280 bmp280;
 Adafruit_HTU21DF htu21df;
-#endif
-
-EasyButton button_left(BUTTON_UP_PIN);
-EasyButton button_right(BUTTON_DOWN_PIN);
-EasyButton button_select(BUTTON_SELECT_PIN);
-#ifdef ULANZI
-MelodyPlayer player(BUZZER_PIN, 1, LOW);
-#else
 class Mp3Notify
 {
 };
 SoftwareSerial mySoftwareSerial(DFPLAYER_RX, DFPLAYER_TX); // RX, TX
 DFMiniMp3<SoftwareSerial, Mp3Notify> dfmp3(mySoftwareSerial);
-#endif
-
-#ifdef ULANZI
-#define USED_PHOTOCELL LightDependentResistor::GL5516
-#define PHOTOCELL_SERIES_RESISTOR 10000
-#else
 #define USED_PHOTOCELL LightDependentResistor::GL5528
 #define PHOTOCELL_SERIES_RESISTOR 1000
+#else
+Adafruit_SHT31 sht31;
+MelodyPlayer player(BUZZER_PIN, 1, LOW);
+#define USED_PHOTOCELL LightDependentResistor::GL5516
+#define PHOTOCELL_SERIES_RESISTOR 10000
 #endif
+
+EasyButton button_left(BUTTON_UP_PIN);
+EasyButton button_right(BUTTON_DOWN_PIN);
+EasyButton button_select(BUTTON_SELECT_PIN);
 
 LightDependentResistor photocell(LDR_PIN,
                                  PHOTOCELL_SERIES_RESISTOR,
@@ -244,16 +247,16 @@ void PeripheryManager_::playBootSound()
 
 void PeripheryManager_::stopSound()
 {
-#ifdef ULANZI
-    player.stop();
-#else
+#ifdef awtrix2_upgrade
     dfmp3.stopAdvertisement();
     delay(50);
     dfmp3.stop();
+#else
+    player.stop();
 #endif
 }
 
-#ifndef ULANZI
+#ifdef awtrix2_upgrade
 void PeripheryManager_::setVolume(uint8_t vol)
 {
     uint8_t curVolume = dfmp3.getVolume(); // need to read volume in order to work. Donno why! :(
@@ -279,12 +282,13 @@ bool PeripheryManager_::parseSound(const char *json)
 
 bool PeripheryManager_::playRTTTLString(String rtttl)
 {
-#ifdef ULANZI
+#ifdef awtrix2_upgrade
+    return false;
+
+#else
     Melody melody = MelodyFactory.loadRtttlString(rtttl.c_str());
     player.playAsync(melody);
     return melody.isValid();
-#else
-    return false;
 #endif
 }
 
@@ -293,7 +297,15 @@ bool PeripheryManager_::playFromFile(String file)
     if (!SOUND_ACTIVE)
         return true;
 
-#ifdef ULANZI
+#ifdef awtrix2_upgrade
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("Playing MP3 file"));
+    dfmp3.stop();
+    delay(50);
+    dfmp3.playMp3FolderTrack(file.toInt());
+
+    return true;
+#else
     if (DEBUG_MODE)
         DEBUG_PRINTLN(F("Playing RTTTL sound file"));
     if (LittleFS.exists("/MELODIES/" + String(file) + ".txt"))
@@ -306,25 +318,19 @@ bool PeripheryManager_::playFromFile(String file)
     {
         return false;
     }
-#else
-    if (DEBUG_MODE)
-        DEBUG_PRINTLN(F("Playing MP3 file"));
-    dfmp3.stop();
-    delay(50);
-    dfmp3.playMp3FolderTrack(file.toInt());
 #endif
-    return true;
 }
 
 bool PeripheryManager_::isPlaying()
 {
-#ifdef ULANZI
-    return player.isPlaying();
-#else
+#ifdef awtrix2_upgrade
+
     if ((dfmp3.getStatus() & 0xff) == 0x01) // 0x01 = DfMp3_StatusState_Playing
         return true;
     else
         return false;
+#else
+    return player.isPlaying();
 #endif
 }
 
@@ -334,7 +340,7 @@ void PeripheryManager_::setup()
         DEBUG_PRINTLN(F("Setup periphery"));
     startTime = millis();
     pinMode(LDR_PIN, INPUT);
-#ifndef ULANZI
+#ifdef awtrix2_upgrade
     dfmp3.begin();
     delay(100);
     setVolume(VOLUME);
@@ -360,9 +366,7 @@ void PeripheryManager_::setup()
     button_select.onSequence(2, 300, select_button_double);
 
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
-#ifdef ULANZI
-    sht31.begin(0x44);
-#else
+#ifdef awtrix2_upgrade
     if (bme280.begin(BME280_ADDRESS) || bme280.begin(BME280_ADDRESS_ALTERNATE))
     {
         if (DEBUG_MODE)
@@ -382,6 +386,9 @@ void PeripheryManager_::setup()
         TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_HTU21DF;
     }
     dfmp3.begin();
+#else
+    sht31.begin(0x44);
+
 #endif
     photocell.setPhotocellPositionOnGround(false);
 }
@@ -404,16 +411,14 @@ void PeripheryManager_::tick()
     if (currentMillis_BatTempHum - previousMillis_BatTempHum >= interval_BatTempHum)
     {
         previousMillis_BatTempHum = currentMillis_BatTempHum;
-#ifdef ULANZI
+#ifndef awtrix2_upgrade
         uint16_t ADCVALUE = analogRead(BATTERY_PIN);
         BATTERY_PERCENT = max(min((int)map(ADCVALUE, MIN_BATTERY, MAX_BATTERY, 0, 100), 100), 0);
         BATTERY_RAW = ADCVALUE;
 #endif
         if (SENSOR_READING)
         {
-#ifdef ULANZI
-            sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
-#else
+#ifdef awtrix2_upgrade
             switch (TEMP_SENSOR_TYPE)
             {
             case TEMP_SENSOR_TYPE_BME280:
@@ -433,6 +438,9 @@ void PeripheryManager_::tick()
                 CURRENT_HUM = 0;
                 break;
             }
+
+#else
+            sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
 #endif
             CURRENT_TEMP += TEMP_OFFSET;
             CURRENT_HUM += HUM_OFFSET;

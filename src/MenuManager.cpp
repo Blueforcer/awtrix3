@@ -47,16 +47,17 @@ const char *menuItems[] PROGMEM = {
     "TEMP",
     "APPS",
     "SOUND",
-#ifndef ULANZI
+#ifdef awtrix2_upgrade
     "VOLUME",
 #endif
     "UPDATE"};
 
 int8_t menuIndex = 0;
-#ifdef ULANZI
-uint8_t menuItemCount = 12;
-#else
+#ifdef awtrix2_upgrade
 uint8_t menuItemCount = 13;
+
+#else
+uint8_t menuItemCount = 12;
 #endif
 
 const char *timeFormat[] PROGMEM = {
@@ -91,20 +92,23 @@ uint8_t appsCount = 5;
 
 MenuState currentState = MainMenu;
 
-uint16_t textColors[] PROGMEM = {
-    0xFFFF,  // White
-    0xF800,  // Red
-    0xF812,  // Dark orange
-    0xF81F,  // Yellow
-    0x881F,  // Dark green
-    0x001F,  // Blue
-    0x04FF,  // Light blue
-    0x07FC,  // Cyan
-    0x07E2,  // Seafoam green
-    0xAFE0,  // Light green
-    0xFFE0,  // Light yellow
-    0xFD60,  // Dark yellow
-    0xFBC0}; // Pink
+uint32_t textColors[] = {
+    0xFFFFFF, // White
+    0xFF0000, // Red
+    0x00FF00, // Green
+    0x0000FF, // Blue
+    0xFFFF00, // Yellow
+    0xFF00FF, // Magenta
+    0x00FFFF, // Cyan
+    0xFFA500, // Orange
+    0x800080, // Purple
+    0x008080, // Teal
+    0x808000, // Olive
+    0x800000, // Maroon
+    0x008000, // Dark Green
+    0x000080, // Navy
+    0x808080  // Gray
+};
 
 uint8_t currentColor;
 
@@ -120,14 +124,17 @@ MenuManager_ &MenuManager = MenuManager.getInstance();
 int convertBRIPercentTo8Bit(int brightness_percent)
 {
     int brightness;
-    if (brightness_percent <= 10) {
+    if (brightness_percent <= 10)
+    {
         // Map 10 % or lower 1:1 to 0:255 range. Reasons:
         // * 1% would be mapped to 2 so lowest value would be inaccessible.
         // * Small changes in lower brightness are perceived by humans
         //   as big changes, so it makes sense to give higher
         //   "resolution" here.
         brightness = brightness_percent;
-    } else {
+    }
+    else
+    {
         brightness = map(brightness_percent, 0, 100, 0, 255);
     }
     return brightness;
@@ -141,14 +148,14 @@ String MenuManager_::menutext()
     switch (currentState)
     {
     case MainMenu:
-        DisplayManager.drawMenuIndicator(menuIndex, menuItemCount, 0xF800);
+        DisplayManager.drawMenuIndicator(menuIndex, menuItemCount, 0xF80000);
         return menuItems[menuIndex];
     case BrightnessMenu:
         return AUTO_BRIGHTNESS ? "AUTO" : String(BRIGHTNESS_PERCENT) + "%";
     case ColorMenu:
-        DisplayManager.drawMenuIndicator(currentColor, sizeof(textColors) / sizeof(textColors[0]), 0xFBC0);
+        DisplayManager.drawMenuIndicator(currentColor, sizeof(textColors) / sizeof(textColors[0]), 0xFBC000);
         DisplayManager.setTextColor(textColors[currentColor]);
-        return "0x" + String(textColors[currentColor], HEX);
+        return "0X" + String(textColors[currentColor], HEX);
     case SwitchMenu:
         return AUTO_TRANSITION ? "ON" : "OFF";
     case SoundMenu:
@@ -158,7 +165,7 @@ String MenuManager_::menutext()
     case AppTimeMenu:
         return String(TIME_PER_APP / 1000.0, 0) + "s";
     case TimeFormatMenu:
-        DisplayManager.drawMenuIndicator(timeFormatIndex, timeFormatCount, 0xFBC0);
+        DisplayManager.drawMenuIndicator(timeFormatIndex, timeFormatCount, 0xFBC000);
 
         char display[9];
         if (timeFormat[timeFormatIndex][2] == ' ')
@@ -174,7 +181,7 @@ String MenuManager_::menutext()
         strftime(t, sizeof(t), display, localtime(&now));
         return t;
     case DateFormatMenu:
-        DisplayManager.drawMenuIndicator(dateFormatIndex, dateFormatCount, 0xFBC0);
+        DisplayManager.drawMenuIndicator(dateFormatIndex, dateFormatCount, 0xFBC000);
         strftime(t, sizeof(t), dateFormat[dateFormatIndex], localtime(&now));
         return t;
     case WeekdayMenu:
@@ -182,7 +189,7 @@ String MenuManager_::menutext()
     case TempMenu:
         return IS_CELSIUS ? "°C" : "°F";
     case Appmenu:
-        DisplayManager.drawMenuIndicator(appsIndex, appsCount, 0xFBC0);
+        DisplayManager.drawMenuIndicator(appsIndex, appsCount, 0xFBC000);
         switch (appsIndex)
         {
         case 0:
@@ -197,7 +204,7 @@ String MenuManager_::menutext()
         case 3:
             DisplayManager.drawBMP(0, 0, icon_2075, 8, 8);
             return SHOW_HUM ? "ON" : "OFF";
-#ifdef ULANZI
+#ifndef awtrix2_upgrade
         case 4:
             DisplayManager.drawBMP(0, 0, icon_1486, 8, 8);
             return SHOW_BAT ? "ON" : "OFF";
@@ -263,7 +270,7 @@ void MenuManager_::rightButton()
     case TempMenu:
         IS_CELSIUS = !IS_CELSIUS;
         break;
-#ifndef ULANZI
+#ifdef awtrix2_upgrade
     case VolumeMenu:
         if ((VOLUME_PERCENT + 1) > 100)
             VOLUME_PERCENT = 0;
@@ -324,7 +331,7 @@ void MenuManager_::leftButton()
     case SoundMenu:
         SOUND_ACTIVE = !SOUND_ACTIVE;
         break;
-#ifndef ULANZI
+#ifdef awtrix2_upgrade
     case VolumeMenu:
         if ((VOLUME_PERCENT - 1) < 0)
             VOLUME_PERCENT = 100;
@@ -349,9 +356,12 @@ void MenuManager_::selectButton()
         {
         case 0:
             // reverse of convertBRIPercentTo8Bit.
-            if (BRIGHTNESS <= 10) {
+            if (BRIGHTNESS <= 10)
+            {
                 BRIGHTNESS_PERCENT = BRIGHTNESS;
-            } else {
+            }
+            else
+            {
                 BRIGHTNESS_PERCENT = map(BRIGHTNESS, 0, 255, 0, 100);
             }
             currentState = BrightnessMenu;
@@ -387,7 +397,7 @@ void MenuManager_::selectButton()
             currentState = SoundMenu;
             break;
         case 11:
-#ifndef ULANZI
+#ifdef awtrix2_upgrade
             currentState = VolumeMenu;
             break;
 #endif
@@ -424,7 +434,7 @@ void MenuManager_::selectButton()
         case 3:
             SHOW_HUM = !SHOW_HUM;
             break;
-#ifdef ULANZI
+#ifndef awtrix2_upgrade
         case 4:
             SHOW_BAT = !SHOW_BAT;
             break;
@@ -445,11 +455,11 @@ void MenuManager_::selectButtonLong()
         switch (currentState)
         {
         case BrightnessMenu:
-            //BRIGHTNESS = map(BRIGHTNESS_PERCENT, 0, 100, 0, 255);
+            // BRIGHTNESS = map(BRIGHTNESS_PERCENT, 0, 100, 0, 255);
             saveSettings();
             break;
         case ColorMenu:
-            TEXTCOLOR_565 = textColors[currentColor];
+            TEXTCOLOR_888 = textColors[currentColor];
             saveSettings();
             break;
         case MainMenu:
@@ -480,7 +490,7 @@ void MenuManager_::selectButtonLong()
             DisplayManager.loadNativeApps();
             saveSettings();
             break;
-#ifndef ULANZI
+#ifdef awtrix2_upgrade
         case VolumeMenu:
             VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
             PeripheryManager.setVolume(VOLUME);

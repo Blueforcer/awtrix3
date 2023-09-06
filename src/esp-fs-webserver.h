@@ -85,7 +85,7 @@ public:
     void onNotFound(WebServerClass::THandlerFunction fn);
 
     void addHandler(const Uri &uri, HTTPMethod method, WebServerClass::THandlerFunction fn);
-
+    void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info);
     void addHandler(const Uri &uri, WebServerClass::THandlerFunction handler);
 
     void setCaptiveWebage(const char *url);
@@ -96,7 +96,8 @@ public:
 
     WebServerClass *getRequest();
 
-    void setAuth(const String& user, const String& pass) {
+    void setAuth(const String &user, const String &pass)
+    {
         authUser = user;
         authPass = pass;
     }
@@ -108,11 +109,11 @@ public:
 
     inline bool clearOptions()
     {
-        File file = m_filesystem->open("/config.json", "r");
+        File file = m_filesystem->open("/DoNotTouch.json", "r");
         if (file)
         {
             file.close();
-            m_filesystem->remove("/config.json");
+            m_filesystem->remove("/DoNotTouch.json");
             return true;
         }
         return false;
@@ -167,7 +168,7 @@ public:
     inline void addOption(const char *label, T val, bool hidden = false,
                           double d_min = MIN_F, double d_max = MAX_F, double step = 1.0)
     {
-        File file = m_filesystem->open("/config.json", "r");
+        File file = m_filesystem->open("/DoNotTouch.json", "r");
         int sz = file.size() * 1.33;
         int docSize = max(sz, 2048);
         DynamicJsonDocument doc((size_t)docSize);
@@ -223,7 +224,7 @@ public:
             doc[key] = static_cast<T>(val);
         }
 
-        file = m_filesystem->open("/config.json", "w");
+        file = m_filesystem->open("/DoNotTouch.json", "w");
         if (serializeJsonPretty(doc, file) == 0)
         {
             DebugPrintln(F("Failed to write to file"));
@@ -235,7 +236,7 @@ public:
     template <typename T>
     bool getOptionValue(const char *label, T &var)
     {
-        File file = m_filesystem->open("/config.json", "r");
+        File file = m_filesystem->open("/DoNotTouch.json", "r");
         DynamicJsonDocument doc(file.size() * 1.33);
         if (file)
         {
@@ -265,7 +266,7 @@ public:
     bool saveOptionValue(const char *label, T val)
     {
         // Öffne die Datei im Lesemodus, um den Inhalt des Dokuments beizubehalten
-        File file = m_filesystem->open("/config.json", "r");
+        File file = m_filesystem->open("/DoNotTouch.json", "r");
         DynamicJsonDocument doc(file.size() * 1.33);
 
         if (file)
@@ -295,7 +296,7 @@ public:
         }
 
         // Öffne die Datei im Schreibmodus und speichere das geänderte Dokument
-        file = m_filesystem->open("/config.json", "w");
+        file = m_filesystem->open("/DoNotTouch.json", "w");
         if (!file)
             return false;
         serializeJsonPretty(doc, file);
@@ -307,6 +308,9 @@ public:
 #endif
 
 private:
+    int failedAttempts = 0;
+    unsigned long previousMillis = 0;
+    unsigned long interval = 30000;
     char m_basePath[16];
     UpdateServerClass m_httpUpdater;
     String authUser;

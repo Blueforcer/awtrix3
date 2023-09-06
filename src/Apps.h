@@ -31,8 +31,9 @@ struct CustomApp
     String drawInstructions;
     float scrollposition = 0;
     int16_t scrollDelay = 0;
+    byte lifetimeMode = 0;
     String text;
-    uint16_t color;
+    uint32_t color;
     File icon;
     bool isGif;
     bool iconSearched = false;
@@ -56,17 +57,18 @@ struct CustomApp
     int lineSize;
     long lastUpdate;
     int16_t lifetime;
-    std::vector<uint16_t> colors;
+    std::vector<uint32_t> colors;
     std::vector<String> fragments;
     int textOffset;
     int iconOffset;
     int progress = -1;
-    uint16_t pColor;
-    uint16_t background = 0;
-    uint16_t pbColor;
+    uint32_t pColor;
+    uint32_t background = 0;
+    uint32_t pbColor;
     float scrollSpeed = 100;
     bool topText = true;
     bool noScrolling = true;
+    bool lifeTimeEnd = false;
 };
 
 String currentCustomApp;
@@ -79,7 +81,7 @@ struct Notification
     float scrollposition = 34;
     int16_t scrollDelay = 0;
     String text;
-    uint16_t color;
+    uint32_t color;
     bool soundPlayed = false;
     File icon;
     bool rainbow;
@@ -99,14 +101,14 @@ struct Notification
     int lineData[16] = {0};
     int barSize;
     int lineSize;
-    std::vector<uint16_t> colors;
+    std::vector<uint32_t> colors;
     std::vector<String> fragments;
     int textOffset;
     int progress = -1;
-    uint16_t pColor;
+    uint32_t pColor;
     int effect = -1;
-    uint16_t background = 0;
-    uint16_t pbColor;
+    uint32_t background = 0;
+    uint32_t pbColor;
     bool wakeup;
     float scrollSpeed = 100;
     bool topText = true;
@@ -136,6 +138,18 @@ String getAppNameByFunction(AppCallback AppFunction)
     }
 
     return "";
+}
+
+String getAppNameAtIndex(int index)
+{
+    if (index >= 0 && index < Apps.size())
+    {
+        return Apps[index].first;
+    }
+    else
+    {
+        return "";
+    }
 }
 
 int findAppIndexByName(const String &name)
@@ -176,7 +190,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
 
     if (TIME_COLOR > 0)
     {
-        matrix->setTextColor(TIME_COLOR);
+        DisplayManager.setTextColor(TIME_COLOR);
     }
     else
     {
@@ -215,17 +229,17 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         wdPosY = TIME_MODE == 1 ? 7 : 0;
         timePosY = TIME_MODE == 1 ? 6 : 7;
         DisplayManager.printText(12 + x, timePosY + y, t, false, 2);
-        matrix->drawRect(0 + x, 0 + y, 9 + x, 2 + y, CALENDAR_COLOR);
-        matrix->fillRect(0 + x, 2 + y, 9 + x, 7 + y, matrix->Color(255, 255, 255));
+        DisplayManager.drawFilledRect(0 + x, 0 + y, 9 + x, 2 + y, CALENDAR_HEADER_COLOR);
+        DisplayManager.drawFilledRect(0 + x, 2 + y, 9 + x, 7 + y, CALENDAR_BODY_COLOR);
     }
     else if (TIME_MODE == 3 || TIME_MODE == 4)
     {
         wdPosY = TIME_MODE == 3 ? 7 : 0;
         timePosY = TIME_MODE == 3 ? 6 : 7;
         DisplayManager.printText(12 + x, timePosY + y, t, false, 2);
-        matrix->fillRect(0 + x, 0 + y, 9 + x, 8 + y, CALENDAR_COLOR);
-        matrix->drawLine(1, 0, 2, 0, matrix->Color(0, 0, 0));
-        matrix->drawLine(6, 0, 7, 0, matrix->Color(0, 0, 0));
+        DisplayManager.drawFilledRect(0 + x, 0 + y, 9 + x, 8 + y, CALENDAR_BODY_COLOR);
+        DisplayManager.drawLine(1, 0, 2, 0, 0x000000);
+        DisplayManager.drawLine(6, 0, 7, 0, 0x000000);
     }
     else
     {
@@ -238,16 +252,16 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     {
         char day_str[3];
         sprintf(day_str, "%d", timeInfo->tm_mday);
-        matrix->setTextColor(CALENDAR_TEXT_COLOR);
+        DisplayManager.setTextColor(CALENDAR_TEXT_COLOR);
         if (timeInfo->tm_mday < 10)
         {
-            matrix->setCursor(3 + x, 7 + y);
+            DisplayManager.setCursor(3 + x, 7 + y);
         }
         else
         {
-            matrix->setCursor(1 + x, 7 + y);
+            DisplayManager.setCursor(1 + x, 7 + y);
         }
-        matrix->print(day_str);
+        DisplayManager.matrixPrint(day_str);
         uint8_t wdPosY = TIME_MODE > 0 ? 0 : 8;
         uint8_t timePosY = TIME_MODE > 0 ? 6 : 0;
     }
@@ -266,11 +280,11 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
 
         if (i == (timeInfo->tm_wday + 6 + dayOffset) % 7)
         {
-            matrix->drawLine(lineStart + x, y + wdPosY, lineEnd + x, y + wdPosY, WDC_ACTIVE);
+            DisplayManager.drawLine(lineStart + x, y + wdPosY, lineEnd + x, y + wdPosY, WDC_ACTIVE);
         }
         else
         {
-            matrix->drawLine(lineStart + x, y + wdPosY, lineEnd + x, y + wdPosY, WDC_INACTIVE);
+            DisplayManager.drawLine(lineStart + x, y + wdPosY, lineEnd + x, y + wdPosY, WDC_INACTIVE);
         }
     }
 }
@@ -282,7 +296,7 @@ void DateApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     CURRENT_APP = "Date";
     if (DATE_COLOR > 0)
     {
-        matrix->setTextColor(DATE_COLOR);
+        DisplayManager.setTextColor(DATE_COLOR);
     }
     else
     {
@@ -301,11 +315,11 @@ void DateApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     {
         if (i == (timeInfo->tm_wday + 6 + dayOffset) % 7)
         {
-            matrix->drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, WDC_ACTIVE);
+            DisplayManager.drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, WDC_ACTIVE);
         }
         else
         {
-            matrix->drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, WDC_INACTIVE);
+            DisplayManager.drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, WDC_INACTIVE);
         }
     }
 }
@@ -317,7 +331,7 @@ void TempApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     CURRENT_APP = "Temperature";
     if (TEMP_COLOR > 0)
     {
-        matrix->setTextColor(TEMP_COLOR);
+        DisplayManager.setTextColor(TEMP_COLOR);
     }
     else
     {
@@ -326,41 +340,41 @@ void TempApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     matrix->drawRGBBitmap(x, y, icon_234, 8, 8);
 
     if (TEMP_DECIMAL_PLACES > 0)
-        matrix->setCursor(8 + x, 6 + y);
+        DisplayManager.setCursor(8 + x, 6 + y);
     else
-        matrix->setCursor(12 + x, 6 + y);
+        DisplayManager.setCursor(12 + x, 6 + y);
 
     if (IS_CELSIUS)
     {
-        matrix->print(CURRENT_TEMP, TEMP_DECIMAL_PLACES);
-        matrix->print(utf8ascii("°C"));
+        DisplayManager.matrixPrint(CURRENT_TEMP, TEMP_DECIMAL_PLACES);
+        DisplayManager.matrixPrint(utf8ascii("°C"));
     }
     else
     {
         double tempF = (CURRENT_TEMP * 9 / 5) + 32;
-        matrix->print(tempF, TEMP_DECIMAL_PLACES);
-        matrix->print(utf8ascii("°F"));
+        DisplayManager.matrixPrint(tempF, TEMP_DECIMAL_PLACES);
+        DisplayManager.matrixPrint(utf8ascii("°F"));
     }
 }
 
-uint16_t fadeColor(uint16_t color, uint32_t interval)
+uint32_t fadeColor(uint32_t color, uint32_t interval)
 {
     float phase = (sin(2 * PI * millis() / float(interval)) + 1) * 0.5;
-    uint8_t r = ((color >> 11) & 0x1F) * phase;
-    uint8_t g = ((color >> 5) & 0x3F) * phase;
-    uint8_t b = (color & 0x1F) * phase;
-    return (r << 11) | (g << 5) | b;
+    uint8_t r = ((color >> 16) & 0xFF) * phase;
+    uint8_t g = ((color >> 8) & 0xFF) * phase;
+    uint8_t b = (color & 0xFF) * phase;
+    return (r << 16) | (g << 8) | b;
 }
 
 void StatusOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
 {
     if (!WiFi.isConnected())
     {
-        matrix->drawPixel(0, 0, fadeColor(matrix->Color(255, 0, 0), 2000));
+        matrix->drawPixel(0, 0, fadeColor(0xFF0000, 2000));
     }
     if (!MQTTManager.isConnected())
     {
-        matrix->drawPixel(0, 7, fadeColor(matrix->Color(255, 255, 0), 2000));
+        matrix->drawPixel(0, 7, fadeColor(0xFFFF00, 2000));
     }
 }
 
@@ -371,28 +385,28 @@ void HumApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     CURRENT_APP = "Humidity";
     if (HUM_COLOR > 0)
     {
-        matrix->setTextColor(HUM_COLOR);
+        DisplayManager.setTextColor(HUM_COLOR);
     }
     else
     {
         DisplayManager.getInstance().resetTextColor();
     }
     matrix->drawRGBBitmap(x, y + 1, icon_2075, 8, 8);
-    matrix->setCursor(14 + x, 6 + y);
+    DisplayManager.setCursor(14 + x, 6 + y);
     int humidity = CURRENT_HUM;
-    matrix->print(humidity);
-    matrix->print("%");
+    DisplayManager.matrixPrint(humidity, 0);
+    DisplayManager.matrixPrint("%");
 }
 
-uint16_t TextEffect(uint16_t color, uint32_t fade, uint32_t blink)
+uint32_t TextEffect(uint32_t color, uint32_t fade, uint32_t blink)
 {
     if (fade > 0)
     {
         float phase = (sin(2 * PI * millis() / float(fade)) + 1) * 0.5;
-        uint8_t r = ((color >> 11) & 0x1F) * phase;
-        uint8_t g = ((color >> 5) & 0x3F) * phase;
-        uint8_t b = (color & 0x1F) * phase;
-        return (r << 11) | (g << 5) | b;
+        uint8_t r = ((color >> 16) & 0xFF) * phase;
+        uint8_t g = ((color >> 8) & 0xFF) * phase;
+        uint8_t b = (color & 0xFF) * phase;
+        return (r << 16) | (g << 8) | b;
     }
     else if (blink > 0)
     {
@@ -411,7 +425,7 @@ uint16_t TextEffect(uint16_t color, uint32_t fade, uint32_t blink)
     }
 }
 
-#ifdef ULANZI
+#ifndef awtrix2_upgrade
 void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     if (notifyFlag)
@@ -419,16 +433,16 @@ void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     CURRENT_APP = "Battery";
     if (BAT_COLOR > 0)
     {
-        matrix->setTextColor(BAT_COLOR);
+        DisplayManager.setTextColor(BAT_COLOR);
     }
     else
     {
         DisplayManager.getInstance().resetTextColor();
     }
     matrix->drawRGBBitmap(x, y, icon_1486, 8, 8);
-    matrix->setCursor(14 + x, 6 + y);
-    matrix->print(BATTERY_PERCENT); // Ausgabe des Ladezustands
-    matrix->print("%");
+    DisplayManager.setCursor(14 + x, 6 + y);
+    DisplayManager.matrixPrint(BATTERY_PERCENT, 0); // Ausgabe des Ladezustands
+    DisplayManager.matrixPrint("%");
 }
 #endif
 
@@ -437,7 +451,7 @@ void MenuOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlay
     if (!MenuManager.inMenu)
         return;
     matrix->fillScreen(0);
-    DisplayManager.setTextColor(matrix->Color(255, 255, 255));
+    DisplayManager.setTextColor(0xFFFFFF);
     DisplayManager.printText(0, 6, utf8ascii(MenuManager.menutext()).c_str(), true, 2);
 }
 
@@ -466,7 +480,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         }
     }
 
-    matrix->fillRect(x, y, 32, 8, ca->background);
+    DisplayManager.drawFilledRect(x, y, 32, 8, ca->background);
 
     if (ca->effect > -1)
     {
@@ -515,7 +529,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     uint16_t availableWidth = (hasIcon) ? 24 : 32;
 
     bool noScrolling = textWidth <= availableWidth;
-
+    int iconWidth;
     auto renderFirst = [&]()
     {
         if (hasIcon)
@@ -539,15 +553,16 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             }
             if (ca->isGif)
             {
-                gifPlayer->playGif(x + ca->iconPosition + ca->iconOffset, y, &ca->icon);
+                iconWidth = gifPlayer->playGif(x + ca->iconPosition + ca->iconOffset, y, &ca->icon);
             }
             else
             {
                 DisplayManager.drawJPG(x + ca->iconPosition + ca->iconOffset, y, ca->icon);
+                iconWidth = 8;
             }
             if (!noScrolling)
             {
-                matrix->drawLine(8 + x + ca->iconPosition, 0 + y, 8 + x + ca->iconPosition, 7 + y, 0);
+                DisplayManager.drawLine(iconWidth + x + ca->iconPosition, 0 + y, iconWidth + x + ca->iconPosition, 6 + y, ca->background);
             }
         }
 
@@ -558,7 +573,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 
         if (ca->progress > -1)
         {
-            DisplayManager.drawProgressBar((hasIcon ? 9 : 0), 7 + y, ca->progress, ca->pColor, ca->pbColor);
+            DisplayManager.drawProgressBar((hasIcon ? 8 : 0), 7 + y, ca->progress, ca->pColor, ca->pbColor);
         }
 
         if (ca->barSize > 0)
@@ -599,8 +614,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             {
                 DisplayManager.setAutoTransition(true);
                 ca->currentRepeat = 0;
-                if (AUTO_TRANSITION)
-                    DisplayManager.nextApp();
+                DisplayManager.nextApp();
                 ca->scrollDelay = 0;
                 ca->scrollposition = 9 + ca->textOffset;
                 return;
@@ -669,7 +683,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             int16_t fragmentX = textX + ca->textOffset;
             for (size_t i = 0; i < ca->fragments.size(); ++i)
             {
-                matrix->setTextColor(TextEffect(ca->colors[i], ca->fade, ca->blink));
+                DisplayManager.setTextColor(TextEffect(ca->colors[i], ca->fade, ca->blink));
                 DisplayManager.printText(x + fragmentX, y + 6, ca->fragments[i].c_str(), false, ca->textCase);
                 fragmentX += getTextWidth(ca->fragments[i].c_str(), ca->textCase);
             }
@@ -686,7 +700,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             }
             else
             {
-                matrix->setTextColor(TextEffect(ca->color, ca->fade, ca->blink));
+                DisplayManager.setTextColor(TextEffect(ca->color, ca->fade, ca->blink));
                 DisplayManager.printText(x + textX + ca->textOffset, y + 6, ca->text.c_str(), false, ca->textCase);
             }
         }
@@ -698,7 +712,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             int16_t fragmentX = ca->scrollposition + ca->textOffset;
             for (size_t i = 0; i < ca->fragments.size(); ++i)
             {
-                matrix->setTextColor(TextEffect(ca->colors[i], ca->fade, ca->blink));
+                DisplayManager.setTextColor(TextEffect(ca->colors[i], ca->fade, ca->blink));
                 DisplayManager.printText(x + fragmentX, y + 6, ca->fragments[i].c_str(), false, ca->textCase);
                 fragmentX += getTextWidth(ca->fragments[i].c_str(), ca->textCase);
             }
@@ -715,7 +729,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             }
             else
             {
-                matrix->setTextColor(TextEffect(ca->color, ca->fade, ca->blink));
+                DisplayManager.setTextColor(TextEffect(ca->color, ca->fade, ca->blink));
                 DisplayManager.printText(x + ca->scrollposition + ca->textOffset, 6 + y, ca->text.c_str(), false, ca->textCase);
             }
         }
@@ -726,7 +740,11 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         renderFirst();
     }
 
-    // Reset text color
+    if (ca->lifeTimeEnd)
+    {
+        DisplayManager.drawRect(x, y, 32 + x, 8 + y, 0x6e0700);
+    }
+
     DisplayManager.getInstance().resetTextColor();
 }
 
@@ -772,7 +790,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
         {
             notifyFlag = false;
             if (AUTO_TRANSITION)
-                DisplayManager.nextApp();
+                DisplayManager.forceNextApp();
         }
 
         return;
@@ -785,7 +803,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
     bool hasIcon = notifications[0].icon;
 
     // Clear the matrix display
-    matrix->fillRect(0, 0, 32, 8, notifications[0].background);
+    DisplayManager.drawFilledRect(0, 0, 32, 8, notifications[0].background);
 
     if (notifications[0].effect > -1)
     {
@@ -810,12 +828,11 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
 
     // Check if text is scrolling
     bool noScrolling = (textWidth <= availableWidth);
-
+    int iconWidth;
     auto renderFirst = [&]()
     {
         if (hasIcon)
         {
-            // Push icon if enabled and text is scrolling
             if (notifications[0].pushIcon > 0 && !noScrolling)
             {
                 if (notifications[0].iconPosition < 0 && notifications[0].iconWasPushed == false && notifications[0].scrollposition > 8)
@@ -823,40 +840,35 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
                     notifications[0].iconPosition += movementFactor;
                 }
 
-                if (notifications[0].scrollposition < 9 && !notifications[0].iconWasPushed)
+                if (notifications[0].scrollposition < (9 - notifications[0].textOffset) && !notifications[0].iconWasPushed)
                 {
-                    notifications[0].iconPosition = notifications[0].scrollposition - 9;
+                    notifications[0].iconPosition = notifications[0].scrollposition - 9 + notifications[0].textOffset;
 
-                    if (notifications[0].iconPosition <= -9)
+                    if (notifications[0].iconPosition <= -9 - notifications[0].textOffset)
                     {
                         notifications[0].iconWasPushed = true;
                     }
                 }
             }
 
-            // Display animated GIF if
             if (notifications[0].isGif)
             {
-                // Display GIF if present
-
-                gifPlayer->playGif(notifications[0].iconPosition + notifications[0].iconOffset, 0, &notifications[0].icon);
+                iconWidth = gifPlayer->playGif(notifications[0].iconPosition + notifications[0].iconOffset, 0, &notifications[0].icon);
             }
             else
             {
-                // Display JPG image if present
                 DisplayManager.drawJPG(notifications[0].iconPosition + notifications[0].iconOffset, 0, notifications[0].icon);
+                iconWidth = 8;
             }
-
-            // Display icon divider line if text is scrolling
             if (!noScrolling)
             {
-                matrix->drawLine(8 + notifications[0].iconPosition + notifications[0].iconOffset, 0, 8 + notifications[0].iconPosition, 7, 0);
+                DisplayManager.drawLine(iconWidth + notifications[0].iconPosition + notifications[0].iconOffset, 0, iconWidth + notifications[0].iconPosition, 6, notifications[0].background);
             }
         }
 
         if (notifications[0].progress > -1)
         {
-            DisplayManager.drawProgressBar((hasIcon ? 9 : 0), 7, notifications[0].progress, notifications[0].pColor, notifications[0].pbColor);
+            DisplayManager.drawProgressBar((hasIcon ? 8 : 0), 7, notifications[0].progress, notifications[0].pColor, notifications[0].pbColor);
         }
 
         if (notifications[0].drawInstructions.length() > 0)
@@ -963,7 +975,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
                 }
                 else
                 {
-                    matrix->setTextColor(TextEffect(notifications[0].colors[i], notifications[0].fade, notifications[0].blink));
+                    DisplayManager.setTextColor(TextEffect(notifications[0].colors[i], notifications[0].fade, notifications[0].blink));
                     DisplayManager.printText(fragmentX, 6, notifications[0].fragments[i].c_str(), false, notifications[0].textCase);
                 }
 
@@ -982,7 +994,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
             }
             else
             {
-                matrix->setTextColor(TextEffect(notifications[0].color, notifications[0].fade, notifications[0].blink));
+                DisplayManager.setTextColor(TextEffect(notifications[0].color, notifications[0].fade, notifications[0].blink));
 
                 DisplayManager.printText(textX + notifications[0].textOffset, 6, notifications[0].text.c_str(), false, notifications[0].textCase);
             }
@@ -1001,7 +1013,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
                 }
                 else
                 {
-                    matrix->setTextColor(TextEffect(notifications[0].colors[i], notifications[0].fade, notifications[0].blink));
+                    DisplayManager.setTextColor(TextEffect(notifications[0].colors[i], notifications[0].fade, notifications[0].blink));
                     DisplayManager.printText(fragmentX, 6, notifications[0].fragments[i].c_str(), false, notifications[0].textCase);
                 }
                 fragmentX += getTextWidth(notifications[0].fragments[i].c_str(), notifications[0].textCase);
@@ -1021,7 +1033,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
             else
             {
                 // Set text color
-                matrix->setTextColor(TextEffect(notifications[0].color, notifications[0].fade, notifications[0].blink));
+                DisplayManager.setTextColor(TextEffect(notifications[0].color, notifications[0].fade, notifications[0].blink));
                 DisplayManager.printText(notifications[0].scrollposition + notifications[0].textOffset, 6, notifications[0].text.c_str(), false, notifications[0].textCase);
             }
         }

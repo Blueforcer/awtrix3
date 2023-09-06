@@ -136,7 +136,7 @@ private:
 
 public:
   MatrixDisplayUi(FastLED_NeoMatrix *matrix);
-    uint16_t  fadeColor(uint16_t  color, uint32_t interval);
+  uint32_t fadeColor(uint32_t  color, uint32_t interval);
   uint8_t AppCount = 0;
   /**
    * Initialise the display
@@ -177,17 +177,17 @@ public:
    */
   void setTimePerTransition(uint16_t time);
 
-  void setIndicator1Color(uint16_t color);
+  void setIndicator1Color(uint32_t color);
   void setIndicator1State(bool state);
   void setIndicator1Blink(int Blink);
   void setIndicator1Fade(int fade);
 
-  void setIndicator2Color(uint16_t color);
+  void setIndicator2Color(uint32_t color);
   void setIndicator2State(bool state);
   void setIndicator2Blink(int Blink);
   void setIndicator2Fade(int fade);
 
-  void setIndicator3Color(uint16_t color);
+  void setIndicator3Color(uint32_t color);
   void setIndicator3State(bool state);
   void setIndicator3Blink(int Blink);
   void setIndicator3Fade(int fade);
@@ -233,9 +233,9 @@ public:
 
   int8_t update();
 
-  uint16_t indicator1Color = 63488;
-  uint16_t indicator2Color = 31;
-  uint16_t indicator3Color = 65504;
+  uint32_t indicator1Color = 63488;
+  uint32_t indicator2Color = 31;
+  uint32_t indicator3Color = 65504;
 
   bool indicator1State = false;
   bool indicator2State = false;
