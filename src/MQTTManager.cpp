@@ -93,20 +93,20 @@ void onRGBColorCommand(HALight::RGBColor color, HALight *sender)
 {
     if (sender == Matrix)
     {
-        TEXTCOLOR_565 = ((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F);
+        TEXTCOLOR_888 = (color.red << 16) | (color.green << 8) | color.blue;
         saveSettings();
     }
     else if (sender == Indikator1)
     {
-        DisplayManager.setIndicator1Color(((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F));
+        DisplayManager.setIndicator1Color((color.red << 16) | (color.green << 8) | color.blue);
     }
     else if (sender == Indikator2)
     {
-        DisplayManager.setIndicator2Color(((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F));
+        DisplayManager.setIndicator2Color((color.red << 16) | (color.green << 8) | color.blue);
     }
     else if (sender == Indikator3)
     {
-        DisplayManager.setIndicator3Color(((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F));
+        DisplayManager.setIndicator3Color((color.red << 16) | (color.green << 8) | color.blue);
     }
     sender->setRGBColor(color); // report color back to the Home Assistant
 }
@@ -415,7 +415,7 @@ void MQTTManager_::sendStats()
 {
     if (mqtt.isConnected())
     {
-        if (HA_DISCOVERY)
+        if (HA_DISCOVERY  && mqtt.isConnected())
         {
             char buffer[5];
 #ifndef awtrix2_upgrade
@@ -438,9 +438,9 @@ void MQTTManager_::sendStats()
             Matrix->setState(!MATRIX_OFF, false);
             HALight::RGBColor color;
             color.isSet = true;
-            color.red = (TEXTCOLOR_565 >> 11) & 0x1F;
-            color.green = (TEXTCOLOR_565 >> 5) & 0x3F;
-            color.blue = TEXTCOLOR_565 & 0x1F;
+            color.red = (TEXTCOLOR_888 >> 11) & 0x1F;
+            color.green = (TEXTCOLOR_888 >> 5) & 0x3F;
+            color.blue = TEXTCOLOR_888 & 0x1F;
             color.red <<= 3;
             color.green <<= 2;
             color.blue <<= 3;
@@ -502,9 +502,9 @@ void MQTTManager_::setup()
 
         HALight::RGBColor color;
         color.isSet = true;
-        color.red = (TEXTCOLOR_565 >> 11) & 0x1F;  // Bitverschiebung um 11 Bits und Maskierung mit 0x1F
-        color.green = (TEXTCOLOR_565 >> 5) & 0x3F; // Bitverschiebung um 5 Bits und Maskierung mit 0x3F
-        color.blue = TEXTCOLOR_565 & 0x1F;         // Maskierung mit 0x1F
+        color.red = (TEXTCOLOR_888 >> 11) & 0x1F;  // Bitverschiebung um 11 Bits und Maskierung mit 0x1F
+        color.green = (TEXTCOLOR_888 >> 5) & 0x3F; // Bitverschiebung um 5 Bits und Maskierung mit 0x3F
+        color.blue = TEXTCOLOR_888 & 0x1F;         // Maskierung mit 0x1F
         color.red <<= 3;
         color.green <<= 2;
         color.blue <<= 3;
@@ -718,7 +718,7 @@ void MQTTManager_::setCurrentApp(String appName)
 
     if (DEBUG_MODE)
         DEBUG_PRINTF("Publish current app %s", appName.c_str());
-    if (HA_DISCOVERY)
+    if (HA_DISCOVERY && mqtt.isConnected())
         curApp->setValue(appName.c_str());
 
     publish("stats/currentApp", appName.c_str());
@@ -734,7 +734,7 @@ void MQTTManager_::sendButton(byte btn, bool state)
     case 0:
         if (btn0State != state)
         {
-            if (HA_DISCOVERY)
+            if (HA_DISCOVERY && mqtt.isConnected())
                 btnleft->setState(state, false);
             btn0State = state;
             publish(ButtonLeftTopic, state ? State1 : State0);
@@ -743,7 +743,7 @@ void MQTTManager_::sendButton(byte btn, bool state)
     case 1:
         if (btn1State != state)
         {
-            if (HA_DISCOVERY)
+            if (HA_DISCOVERY && mqtt.isConnected())
                 btnmid->setState(state, false);
             btn1State = state;
             publish(ButtonSelectTopic, state ? State1 : State0);
@@ -753,7 +753,7 @@ void MQTTManager_::sendButton(byte btn, bool state)
     case 2:
         if (btn2State != state)
         {
-            if (HA_DISCOVERY)
+            if (HA_DISCOVERY && mqtt.isConnected())
                 btnright->setState(state, false);
             btn2State = state;
             publish(ButtonRightTopic, state ? State1 : State0);
@@ -764,18 +764,15 @@ void MQTTManager_::sendButton(byte btn, bool state)
     }
 }
 
-void MQTTManager_::setIndicatorState(uint8_t indicator, bool state, uint16_t color)
+void MQTTManager_::setIndicatorState(uint8_t indicator, bool state, uint32_t color)
 {
-    if (HA_DISCOVERY)
+    if (HA_DISCOVERY  && mqtt.isConnected())
     {
         HALight::RGBColor c;
         c.isSet = true;
-        c.red = (color >> 11) & 0x1F;
-        c.green = (color >> 5) & 0x3F;
-        c.blue = color & 0x1F;
-        c.red <<= 3;
-        c.green <<= 2;
-        c.blue <<= 3;
+        c.red = (color >> 16) & 0xFF;   // Rote Komponente 8-Bit
+        c.green = (color >> 8) & 0xFF;  // Grüne Komponente 8-Bit
+        c.blue = color & 0xFF;       
 
         switch (indicator)
         {

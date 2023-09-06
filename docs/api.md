@@ -39,19 +39,6 @@ Toggle the matrix on or off:
 | ---------------- | ----------------------------- | ------------------------- | ----------- |
 | `[PREFIX]/power` | `http://[IP]/api/power`       | `{"power": true}` or `{"power": false}` | POST        |
 
-#### Reboot Awtrix
-If you need to restart the Awtrix:
-
-| MQTT Topic      | HTTP URL                      | Payload/Body | HTTP Method |
-|-----------------|-------------------------------|---------------|-------------|
-| `[PREFIX]/reboot` | `http://[IP]/api/reboot`     | -             | POST        |
-
-#### Erase Awtrix
-**WARNING**: This action will format the flash memory and EEPROM but will not modify the WiFi Settings. It essentially serves as a factory reset.
-
-| MQTT Topic      | HTTP URL                      | Payload/Body | HTTP Method |
-|-----------------|-------------------------------|---------------|-------------|
-| `N/A`           | `http://[IP]/api/erase`       | -             | POST        |
 
 ## Sound Playback
 
@@ -296,21 +283,20 @@ Directly transition to a desired app using its name.
 | `[PREFIX]/switch`            | `http://[IP]/api/switch`           | `{"name":"time"}` | POST       |
 
 **Built-in App Names**:
-- `time`
-- `date`
-- `temp`
-- `hum`
-- `bat`
+- `Time`
+- `Date`
+- `Temperature`
+- `Humidity`
+- `Battery`
 
 For custom apps, employ the name you designated in the topic or HTTP parameter. In MQTT, if `[PREFIX]/custom/test` is your topic, then `test` would be the app's name.
-
-
+  
 
 ## Change Settings
 
 Adjust various settings related to the app display.
 
-| MQTT Topic            | HTTP URL                          | Payload/Body | HTTP Method |
+| MQTT Topic            | HTTP URL                          | Payload/Body  | HTTP Method |
 | --------------------- | --------------------------------- | ------------- | ----------- |
 | `[PREFIX]/settings`   | `http://[IP]/api/settings`        | JSON          | POST        |
 
@@ -318,16 +304,16 @@ Adjust various settings related to the app display.
 
 You can adjust each property in the JSON object according to your preferences. Including a property is optional.
 
-| Key           | Type                      | Description                                                                                          | Value Range                                        | Default |
-| ------------- | ------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------- |
+| Key           | Type                      | Description                                                                                         | Value Range                                        | Default |
+| ------------- | ------------------------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------- |
 | `ATIME`       | number                    | Duration an app is displayed in seconds.                                                            | Positive integer                                   | 7       |
 | `TEFF`        | number                    | Choose between app transition effects.                                                              | 0-10                                               | 1       |
 | `TSPEED`      | number                    | Time taken for the transition to the next app in milliseconds.                                      | Positive integer                                   | 500     |
 | `TCOL`        | string/array of ints      | Global text color.                                                                                  | RGB array or hex color                             | N/A     |
 | `TMODE`       | integer                   | Changes the time app style.                                                                         | 0-4                                                | 1       |
-| `CHCOL`        | string/array of ints     | Calendar header color of the time app.                                                              | RGB array or hex color                             |`#FF0000`|
-| `CBCOL`        | string/array of ints     | Calendar body color of the time app.                                                                | RGB array or hex color                             |`#FFFFFF`|
-| `CTCOL`       | string/array of ints      | Calendar text color in the time app.                                                                | RGB array or hex color                             |`#00000` |
+| `CHCOL`       | string/array of ints      | Calendar header color of the time app.                                                              | RGB array or hex color                             |`#FF0000`|
+| `CBCOL`       | string/array of ints      | Calendar body color of the time app.                                                                | RGB array or hex color                             |`#FFFFFF`|
+| `CTCOL`       | string/array of ints      | Calendar text color in the time app.                                                                | RGB array or hex color                             |`#000000` |
 | `WD`          | boolean                   | Enable or disable the weekday display.                                                              | `true`/`false`                                     | true    |
 | `WDCA`        | string/array of ints      | Active weekday color.                                                                               | RGB array or hex color                             | N/A     |
 | `WDCI`        | string/array of ints      | Inactive weekday color.                                                                             | RGB array or hex color                             | N/A     |
@@ -404,4 +390,23 @@ You can initiate the firmware update either through the update button in HA or u
 |---------------------|-----------------------------------|---------------|--------------------|-------------|
 | `[PREFIX]/doupdate` | `http://[IP]/api/doupdate`        | JSON          | empty payload/body | POST        |
 
+#### Reboot Awtrix
+If you need to restart the Awtrix:
 
+| MQTT Topic      | HTTP URL                      | Payload/Body | HTTP Method |
+|-----------------|-------------------------------|---------------|-------------|
+| `[PREFIX]/reboot` | `http://[IP]/api/reboot`     | -             | POST        |
+
+#### Erase Awtrix
+**WARNING**: This action will format the flash memory and EEPROM but will not modify the WiFi Settings. It essentially serves as a factory reset.
+
+| MQTT Topic      | HTTP URL                      | Payload/Body | HTTP Method |
+|-----------------|-------------------------------|---------------|-------------|
+| `N/A`           | `http://[IP]/api/erase`       | -             | POST        |
+
+#### Clear Settings
+**WARNING**: This action will clear all you settings from the settings API. This does not belong to flash files and WiFi Settings.
+
+| MQTT Topic      | HTTP URL                      | Payload/Body | HTTP Method |
+|-----------------|-------------------------------|---------------|-------------|
+| `N/A`           | `http://[IP]/api/clearSettings`       | -             | POST        |

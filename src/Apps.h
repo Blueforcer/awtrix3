@@ -190,7 +190,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
 
     if (TIME_COLOR > 0)
     {
-        matrix->setTextColor(TIME_COLOR);
+        DisplayManager.setTextColor(TIME_COLOR);
     }
     else
     {
@@ -229,7 +229,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         wdPosY = TIME_MODE == 1 ? 7 : 0;
         timePosY = TIME_MODE == 1 ? 6 : 7;
         DisplayManager.printText(12 + x, timePosY + y, t, false, 2);
-        DisplayManager.drawRect(0 + x, 0 + y, 9 + x, 2 + y, CALENDAR_HEADER_COLOR);
+        DisplayManager.drawFilledRect(0 + x, 0 + y, 9 + x, 2 + y, CALENDAR_HEADER_COLOR);
         DisplayManager.drawFilledRect(0 + x, 2 + y, 9 + x, 7 + y, CALENDAR_BODY_COLOR);
     }
     else if (TIME_MODE == 3 || TIME_MODE == 4)
@@ -237,9 +237,9 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         wdPosY = TIME_MODE == 3 ? 7 : 0;
         timePosY = TIME_MODE == 3 ? 6 : 7;
         DisplayManager.printText(12 + x, timePosY + y, t, false, 2);
-       DisplayManager.drawFilledRect(0 + x, 0 + y, 9 + x, 8 + y, CALENDAR_BODY_COLOR);
-        DisplayManager.drawLine(1, 0, 2, 0, matrix->Color(0, 0, 0));
-        DisplayManager.drawLine(6, 0, 7, 0, matrix->Color(0, 0, 0));
+        DisplayManager.drawFilledRect(0 + x, 0 + y, 9 + x, 8 + y, CALENDAR_BODY_COLOR);
+        DisplayManager.drawLine(1, 0, 2, 0, 0x000000);
+        DisplayManager.drawLine(6, 0, 7, 0, 0x000000);
     }
     else
     {
@@ -280,7 +280,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
 
         if (i == (timeInfo->tm_wday + 6 + dayOffset) % 7)
         {
-           DisplayManager.drawLine(lineStart + x, y + wdPosY, lineEnd + x, y + wdPosY, WDC_ACTIVE);
+            DisplayManager.drawLine(lineStart + x, y + wdPosY, lineEnd + x, y + wdPosY, WDC_ACTIVE);
         }
         else
         {
@@ -331,7 +331,7 @@ void TempApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     CURRENT_APP = "Temperature";
     if (TEMP_COLOR > 0)
     {
-        matrix->setTextColor(TEMP_COLOR);
+        DisplayManager.setTextColor(TEMP_COLOR);
     }
     else
     {
@@ -370,11 +370,11 @@ void StatusOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
 {
     if (!WiFi.isConnected())
     {
-        matrix->drawPixel(0, 0, fadeColor(matrix->Color(255, 0, 0), 2000));
+        matrix->drawPixel(0, 0, fadeColor(0xFF0000, 2000));
     }
     if (!MQTTManager.isConnected())
     {
-        matrix->drawPixel(0, 7, fadeColor(matrix->Color(255, 255, 0), 2000));
+        matrix->drawPixel(0, 7, fadeColor(0xFFFF00, 2000));
     }
 }
 
@@ -394,7 +394,7 @@ void HumApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     matrix->drawRGBBitmap(x, y + 1, icon_2075, 8, 8);
     DisplayManager.setCursor(14 + x, 6 + y);
     int humidity = CURRENT_HUM;
-    DisplayManager.matrixPrint(humidity,0);    
+    DisplayManager.matrixPrint(humidity, 0);
     DisplayManager.matrixPrint("%");
 }
 
@@ -425,7 +425,6 @@ uint32_t TextEffect(uint32_t color, uint32_t fade, uint32_t blink)
     }
 }
 
-
 #ifndef awtrix2_upgrade
 void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
@@ -434,7 +433,7 @@ void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     CURRENT_APP = "Battery";
     if (BAT_COLOR > 0)
     {
-       DisplayManager.setTextColor(BAT_COLOR);
+        DisplayManager.setTextColor(BAT_COLOR);
     }
     else
     {
@@ -442,7 +441,7 @@ void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     }
     matrix->drawRGBBitmap(x, y, icon_1486, 8, 8);
     DisplayManager.setCursor(14 + x, 6 + y);
-    DisplayManager.matrixPrint(BATTERY_PERCENT,0); // Ausgabe des Ladezustands
+    DisplayManager.matrixPrint(BATTERY_PERCENT, 0); // Ausgabe des Ladezustands
     DisplayManager.matrixPrint("%");
 }
 #endif
@@ -452,7 +451,7 @@ void MenuOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlay
     if (!MenuManager.inMenu)
         return;
     matrix->fillScreen(0);
-    DisplayManager.setTextColor(matrix->Color(255, 255, 255));
+    DisplayManager.setTextColor(0xFFFFFF);
     DisplayManager.printText(0, 6, utf8ascii(MenuManager.menutext()).c_str(), true, 2);
 }
 

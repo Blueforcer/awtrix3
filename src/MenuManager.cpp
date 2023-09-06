@@ -148,12 +148,12 @@ String MenuManager_::menutext()
     switch (currentState)
     {
     case MainMenu:
-        DisplayManager.drawMenuIndicator(menuIndex, menuItemCount, 0xF800);
+        DisplayManager.drawMenuIndicator(menuIndex, menuItemCount, 0xF80000);
         return menuItems[menuIndex];
     case BrightnessMenu:
         return AUTO_BRIGHTNESS ? "AUTO" : String(BRIGHTNESS_PERCENT) + "%";
     case ColorMenu:
-        DisplayManager.drawMenuIndicator(currentColor, sizeof(textColors) / sizeof(textColors[0]), 0xFBC0);
+        DisplayManager.drawMenuIndicator(currentColor, sizeof(textColors) / sizeof(textColors[0]), 0xFBC000);
         DisplayManager.setTextColor(textColors[currentColor]);
         return "0X" + String(textColors[currentColor], HEX);
     case SwitchMenu:
@@ -165,7 +165,7 @@ String MenuManager_::menutext()
     case AppTimeMenu:
         return String(TIME_PER_APP / 1000.0, 0) + "s";
     case TimeFormatMenu:
-        DisplayManager.drawMenuIndicator(timeFormatIndex, timeFormatCount, 0xFBC0);
+        DisplayManager.drawMenuIndicator(timeFormatIndex, timeFormatCount, 0xFBC000);
 
         char display[9];
         if (timeFormat[timeFormatIndex][2] == ' ')
@@ -181,7 +181,7 @@ String MenuManager_::menutext()
         strftime(t, sizeof(t), display, localtime(&now));
         return t;
     case DateFormatMenu:
-        DisplayManager.drawMenuIndicator(dateFormatIndex, dateFormatCount, 0xFBC0);
+        DisplayManager.drawMenuIndicator(dateFormatIndex, dateFormatCount, 0xFBC000);
         strftime(t, sizeof(t), dateFormat[dateFormatIndex], localtime(&now));
         return t;
     case WeekdayMenu:
@@ -189,7 +189,7 @@ String MenuManager_::menutext()
     case TempMenu:
         return IS_CELSIUS ? "°C" : "°F";
     case Appmenu:
-        DisplayManager.drawMenuIndicator(appsIndex, appsCount, 0xFBC0);
+        DisplayManager.drawMenuIndicator(appsIndex, appsCount, 0xFBC000);
         switch (appsIndex)
         {
         case 0:
@@ -459,7 +459,7 @@ void MenuManager_::selectButtonLong()
             saveSettings();
             break;
         case ColorMenu:
-            TEXTCOLOR_565 = textColors[currentColor];
+            TEXTCOLOR_888 = textColors[currentColor];
             saveSettings();
             break;
         case MainMenu:

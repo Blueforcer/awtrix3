@@ -80,7 +80,7 @@ extern String TIME_FORMAT;
 extern bool AUTO_BRIGHTNESS;
 extern bool AP_MODE;
 extern bool MATRIX_OFF;
-extern uint32_t TEXTCOLOR_565;
+extern uint32_t TEXTCOLOR_888;
 extern bool MIRROR_DISPLAY;
 extern bool AUTO_TRANSITION;
 extern String TIME_FORMAT;

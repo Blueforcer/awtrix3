@@ -18,7 +18,7 @@ public:
     void setCurrentApp(String);
     void sendStats();
     void sendButton(byte, bool);
-    void setIndicatorState(uint8_t, bool, uint16_t);
+    void setIndicatorState(uint8_t indicator, bool state, uint32_t color);
     void beginPublish(const char *topic, unsigned int plength, boolean retained);
     void writePayload(const char *data, const uint16_t length);
     void endPublish();

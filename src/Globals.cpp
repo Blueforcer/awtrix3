@@ -24,6 +24,11 @@ void startLittleFS()
         DEBUG_PRINTLN(F("Starting filesystem"));
     if (LittleFS.begin())
     {
+        if (LittleFS.exists("/config.json"))
+        {
+            LittleFS.rename("/config.json", "/DoNotTouch.json");
+        }
+
 #ifdef ULANZI
         LittleFS.mkdir("/MELODIES");
 #endif
@@ -86,12 +91,12 @@ void loadDevSettings()
             TEMP_OFFSET = doc["temp_offset"];
         }
 
-         if (doc.containsKey("min_battery"))
+        if (doc.containsKey("min_battery"))
         {
             MIN_BATTERY = doc["min_battery"];
         }
 
-         if (doc.containsKey("max_battery"))
+        if (doc.containsKey("max_battery"))
         {
             MAX_BATTERY = doc["max_battery"];
         }
@@ -192,11 +197,10 @@ void loadSettings()
     if (DEBUG_MODE)
         DEBUG_PRINTLN(F("Loading Usersettings"));
     Settings.begin("awtrix", false);
-    Settings.clear();
     BRIGHTNESS = Settings.getUInt("BRI", 120);
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", false);
     UPPERCASE_LETTERS = Settings.getBool("UPPER", true);
-    TEXTCOLOR_565 = Settings.getUInt("TCOL", 0xFFFFFF);
+    TEXTCOLOR_888 = Settings.getUInt("TCOL", 0xFFFFFF);
     CALENDAR_HEADER_COLOR = Settings.getUInt("CHCOL", 0xFF0000);
     CALENDAR_TEXT_COLOR = Settings.getUInt("CTCOL", 0x000000);
     CALENDAR_BODY_COLOR = Settings.getUInt("CBCOL", 0xFFFFFF);
@@ -215,7 +219,7 @@ void loadSettings()
     SHOW_WEEKDAY = Settings.getBool("WD", true);
     TIME_PER_TRANSITION = Settings.getUInt("TSPEED", 400);
     TIME_PER_APP = Settings.getUInt("ATIME", 7000);
-    TIME_FORMAT = Settings.getString("TFORMAT", "%H:%M:%S");
+    TIME_FORMAT = Settings.getString("TFORMAT", "%H %M");
     DATE_FORMAT = Settings.getString("DFORMAT", "%d.%m.%y");
     START_ON_MONDAY = Settings.getBool("SOM", true);
     BLOCK_NAVIGATION = Settings.getBool("BLOCKN", false);
@@ -255,7 +259,7 @@ void saveSettings()
     Settings.putBool("BLOCKN", BLOCK_NAVIGATION);
     Settings.putBool("ATRANS", AUTO_TRANSITION);
     Settings.putUInt("UPPER", UPPERCASE_LETTERS);
-    Settings.putUInt("TCOL", TEXTCOLOR_565);
+    Settings.putUInt("TCOL", TEXTCOLOR_888);
     Settings.putUInt("TMODE", TIME_MODE);
     Settings.putUInt("TIME_COL", TIME_COLOR);
     Settings.putUInt("DATE_COL", DATE_COLOR);
@@ -293,7 +297,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.83";
+const char *VERSION = "0.84";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -358,8 +362,8 @@ bool AUTO_BRIGHTNESS = true;
 bool UPPERCASE_LETTERS = true;
 bool AP_MODE;
 bool MATRIX_OFF;
-bool MIRROR_DISPLAY=false;
-uint32_t TEXTCOLOR_565=0xFFFFFF;
+bool MIRROR_DISPLAY = false;
+uint32_t TEXTCOLOR_888 = 0xFFFFFF;
 bool SOUND_ACTIVE;
 String BOOT_SOUND = "";
 int TEMP_DECIMAL_PLACES = 0;
