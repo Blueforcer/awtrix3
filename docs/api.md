@@ -154,6 +154,7 @@ Below are the properties you can utilize in the JSON object. **All keys are opti
 | `pos` | integer | Defines the position of your custom page in the loop, starting at 0 for the first position. This will only apply with your first push. This function is experimental. | N/A | X |  |
 | `draw` | array of objects | Array of drawing instructions. Each object represents a drawing command. See the drawing instructions below. |  | X | X |
 | `lifetime` | integer | Removes the custom app when there is no update after the given time in seconds. | 0 | X |  |
+| `lifetimeMode` | integer | 0 = deletes the app, 1 = marks it as staled with a red rectangle around the app | 0 | X |  |
 | `stack` | boolean | Defines if the **notification** will be stacked. `false` will immediately replace the current notification. | true |  | X |
 | `wakeup` | boolean | If the Matrix is off, the notification will wake it up for the time of the notification. | false |  | X |
 | `noScroll` | boolean | Disables the text scrolling. | false | X | X |
