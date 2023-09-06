@@ -20,7 +20,7 @@ void FSWebServer::run()
 
     unsigned long currentMillis = millis();
     // if WiFi is down, try reconnecting
-    if ((WiFi.status() != WL_CONNECTED) && (currentMillis - previousMillis >= interval))
+    if ((WiFi.status() != WL_CONNECTED) && (currentMillis - previousMillis >= interval) && !m_apmode)
     {
         Serial.println("Reconnecting to WiFi...");
         WiFi.disconnect();
