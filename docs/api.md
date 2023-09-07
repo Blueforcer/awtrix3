@@ -19,7 +19,7 @@ Access various device statistics like battery, RAM, and more:
 
 ## LiveView
 
-Retrieve the current matrix screen as an array of 565 colors:
+Retrieve the current matrix screen as an array of 24bit colors:
 
 | MQTT Topic              | HTTP URL                     | Payload/Body | HTTP Method |
 | ----------------------- | ---------------------------- | ------------ | ----------- |
@@ -194,7 +194,7 @@ Each drawing instruction is an object with a required command key and an array o
 | `dc`    | `[x, y, r, cl]`      | Draw a circle with center at (`x`, `y`), radius `r`, and color `cl` |
 | `dfc`   | `[x, y, r, cl]`      | Draw a filled circle with center at (`x`, `y`), radius `r`, and color `cl` |
 | `dt`    | `[x, y, t, cl]`      | Draw text `t` with top-left corner at (`x`, `y`) and color `cl` |
-| `db`    | `[x, y, w, h, [bmp]]`    | Draws a RGB565 bitmap array `[bmp]` with top-left corner at (`x`, `y`) and size of (`w`, `h`) |
+| `db`    | `[x, y, w, h, [bmp]]`    | Draws a RGB888 bitmap array `[bmp]` with top-left corner at (`x`, `y`) and size of (`w`, `h`) |
 
 
 ### Example    
