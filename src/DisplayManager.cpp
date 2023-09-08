@@ -1072,6 +1072,7 @@ void ResetCustomApps()
       app.currentRepeat = 0;
       app.iconSearched = false;
       app.icon.close();
+      app.currentFrame = 0;
     }
   }
 }
@@ -1501,6 +1502,12 @@ void DisplayManager_::updateAppVector(const char *json)
   doc.clear();
 }
 
+double roundToDecimalPlaces(double value, int places)
+{
+  double factor = pow(10.0, places);
+  return round(value * factor) / factor;
+}
+
 String DisplayManager_::getStats()
 {
   StaticJsonDocument<1024> doc;
@@ -1515,12 +1522,12 @@ String DisplayManager_::getStats()
 #endif
   doc[LuxKey] = static_cast<int>(CURRENT_LUX);
   doc[LDRRawKey] = LDR_RAW;
-  uint32_t freeHeap = ESP.getFreeHeap();
-  doc[RamKey] = freeHeap + ESP.getFreePsram();
+  doc[RamKey] = ESP.getFreeHeap() + ESP.getFreePsram();
   doc[BrightnessKey] = BRIGHTNESS;
   if (SENSOR_READING)
   {
-    doc[TempKey] = static_cast<uint8_t>(CURRENT_TEMP);
+    double formattedTemp = roundToDecimalPlaces(CURRENT_TEMP, TEMP_DECIMAL_PLACES);
+    doc[TempKey] = formattedTemp;
     doc[HumKey] = static_cast<uint8_t>(CURRENT_HUM);
   }
   doc[UpTimeKey] = PeripheryManager.readUptime();
@@ -1531,6 +1538,7 @@ String DisplayManager_::getStats()
   doc[F("indicator2")] = ui->indicator2State;
   doc[F("indicator3")] = ui->indicator3State;
   doc[F("app")] = CURRENT_APP;
+  doc[F("uid")] = uniqueID;
   String jsonString;
   serializeJson(doc, jsonString);
   return jsonString;

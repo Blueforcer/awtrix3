@@ -415,7 +415,7 @@ void MQTTManager_::sendStats()
 {
     if (mqtt.isConnected())
     {
-        if (HA_DISCOVERY  && mqtt.isConnected())
+        if (HA_DISCOVERY && mqtt.isConnected())
         {
             char buffer[5];
 #ifndef awtrix2_upgrade
@@ -766,13 +766,13 @@ void MQTTManager_::sendButton(byte btn, bool state)
 
 void MQTTManager_::setIndicatorState(uint8_t indicator, bool state, uint32_t color)
 {
-    if (HA_DISCOVERY  && mqtt.isConnected())
+    if (HA_DISCOVERY && mqtt.isConnected())
     {
         HALight::RGBColor c;
         c.isSet = true;
-        c.red = (color >> 16) & 0xFF;   // Rote Komponente 8-Bit
-        c.green = (color >> 8) & 0xFF;  // Grüne Komponente 8-Bit
-        c.blue = color & 0xFF;       
+        c.red = (color >> 16) & 0xFF;  // Rote Komponente 8-Bit
+        c.green = (color >> 8) & 0xFF; // Grüne Komponente 8-Bit
+        c.blue = color & 0xFF;
 
         switch (indicator)
         {

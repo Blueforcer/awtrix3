@@ -133,10 +133,9 @@ private:
   void reloadTransition();
   void crossfadeTransition();
 
-
 public:
   MatrixDisplayUi(FastLED_NeoMatrix *matrix);
-  uint32_t fadeColor(uint32_t  color, uint32_t interval);
+  uint32_t fadeColor(uint32_t color, uint32_t interval);
   uint8_t AppCount = 0;
   /**
    * Initialise the display
@@ -155,12 +154,11 @@ public:
    * Enable automatic transition to next app after the some time can be configured with `setTimePerApp` and `setTimePerTransition`.
    */
   void enablesetAutoTransition();
-
   /**
    * Disable automatic transition to next app.
    */
   void disablesetAutoTransition();
-
+  void SwapGif();
   /**
    * Set the direction if the automatic transitioning
    */

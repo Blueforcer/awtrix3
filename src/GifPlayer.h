@@ -12,13 +12,12 @@ public:
 #define ERROR_FINISHED 5
 #define WIDTH 32
 #define HEIGHT 8
+  uint32_t currentFrame;
+
 private:
-  bool needNewFrame;
   long lastFrameTime;
-  bool firstFrameDone;
   int newframeDelay;
   CRGB FrameBuffer[HEIGHT][WIDTH];
-
   bool lastFrameDrawn = false;
   unsigned long nextFrameTime = 0;
 #define GIFHDRTAGNORM "GIF87a"
@@ -239,7 +238,7 @@ public:
 
     if ((prevDisposalMethod != DISPOSAL_NONE) && (prevDisposalMethod != DISPOSAL_LEAVE))
     {
-      mtx->fillRect(offsetX, offsetY, lsdWidth, lsdHeight, 0);
+      mtx->clear();
     }
 
     if (prevDisposalMethod == DISPOSAL_BACKGROUND)
@@ -296,6 +295,7 @@ public:
     }
     lzw_decode_init(lzwCodeSize, lzwImageData);
     decompressAndDisplayFrame();
+    redrawLastFrame();
     transparentColorIndex = NO_TRANSPARENT_INDEX;
     disposalMethod = DISPOSAL_NONE;
     if (frameDelay < 1)
@@ -516,24 +516,29 @@ public:
         }
         else
         {
-          FrameBuffer[y][x] = CRGB::Black;
+          if (disposalMethod == DISPOSAL_BACKGROUND)
+          {
+            FrameBuffer[y][x] = CRGB::Black;
+          }
         }
       }
     }
-
-    redrawLastFrame();
-    needNewFrame = false;
+    ++currentFrame;
     lastFrameTime = millis();
   }
 
 public:
-  void
-  setMatrix(FastLED_NeoMatrix *matrix)
+  void setMatrix(FastLED_NeoMatrix *matrix)
   {
     mtx = matrix;
   }
 
-  int playGif(int x, int y, File *imageFile)
+  uint32_t getFrame()
+  {
+    return currentFrame;
+  }
+
+  int playGif(int x, int y, File *imageFile, uint32_t frame = 0)
   {
     offsetX = x;
     offsetY = y;
@@ -545,8 +550,9 @@ public:
     }
     else
     {
-      needNewFrame = true;
+      currentFrame = 0;
       file = *imageFile;
+
       memset(FrameBuffer, 0, sizeof(FrameBuffer));
       memset(gifPalette, 0, sizeof(gifPalette));
       memset(lzwImageData, 0, sizeof(lzwImageData));
@@ -555,10 +561,24 @@ public:
       memset(stack, 0, sizeof(stack));
       memset(suffix, 0, sizeof(suffix));
       memset(prefix, 0, sizeof(prefix));
-      parseGifHeader();
-      parseLogicalScreenDescriptor();
-      parseGlobalColorTable();
-      drawFrame();
+      if (frame != 0)
+      {
+
+        parseGifHeader();
+        parseLogicalScreenDescriptor();
+        parseGlobalColorTable();
+        do
+        {
+          drawFrame(true);
+        } while (currentFrame < frame);
+      }
+      else
+      {
+        parseGifHeader();
+        parseLogicalScreenDescriptor();
+        parseGlobalColorTable();
+        drawFrame();
+      }
     }
     return tbiWidth;
   }
@@ -597,12 +617,16 @@ public:
     }
   }
 
-  unsigned long drawFrame()
+  unsigned long drawFrame(bool force = false)
   {
-    redrawLastFrame();
-    if (millis() - lastFrameTime < newframeDelay)
+
+    if (!force)
     {
-      return 0;
+      if (millis() - lastFrameTime < newframeDelay)
+      {
+        redrawLastFrame();
+        return 0;
+      }
     }
 
     lastFrameDrawn = false;

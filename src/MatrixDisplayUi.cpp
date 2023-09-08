@@ -351,12 +351,15 @@ TransitionType getRandomTransition()
   return static_cast<TransitionType>((rand() % (CROSSFADE)) + 1);
 }
 
+bool swaped = false;
+
 void MatrixDisplayUi::drawApp()
 {
   switch (this->state.appState)
   {
   case IN_TRANSITION:
   {
+    swaped=false;
     gotNewTransition = false;
     if (currentTransition == SLIDE)
     {
@@ -413,10 +416,14 @@ void MatrixDisplayUi::drawApp()
     {
       currentTransition = TRANS_EFFECT; // Wenn TRANS_EFFECT nicht RANDOM ist, setzen Sie currentTransition auf TRANS_EFFECT
     }
-    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif2);
+   
+    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+    swaped=true;
     break;
   }
 }
+
+
 
 bool MatrixDisplayUi::isCurrentAppValid()
 {
@@ -610,7 +617,6 @@ void MatrixDisplayUi::slideTransition()
   y *= dir;
   x1 *= dir;
   y1 *= dir;
-  this->matrix->drawRect(x, y, x1, y1, matrix->Color(0, 0, 0));
   (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, x, y, &gif1);
   (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, x1, y1, &gif2);
 }

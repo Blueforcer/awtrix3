@@ -85,7 +85,6 @@ public:
     void onNotFound(WebServerClass::THandlerFunction fn);
 
     void addHandler(const Uri &uri, HTTPMethod method, WebServerClass::THandlerFunction fn);
-    void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info);
     void addHandler(const Uri &uri, WebServerClass::THandlerFunction handler);
 
     void setCaptiveWebage(const char *url);
@@ -310,7 +309,7 @@ public:
 private:
     int failedAttempts = 0;
     unsigned long previousMillis = 0;
-    unsigned long interval = 30000;
+    unsigned long interval = 10000;
     char m_basePath[16];
     UpdateServerClass m_httpUpdater;
     String authUser;

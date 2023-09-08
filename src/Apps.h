@@ -26,6 +26,7 @@ String WEATHER_HUM;
 
 struct CustomApp
 {
+    uint32_t  currentFrame;
     String iconName;
     String iconFile;
     String drawInstructions;
@@ -187,7 +188,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     if (notifyFlag)
         return;
     CURRENT_APP = "Time";
-
+    currentCustomApp = "";
     if (TIME_COLOR > 0)
     {
         DisplayManager.setTextColor(TIME_COLOR);
@@ -294,6 +295,7 @@ void DateApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     if (notifyFlag)
         return;
     CURRENT_APP = "Date";
+    currentCustomApp = "";
     if (DATE_COLOR > 0)
     {
         DisplayManager.setTextColor(DATE_COLOR);
@@ -329,6 +331,7 @@ void TempApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     if (notifyFlag)
         return;
     CURRENT_APP = "Temperature";
+    currentCustomApp = "";
     if (TEMP_COLOR > 0)
     {
         DisplayManager.setTextColor(TEMP_COLOR);
@@ -383,6 +386,7 @@ void HumApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     if (notifyFlag)
         return;
     CURRENT_APP = "Humidity";
+    currentCustomApp = "";
     if (HUM_COLOR > 0)
     {
         DisplayManager.setTextColor(HUM_COLOR);
@@ -431,6 +435,7 @@ void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     if (notifyFlag)
         return;
     CURRENT_APP = "Battery";
+    currentCustomApp = "";
     if (BAT_COLOR > 0)
     {
         DisplayManager.setTextColor(BAT_COLOR);
@@ -490,7 +495,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     CURRENT_APP = ca->name;
     currentCustomApp = name;
 
-    if ((ca->iconName.length() > 0) && !ca->iconSearched)
+    if ((ca->iconName.length() > 0) && !ca->icon)
     {
         const char *extensions[] = {".jpg", ".gif"};
         bool isGifFlags[] = {false, true};
@@ -502,12 +507,10 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             {
                 ca->isGif = isGifFlags[i];
                 ca->icon = LittleFS.open(filePath);
-                ca->iconFile = ca->iconName + extensions[i];
-                DEBUG_PRINTLN("Icon found: " + filePath);
                 break; // Exit loop if icon was found
             }
         }
-        ca->iconSearched = true;
+        // ca->iconSearched = true;
     }
 
     bool hasIcon = ca->icon;
@@ -553,7 +556,8 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             }
             if (ca->isGif)
             {
-                iconWidth = gifPlayer->playGif(x + ca->iconPosition + ca->iconOffset, y, &ca->icon);
+                iconWidth = gifPlayer->playGif(x + ca->iconPosition + ca->iconOffset, y, &ca->icon,ca->currentFrame);
+                ca->currentFrame = gifPlayer->getFrame();
             }
             else
             {

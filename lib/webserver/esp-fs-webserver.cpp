@@ -29,9 +29,9 @@ void FSWebServer::run()
         if (WiFi.status() != WL_CONNECTED)
         {
             failedAttempts++;
-            if (failedAttempts >= 10)
+            if (failedAttempts >= 60)
             {
-                Serial.println("10 failed attempts to connect. Restarting ESP...");
+                Serial.println("60 failed attempts to connect. Restarting ESP...");
                 ESP.restart();
             }
         }
@@ -149,7 +149,7 @@ bool FSWebServer::begin(const char *path)
 
 WebServerClass::THandlerFunction FSWebServer::authMiddleware(WebServerClass::THandlerFunction fn)
 {
-    if (authUser.isEmpty())
+    if (authUser.isEmpty() || m_apmode)
     {
         return fn;
     }
@@ -948,8 +948,6 @@ void FSWebServer::handleStatus()
     if (m_fsOK)
     {
         uint32_t ip = (WiFi.status() == WL_CONNECTED) ? WiFi.localIP() : WiFi.softAPIP();
-        String ssid = WiFi.SSID(); // Get the current SSID
-
         json += PSTR("\"true\", \"totalBytes\":\"");
         json += totalBytes;
         json += PSTR("\", \"usedBytes\":\"");
@@ -958,8 +956,8 @@ void FSWebServer::handleStatus()
         json += WiFi.status() == WL_CONNECTED ? "Station" : "Access Point";
         json += PSTR("\", \"ip\":\"");
         json += ip;
-        json += PSTR("\", \"ssid\":\""); // Add SSID here
-        json += ssid;                    // Add the actual SSID
+        json += PSTR("\", \"ssid\":\"");
+        json += WiFi.SSID();
         json += "\"";
     }
     else
