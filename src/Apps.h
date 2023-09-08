@@ -26,7 +26,7 @@ String WEATHER_HUM;
 
 struct CustomApp
 {
-    uint32_t  currentFrame;
+    uint32_t currentFrame = 0;
     String iconName;
     String iconFile;
     String drawInstructions;
@@ -507,6 +507,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             {
                 ca->isGif = isGifFlags[i];
                 ca->icon = LittleFS.open(filePath);
+                ca->currentFrame=0;
                 break; // Exit loop if icon was found
             }
         }

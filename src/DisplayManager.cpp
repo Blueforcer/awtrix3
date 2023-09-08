@@ -610,12 +610,14 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     {
       customApp.iconName = newIconName;
       customApp.icon.close();
+      customApp.currentFrame = 0;
       customApp.iconSearched = false;
     }
   }
   else
   {
     customApp.icon.close();
+    customApp.currentFrame = 0;
     customApp.iconSearched = false;
     customApp.iconName = "";
   }

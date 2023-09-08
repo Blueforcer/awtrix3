@@ -238,7 +238,7 @@ public:
 
     if ((prevDisposalMethod != DISPOSAL_NONE) && (prevDisposalMethod != DISPOSAL_LEAVE))
     {
-      mtx->clear();
+      //mtx->fillRect(offsetX, offsetY, lsdWidth, lsdHeight, 0);
     }
 
     if (prevDisposalMethod == DISPOSAL_BACKGROUND)

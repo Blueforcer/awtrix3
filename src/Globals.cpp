@@ -204,7 +204,7 @@ void loadSettings()
     CALENDAR_HEADER_COLOR = Settings.getUInt("CHCOL", 0xFF0000);
     CALENDAR_TEXT_COLOR = Settings.getUInt("CTCOL", 0x000000);
     CALENDAR_BODY_COLOR = Settings.getUInt("CBCOL", 0xFFFFFF);
-    TRANS_EFFECT = Settings.getUInt("TEFF", 10);
+    TRANS_EFFECT = Settings.getUInt("TEFF", 1);
     TIME_MODE = Settings.getUInt("TMODE", 1);
     TIME_COLOR = Settings.getUInt("TIME_COL", 0);
     DATE_COLOR = Settings.getUInt("DATE_COL", 0);
@@ -297,7 +297,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.85";
+const char *VERSION = "0.86";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;

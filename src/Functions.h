@@ -62,7 +62,6 @@ uint32_t hsvToRgb(uint8_t h, uint8_t s, uint8_t v)
 uint32_t hexToUint32(const char *hexString)
 {
     uint32_t rgbValue = (uint32_t)strtol(hexString, NULL, 16);
-    Serial.println(rgbValue);
     return rgbValue; // Nur RGB, kein Alpha-Kanal
 }
 
