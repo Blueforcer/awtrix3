@@ -84,7 +84,15 @@ void addHandler()
     mws.addHandler("/api/nextapp", HTTP_ANY, []()
                    { DisplayManager.nextApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/fullscreen", HTTP_GET, []()
-                   { mws.webserver->send(200, "text/html", screenfull_html); });
+                   {
+    String fps = mws.webserver->arg("fps");  // Hole den "fps" URL-Parameter
+    if (fps == "") {
+        fps = "30"; 
+    }
+    String finalHTML = screenfull_html; 
+    finalHTML.replace("%%FPS%%", fps);
+
+    mws.webserver->send(200, "text/html", finalHTML.c_str()); });
     mws.addHandler("/screen", HTTP_GET, []()
                    { mws.webserver->send(200, "text/html", screen_html); });
     mws.addHandler("/backup", HTTP_GET, []()
