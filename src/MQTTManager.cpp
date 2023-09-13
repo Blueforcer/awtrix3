@@ -94,6 +94,7 @@ void onRGBColorCommand(HALight::RGBColor color, HALight *sender)
     if (sender == Matrix)
     {
         TEXTCOLOR_888 = (color.red << 16) | (color.green << 8) | color.blue;
+        DisplayManager.setCustomAppColors(TEXTCOLOR_888);
         saveSettings();
     }
     else if (sender == Indikator1)
@@ -246,6 +247,13 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         return;
     }
 
+    if (strTopic.equals(MQTT_PREFIX + "/rtttl"))
+    {
+        PeripheryManager.playRTTTLString(payloadCopy);
+        delete[] payloadCopy;
+        return;
+    }
+
     if (strTopic.equals(MQTT_PREFIX + "/doupdate"))
     {
         if (UpdateManager.checkUpdate(true))
@@ -360,6 +368,7 @@ void onMqttConnected()
         "/reboot",
         "/moodlight",
         "/sound",
+        "/rtttl",
         "/sendscreen",
         "/r2d2"};
     for (const char *topic : topics)
@@ -438,12 +447,9 @@ void MQTTManager_::sendStats()
             Matrix->setState(!MATRIX_OFF, false);
             HALight::RGBColor color;
             color.isSet = true;
-            color.red = (TEXTCOLOR_888 >> 11) & 0x1F;
-            color.green = (TEXTCOLOR_888 >> 5) & 0x3F;
-            color.blue = TEXTCOLOR_888 & 0x1F;
-            color.red <<= 3;
-            color.green <<= 2;
-            color.blue <<= 3;
+            color.red = (TEXTCOLOR_888 >> 16) & 0xFF;  // Die obersten 8 Bits für Rot
+            color.green = (TEXTCOLOR_888 >> 8) & 0xFF; // Die mittleren 8 Bits für Grün
+            color.blue = TEXTCOLOR_888 & 0xFF;         // Die untersten 8 Bits für Blau
             Matrix->setRGBColor(color);
             int8_t rssiValue = WiFi.RSSI();
             char rssiString[4];
@@ -502,14 +508,11 @@ void MQTTManager_::setup()
 
         HALight::RGBColor color;
         color.isSet = true;
-        color.red = (TEXTCOLOR_888 >> 11) & 0x1F;  // Bitverschiebung um 11 Bits und Maskierung mit 0x1F
-        color.green = (TEXTCOLOR_888 >> 5) & 0x3F; // Bitverschiebung um 5 Bits und Maskierung mit 0x3F
-        color.blue = TEXTCOLOR_888 & 0x1F;         // Maskierung mit 0x1F
-        color.red <<= 3;
-        color.green <<= 2;
-        color.blue <<= 3;
+        color.red = (TEXTCOLOR_888 >> 16) & 0xFF;  // Die obersten 8 Bits für Rot
+        color.green = (TEXTCOLOR_888 >> 8) & 0xFF; // Die mittleren 8 Bits für Grün
+        color.blue = TEXTCOLOR_888 & 0xFF;         // Die untersten 8 Bits für Blau
         Matrix->setCurrentRGBColor(color);
-        Matrix->setState(true, true);
+        Matrix->setState(MATRIX_OFF, true);
 
         sprintf(ind1ID, HAi1ID, macStr);
         Indikator1 = new HALight(ind1ID, HALight::RGBFeature);

@@ -359,7 +359,7 @@ void MatrixDisplayUi::drawApp()
   {
   case IN_TRANSITION:
   {
-    swaped=false;
+    swaped = false;
     gotNewTransition = false;
     if (currentTransition == SLIDE)
     {
@@ -416,14 +416,12 @@ void MatrixDisplayUi::drawApp()
     {
       currentTransition = TRANS_EFFECT; // Wenn TRANS_EFFECT nicht RANDOM ist, setzen Sie currentTransition auf TRANS_EFFECT
     }
-   
+
     (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
-    swaped=true;
+    swaped = true;
     break;
   }
 }
-
-
 
 bool MatrixDisplayUi::isCurrentAppValid()
 {

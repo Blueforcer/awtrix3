@@ -54,12 +54,15 @@ void addHandler()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getTransistionNames().c_str()); });
     mws.addHandler("/api/reboot", HTTP_ANY, []()
                    { mws.webserver->send(200,F("text/plain"),F("OK")); delay(200); ESP.restart(); });
+    mws.addHandler("/api/rtttl", HTTP_POST, []()
+                   { mws.webserver->send(200,F("text/plain"),F("OK")); PeripheryManager.playRTTTLString(mws.webserver->arg("plain").c_str()); });
     mws.addHandler("/api/sound", HTTP_POST, []()
                    { if (PeripheryManager.parseSound(mws.webserver->arg("plain").c_str())){
                     mws.webserver->send(200,F("text/plain"),F("OK")); 
                    }else{
                     mws.webserver->send(404,F("text/plain"),F("FileNotFound"));  
                    }; });
+
     mws.addHandler("/api/moodlight", HTTP_POST, []()
                    {
                     if (DisplayManager.moodlight(mws.webserver->arg("plain").c_str()))
@@ -80,6 +83,8 @@ void addHandler()
                        } });
     mws.addHandler("/api/nextapp", HTTP_ANY, []()
                    { DisplayManager.nextApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
+    mws.addHandler("/fullscreen", HTTP_GET, []()
+                   { mws.webserver->send(200, "text/html", screenfull_html); });
     mws.addHandler("/screen", HTTP_GET, []()
                    { mws.webserver->send(200, "text/html", screen_html); });
     mws.addHandler("/backup", HTTP_GET, []()

@@ -28,8 +28,9 @@ Retrieve the current matrix screen as an array of 24bit colors:
 When triggering the MQTT API, AWTRIX sends the array to `[PREFIX]/screen`.
 
 **Extras:**
-- Access a live view of the screen in your browser: `http://[IP]/screen`.
+- Access a live view of the screen in your browser: `http://[IP]/screen`. 
 - Options to download a screenshot or generate a GIF from the current display content.
+- `http://[IP]/fullscreen` gives you a fullscreen liveview. Here you can optionally set the `fps` as parameter (standard 30)
 
 ## Power Control
 
@@ -47,6 +48,13 @@ Play a RTTTL sound from the MELODIES folder:
 | MQTT Topic        | HTTP URL                     | Payload/Body        | HTTP Method |
 | ----------------- | ---------------------------- | ------------------- | ----------- |
 | `[PREFIX]/sound`  | `http://[IP]/api/sound`      | `{"sound":"alarm"}` | POST        |
+
+Play a RTTTL sound from a given RTTTL string:
+
+| MQTT Topic        | HTTP URL                     | Payload/Body        | HTTP Method |
+| ----------------- | ---------------------------- | ------------------- | ----------- |
+| `[PREFIX]/rtttl`  | `http://[IP]/api/rtttl`      | `rttl string` | POST        |
+  
 
 ## Mood Lighting
 

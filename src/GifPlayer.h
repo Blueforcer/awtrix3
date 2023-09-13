@@ -238,7 +238,7 @@ public:
 
     if ((prevDisposalMethod != DISPOSAL_NONE) && (prevDisposalMethod != DISPOSAL_LEAVE))
     {
-      //mtx->fillRect(offsetX, offsetY, lsdWidth, lsdHeight, 0);
+      memset(FrameBuffer, 0, sizeof(FrameBuffer));
     }
 
     if (prevDisposalMethod == DISPOSAL_BACKGROUND)
@@ -546,7 +546,7 @@ public:
     if (imageFile->name() == file.name())
     {
       drawFrame();
-      return tbiWidth;
+      return lsdWidth;
     }
     else
     {
@@ -580,7 +580,7 @@ public:
         drawFrame();
       }
     }
-    return tbiWidth;
+    return lsdWidth;
   }
 
   boolean parseGifHeader()
@@ -665,6 +665,7 @@ public:
       {
         done = true;
         file.seek(0);
+        currentFrame = 0;
         parseGifHeader();
         parseLogicalScreenDescriptor();
         parseGlobalColorTable();

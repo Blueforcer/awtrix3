@@ -158,7 +158,6 @@ public:
    * Disable automatic transition to next app.
    */
   void disablesetAutoTransition();
-  void SwapGif();
   /**
    * Set the direction if the automatic transitioning
    */

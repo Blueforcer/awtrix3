@@ -88,6 +88,7 @@ public:
     void drawRGBBitmap(int16_t x, int16_t y, uint32_t *bitmap, int16_t w, int16_t h);
     void drawCircle(int16_t x0, int16_t y0, int16_t r, uint32_t color);
     void fillCircle(int16_t x0, int16_t y0, int16_t r, uint32_t color);
+    void drawFastVLine(int16_t x, int16_t y, int16_t h, uint32_t color);
     void matrixPrint(const char *str);
     void matrixPrint(char c);
     void matrixPrint(String str);
@@ -96,6 +97,7 @@ public:
     void setCursor(int16_t x, int16_t y);
     void setTextColor(uint32_t color);
     void matrixPrint(double number, uint8_t digits);
+    void setCustomAppColors(uint32_t color);
 };
 
 extern DisplayManager_ &DisplayManager;

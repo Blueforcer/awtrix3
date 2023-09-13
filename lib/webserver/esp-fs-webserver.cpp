@@ -19,27 +19,12 @@ void FSWebServer::run()
         m_dnsServer.processNextRequest();
 
     unsigned long currentMillis = millis();
-    // if WiFi is down, try reconnecting
     if ((WiFi.status() != WL_CONNECTED) && (currentMillis - previousMillis >= interval) && !m_apmode)
     {
         Serial.println("Reconnecting to WiFi...");
         WiFi.disconnect();
         WiFi.reconnect();
         previousMillis = currentMillis;
-        if (WiFi.status() != WL_CONNECTED)
-        {
-            failedAttempts++;
-            if (failedAttempts >= 60)
-            {
-                Serial.println("60 failed attempts to connect. Restarting ESP...");
-                ESP.restart();
-            }
-        }
-        else
-        {
-            Serial.println("Reconnected!");
-            failedAttempts = 0;
-        }
     }
 }
 

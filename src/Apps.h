@@ -26,6 +26,7 @@ String WEATHER_HUM;
 
 struct CustomApp
 {
+    bool hasCustomColor = false;
     uint32_t currentFrame = 0;
     String iconName;
     String iconFile;
@@ -37,7 +38,6 @@ struct CustomApp
     uint32_t color;
     File icon;
     bool isGif;
-    bool iconSearched = false;
     bool rainbow;
     bool center;
     int fade = 0;
@@ -222,23 +222,23 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         strftime(t, sizeof(t), timeformat, localtime(&now));
     }
 
-    uint8_t wdPosY;
-    uint8_t timePosY;
+    int16_t wdPosY;
+    int16_t timePosY;
 
     if (TIME_MODE == 1 || TIME_MODE == 2)
     {
         wdPosY = TIME_MODE == 1 ? 7 : 0;
         timePosY = TIME_MODE == 1 ? 6 : 7;
         DisplayManager.printText(12 + x, timePosY + y, t, false, 2);
-        DisplayManager.drawFilledRect(0 + x, 0 + y, 9 + x, 2 + y, CALENDAR_HEADER_COLOR);
-        DisplayManager.drawFilledRect(0 + x, 2 + y, 9 + x, 7 + y, CALENDAR_BODY_COLOR);
+        DisplayManager.drawFilledRect(x, y, 9, 8, CALENDAR_BODY_COLOR);
+        DisplayManager.drawFilledRect(0 + x, 0 + y, 9, 2, CALENDAR_HEADER_COLOR);
     }
     else if (TIME_MODE == 3 || TIME_MODE == 4)
     {
         wdPosY = TIME_MODE == 3 ? 7 : 0;
         timePosY = TIME_MODE == 3 ? 6 : 7;
         DisplayManager.printText(12 + x, timePosY + y, t, false, 2);
-        DisplayManager.drawFilledRect(0 + x, 0 + y, 9 + x, 8 + y, CALENDAR_BODY_COLOR);
+        DisplayManager.drawFilledRect(0 + x, 0 + y, 9, 8, CALENDAR_BODY_COLOR);
         DisplayManager.drawLine(1, 0, 2, 0, 0x000000);
         DisplayManager.drawLine(6, 0, 7, 0, 0x000000);
     }
@@ -263,8 +263,8 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
             DisplayManager.setCursor(1 + x, 7 + y);
         }
         DisplayManager.matrixPrint(day_str);
-        uint8_t wdPosY = TIME_MODE > 0 ? 0 : 8;
-        uint8_t timePosY = TIME_MODE > 0 ? 6 : 0;
+        int16_t wdPosY = TIME_MODE > 0 ? 0 : 8;
+        int16_t timePosY = TIME_MODE > 0 ? 6 : 0;
     }
 
     if (!SHOW_WEEKDAY)
@@ -507,7 +507,6 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             {
                 ca->isGif = isGifFlags[i];
                 ca->icon = LittleFS.open(filePath);
-                ca->currentFrame=0;
                 break; // Exit loop if icon was found
             }
         }
@@ -557,7 +556,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             }
             if (ca->isGif)
             {
-                iconWidth = gifPlayer->playGif(x + ca->iconPosition + ca->iconOffset, y, &ca->icon,ca->currentFrame);
+                iconWidth = gifPlayer->playGif(x + ca->iconPosition + ca->iconOffset, y, &ca->icon, ca->currentFrame);
                 ca->currentFrame = gifPlayer->getFrame();
             }
             else
@@ -608,9 +607,8 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 
     if (textWidth > availableWidth && !(state->appState == IN_TRANSITION))
     {
-        if (ca->scrollposition <= (-textWidth - ca->textOffset))
+        if (ca->scrollposition + ca->textOffset <= (-textWidth))
         {
-
             if (ca->iconWasPushed && ca->pushIcon == 2)
             {
                 ca->iconWasPushed = false;
@@ -634,7 +632,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     }
     if (!noScrolling)
     {
-        if ((ca->scrollDelay > MATRIX_FPS * 1.2) || ((hasIcon ? ca->textOffset + 9 : ca->textOffset) > 31))
+        if ((ca->scrollDelay > MATRIX_FPS ) || ((hasIcon ? ca->textOffset + 9 : ca->textOffset) > 31))
         {
             if (state->appState == FIXED && !ca->noScrolling)
             {
@@ -898,7 +896,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
     }
 
     // Check if text needs to be scrolled
-    if (textWidth > availableWidth && notifications[0].scrollposition <= -textWidth)
+    if (textWidth > availableWidth && notifications[0].scrollposition + notifications[0].textOffset <= (-textWidth))
     {
         // Reset scroll position and icon position if needed
         notifications[0].scrollDelay = 0;
