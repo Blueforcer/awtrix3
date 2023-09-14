@@ -230,9 +230,9 @@ public:
 
   int8_t update();
 
-  uint32_t indicator1Color = 63488;
-  uint32_t indicator2Color = 31;
-  uint32_t indicator3Color = 65504;
+  uint32_t indicator1Color = 0xFF0000;
+  uint32_t indicator2Color = 0x00FF00;
+  uint32_t indicator3Color = 0x0000FF;
 
   bool indicator1State = false;
   bool indicator2State = false;
