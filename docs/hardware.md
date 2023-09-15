@@ -20,7 +20,7 @@ Create a dev.json in your filemanager with the following content:
 
 ```json
 {
-  "matrix":"2"
+  "matrix": 2
 }
 ```
 
