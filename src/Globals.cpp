@@ -258,7 +258,7 @@ void saveSettings()
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
     Settings.putBool("BLOCKN", BLOCK_NAVIGATION);
     Settings.putBool("ATRANS", AUTO_TRANSITION);
-    Settings.putUInt("UPPER", UPPERCASE_LETTERS);
+    Settings.putBool("UPPER", UPPERCASE_LETTERS);
     Settings.putUInt("TCOL", TEXTCOLOR_888);
     Settings.putUInt("TMODE", TIME_MODE);
     Settings.putUInt("TIME_COL", TIME_COLOR);

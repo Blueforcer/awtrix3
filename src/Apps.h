@@ -27,9 +27,8 @@ String WEATHER_HUM;
 struct CustomApp
 {
     bool hasCustomColor = false;
-    uint32_t currentFrame = 0;
+    uint8_t currentFrame = 0;
     String iconName;
-    String iconFile;
     String drawInstructions;
     float scrollposition = 0;
     int16_t scrollDelay = 0;
@@ -507,6 +506,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             {
                 ca->isGif = isGifFlags[i];
                 ca->icon = LittleFS.open(filePath);
+                ca->currentFrame = 0;
                 break; // Exit loop if icon was found
             }
         }
@@ -632,7 +632,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     }
     if (!noScrolling)
     {
-        if ((ca->scrollDelay > MATRIX_FPS ) || ((hasIcon ? ca->textOffset + 9 : ca->textOffset) > 31))
+        if ((ca->scrollDelay > MATRIX_FPS) || ((hasIcon ? ca->textOffset + 9 : ca->textOffset) > 31))
         {
             if (state->appState == FIXED && !ca->noScrolling)
             {

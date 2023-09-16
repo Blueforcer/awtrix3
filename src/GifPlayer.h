@@ -12,7 +12,7 @@ public:
 #define ERROR_FINISHED 5
 #define WIDTH 32
 #define HEIGHT 8
-  uint32_t currentFrame;
+  uint8_t currentFrame;
 
 private:
   long lastFrameTime;
@@ -533,7 +533,7 @@ public:
     mtx = matrix;
   }
 
-  uint32_t getFrame()
+  uint8_t getFrame()
   {
     return currentFrame;
   }

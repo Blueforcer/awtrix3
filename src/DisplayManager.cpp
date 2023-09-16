@@ -2114,7 +2114,7 @@ String DisplayManager_::getAppsWithIcon()
     CustomApp *customApp = getCustomAppByName(app.first);
     if (customApp != nullptr)
     {
-      appObject["icon"] = customApp->iconFile;
+      appObject["icon"] = customApp->iconName;
     }
   }
   String jsonString;

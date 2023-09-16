@@ -42,9 +42,9 @@ void update_progress(int cur, int total)
     int progress = (cur * 100) / total;
     char progressStr[5];
     snprintf(progressStr, 5, "%d%%", progress);
-     DisplayManager.resetTextColor();
+    DisplayManager.resetTextColor();
     DisplayManager.printText(0, 6, progressStr, true, false);
-    DisplayManager.drawProgressBar(0, 7, progress, 0xCE59, 0x07E0);
+    DisplayManager.drawProgressBar(0, 7, progress, 0x00FF00, 0xFFFFFF);
     DisplayManager.show();
 }
 
