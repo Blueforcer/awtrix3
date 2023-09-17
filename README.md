@@ -57,9 +57,6 @@ Support our journey and enhance your Awtrix experience. Your contribution matter
   <img style="width: 20%; height: auto;" alt='Get it on Google Play' src='appstore_button.png'/>
 </a>
 
-<a href='https://www.amazon.de/dp/B0CGQ4JZX4/'>
-  <img style="width: 20%; height: auto;" alt='Get it on amazon appstore' src='amazon.png'/>
-</a>
 
 # AWTRIX Light flows  
 This is your go-to hub for sharing and discovering AWTRIX Light automations. Enhance your AWTRIX Light experience, exchange ideas, and get inspired. Let's bring our creative automations to life together!  
