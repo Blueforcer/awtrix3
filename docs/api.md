@@ -162,7 +162,7 @@ Below are the properties you can utilize in the JSON object. **All keys are opti
 
 | Key | Type | Description | Default | Custom App | Notification |
 | --- | ---- | ----------- | ------- | ------- | ------- |
-| `text` | string | The text to display. | N/A | X | X |
+| `text` | string | The text to display. Keep in mind the font does not have a fixed size and `I` uses less space than `W`. This facts affects when text will start scrolling | N/A | X | X |
 | `textCase` | integer | Changes the Uppercase setting. 0=global setting, 1=forces uppercase; 2=shows as it sent. | 0 | X | X |
 | `topText` | boolean | Draw the text on top. | false | X | X |
 | `textOffset` | integer | Sets an offset for the x position of a starting text. | 0 | X | X |
