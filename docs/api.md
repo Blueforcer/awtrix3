@@ -147,7 +147,7 @@ Below are the properties you can utilize in the JSON object. **All keys are opti
 | `rainbow` | boolean | Fades each letter in the text differently through the entire RGB spectrum. | false | X | X |
 | `icon` | string | The icon ID or filename (without extension) to display on the app. | N/A | X | X |
 | `pushIcon` | integer | 0 = Icon doesn't move. 1 = Icon moves with text and will not appear again. 2 = Icon moves with text but appears again when the text starts to scroll again. | 0 | X | X |
-| `repeat` | integer | Sets how many times the text should be scrolled through the matrix before the app ends. | 1 | X | X |
+| `repeat` | integer | Sets how many times the text should be scrolled through the matrix before the app ends. | -1 | X | X |
 | `duration` | integer | Sets how long the app or notification should be displayed. | 5 | X | X |
 | `hold` | boolean | Set it to true, to hold your **notification** on top until you press the middle button or dismiss it via HomeAssistant. This key only belongs to notification. | false |  | X |
 | `sound` | string | The filename of your RTTTL ringtone file placed in the MELODIES folder (without extension). | N/A |  | X |
