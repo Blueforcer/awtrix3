@@ -611,6 +611,7 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
       customApp.iconName = newIconName;
       customApp.icon.close();
       customApp.iconPosition = 0;
+      customApp.currentFrame=0;
     }
   }
   else
@@ -618,6 +619,7 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     customApp.icon.close();
     customApp.iconName = "";
     customApp.iconPosition = 0;
+    customApp.currentFrame=0;
   }
 
   customApp.gradient[0] = -1;
