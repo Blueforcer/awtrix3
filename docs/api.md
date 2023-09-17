@@ -1,5 +1,33 @@
 # MQTT / HTTP API
 
+## Table of Contents
+  * [Overview](#overview)
+  * [Status Retrieval](#status-retrieval)
+  * [LiveView](#liveview)
+  * [Power Control](#power-control)
+  * [Sound Playback](#sound-playback)
+  * [Mood Lighting](#mood-lighting)
+  * [Colored Indicators](#colored-indicators)
+  * [Custom Apps and Notifications](#custom-apps-and-notifications)
+    + [Interaction](#interaction)
+    + [JSON Properties](#json-properties)
+      - [Example](#example)
+    + [Drawing Instructions](#drawing-instructions)
+    + [Example](#example-1)
+    + [Display Text in Colored Fragments](#display-text-in-colored-fragments)
+    + [Sending Multiple Custom Pages Simultaneously](#sending-multiple-custom-pages-simultaneously)
+    + [Delete a Custom App](#delete-a-custom-app)
+    + [Dismiss Notification](#dismiss-notification)
+    + [Switch Apps](#switch-apps)
+    + [Switch to Specific App](#switch-to-specific-app)
+  * [Change Settings](#change-settings)
+    + [JSON Properties](#json-properties-1)
+  * [Update](#update)
+      - [Reboot Awtrix](#reboot-awtrix)
+      - [Erase Awtrix](#erase-awtrix)
+      - [Clear Settings](#clear-settings)
+
+
 ## Overview
 
 This API documentation covers various functionalities such as retrieving device statistics, screen mirroring, notifications, customapps, sound playing, and mood lighting. You can interact with these features via both MQTT and HTTP protocols.
@@ -168,7 +196,7 @@ Below are the properties you can utilize in the JSON object. **All keys are opti
 | `noScroll` | boolean | Disables the text scrolling. | false | X | X |
 | `clients` | array of strings | Allows forwarding a notification to other awtrix devices. Use the MQTT prefix for MQTT and IP addresses for HTTP. |  |  | X |
 | `scrollSpeed` | integer | Modifies the scroll speed. Enter a percentage value of the original scroll speed. | 100 | X | X |
-| `effect` | string | Shows an [effect](https://blueforcer.github.io/awtrix-light/#/effects) as background. |  | X | X |
+| `effect` | string | Shows an [effect](https://blueforcer.github.io/awtrix-light/#/effects) as background.The effect can be removed by sending an empty string for effect|  | X | X |
 | `effectSettings` | json map | Changes color and speed of the [effect](https://blueforcer.github.io/awtrix-light/#/effects). |  | X | X |
 | `save` | boolean | Saves your custom app into flash and reloads it after boot. Avoid this for custom apps with high update frequencies because the ESP's flash memory has limited write cycles. |  | X |  |
 
