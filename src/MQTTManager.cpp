@@ -8,6 +8,7 @@
 #include "Dictionary.h"
 #include "PeripheryManager.h"
 #include "UpdateManager.h"
+#include "PowerManager.h"
 
 WiFiClient espClient;
 HADevice device;
@@ -283,6 +284,25 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         return;
     }
 
+    if (strTopic.equals(MQTT_PREFIX + "/sleep"))
+    {
+        StaticJsonDocument<128> doc;
+        DeserializationError error = deserializeJson(doc, payload);
+        if (error)
+        {
+            if (DEBUG_MODE)
+                DEBUG_PRINTLN(F("Failed to parse json"));
+            return;
+        }
+        if (doc.containsKey("sleep"))
+        {
+            PowerManager.sleep(doc["sleep"].as<uint32_t>());
+        }
+
+        delete[] payloadCopy;
+        return;
+    }
+
     if (strTopic.equals(MQTT_PREFIX + "/indicator1"))
     {
         DisplayManager.indicatorParser(1, payloadCopy);
@@ -360,6 +380,7 @@ void onMqttConnected()
         "/nextapp",
         "/apps",
         "/power",
+        "/sleep",
         "/indicator1",
         "/indicator2",
         "/indicator3",

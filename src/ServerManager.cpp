@@ -10,6 +10,7 @@
 #include "DisplayManager.h"
 #include "UpdateManager.h"
 #include "PeripheryManager.h"
+#include "PowerManager.h"
 #include <WiFiUdp.h>
 
 WiFiUDP udp;
@@ -46,6 +47,13 @@ void addHandler()
 {
     mws.addHandler("/api/power", HTTP_POST, []()
                    { DisplayManager.powerStateParse(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
+    mws.addHandler(
+        "/api/sleep", HTTP_POST, []()
+        { 
+            mws.webserver->send(200,F("text/plain"),F("OK"));
+            DisplayManager.setPower(false);
+            PowerManager.sleepParser(mws.webserver->arg("plain").c_str());
+        });
     mws.addHandler("/api/loop", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getAppsAsJson().c_str()); });
     mws.addHandler("/api/effects", HTTP_GET, []()
