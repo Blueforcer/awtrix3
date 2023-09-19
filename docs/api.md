@@ -40,6 +40,11 @@ Toggle the matrix on or off:
 | ---------------- | ----------------------------- | ------------------------- | ----------- |
 | `[PREFIX]/power` | `http://[IP]/api/power`       | `{"power": true}` or `{"power": false}` | POST        |
 
+Send the board in deep sleep mode (turns off the matrix as well), good for saving battery life:
+
+| MQTT Topic       | HTTP URL                      | Payload/Body              | HTTP Method |
+| ---------------- | ----------------------------- | ------------------------- | ----------- |
+| `[PREFIX]/sleep` | `http://[IP]/api/sleep`       | `{"sleep": X}` where X is number of seconds | POST        |
 
 ## Sound Playback
 
