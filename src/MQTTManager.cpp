@@ -296,6 +296,7 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         }
         if (doc.containsKey("sleep"))
         {
+            DisplayManager.setPower(false);
             PowerManager.sleep(doc["sleep"].as<uint32_t>());
         }
 
