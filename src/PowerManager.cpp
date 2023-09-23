@@ -2,7 +2,7 @@
 #include <ArduinoJson.h>
 #include "Globals.h"
 
-#define uS_TO_S_FACTOR 1000000
+#define uS_TO_S_FACTOR 1000000L
 
 // The getter for the instantiated singleton instance
 PowerManager_ &PowerManager_::getInstance()
@@ -32,12 +32,12 @@ void PowerManager_::sleepParser(const char *json)
 
   if (doc.containsKey("sleep"))
   {
-    uint32_t seconds = doc["sleep"].as<uint32_t>();
+    uint64_t seconds = doc["sleep"].as<uint64_t>();
     sleep(seconds);
   }
 }
 
-void PowerManager_::sleep(uint32_t seconds)
+void PowerManager_::sleep(uint64_t seconds)
 {
   esp_sleep_enable_timer_wakeup(seconds * uS_TO_S_FACTOR);
   Serial.print("Going to sleep...\n");

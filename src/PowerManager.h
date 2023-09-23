@@ -11,7 +11,7 @@ public:
     static PowerManager_ &getInstance();
     void setup();
     void sleepParser(const char*);
-    void sleep(uint32_t);
+    void sleep(uint64_t);
 };
 
 extern PowerManager_ &PowerManager;
