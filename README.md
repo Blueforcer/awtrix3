@@ -116,9 +116,6 @@ https://www.paypal.me/blueforcer
 <a href="https://github.com/Blueforcer/awtrix-light/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=Blueforcer/awtrix-light" />
 </a>
-  
-# Commercial cooperations  
-For any commercial usage, contact me at awtrix@blueforcer.de
-  
+
 # Disclaimer
 This open-source software is not affiliated with or endorsed by the company Ulanzi in any way. Use of the software is at your own risk and discretion, and I assume no liability for any potential damages or issues that may arise from using the software. It is important to be aware that using this open-source software comes without direct support or guarantees from the company Ulanzi.
