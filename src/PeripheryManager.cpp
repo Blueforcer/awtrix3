@@ -464,7 +464,7 @@ void PeripheryManager_::tick()
         CURRENT_LUX = (roundf(photocell.getSmoothedLux() * 1000) / 1000);
         if (AUTO_BRIGHTNESS && !MATRIX_OFF)
         {
-            brightnessPercent = sampleAverage / 4095.0 * 100.0;
+            brightnessPercent = sampleAverage / 1023.0 * 100.0;
             BRIGHTNESS = map(brightnessPercent, 0, 100, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
             DisplayManager.setBrightness(BRIGHTNESS);
         }
