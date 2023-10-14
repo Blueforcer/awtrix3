@@ -227,6 +227,11 @@ void ServerManager_::setup()
         return;
     }
 
+    MDNS.addService("http", "tcp", 80);
+    MDNS.addService("awtrix", "tcp", 80);
+    MDNS.addServiceTxt("awtrix", "tcp", "id", uniqueID);
+    MDNS.addServiceTxt("awtrix", "tcp", "type", "awtrix_light");
+
     configTzTime(NTP_TZ.c_str(), NTP_SERVER.c_str());
     tm timeInfo;
     getLocalTime(&timeInfo);
