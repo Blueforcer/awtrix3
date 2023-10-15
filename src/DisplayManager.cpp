@@ -611,7 +611,7 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
       customApp.iconName = newIconName;
       customApp.icon.close();
       customApp.iconPosition = 0;
-      customApp.currentFrame=0;
+      customApp.currentFrame = 0;
     }
   }
   else
@@ -619,7 +619,7 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     customApp.icon.close();
     customApp.iconName = "";
     customApp.iconPosition = 0;
-    customApp.currentFrame=0;
+    customApp.currentFrame = 0;
   }
 
   customApp.gradient[0] = -1;
@@ -1285,6 +1285,10 @@ void DisplayManager_::dismissNotify()
   bool wakeup;
   if (!notifications.empty())
   {
+    if (notifications.size() >= 2)
+    {
+      notifications[1].startime = millis();
+    }
     wakeup = notifications[0].wakeup;
     notifications[0].icon.close();
     notifications.erase(notifications.begin());
@@ -1506,12 +1510,6 @@ void DisplayManager_::updateAppVector(const char *json)
   doc.clear();
 }
 
-double roundToDecimalPlaces(double value, int places)
-{
-  double factor = pow(10.0, places);
-  return round(value * factor) / factor;
-}
-
 String DisplayManager_::getStats()
 {
   StaticJsonDocument<1024> doc;
@@ -1543,6 +1541,7 @@ String DisplayManager_::getStats()
   doc[F("indicator3")] = ui->indicator3State;
   doc[F("app")] = CURRENT_APP;
   doc[F("uid")] = uniqueID;
+  doc[F("matrix")] = !MATRIX_OFF;
   String jsonString;
   serializeJson(doc, jsonString);
   return jsonString;

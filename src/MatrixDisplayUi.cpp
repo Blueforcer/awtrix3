@@ -621,35 +621,36 @@ void MatrixDisplayUi::slideTransition()
 
 void MatrixDisplayUi::curtainTransition()
 {
-  float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
-  if (this->state.ticksSinceLastStateSwitch == 0)
-  {
-    // At the beginning of the transition, copy the current app image to the ledsCopy array
-    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+    CRGB *leds = DisplayManager.getLeds();
+    float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
+    int curtainWidth = (int)(16 * progress); // 16 ist die Hälfte der Matrix-Breite
 
+    if (this->state.ticksSinceLastStateSwitch == 1)
+    {
+        // Kopieren Sie die aktuelle App-Ansicht in ledsCopy
+        (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
+        for (int i = 0; i < 32; i++)
+        {
+            for (int j = 0; j < 8; j++)
+            {
+                ledsCopy[i + j * 32] = leds[this->matrix->XY(i, j)];
+            }
+        }
+    }
+    // Zeichnen Sie die neue App-Ansicht
+    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+
+    // Anwenden des Vorhang-Effekts basierend auf dem Fortschritt
     for (int i = 0; i < 32; i++)
     {
-      for (int j = 0; j < 8; j++)
-      {
-        ledsCopy[i + j * 32] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
-      }
+        for (int j = 0; j < 8; j++)
+        {
+            if ((i < (16 - curtainWidth)) || (i >= (16 + curtainWidth)))
+            {
+                leds[this->matrix->XY(i, j)] = ledsCopy[i + j * 32];
+            }
+        }
     }
-  }
-
-  // Draw the new app
-  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
-
-  // Create the curtain effect
-  for (int i = 0; i < 32; i++)
-  {
-    for (int j = 0; j < 8; j++)
-    {
-      if (i < 16 - progress * 16 || i > 15 + progress * 16)
-      {
-        DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[i + j * 32];
-      }
-    }
-  }
 }
 
 void MatrixDisplayUi::zoomTransition()

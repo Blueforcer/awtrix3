@@ -76,6 +76,11 @@ void loadDevSettings()
             SENSOR_READING = doc["sensor_reading"].as<bool>();
         }
 
+        if (doc.containsKey("dfplayer"))
+        {
+            DFPLAYER_ACTIVE = doc["dfplayer"].as<bool>();
+        }
+
         if (doc.containsKey("matrix"))
         {
             MATRIX_LAYOUT = doc["matrix"];
@@ -297,7 +302,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.88";
+const char *VERSION = "0.89";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -382,6 +387,7 @@ bool BLOCK_NAVIGATION = false;
 bool UPDATE_CHECK = false;
 float GAMMA = 0;
 bool SENSOR_READING = true;
+bool DFPLAYER_ACTIVE = false;
 bool ROTATE_SCREEN = false;
 uint8_t TIME_MODE = 1;
 uint8_t SCROLL_SPEED = 100;
@@ -398,7 +404,7 @@ bool MOODLIGHT_MODE;
 long STATS_INTERVAL = 10000;
 bool DEBUG_MODE = false;
 uint8_t MIN_BRIGHTNESS = 2;
-uint8_t MAX_BRIGHTNESS = 180;
+uint8_t MAX_BRIGHTNESS = 210;
 double movementFactor = 0.5;
 int8_t TRANS_EFFECT = 1;
 String AUTH_USER = "";

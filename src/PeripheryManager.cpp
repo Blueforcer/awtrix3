@@ -248,6 +248,8 @@ void PeripheryManager_::playBootSound()
 void PeripheryManager_::stopSound()
 {
 #ifdef awtrix2_upgrade
+    if (!DFPLAYER_ACTIVE)
+        return;
     dfmp3.stopAdvertisement();
     delay(50);
     dfmp3.stop();
@@ -259,6 +261,8 @@ void PeripheryManager_::stopSound()
 #ifdef awtrix2_upgrade
 void PeripheryManager_::setVolume(uint8_t vol)
 {
+    if (!DFPLAYER_ACTIVE)
+        return;
     uint8_t curVolume = dfmp3.getVolume(); // need to read volume in order to work. Donno why! :(
     dfmp3.setVolume(vol);
     delay(50);
@@ -300,6 +304,8 @@ bool PeripheryManager_::playFromFile(String file)
 #ifdef awtrix2_upgrade
     if (DEBUG_MODE)
         DEBUG_PRINTLN(F("Playing MP3 file"));
+    if (!DFPLAYER_ACTIVE)
+        return false;
     dfmp3.stop();
     delay(50);
     dfmp3.playMp3FolderTrack(file.toInt());
@@ -324,7 +330,8 @@ bool PeripheryManager_::playFromFile(String file)
 bool PeripheryManager_::isPlaying()
 {
 #ifdef awtrix2_upgrade
-
+    if (!DFPLAYER_ACTIVE)
+        return false;
     if ((dfmp3.getStatus() & 0xff) == 0x01) // 0x01 = DfMp3_StatusState_Playing
         return true;
     else
@@ -341,9 +348,13 @@ void PeripheryManager_::setup()
     startTime = millis();
     pinMode(LDR_PIN, INPUT);
 #ifdef awtrix2_upgrade
-    dfmp3.begin();
-    delay(100);
-    setVolume(VOLUME);
+    if (DFPLAYER_ACTIVE)
+    {
+        dfmp3.begin();
+        delay(100);
+        setVolume(VOLUME);
+    }
+
 #endif
     button_left.begin();
     button_right.begin();

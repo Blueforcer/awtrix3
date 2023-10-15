@@ -30,3 +30,4 @@ The JSON object has the following properties:
 | `background_effect` | string | Sets an [effect](https://blueforcer.github.io/awtrix-light/#/effects) as global background layer | - |
 | `stats_interval` | integer | Sets the interval in milliseconds when awtrix should send its stats to HA and MQTT | 10000 |
 | `debug_mode` | boolean | Enables serial debug outputs. | false |
+| `dfplayer` | boolean | Enables DFPLayer for Awtrix2_conversation builds. | false |

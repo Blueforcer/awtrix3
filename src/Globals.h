@@ -63,6 +63,7 @@ extern String NTP_SERVER;
 extern String NTP_TZ;
 extern bool HA_DISCOVERY;
 extern bool UPPERCASE_LETTERS;
+extern bool DFPLAYER_ACTIVE;
 extern float CURRENT_TEMP;
 extern float CURRENT_HUM;
 extern float CURRENT_LUX;

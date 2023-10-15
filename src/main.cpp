@@ -61,7 +61,7 @@ void setup()
 {
   pinMode(15, OUTPUT);
   digitalWrite(15, LOW);
-  delay(5000);
+  delay(2000);
   Serial.begin(115200);
   loadSettings();
   PeripheryManager.setup();

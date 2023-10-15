@@ -56,7 +56,7 @@ struct CustomApp
     int barSize;
     int lineSize;
     long lastUpdate;
-    int16_t lifetime;
+    uint64_t lifetime;
     std::vector<uint32_t> colors;
     std::vector<String> fragments;
     int textOffset;
@@ -566,7 +566,14 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             }
             if (!noScrolling)
             {
-                DisplayManager.drawLine(iconWidth + x + ca->iconPosition, 0 + y, iconWidth + x + ca->iconPosition, 6 + y, ca->background);
+                if (ca->progress > -1)
+                {
+                    DisplayManager.drawLine(iconWidth + x + ca->iconPosition, 0 + y, iconWidth + x + ca->iconPosition, 6 + y, ca->background);
+                }
+                else
+                {
+                    DisplayManager.drawLine(iconWidth + x + ca->iconPosition, 0 + y, iconWidth + x + ca->iconPosition, 7 + y, ca->background);
+                }
             }
         }
 
@@ -865,7 +872,14 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
             }
             if (!noScrolling)
             {
-                DisplayManager.drawLine(iconWidth + notifications[0].iconPosition + notifications[0].iconOffset, 0, iconWidth + notifications[0].iconPosition, 6, notifications[0].background);
+                if (notifications[0].progress > -1)
+                {
+                    DisplayManager.drawLine(iconWidth + notifications[0].iconPosition + notifications[0].iconOffset, 0, iconWidth + notifications[0].iconPosition, 6, notifications[0].background);
+                }
+                else
+                {
+                    DisplayManager.drawLine(iconWidth + notifications[0].iconPosition + notifications[0].iconOffset, 0, iconWidth + notifications[0].iconPosition, 7, notifications[0].background);
+                }
             }
         }
 

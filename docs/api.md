@@ -45,7 +45,9 @@ Send the board in deep sleep mode (turns off the matrix as well), good for savin
 | MQTT Topic       | HTTP URL                      | Payload/Body              | HTTP Method |
 | ---------------- | ----------------------------- | ------------------------- | ----------- |
 | `[PREFIX]/sleep` | `http://[IP]/api/sleep`       | `{"sleep": X}` where X is number of seconds | POST        |
-
+  
+AWTRIX will only wakeup after time or if you press the middle button once. There is no way to wake up via API.  
+  
 ## Sound Playback
 
 Play a RTTTL sound from the MELODIES folder:

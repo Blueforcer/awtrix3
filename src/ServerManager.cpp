@@ -52,8 +52,7 @@ void addHandler()
         { 
             mws.webserver->send(200,F("text/plain"),F("OK"));
             DisplayManager.setPower(false);
-            PowerManager.sleepParser(mws.webserver->arg("plain").c_str());
-        });
+            PowerManager.sleepParser(mws.webserver->arg("plain").c_str()); });
     mws.addHandler("/api/loop", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getAppsAsJson().c_str()); });
     mws.addHandler("/api/effects", HTTP_GET, []()
@@ -93,7 +92,7 @@ void addHandler()
                    { DisplayManager.nextApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/fullscreen", HTTP_GET, []()
                    {
-    String fps = mws.webserver->arg("fps");  // Hole den "fps" URL-Parameter
+    String fps = mws.webserver->arg("fps");
     if (fps == "") {
         fps = "30"; 
     }
@@ -228,17 +227,18 @@ void ServerManager_::setup()
     mws.addHandler("/version", HTTP_GET, versionHandler);
     mws.begin();
 
-    if (!MDNS.begin(uniqueID))
+    if (!MDNS.begin(MQTT_PREFIX))
     {
         if (DEBUG_MODE)
             DEBUG_PRINTLN(F("Error starting mDNS"));
-        return;
     }
-
-    MDNS.addService("http", "tcp", 80);
-    MDNS.addService("awtrix", "tcp", 80);
-    MDNS.addServiceTxt("awtrix", "tcp", "id", uniqueID);
-    MDNS.addServiceTxt("awtrix", "tcp", "type", "awtrix_light");
+    else
+    {
+        MDNS.addService("http", "tcp", 80);
+        MDNS.addService("awtrix", "tcp", 80);
+        MDNS.addServiceTxt("awtrix", "tcp", "id", MQTT_PREFIX);
+        MDNS.addServiceTxt("awtrix", "tcp", "type", "awtrix_light");
+    }
 
     configTzTime(NTP_TZ.c_str(), NTP_SERVER.c_str());
     tm timeInfo;

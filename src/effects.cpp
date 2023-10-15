@@ -1088,7 +1088,7 @@ int getEffectIndex(String name)
             return i;
         }
     }
-    return -1;
+    return 0;
 }
 
 // Loads a palette from the LittleFS filesystem

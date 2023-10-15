@@ -99,6 +99,11 @@ uint32_t getColorFromJsonVariant(JsonVariant colorVariant, uint32_t defaultColor
     return defaultColor;
 }
 
+double roundToDecimalPlaces(double value, int places)
+{
+  double factor = pow(10.0, places);
+  return round(value * factor) / factor;
+}
 
 float getTextWidth(const char *text, byte textCase)
 {

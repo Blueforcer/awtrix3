@@ -448,7 +448,7 @@ void MQTTManager_::sendStats()
     {
         if (HA_DISCOVERY && mqtt.isConnected())
         {
-            char buffer[5];
+            char buffer[8];
 #ifndef awtrix2_upgrade
             snprintf(buffer, 5, "%d", BATTERY_PERCENT);
             battery->setValue(buffer);
@@ -456,7 +456,7 @@ void MQTTManager_::sendStats()
 
             if (SENSOR_READING)
             {
-                snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
+                snprintf(buffer, sizeof(buffer), "%.*f", TEMP_DECIMAL_PLACES, CURRENT_TEMP);
                 temperature->setValue(buffer);
                 snprintf(buffer, 5, "%.0f", CURRENT_HUM);
                 humidity->setValue(buffer);
@@ -469,9 +469,9 @@ void MQTTManager_::sendStats()
             Matrix->setState(!MATRIX_OFF, false);
             HALight::RGBColor color;
             color.isSet = true;
-            color.red = (TEXTCOLOR_888 >> 16) & 0xFF;  // Die obersten 8 Bits für Rot
-            color.green = (TEXTCOLOR_888 >> 8) & 0xFF; // Die mittleren 8 Bits für Grün
-            color.blue = TEXTCOLOR_888 & 0xFF;         // Die untersten 8 Bits für Blau
+            color.red = (TEXTCOLOR_888 >> 16) & 0xFF;
+            color.green = (TEXTCOLOR_888 >> 8) & 0xFF;
+            color.blue = TEXTCOLOR_888 & 0xFF;
             Matrix->setRGBColor(color);
             int8_t rssiValue = WiFi.RSSI();
             char rssiString[4];
@@ -678,17 +678,6 @@ void MQTTManager_::setup()
         ram->setIcon(HAramIcon);
         ram->setName(HAramName);
         ram->setUnitOfMeasurement(HAramUnit);
-
-        // sprintf(sSpeed, HASPEEDID, macStr);
-        // ScrollSpeed = new HANumber(sSpeed);
-        // ScrollSpeed->setDeviceClass(HAramClass);
-        // ScrollSpeed->setIcon(HASPEEDIcon);
-        // ScrollSpeed->setName(HASPEEDName);
-        // ScrollSpeed->onCommand(onNumberCommand);
-        // ScrollSpeed->setMin(40);
-        // ScrollSpeed->setMax(100);
-        // ScrollSpeed->setStep(1);
-        // ScrollSpeed->setCurrentState(SCROLL_SPEED);
     }
     else
     {
