@@ -625,7 +625,7 @@ void MatrixDisplayUi::curtainTransition()
     float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
     int curtainWidth = (int)(16 * progress); // 16 ist die Hälfte der Matrix-Breite
 
-    if (this->state.ticksSinceLastStateSwitch == 1)
+    if (this->state.ticksSinceLastStateSwitch == 1 || this->state.ticksSinceLastStateSwitch == 0)
     {
         // Kopieren Sie die aktuelle App-Ansicht in ledsCopy
         (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);

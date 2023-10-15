@@ -236,7 +236,8 @@ void ServerManager_::setup()
     {
         MDNS.addService("http", "tcp", 80);
         MDNS.addService("awtrix", "tcp", 80);
-        MDNS.addServiceTxt("awtrix", "tcp", "id", MQTT_PREFIX);
+        MDNS.addServiceTxt("awtrix", "tcp", "id", uniqueID);
+        MDNS.addServiceTxt("awtrix", "tcp", "name", MQTT_PREFIX);
         MDNS.addServiceTxt("awtrix", "tcp", "type", "awtrix_light");
     }
 

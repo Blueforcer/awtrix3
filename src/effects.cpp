@@ -1088,7 +1088,7 @@ int getEffectIndex(String name)
             return i;
         }
     }
-    return 0;
+    return -1;
 }
 
 // Loads a palette from the LittleFS filesystem
@@ -1100,7 +1100,7 @@ CRGBPalette16 loadPaletteFromLittleFS(String paletteName)
         return RainbowColors_p; // default palette
     }
 
-    CRGBPalette16 palette;
+    CRGBPalette16 palette = RainbowColors_p;
     String colorString;
     int i = 0;
     while (paletteFile.available() && i < 16)

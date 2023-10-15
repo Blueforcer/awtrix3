@@ -302,7 +302,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.89";
+const char *VERSION = "0.90";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -404,7 +404,7 @@ bool MOODLIGHT_MODE;
 long STATS_INTERVAL = 10000;
 bool DEBUG_MODE = false;
 uint8_t MIN_BRIGHTNESS = 2;
-uint8_t MAX_BRIGHTNESS = 210;
+uint8_t MAX_BRIGHTNESS = 160;
 double movementFactor = 0.5;
 int8_t TRANS_EFFECT = 1;
 String AUTH_USER = "";
