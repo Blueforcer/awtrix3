@@ -314,7 +314,7 @@ Adjust various settings related to the app display.
 
 | MQTT Topic            | HTTP URL                          | Payload/Body  | HTTP Method |
 | --------------------- | --------------------------------- | ------------- | ----------- |
-| `[PREFIX]/settings`   | `http://[IP]/api/settings`        | JSON          | POST        |
+| `[PREFIX]/settings`   | `http://[IP]/api/settings`        | JSON          | GET/POST        |
 
 ### JSON Properties
 
@@ -354,6 +354,7 @@ You can adjust each property in the JSON object according to your preferences. I
 | `HUM`         | boolean                   | Enable or disable the native humidity app (requires reboot).                                        | `true`/`false`                                     | true    |
 | `TEMP`        | boolean                   | Enable or disable the native temperature app (requires reboot).                                     | `true`/`false`                                     | true    |
 | `BAT`         | boolean                   | Enable or disable the native battery app (requires reboot).                                         | `true`/`false`                                     | true    |
+| `MATP`         | boolean                   | Enable or disable the matrix. Similar to `power` Endpoint but without the animation.               | `true`/`false`                                     | true    |
 
 **Color Values**: Can either be an RGB array (e.g., `[255,0,0]`) or a valid 6-digit hexadecimal color value (e.g., "#FF0000" for red).
 
