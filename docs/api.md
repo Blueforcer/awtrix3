@@ -421,8 +421,8 @@ If you need to restart the Awtrix:
 | `N/A`           | `http://[IP]/api/erase`       | -             | POST        |
 
 #### Clear Settings
-**WARNING**: This action will clear all you settings from the settings API. This does not belong to flash files and WiFi Settings.
+**WARNING**: This action will reset all settings from the settings API. It does not reset the flash files and WiFi Settings.
 
 | MQTT Topic      | HTTP URL                      | Payload/Body | HTTP Method |
 |-----------------|-------------------------------|---------------|-------------|
-| `N/A`           | `http://[IP]/api/clearSettings`       | -             | POST        |
+| `N/A`           | `http://[IP]/api/resetSettings`       | -             | POST        |
