@@ -314,7 +314,7 @@ Adjust various settings related to the app display.
 
 | MQTT Topic            | HTTP URL                          | Payload/Body  | HTTP Method |
 | --------------------- | --------------------------------- | ------------- | ----------- |
-| `[PREFIX]/settings`   | `http://[IP]/api/settings`        | JSON          | POST        |
+| `[PREFIX]/settings`   | `http://[IP]/api/settings`        | JSON          | GET/POST        |
 
 ### JSON Properties
 
@@ -354,6 +354,7 @@ You can adjust each property in the JSON object according to your preferences. I
 | `HUM`         | boolean                   | Enable or disable the native humidity app (requires reboot).                                        | `true`/`false`                                     | true    |
 | `TEMP`        | boolean                   | Enable or disable the native temperature app (requires reboot).                                     | `true`/`false`                                     | true    |
 | `BAT`         | boolean                   | Enable or disable the native battery app (requires reboot).                                         | `true`/`false`                                     | true    |
+| `MATP`         | boolean                   | Enable or disable the matrix. Similar to `power` Endpoint but without the animation.               | `true`/`false`                                     | true    |
 
 **Color Values**: Can either be an RGB array (e.g., `[255,0,0]`) or a valid 6-digit hexadecimal color value (e.g., "#FF0000" for red).
 
@@ -421,8 +422,8 @@ If you need to restart the Awtrix:
 | `N/A`           | `http://[IP]/api/erase`       | -             | POST        |
 
 #### Clear Settings
-**WARNING**: This action will clear all you settings from the settings API. This does not belong to flash files and WiFi Settings.
+**WARNING**: This action will reset all settings from the settings API. It does not reset the flash files and WiFi Settings.
 
 | MQTT Topic      | HTTP URL                      | Payload/Body | HTTP Method |
 |-----------------|-------------------------------|---------------|-------------|
-| `N/A`           | `http://[IP]/api/clearSettings`       | -             | POST        |
+| `N/A`           | `http://[IP]/api/resetSettings`       | -             | POST        |
