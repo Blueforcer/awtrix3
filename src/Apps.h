@@ -1,28 +1,9 @@
 #ifndef AppS_H
 #define AppS_H
 
-#include <vector>
 #include <map>
-#include "icons.h"
-#include <FastLED_NeoMatrix.h>
 #include "MatrixDisplayUi.h"
-#include "Globals.h"
-#include "Functions.h"
-#include "MenuManager.h"
-#include "PeripheryManager.h"
-#include "DisplayManager.h"
-#include "LittleFS.h"
-#include <WiFi.h>
-#include <HTTPClient.h>
-#include <ArduinoJson.h>
 #include "effects.h"
-
-extern tm timeInfo;
-extern uint16_t nativeAppsCount;
-
-extern int WEATHER_CODE;
-extern String WEATHER_TEMP;
-extern String WEATHER_HUM;
 
 struct CustomApp
 {
@@ -121,7 +102,6 @@ struct Notification
     int gradient[2] = {0};
 };
 extern std::vector<Notification> notifications;
-extern bool notifyFlag;
 
 CustomApp *getCustomAppByName(String name);
 
@@ -156,6 +136,8 @@ void MenuOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlay
 void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
 
 void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
+
+extern OverlayCallback overlays[];
 
 // Unattractive to have a function for every customapp wich does the same, but currently still no other option found TODO
 

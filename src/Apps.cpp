@@ -1,4 +1,13 @@
 #include "Apps.h"
+
+#include <map>
+#include "icons.h"
+#include "MatrixDisplayUi.h"
+#include "Functions.h"
+#include "MenuManager.h"
+#include "PeripheryManager.h"
+#include <WiFi.h>
+#include "effects.h"
 #include "MQTTManager.h"
 
 tm timeInfo;
@@ -14,6 +23,7 @@ std::map<String, CustomApp> customApps;
 
 std::vector<Notification> notifications;
 bool notifyFlag = false;
+
 
 CustomApp *getCustomAppByName(String name)
 {
@@ -1098,4 +1108,5 @@ void CApp20(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     ShowCustomApp(name, matrix, state, x, y, gifPlayer);
 }
 
+OverlayCallback overlays[] = {MenuOverlay, NotifyOverlay, StatusOverlay};
 void (*customAppCallbacks[20])(FastLED_NeoMatrix *, MatrixDisplayUiState *, int16_t, int16_t, GifPlayer *) = {CApp1, CApp2, CApp3, CApp4, CApp5, CApp6, CApp7, CApp8, CApp9, CApp10, CApp11, CApp12, CApp13, CApp14, CApp15, CApp16, CApp17, CApp18, CApp19, CApp20};
