@@ -46,6 +46,9 @@ float actualBri;
 int16_t cursor_x, cursor_y;
 uint32_t textColor;
 
+OverlayCallback overlays[] = {MenuOverlay, NotifyOverlay, StatusOverlay};
+
+
 // NeoMatrix
 FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
 MatrixDisplayUi *ui = new MatrixDisplayUi(matrix);
