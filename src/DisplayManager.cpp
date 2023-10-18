@@ -11,6 +11,7 @@
 #include "ServerManager.h"
 #include "MenuManager.h"
 #include "Apps.h"
+#include "Overlays.h"
 #include "Dictionary.h"
 #include <set>
 #include "GifPlayer.h"
