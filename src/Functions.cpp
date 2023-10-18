@@ -85,7 +85,7 @@ uint32_t getColorFromJsonVariant(JsonVariant colorVariant, uint32_t defaultColor
             uint8_t s = colorArray[2];
             uint8_t v = colorArray[3];
             // Assuming you have a function to convert HSV to RGB
-            uint8_t r, g, b;
+            uint8_t r = 0, g = 0, b = 0;
             // hsv2rgb(h, s, v, r, g, b);
             return (r << 16) | (g << 8) | b; // Ignoring alpha channel
         }

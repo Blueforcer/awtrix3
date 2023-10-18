@@ -503,8 +503,8 @@ void MQTTManager_::setup()
         mqtt.setDataPrefix(MQTT_PREFIX.c_str());
         uint8_t mac[6];
         WiFi.macAddress(mac);
-        char *macStr = new char[18 + 1];
-        snprintf(macStr, 24, "%02x%02x%02x", mac[3], mac[4], mac[5]);
+        char macStr[7];
+        snprintf(macStr, 7, "%02x%02x%02x", mac[3], mac[4], mac[5]);
         device.setUniqueId(mac, sizeof(mac));
         device.setName(uniqueID);
         device.setSoftwareVersion(VERSION);

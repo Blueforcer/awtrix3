@@ -770,6 +770,8 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
   newNotification.repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
   newNotification.fade = doc.containsKey("fadeText") ? doc["fadeText"].as<int>() : 0;
   newNotification.blink = doc.containsKey("blinkText") ? doc["blinkText"].as<int>() : 0;
+  newNotification.barSize = 0;
+  newNotification.lineSize = 0;
   if (newNotification.noScrolling)
   {
     newNotification.repeat = -1;
