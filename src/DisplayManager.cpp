@@ -11,11 +11,13 @@
 #include "ServerManager.h"
 #include "MenuManager.h"
 #include "Apps.h"
+#include "Overlays.h"
 #include "Dictionary.h"
 #include <set>
 #include "GifPlayer.h"
 #include <ArtnetWifi.h>
 #include <AwtrixFont.h>
+#include <HTTPClient.h>
 
 unsigned long lastArtnetStatusTime = 0;
 const int numberOfChannels = 256 * 3;
@@ -768,6 +770,8 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
   newNotification.repeat = doc.containsKey("repeat") ? doc["repeat"].as<int>() : -1;
   newNotification.fade = doc.containsKey("fadeText") ? doc["fadeText"].as<int>() : 0;
   newNotification.blink = doc.containsKey("blinkText") ? doc["blinkText"].as<int>() : 0;
+  newNotification.barSize = 0;
+  newNotification.lineSize = 0;
   if (newNotification.noScrolling)
   {
     newNotification.repeat = -1;
