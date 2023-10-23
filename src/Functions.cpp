@@ -159,3 +159,41 @@ String utf8ascii(String s)
     }
     return r;
 }
+
+
+uint32_t fadeColor(uint32_t color, uint32_t interval)
+{
+    float phase = (sin(2 * PI * millis() / float(interval)) + 1) * 0.5;
+    uint8_t r = ((color >> 16) & 0xFF) * phase;
+    uint8_t g = ((color >> 8) & 0xFF) * phase;
+    uint8_t b = (color & 0xFF) * phase;
+    return (r << 16) | (g << 8) | b;
+}
+
+uint32_t TextEffect(uint32_t color, uint32_t fade, uint32_t blink)
+{
+    if (fade > 0)
+    {
+        float phase = (sin(2 * PI * millis() / float(fade)) + 1) * 0.5;
+        uint8_t r = ((color >> 16) & 0xFF) * phase;
+        uint8_t g = ((color >> 8) & 0xFF) * phase;
+        uint8_t b = (color & 0xFF) * phase;
+        return (r << 16) | (g << 8) | b;
+    }
+    else if (blink > 0)
+    {
+        if (millis() % blink > blink / 2)
+        {
+            return color;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        return color;
+    }
+}
+

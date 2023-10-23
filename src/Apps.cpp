@@ -22,7 +22,6 @@ std::vector<std::pair<String, AppCallback>> Apps;
 String currentCustomApp;
 std::map<String, CustomApp> customApps;
 
-
 CustomApp *getCustomAppByName(String name)
 {
     return customApps.count(name) ? &customApps[name] : nullptr;
@@ -357,7 +356,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         // ca->iconSearched = true;
     }
 
-    bool hasIcon = ca->icon;
+    bool hasIcon = ca->icon || ca->jpegDataSize > 0;
 
     // Calculate text and available width
     uint16_t textWidth = 0;
@@ -405,8 +404,15 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             }
             else
             {
-                DisplayManager.drawJPG(x + ca->iconPosition + ca->iconOffset, y, ca->icon);
                 iconWidth = 8;
+                if (ca->jpegDataSize > 0)
+                {
+                    DisplayManager.drawJPG(x + ca->iconPosition + ca->iconOffset, y, ca->jpegDataBuffer, ca->jpegDataSize);
+                }
+                else
+                {
+                    DisplayManager.drawJPG(x + ca->iconPosition + ca->iconOffset, y, ca->icon);
+                }
             }
             if (!noScrolling)
             {

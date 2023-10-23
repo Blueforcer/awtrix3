@@ -48,6 +48,8 @@ struct Notification
     bool loopSound;
     String rtttl;
     int gradient[2] = {0};
+    uint8_t jpegDataBuffer[1000];
+    unsigned int jpegDataSize = 0;
 };
 extern std::vector<Notification> notifications;
 extern bool notifyFlag;

@@ -195,3 +195,29 @@ JRESULT TJpg_Decoder::drawFsJpg(int32_t x, int32_t y, fs::File inFile)
   inFile.seek(0);
   return jresult;
 }
+
+
+JRESULT TJpg_Decoder::drawJpg(int32_t x, int32_t y, const uint8_t jpeg_data[], uint32_t  data_size) {
+  JDEC jdec;
+  JRESULT jresult = JDR_OK;
+
+  jpg_source = TJPG_ARRAY;
+  array_index = 0;
+  array_data  = jpeg_data;
+  array_size  = data_size;
+
+  jpeg_x = x;
+  jpeg_y = y;
+
+  jdec.swap = _swap;
+
+  // Analyse input data
+  jresult = jd_prepare(&jdec, jd_input, workspace, TJPGD_WORKSPACE_SIZE, 0);
+
+  // Extract image and render
+  if (jresult == JDR_OK) {
+    jresult = jd_decomp(&jdec, jd_output, jpgScale);
+  }
+
+  return jresult;
+}

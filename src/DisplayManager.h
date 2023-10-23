@@ -7,6 +7,7 @@
 #include <vector>
 #include <FastLED_NeoMatrix.h>
 
+
 class DisplayManager_
 {
 private:
@@ -44,6 +45,7 @@ public:
     bool switchToApp(const char *json);
     void setNewSettings(const char *json);
     void drawJPG(uint16_t x, uint16_t y, fs::File jpgFile);
+    void drawJPG(int32_t x, int32_t y, const uint8_t jpeg_data[], uint32_t  data_size);
     void drawProgressBar(int16_t x, int16_t y, int progress, uint32_t pColor, uint32_t pbColor);
     void drawMenuIndicator(int cur, int total, uint32_t color);
     void drawBMP(int16_t x, int16_t y, const uint16_t bitmap[], int16_t w, int16_t h);
@@ -67,7 +69,6 @@ public:
     void gammaCorrection();
     bool indicatorParser(uint8_t indicator, const char *json);
     void showSleepAnimation();
-    void showCurtainEffect();
     void sendAppLoop();
     void processDrawInstructions(int16_t x, int16_t y, String &drawInstructions);
     String ledsAsJson();
@@ -76,7 +77,6 @@ public:
     bool parseCustomPage(const String &name, const char *json, bool preventSave);
     bool moodlight(const char *json);
     int *getLedColors();
-    void sendBMP(Stream &stream);
     CRGB getPixelColor(int16_t x, int16_t y);
     CRGB *getLeds();
     void forceNextApp();

@@ -17,6 +17,7 @@
 #include <LittleFS.h>
 #include <LightDependentResistor.h>
 #include <MenuManager.h>
+#include <ServerManager.h>
 const int buzzerPin = 2;       // Buzzer an GPIO2
 const int baudRate = 50;       // Nachrichtenübertragungsrate
 const char *message = "HELLO"; // Die Nachricht, die gesendet werden soll
@@ -406,18 +407,27 @@ void PeripheryManager_::setup()
 
 void PeripheryManager_::tick()
 {
-    if (ROTATE_SCREEN)
+    if (!MenuManager.inMenu)
     {
-        MQTTManager.sendButton(2, button_left.read());
-        MQTTManager.sendButton(0, button_right.read());
-    }
-    else
-    {
-        MQTTManager.sendButton(0, button_left.read());
-        MQTTManager.sendButton(2, button_right.read());
+        if (ROTATE_SCREEN)
+        {
+            MQTTManager.sendButton(2, button_left.read());
+            ServerManager.sendButton(2, button_left.read());
+            MQTTManager.sendButton(0, button_right.read());
+            ServerManager.sendButton(0, button_right.read());
+        }
+        else
+        {
+            MQTTManager.sendButton(0, button_left.read());
+            MQTTManager.sendButton(2, button_right.read());
+            ServerManager.sendButton(0, button_left.read());
+            ServerManager.sendButton(2, button_right.read());
+        }
+
+        MQTTManager.sendButton(1, button_select.read());
+        ServerManager.sendButton(1, button_select.read());
     }
 
-    MQTTManager.sendButton(1, button_select.read());
     unsigned long currentMillis_BatTempHum = millis();
     if (currentMillis_BatTempHum - previousMillis_BatTempHum >= interval_BatTempHum)
     {

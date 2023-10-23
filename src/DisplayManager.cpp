@@ -18,6 +18,7 @@
 #include <ArtnetWifi.h>
 #include <AwtrixFont.h>
 #include <HTTPClient.h>
+#include "base64.hpp"
 
 unsigned long lastArtnetStatusTime = 0;
 const int numberOfChannels = 256 * 3;
@@ -101,6 +102,11 @@ bool DisplayManager_::setAutoTransition(bool active)
 void DisplayManager_::drawJPG(uint16_t x, uint16_t y, fs::File jpgFile)
 {
   TJpgDec.drawFsJpg(x, y, jpgFile);
+}
+
+void DisplayManager_::drawJPG(int32_t x, int32_t y, const uint8_t jpeg_data[], uint32_t data_size)
+{
+  TJpgDec.drawJpg(x, y, jpeg_data, data_size);
 }
 
 void DisplayManager_::drawBMP(int16_t x, int16_t y, const uint16_t bitmap[], int16_t w, int16_t h)
@@ -607,17 +613,40 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
   if (doc.containsKey("icon"))
   {
-    String newIconName = doc["icon"].as<String>();
-    if (customApp.iconName != newIconName)
+    String iconValue = doc["icon"].as<String>();
+
+    if (iconValue.endsWith("="))
     {
-      customApp.iconName = newIconName;
+      customApp.jpegDataSize = decode_base64((const unsigned char *)iconValue.c_str(), customApp.jpegDataBuffer);
+      customApp.isGif = false;
       customApp.icon.close();
+      customApp.iconName = "";
       customApp.iconPosition = 0;
       customApp.currentFrame = 0;
+    }
+    else
+    {
+      customApp.jpegDataSize = 0;
+      if (customApp.iconName != iconValue)
+      {
+        customApp.iconName = iconValue;
+        customApp.icon.close();
+        customApp.iconPosition = 0;
+        customApp.currentFrame = 0;
+      }
+
+      else
+      {
+        customApp.icon.close();
+        customApp.iconName = "";
+        customApp.iconPosition = 0;
+        customApp.currentFrame = 0;
+      }
     }
   }
   else
   {
+    customApp.jpegDataSize = 0;
     customApp.icon.close();
     customApp.iconName = "";
     customApp.iconPosition = 0;
@@ -875,27 +904,43 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
 
   if (doc.containsKey("icon"))
   {
-    String iconFileName = doc["icon"].as<String>();
-    if (LittleFS.exists("/ICONS/" + iconFileName + ".jpg"))
+    String iconValue = doc["icon"].as<String>();
+
+    // Annahme: Ein base64-kodierter String hat wahrscheinlich das Zeichen '=' am Ende,
+    // da es als Padding in base64 verwendet wird.
+    // Dies ist eine rudimentäre Methode und könnte je nach deinen Daten variieren.
+    if (iconValue.endsWith("="))
     {
+      newNotification.jpegDataSize = decode_base64((const unsigned char *)iconValue.c_str(), newNotification.jpegDataBuffer);
       newNotification.isGif = false;
-      newNotification.icon = LittleFS.open("/ICONS/" + iconFileName + ".jpg");
-    }
-    else if (LittleFS.exists("/ICONS/" + iconFileName + ".gif"))
-    {
-      newNotification.isGif = true;
-      newNotification.icon = LittleFS.open("/ICONS/" + iconFileName + ".gif");
     }
     else
     {
-      fs::File nullPointer;
-      newNotification.icon = nullPointer;
+      newNotification.jpegDataSize = 0;
+      if (LittleFS.exists("/ICONS/" + iconValue + ".jpg"))
+      {
+        newNotification.isGif = false;
+        newNotification.icon = LittleFS.open("/ICONS/" + iconValue + ".jpg");
+      }
+      else if (LittleFS.exists("/ICONS/" + iconValue + ".gif"))
+      {
+        newNotification.isGif = true;
+        newNotification.icon = LittleFS.open("/ICONS/" + iconValue + ".gif");
+      }
+      else
+      {
+        fs::File nullPointer;
+        newNotification.icon = nullPointer;
+        newNotification.isGif = false;
+      }
     }
   }
   else
   {
     fs::File nullPointer;
     newNotification.icon = nullPointer;
+    newNotification.jpegDataSize = 0;
+    newNotification.isGif = false;
   }
 
   if (doc.containsKey("clients"))

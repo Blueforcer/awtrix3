@@ -156,6 +156,11 @@ void loadDevSettings()
             DEBUG_MODE = doc["debug_mode"].as<bool>();
         }
 
+         if (doc.containsKey("button_callback"))
+        {
+            BUTTON_CALLBACK = doc["button_callback"].as<String>();
+        }
+
         if (doc.containsKey("color_correction"))
         {
             auto correction = doc["color_correction"];
@@ -409,3 +414,4 @@ double movementFactor = 0.5;
 int8_t TRANS_EFFECT = 1;
 String AUTH_USER = "";
 String AUTH_PASS = "awtrix";
+String BUTTON_CALLBACK = "";

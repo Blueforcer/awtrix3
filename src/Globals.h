@@ -137,5 +137,5 @@ extern uint8_t MAX_BRIGHTNESS;
 extern bool DEBUG_MODE;
 extern String AUTH_USER;
 extern String AUTH_PASS;
-
+extern String BUTTON_CALLBACK;
 #endif // Globals_H

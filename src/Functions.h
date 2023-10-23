@@ -6,6 +6,7 @@
 #include <Globals.h>
 #include <ArduinoJson.h>
 
+
 CRGB kelvinToRGB(int kelvin);
 
 uint32_t hsvToRgb(uint8_t h, uint8_t s, uint8_t v);
@@ -21,4 +22,9 @@ float getTextWidth(const char *text, byte textCase);
 byte utf8ascii(byte ascii);
 
 String utf8ascii(String s);
+
+uint32_t TextEffect(uint32_t color, uint32_t fade, uint32_t blink);
+
+uint32_t fadeColor(uint32_t color, uint32_t interval);
+
 #endif

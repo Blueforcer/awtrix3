@@ -1,5 +1,4 @@
 #include "Overlays.h"
-
 #include "MatrixDisplayUi.h"
 #include "Functions.h"
 #include "MenuManager.h"
@@ -10,43 +9,6 @@
 
 std::vector<Notification> notifications;
 bool notifyFlag = false;
-
-
-uint32_t fadeColor(uint32_t color, uint32_t interval)
-{
-    float phase = (sin(2 * PI * millis() / float(interval)) + 1) * 0.5;
-    uint8_t r = ((color >> 16) & 0xFF) * phase;
-    uint8_t g = ((color >> 8) & 0xFF) * phase;
-    uint8_t b = (color & 0xFF) * phase;
-    return (r << 16) | (g << 8) | b;
-}
-
-uint32_t TextEffect(uint32_t color, uint32_t fade, uint32_t blink)
-{
-    if (fade > 0)
-    {
-        float phase = (sin(2 * PI * millis() / float(fade)) + 1) * 0.5;
-        uint8_t r = ((color >> 16) & 0xFF) * phase;
-        uint8_t g = ((color >> 8) & 0xFF) * phase;
-        uint8_t b = (color & 0xFF) * phase;
-        return (r << 16) | (g << 8) | b;
-    }
-    else if (blink > 0)
-    {
-        if (millis() % blink > blink / 2)
-        {
-            return color;
-        }
-        else
-        {
-            return 0;
-        }
-    }
-    else
-    {
-        return color;
-    }
-}
 
 void StatusOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
 {
@@ -119,7 +81,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
     CURRENT_APP = F("Notification");
 
     // Check if notification has an icon
-    bool hasIcon = notifications[0].icon;
+    bool hasIcon = notifications[0].icon || notifications[0].jpegDataSize > 0;
 
     // Clear the matrix display
     DisplayManager.drawFilledRect(0, 0, 32, 8, notifications[0].background);
@@ -176,8 +138,15 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
             }
             else
             {
-                DisplayManager.drawJPG(notifications[0].iconPosition + notifications[0].iconOffset, 0, notifications[0].icon);
                 iconWidth = 8;
+                if (notifications[0].jpegDataSize > 0)
+                {
+                    DisplayManager.drawJPG(0, 0, notifications[0].jpegDataBuffer, notifications[0].jpegDataSize);
+                }
+                else
+                {
+                    DisplayManager.drawJPG(notifications[0].iconPosition + notifications[0].iconOffset, 0, notifications[0].icon);
+                }
             }
             if (!noScrolling)
             {
