@@ -26,7 +26,7 @@ def convert_bmp_to_rgb888_array(file_path):
 
 # Create argument parser
 parser = argparse.ArgumentParser(description="Convert an image to an RGB888 array string.")
-parser.add_argument("file_path", help="Path to the BMP file to be converted.")
+parser.add_argument("file_path", help="Path to the image to be converted.")
 
 # Parse arguments
 args = parser.parse_args()
