@@ -19,6 +19,7 @@
 #include <AwtrixFont.h>
 #include <HTTPClient.h>
 #include "base64.hpp"
+#include <WiFi.h>
 
 unsigned long lastArtnetStatusTime = 0;
 const int numberOfChannels = 256 * 3;
@@ -1591,6 +1592,7 @@ String DisplayManager_::getStats()
   doc[F("app")] = CURRENT_APP;
   doc[F("uid")] = uniqueID;
   doc[F("matrix")] = !MATRIX_OFF;
+  doc[F("ip_address")] = WiFi.localIP();
   String jsonString;
   serializeJson(doc, jsonString);
   return jsonString;
