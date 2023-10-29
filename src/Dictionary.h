@@ -133,6 +133,7 @@ extern const char HAramUnit[];
 
 extern const char HAipAddrRID[];
 extern const char HAipAddrName[];
+extern const char HAipAddrIcon[];
 
 // JSON properites
 #ifndef awtrix2_upgrade

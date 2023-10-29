@@ -136,6 +136,7 @@ const char HAramUnit[] PROGMEM = {"B"};
 
 const char HAipAddrRID[] PROGMEM = {"%s_ip_address"};
 const char HAipAddrName[] PROGMEM = {"IP Address"};
+const char HAipAddrIcon[] PROGMEM = {"mdi:wifi"};
 
 // JSON properites
 #ifndef awtrix2_upgrade

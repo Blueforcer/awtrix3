@@ -687,6 +687,7 @@ void MQTTManager_::setup()
         sprintf(ipAddrID, HAipAddrRID, macStr);
         ipAddr = new HASensor(ipAddrID);
         ipAddr->setName(HAipAddrName);
+        ipAddr->setIcon(HAipAddrIcon);
     }
     else
     {
