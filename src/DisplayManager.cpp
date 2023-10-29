@@ -2389,7 +2389,7 @@ String DisplayManager_::getEffectNames()
   return result;
 }
 
-String DisplayManager_::getTransistionNames()
+String DisplayManager_::getTransitionNames()
 {
   char effectOptions[100];
   strcpy_P(effectOptions, HAeffectOptions);

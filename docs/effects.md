@@ -1,12 +1,12 @@
 # Effects
 
 AWTRIX light can show effects wherever you want
-- Notification and CustomApps. This will show the effect as the first layer, so you can stil draw text over it.  
+- Notification and CustomApps. This will show the effect as the first layer, so you can still draw text over it.  
 - Backgroundlayer. This will show the effect behind everything and in each app. You can add it via Hidden features.
   
 Just call the name for your favorite effect.  
 AWTRIX sends all effect names once after start via MQTT to stats/effects. So you can create external selectors.  
-Its also accessable via HTTTP /api/effects  
+Its also accessible via HTTTP /api/effects  
 
 <table>
   <tr>
@@ -159,7 +159,7 @@ Remember, the colors you define in your palette serve as key points in the color
 # Artnet (DMX)
   
 Awtrix light supports Artnet out of the box.  
-For [Jinx!](http://www.live-leds.de/) you can <a href="awtrix_light.jnx" download>download this template</a>. Just change the IP of both universes to your awtrix IP and youre ready to go.
+For [Jinx!](http://www.live-leds.de/) you can <a href="awtrix_light.jnx" download>download this template</a>. Just change the IP of both universes to your awtrix IP and you're ready to go.
 
 **For any Other Artnet controller:**    
 Create 2 universes with 384 channels each. Also add a new matrix layout with 8 strings á 32 Strands and top left starting position. When you start to send data, AWTRIX will stop its normal operation and shows your data. 1s after you stop sending data, AWTRIX will return to normal operation.

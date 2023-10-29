@@ -359,7 +359,7 @@ You can adjust each property in the JSON object according to your preferences. I
 **Color Values**: Can either be an RGB array (e.g., `[255,0,0]`) or a valid 6-digit hexadecimal color value (e.g., "#FF0000" for red).
 
 
-**Transision effects:**  
+**Transition effects:**  
 ```bash  
 0 - Random
 1 - Slide

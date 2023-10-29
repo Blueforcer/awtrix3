@@ -42,7 +42,7 @@ Take your Awtrix experience to the next level with the mobile app, tailored for 
 
 #### **Features:**
 - **Liveview:** See your Awtrix in real-time.
-- **Settings Customization:** Tweak text colors, set transistion and many more with just your fingertip.
+- **Settings Customization:** Tweak text colors, set transition and many more with just your fingertip.
 - **Icon Management:** View, or delete icons effortlessly.
 - **Exclusive Icon Database:** Get unique icons only available for app users.
 - **Icon Creation & Sharing:** Design and share your icons with our community.

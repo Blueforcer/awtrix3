@@ -407,7 +407,7 @@ void onMqttConnected()
         version->setValue(VERSION);
     }
     MQTTManager.publish("stats/effects", DisplayManager.getEffectNames().c_str());
-    MQTTManager.publish("stats/transitions", DisplayManager.getTransistionNames().c_str());
+    MQTTManager.publish("stats/transitions", DisplayManager.getTransitionNames().c_str());
     connected = true;
 }
 
