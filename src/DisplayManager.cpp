@@ -19,7 +19,6 @@
 #include <AwtrixFont.h>
 #include <HTTPClient.h>
 #include "base64.hpp"
-#include <WiFi.h>
 
 unsigned long lastArtnetStatusTime = 0;
 const int numberOfChannels = 256 * 3;
