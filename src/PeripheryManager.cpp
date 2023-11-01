@@ -427,6 +427,12 @@ void PeripheryManager_::tick()
         MQTTManager.sendButton(1, button_select.read());
         ServerManager.sendButton(1, button_select.read());
     }
+    else
+    {
+        button_left.read();
+        button_select.read();
+        button_right.read();
+    }
 
     unsigned long currentMillis_BatTempHum = millis();
     if (currentMillis_BatTempHum - previousMillis_BatTempHum >= interval_BatTempHum)
