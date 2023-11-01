@@ -487,11 +487,7 @@ void MQTTManager_::sendStats()
             sprintf(uptimeStr, "%ld", uptimeValue);
             uptime->setValue(uptimeStr);
             transition->setState(AUTO_TRANSITION, false);
-
-            IPAddress ip = WiFi.localIP();
-            char ipAddrStr[16];
-            sprintf(ipAddrStr, "%d.%d.%d.%d", ip & 0x000000FF, (ip & 0x0000FF00) >> 8, (ip & 0x00FF0000) >> 16, (ip & 0xFF000000) >> 24);
-            ipAddr->setValue(ipAddrStr);
+            ipAddr->setValue(ServerManager.myIP.toString().c_str());
         }
 
         publish(StatsTopic, DisplayManager.getStats().c_str());
