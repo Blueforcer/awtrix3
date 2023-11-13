@@ -492,6 +492,7 @@ void PeripheryManager_::tick()
         if (AUTO_BRIGHTNESS && !MATRIX_OFF)
         {
             brightnessPercent = sampleAverage / 1023.0 * 100.0;
+            brightnessPercent = (brightnessPercent * brightnessPercent * brightnessPercent) / (100.0 * 100.0); // apply gamma correction (gamma = 3)
             BRIGHTNESS = map(brightnessPercent, 0, 100, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
             DisplayManager.setBrightness(BRIGHTNESS);
         }
