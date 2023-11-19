@@ -106,7 +106,7 @@ public:
   }
 
   [[deprecated]]
-  inline void setPhysical(uint8_t port)
+  inline void setPhisical(uint8_t port)
   {
     setPhysical(port);
   }
