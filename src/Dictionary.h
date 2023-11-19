@@ -131,6 +131,10 @@ extern const char HAramName[];
 extern const char HAramClass[];
 extern const char HAramUnit[];
 
+extern const char HAipAddrRID[];
+extern const char HAipAddrName[];
+extern const char HAipAddrIcon[];
+
 // JSON properites
 #ifndef awtrix2_upgrade
 extern const char BatKey[];
@@ -147,4 +151,5 @@ extern const char UpdateKey[];
 extern const char MessagesKey[];
 extern const char VersionKey[];
 extern const char RamKey[];
+extern const char IpAddrKey[];
 #endif
