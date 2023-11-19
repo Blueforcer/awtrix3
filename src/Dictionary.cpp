@@ -134,11 +134,15 @@ const char HAramName[] PROGMEM = {"Free ram"};
 const char HAramClass[] PROGMEM = {"data_size"};
 const char HAramUnit[] PROGMEM = {"B"};
 
+
+// JSON properties
+
 const char HAipAddrRID[] PROGMEM = {"%s_ip_address"};
 const char HAipAddrName[] PROGMEM = {"IP Address"};
 const char HAipAddrIcon[] PROGMEM = {"mdi:wifi"};
 
-// JSON properites
+
+
 #ifndef awtrix2_upgrade
 const char BatKey[] PROGMEM = {"bat"};
 const char BatRawKey[] PROGMEM = {"bat_raw"};

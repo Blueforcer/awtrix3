@@ -41,7 +41,7 @@ void startLittleFS()
     else
     {
         if (DEBUG_MODE)
-            DEBUG_PRINTLN(F("Filesystem currupt. Formating..."));
+            DEBUG_PRINTLN(F("Filesystem corrupt. Formatting..."));
         LittleFS.format();
         ESP.restart();
     }

@@ -10,7 +10,7 @@ There are numerous benefits to this approach:
 - **Efficient resource management:** Save valuable flash memory space on the ESP module.
 - **Adaptability:** No need to rewrite the firmware if an API undergoes changes.
 
-You can use any system you like wich is able to build json strings and send them to a mqtt topic.
+You can use any system you like which is able to build json strings and send them to a mqtt topic.
 
 ## AWTRIX FLOWS
 This is your go-to hub for sharing and discovering AWTRIX Light automations, also known as custom Apps for several services.  
