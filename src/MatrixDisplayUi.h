@@ -76,7 +76,7 @@ struct MatrixDisplayUiState
   // Normal = 1, Inverse = -1;
   int8_t appTransitionDirection = 1;
   bool lastFrameShown = false;
-  bool manuelControll = false;
+  bool manualControl = false;
 
   // Custom data that can be used by the user
   void *userData = NULL;
@@ -113,7 +113,7 @@ private:
   // UI State
   MatrixDisplayUiState state;
 
-  // Bookeeping for update
+  // Bookkeeping for update
   long updateInterval = 33;
 
   void drawApp();
@@ -149,7 +149,7 @@ public:
   void setTargetFPS(uint8_t fps);
 
   void setBackgroundEffect(int effect);
-  // Automatic Controll
+  // Automatic Control
   /**
    * Enable automatic transition to next app after the some time can be configured with `setTimePerApp` and `setTimePerTransition`.
    */

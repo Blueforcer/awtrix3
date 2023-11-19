@@ -83,7 +83,7 @@ void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
 
 void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
 
-// Unattractive to have a function for every customapp wich does the same, but currently still no other option found TODO
+// Unattractive to have a function for every customapp which does the same, but currently still no other option found TODO
 void CApp1(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
 void CApp2(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
 void CApp3(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);

@@ -59,7 +59,7 @@ void addHandler()
     mws.addHandler("/api/effects", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getEffectNames().c_str()); });
     mws.addHandler("/api/transitions", HTTP_GET, []()
-                   { mws.webserver->send_P(200, "application/json", DisplayManager.getTransistionNames().c_str()); });
+                   { mws.webserver->send_P(200, "application/json", DisplayManager.getTransitionNames().c_str()); });
     mws.addHandler("/api/reboot", HTTP_ANY, []()
                    { mws.webserver->send(200,F("text/plain"),F("OK")); delay(200); ESP.restart(); });
     mws.addHandler("/api/rtttl", HTTP_POST, []()

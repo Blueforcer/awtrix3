@@ -69,7 +69,7 @@ void UpdateManager_::updateFirmware()
     switch (ret)
     {
     case HTTP_UPDATE_FAILED:
-        if (DEBUG_MODE) DEBUG_PRINTF("HTTP_UPDATE_FAILD Error (%d): %s\n", httpUpdate.getLastError(), httpUpdate.getLastErrorString().c_str());
+        if (DEBUG_MODE) DEBUG_PRINTF("HTTP_UPDATE_FAILED Error (%d): %s\n", httpUpdate.getLastError(), httpUpdate.getLastErrorString().c_str());
         break;
 
     case HTTP_UPDATE_NO_UPDATES:

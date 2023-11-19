@@ -1589,6 +1589,7 @@ String DisplayManager_::getStats()
   doc[F("app")] = CURRENT_APP;
   doc[F("uid")] = uniqueID;
   doc[F("matrix")] = !MATRIX_OFF;
+  doc[IpAddrKey] = WiFi.localIP();
   String jsonString;
   serializeJson(doc, jsonString);
   return jsonString;
@@ -2393,7 +2394,7 @@ String DisplayManager_::getEffectNames()
   return result;
 }
 
-String DisplayManager_::getTransistionNames()
+String DisplayManager_::getTransitionNames()
 {
   char effectOptions[100];
   strcpy_P(effectOptions, HAeffectOptions);

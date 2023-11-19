@@ -4,7 +4,7 @@
  * Copyright (c) 2016 by Daniel Eichhorn
  * Copyright (c) 2016 by Fabrice Weinberg
  * Copyright (c) 2023 by Stephan Muehl (Blueforcer)
- * Note: This old lib for SSD1306 displays has been extremly
+ * Note: This old lib for SSD1306 displays has been extremely
  * modified for AWTRIX Light and has nothing to do with the original purposes.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -64,7 +64,7 @@ void MatrixDisplayUi::setBackgroundEffect(int effect)
   this->BackgroundEffect = effect;
 }
 
-// -/------ Automatic controll ------\-
+// -/------ Automatic control ------\-
 
 void MatrixDisplayUi::enablesetAutoTransition()
 {
@@ -125,12 +125,12 @@ void MatrixDisplayUi::setBackground(BackgroundCallback backgroundFunction)
   this->backgroundFunction = backgroundFunction;
 }
 
-// -/----- Manuel control -----\-
+// -/----- Manual control -----\-
 void MatrixDisplayUi::nextApp()
 {
   if (this->state.appState != IN_TRANSITION)
   {
-    this->state.manuelControll = true;
+    this->state.manualControl = true;
     this->state.appState = IN_TRANSITION;
     this->state.ticksSinceLastStateSwitch = 0;
     this->lastTransitionDirection = this->state.appTransitionDirection;
@@ -141,7 +141,7 @@ void MatrixDisplayUi::previousApp()
 {
   if (this->state.appState != IN_TRANSITION)
   {
-    this->state.manuelControll = true;
+    this->state.manualControl = true;
     this->state.appState = IN_TRANSITION;
     this->state.ticksSinceLastStateSwitch = 0;
     this->lastTransitionDirection = this->state.appTransitionDirection;
@@ -170,7 +170,7 @@ void MatrixDisplayUi::transitionToApp(uint8_t app)
     return;
   this->nextAppNumber = app;
   this->lastTransitionDirection = this->state.appTransitionDirection;
-  this->state.manuelControll = true;
+  this->state.manualControl = true;
   this->state.appState = IN_TRANSITION;
   this->state.appTransitionDirection = app < this->state.currentApp ? -1 : 1;
 }
@@ -187,7 +187,7 @@ int8_t MatrixDisplayUi::update()
   int8_t timeBudget = this->updateInterval - (appStart - this->state.lastUpdate);
   if (timeBudget <= 0)
   {
-    // Implement frame skipping to ensure time budget is keept
+    // Implement frame skipping to ensure time budget is kept
     if (this->setAutoTransition && this->state.lastUpdate != 0)
       this->state.ticksSinceLastStateSwitch += ceil(-timeBudget / this->updateInterval);
 
@@ -216,11 +216,11 @@ void MatrixDisplayUi::tick()
       }
       break;
     case FIXED:
-      // Revert manuelControll
-      if (this->state.manuelControll)
+      // Revert manualControl
+      if (this->state.manualControl)
       {
         this->state.appTransitionDirection = 1;
-        this->state.manuelControll = false;
+        this->state.manualControl = false;
       }
       if (this->state.ticksSinceLastStateSwitch >= this->ticksPerApp)
       {
@@ -351,7 +351,7 @@ TransitionType getRandomTransition()
   return static_cast<TransitionType>((rand() % (CROSSFADE)) + 1);
 }
 
-bool swaped = false;
+bool swapped = false;
 
 void MatrixDisplayUi::drawApp()
 {
@@ -359,7 +359,7 @@ void MatrixDisplayUi::drawApp()
   {
   case IN_TRANSITION:
   {
-    swaped = false;
+    swapped = false;
     gotNewTransition = false;
     if (currentTransition == SLIDE)
     {
@@ -418,7 +418,7 @@ void MatrixDisplayUi::drawApp()
     }
 
     (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
-    swaped = true;
+    swapped = true;
     break;
   }
 }

@@ -134,7 +134,15 @@ const char HAramName[] PROGMEM = {"Free ram"};
 const char HAramClass[] PROGMEM = {"data_size"};
 const char HAramUnit[] PROGMEM = {"B"};
 
-// JSON properites
+
+// JSON properties
+
+const char HAipAddrRID[] PROGMEM = {"%s_ip_address"};
+const char HAipAddrName[] PROGMEM = {"IP Address"};
+const char HAipAddrIcon[] PROGMEM = {"mdi:wifi"};
+
+
+
 #ifndef awtrix2_upgrade
 const char BatKey[] PROGMEM = {"bat"};
 const char BatRawKey[] PROGMEM = {"bat_raw"};
@@ -150,3 +158,4 @@ const char UpdateKey[] PROGMEM = {"up_available"};
 const char MessagesKey[] PROGMEM = {"messages"};
 const char VersionKey[] PROGMEM = {"version"};
 const char RamKey[] PROGMEM = {"ram"};
+const char IpAddrKey[] PROGMEM = {"ip_address"};
