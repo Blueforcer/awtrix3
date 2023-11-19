@@ -906,9 +906,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
   {
     String iconValue = doc["icon"].as<String>();
 
-    // Annahme: Ein base64-kodierter String hat wahrscheinlich das Zeichen '=' am Ende,
-    // da es als Padding in base64 verwendet wird.
-    // Dies ist eine rudimentäre Methode und könnte je nach deinen Daten variieren.
+
     if (iconValue.endsWith("="))
     {
       newNotification.jpegDataSize = decode_base64((const unsigned char *)iconValue.c_str(), newNotification.jpegDataBuffer);
@@ -1723,14 +1721,20 @@ bool DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
     {
     case 1:
       ui->setIndicator1State(false);
+      ui->setIndicator1Fade(0);
+      ui->setIndicator1Blink(0);
       MQTTManager.setIndicatorState(1, ui->indicator1State, ui->indicator1Color);
       break;
     case 2:
       ui->setIndicator2State(false);
+      ui->setIndicator2Fade(0);
+      ui->setIndicator2Blink(0);
       MQTTManager.setIndicatorState(2, ui->indicator2State, ui->indicator2Color);
       break;
     case 3:
       ui->setIndicator3State(false);
+      ui->setIndicator3Fade(0);
+      ui->setIndicator3Blink(0);
       MQTTManager.setIndicatorState(3, ui->indicator3State, ui->indicator3Color);
       break;
     default:

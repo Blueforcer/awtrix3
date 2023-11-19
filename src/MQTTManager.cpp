@@ -432,13 +432,13 @@ void connect()
     {
         if (DEBUG_MODE)
             DEBUG_PRINTLN(F("Connecting to MQTT w/o login"));
-        mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, nullptr, nullptr, MQTT_PREFIX.c_str());
+        mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, nullptr, nullptr, uniqueID);
     }
     else
     {
         if (DEBUG_MODE)
             DEBUG_PRINTLN(F("Connecting to MQTT with login"));
-        mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, MQTT_USER.c_str(), MQTT_PASS.c_str(), MQTT_PREFIX.c_str());
+        mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, MQTT_USER.c_str(), MQTT_PASS.c_str(), uniqueID);
     }
 }
 
