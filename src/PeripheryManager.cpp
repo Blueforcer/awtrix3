@@ -427,6 +427,12 @@ void PeripheryManager_::tick()
         MQTTManager.sendButton(1, button_select.read());
         ServerManager.sendButton(1, button_select.read());
     }
+    else
+    {
+        button_left.read();
+        button_select.read();
+        button_right.read();
+    }
 
     unsigned long currentMillis_BatTempHum = millis();
     if (currentMillis_BatTempHum - previousMillis_BatTempHum >= interval_BatTempHum)
@@ -486,6 +492,7 @@ void PeripheryManager_::tick()
         if (AUTO_BRIGHTNESS && !MATRIX_OFF)
         {
             brightnessPercent = sampleAverage / 1023.0 * 100.0;
+            brightnessPercent = (brightnessPercent * brightnessPercent * brightnessPercent) / (100.0 * 100.0); // apply gamma correction (gamma = 3)
             BRIGHTNESS = map(brightnessPercent, 0, 100, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
             DisplayManager.setBrightness(BRIGHTNESS);
         }

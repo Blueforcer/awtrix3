@@ -1591,6 +1591,7 @@ String DisplayManager_::getStats()
   doc[F("app")] = CURRENT_APP;
   doc[F("uid")] = uniqueID;
   doc[F("matrix")] = !MATRIX_OFF;
+  doc[IpAddrKey] = WiFi.localIP();
   String jsonString;
   serializeJson(doc, jsonString);
   return jsonString;
