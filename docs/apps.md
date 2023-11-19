@@ -30,7 +30,7 @@ Here is a demo, please press the triangle to unfold.
 <details>
   <summary>Example for adding a Youtube App as NodeRED flow</summary>
     
-```json
+```json  
 [
   {
     "id": "2a59d30d07abe14f",
@@ -200,8 +200,8 @@ Here is a demo, please press the triangle to unfold.
     "userProps": "",
     "sessionExpiry": ""
   }
-]
-```
+]  
+```  
 </details>
 
 This Node-RED flow retrieves and displays the subscriber count of a specified YouTube channel on an AWTRIX light device. The flow consists of the following nodes:

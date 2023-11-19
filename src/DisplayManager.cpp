@@ -126,6 +126,11 @@ void DisplayManager_::applyAllSettings()
   setAutoTransition(AUTO_TRANSITION);
 }
 
+void DisplayManager_::setAppTime(long duration)
+{
+  ui->setTimePerApp(duration);
+}
+
 void DisplayManager_::resetTextColor()
 {
   setTextColor(TEXTCOLOR_888);
@@ -385,6 +390,7 @@ void removeCustomAppFromApps(const String &name, bool setApps)
     ui->setApps(Apps);
   DisplayManager.getInstance().setAutoTransition(true);
   deleteCustomAppFile(name);
+  DisplayManager.setAppTime(TIME_PER_APP);
 }
 
 bool parseFragmentsText(const JsonArray &fragmentArray, std::vector<uint32_t> &colors, std::vector<String> &fragments, uint32_t standardColor)
@@ -613,35 +619,24 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
   if (doc.containsKey("icon"))
   {
-    String iconValue = doc["icon"].as<String>();
+    String newIconName = doc["icon"].as<String>();
 
-    if (iconValue.endsWith("="))
+    if (newIconName.endsWith("="))
     {
-      customApp.jpegDataSize = decode_base64((const unsigned char *)iconValue.c_str(), customApp.jpegDataBuffer);
+      customApp.jpegDataSize = decode_base64((const unsigned char *)newIconName.c_str(), customApp.jpegDataBuffer);
       customApp.isGif = false;
       customApp.icon.close();
       customApp.iconName = "";
       customApp.iconPosition = 0;
       customApp.currentFrame = 0;
     }
-    else
+    else if (customApp.iconName != newIconName)
     {
       customApp.jpegDataSize = 0;
-      if (customApp.iconName != iconValue)
-      {
-        customApp.iconName = iconValue;
-        customApp.icon.close();
-        customApp.iconPosition = 0;
-        customApp.currentFrame = 0;
-      }
-
-      else
-      {
-        customApp.icon.close();
-        customApp.iconName = "";
-        customApp.iconPosition = 0;
-        customApp.currentFrame = 0;
-      }
+      customApp.iconName = newIconName;
+      customApp.icon.close();
+      customApp.iconPosition = 0;
+      customApp.currentFrame = 0;
     }
   }
   else
@@ -905,7 +900,6 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
   if (doc.containsKey("icon"))
   {
     String iconValue = doc["icon"].as<String>();
-
 
     if (iconValue.endsWith("="))
     {
@@ -1222,7 +1216,7 @@ void DisplayManager_::tick()
 void onDmxFrame(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t *data)
 {
   sendFrame = 1;
-  // set brightness of the whole strip
+  // set brightness of the whole matrix
   if (universe == 10)
   {
     matrix->setBrightness(data[0]);
@@ -1593,11 +1587,6 @@ String DisplayManager_::getStats()
   String jsonString;
   serializeJson(doc, jsonString);
   return jsonString;
-}
-
-void DisplayManager_::setAppTime(long duration)
-{
-  ui->setTimePerApp(duration);
 }
 
 void DisplayManager_::setMatrixLayout(int layout)

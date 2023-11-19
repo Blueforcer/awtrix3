@@ -608,7 +608,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     DisplayManager.getInstance().resetTextColor();
 }
 
-// Unattractive to have a function for every customapp which does the same, but currently still no other option found TODO
+// Unattractive to have a function for every customapp wich does the same, but currently still no other option found TODO
 
 void CApp1(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
