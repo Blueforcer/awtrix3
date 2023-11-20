@@ -356,8 +356,8 @@ uint16_t MAX_BATTERY = 665;
 float TEMP_OFFSET;
 #else
 float TEMP_OFFSET = -9;
-uint8_t BATTERY_PERCENT;
-uint16_t BATTERY_RAW;
+uint8_t BATTERY_PERCENT = 0;
+uint16_t BATTERY_RAW = 0;
 #endif
 float HUM_OFFSET;
 uint16_t LDR_RAW;
@@ -392,6 +392,7 @@ bool BLOCK_NAVIGATION = false;
 bool UPDATE_CHECK = false;
 float GAMMA = 0;
 bool SENSOR_READING = true;
+bool SENSORS_STABLE = false;
 bool DFPLAYER_ACTIVE = false;
 bool ROTATE_SCREEN = false;
 uint8_t TIME_MODE = 1;
