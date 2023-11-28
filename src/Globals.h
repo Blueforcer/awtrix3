@@ -117,6 +117,7 @@ void saveSettings();
 extern bool BLOCK_NAVIGATION;
 extern bool UPDATE_CHECK;
 extern bool SENSOR_READING;
+extern bool SENSORS_STABLE;
 extern bool ROTATE_SCREEN;
 extern long STATS_INTERVAL;
 extern uint8_t TIME_MODE;

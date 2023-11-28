@@ -440,8 +440,15 @@ void PeripheryManager_::tick()
         previousMillis_BatTempHum = currentMillis_BatTempHum;
 #ifndef awtrix2_upgrade
         uint16_t ADCVALUE = analogRead(BATTERY_PIN);
-        BATTERY_PERCENT = max(min((int)map(ADCVALUE, MIN_BATTERY, MAX_BATTERY, 0, 100), 100), 0);
-        BATTERY_RAW = ADCVALUE;
+        // Discard values that are totally out of range, especially the first value read after a reboot.
+        // Meaningful values for a Ulanzi are in the range 400..700
+        if ((ADCVALUE > 100) && (ADCVALUE < 1000)) {
+            BATTERY_PERCENT = max(min((int)map(ADCVALUE, MIN_BATTERY, MAX_BATTERY, 0, 100), 100), 0);
+            BATTERY_RAW = ADCVALUE;
+            SENSORS_STABLE = true;
+        }
+#else
+        SENSORS_STABLE = true;
 #endif
         if (SENSOR_READING)
         {

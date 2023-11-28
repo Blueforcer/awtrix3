@@ -699,7 +699,7 @@ void MQTTManager_::tick()
     {
         mqtt.loop();
         unsigned long currentMillis_Stats = millis();
-        if (currentMillis_Stats - previousMillis_Stats >= STATS_INTERVAL)
+        if ((currentMillis_Stats - previousMillis_Stats >= STATS_INTERVAL) && (SENSORS_STABLE))
         {
             previousMillis_Stats = currentMillis_Stats;
             sendStats();
