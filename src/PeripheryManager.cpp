@@ -506,13 +506,24 @@ void PeripheryManager_::tick()
     }
 }
 
-long PeripheryManager_::readUptime()
+unsigned long long PeripheryManager_::readUptime()
 {
+    static unsigned long lastTime = 0;
+    static unsigned long long totalElapsed = 0;
+
     unsigned long currentTime = millis();
-    unsigned long elapsedTime = currentTime - startTime;
-    long uptimeSeconds = elapsedTime / 1000;
+    if (currentTime < lastTime) {
+        // millis() overflow
+        totalElapsed += 4294967295UL - lastTime + currentTime + 1;
+    } else {
+        totalElapsed += currentTime - lastTime;
+    }
+    lastTime = currentTime;
+
+    unsigned long long uptimeSeconds = totalElapsed / 1000;
     return uptimeSeconds;
 }
+
 
 void PeripheryManager_::r2d2(const char *msg)
 {

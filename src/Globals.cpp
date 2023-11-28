@@ -307,7 +307,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.90";
+const char *VERSION = "0.91";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;

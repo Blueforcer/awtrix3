@@ -482,9 +482,8 @@ void MQTTManager_::sendStats()
             int freeHeapBytes = ESP.getFreeHeap();
             itoa(freeHeapBytes, rambuffer, 10);
             ram->setValue(rambuffer);
-            long uptimeValue = PeripheryManager.readUptime();
             char uptimeStr[25]; // Buffer for string representation
-            sprintf(uptimeStr, "%ld", uptimeValue);
+            sprintf(uptimeStr, "%ld", PeripheryManager.readUptime());
             uptime->setValue(uptimeStr);
             transition->setState(AUTO_TRANSITION, false);
             ipAddr->setValue(ServerManager.myIP.toString().c_str());
