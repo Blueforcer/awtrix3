@@ -44,7 +44,7 @@ public:
 #ifndef ULANZI
     void setVolume(uint8_t);
 #endif
-    long readUptime();
+    unsigned long long readUptime();
 };
 
 extern PeripheryManager_ &PeripheryManager;

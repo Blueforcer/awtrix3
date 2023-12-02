@@ -180,7 +180,7 @@ Below are the properties you can utilize in the JSON object. **All keys are opti
 | `fadeText` | Integer | Fades the text on and off in an given interval, not compatible with gradient or rainbow  | N/A | X | X |
 | `background` | string or array of integers | Sets a background color. | N/A | X | X |
 | `rainbow` | boolean | Fades each letter in the text differently through the entire RGB spectrum. | false | X | X |
-| `icon` | string | The icon ID or filename (without extension) to display on the app. | N/A | X | X |
+| `icon` | string | The icon ID or filename (without extension) to display on the app. You can also send a **8x8 jpg** as Base64 String | N/A | X | X |
 | `pushIcon` | integer | 0 = Icon doesn't move. 1 = Icon moves with text and will not appear again. 2 = Icon moves with text but appears again when the text starts to scroll again. | 0 | X | X |
 | `repeat` | integer | Sets how many times the text should be scrolled through the matrix before the app ends. | -1 | X | X |
 | `duration` | integer | Sets how long the app or notification should be displayed. | 5 | X | X |
