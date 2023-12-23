@@ -215,7 +215,7 @@ String MenuManager_::menutext()
         break;
 #ifndef ULANZI
     case VolumeMenu:
-        return String(VOLUME_PERCENT) + "%";
+        return String(DFP_VOLUME);
 #endif
     default:
         break;
@@ -272,10 +272,10 @@ void MenuManager_::rightButton()
         break;
 #ifdef awtrix2_upgrade
     case VolumeMenu:
-        if ((VOLUME_PERCENT + 1) > 100)
-            VOLUME_PERCENT = 0;
+        if ((DFP_VOLUME + 1) > 30)
+            DFP_VOLUME = 0;
         else
-            VOLUME_PERCENT++;
+            DFP_VOLUME++;
 #endif
     default:
         break;
@@ -333,10 +333,10 @@ void MenuManager_::leftButton()
         break;
 #ifdef awtrix2_upgrade
     case VolumeMenu:
-        if ((VOLUME_PERCENT - 1) < 0)
-            VOLUME_PERCENT = 100;
+        if ((DFP_VOLUME - 1) < 0)
+            DFP_VOLUME = 30;
         else
-            VOLUME_PERCENT--;
+            DFP_VOLUME--;
 #endif
     default:
         break;
@@ -492,8 +492,7 @@ void MenuManager_::selectButtonLong()
             break;
 #ifdef awtrix2_upgrade
         case VolumeMenu:
-            VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
-            PeripheryManager.setVolume(VOLUME);
+            PeripheryManager.setVolume(DFP_VOLUME);
             saveSettings();
             break;
 #endif

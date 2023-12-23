@@ -121,6 +121,16 @@ void loadDevSettings()
             MAX_BRIGHTNESS = doc["max_brightness"];
         }
 
+        if (doc.containsKey("ldr_factor"))
+        {
+            LDR_FACTOR = doc["ldr_factor"].as<float>();
+        }
+
+        if (doc.containsKey("ldr_gamma"))
+        {
+            LDR_GAMMA = doc["ldr_gamma"].as<float>();
+        }
+
         if (doc.containsKey("hum_offset"))
         {
             HUM_OFFSET = doc["hum_offset"];
@@ -156,7 +166,12 @@ void loadDevSettings()
             DEBUG_MODE = doc["debug_mode"].as<bool>();
         }
 
-         if (doc.containsKey("button_callback"))
+         if (doc.containsKey("let_it_snow"))
+        {
+            SNOW = doc["let_it_snow"].as<bool>();
+        }
+
+        if (doc.containsKey("button_callback"))
         {
             BUTTON_CALLBACK = doc["button_callback"].as<String>();
         }
@@ -245,8 +260,7 @@ void loadSettings()
 #endif
     SOUND_ACTIVE = Settings.getBool("SOUND", true);
 #ifndef ULANZI
-    VOLUME_PERCENT = Settings.getUInt("VOL", 50);
-    VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
+    DFP_VOLUME = Settings.getUInt("VOL", 20);
 #endif
     Settings.end();
     uniqueID = getID();
@@ -296,7 +310,7 @@ void saveSettings()
 #endif
     Settings.putBool("SOUND", SOUND_ACTIVE);
 #ifndef ULANZI
-    Settings.putUInt("VOL", VOLUME_PERCENT);
+    Settings.putUInt("VOL", DFP_VOLUME);
 #endif
     Settings.end();
 }
@@ -307,7 +321,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.91";
+const char *VERSION = "0.92";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -378,8 +392,7 @@ bool SOUND_ACTIVE;
 String BOOT_SOUND = "";
 int TEMP_DECIMAL_PLACES = 0;
 #ifndef ULANZI
-uint8_t VOLUME_PERCENT;
-uint8_t VOLUME;
+uint8_t DFP_VOLUME;
 #endif
 int MATRIX_LAYOUT = 0;
 bool UPDATE_AVAILABLE = false;
@@ -416,3 +429,6 @@ int8_t TRANS_EFFECT = 1;
 String AUTH_USER = "";
 String AUTH_PASS = "awtrix";
 String BUTTON_CALLBACK = "";
+bool SNOW = true;
+float LDR_GAMMA = 3.0;
+float LDR_FACTOR = 1.0;

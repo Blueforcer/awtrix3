@@ -99,8 +99,7 @@ extern bool SOUND_ACTIVE;
 extern String BOOT_SOUND;
 extern int TEMP_DECIMAL_PLACES;
 #ifndef ULANZI
-extern uint8_t VOLUME_PERCENT;
-extern uint8_t VOLUME;
+extern uint8_t DFP_VOLUME;
 #endif
 extern int MATRIX_LAYOUT;
 extern bool UPDATE_AVAILABLE;
@@ -135,8 +134,11 @@ extern bool MOODLIGHT_MODE;
 extern double movementFactor;
 extern uint8_t MIN_BRIGHTNESS;
 extern uint8_t MAX_BRIGHTNESS;
+extern float LDR_GAMMA; 
+extern float LDR_FACTOR;
 extern bool DEBUG_MODE;
 extern String AUTH_USER;
 extern String AUTH_PASS;
 extern String BUTTON_CALLBACK;
+extern bool SNOW;
 #endif // Globals_H

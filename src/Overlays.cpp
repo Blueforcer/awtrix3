@@ -24,13 +24,52 @@ void StatusOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
 
 void MenuOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
 {
-   
+
     if (!MenuManager.inMenu)
         return;
-   
+
     matrix->fillScreen(0);
     DisplayManager.setTextColor(0xFFFFFF);
     DisplayManager.printText(0, 6, utf8ascii(MenuManager.menutext()).c_str(), true, 2);
+}
+
+CRGB snowLeds[32][8];
+uint8_t updateFrame = 0;
+
+void SnowOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
+{
+    if (!SNOW)
+        return;
+
+    if (random8() < 20)
+    {
+        int randomColumn = random8(32);
+        snowLeds[randomColumn][0] = CHSV(0, 0, 255);
+    }
+
+    if (++updateFrame >= 5)
+    {
+        for (int i = 0; i < 32; i++)
+        {
+            for (int j = 7; j > 0; j--)
+            {
+                snowLeds[i][j] = snowLeds[i][j - 1];
+            }
+            snowLeds[i][0] = CRGB::Black;
+        }
+        updateFrame = 0;
+    }
+
+    for (int i = 0; i < 32; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            if (snowLeds[i][j])
+            {
+                matrix->drawPixel(i, j, snowLeds[i][j]);
+            }
+        }
+    }
 }
 
 void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
@@ -143,7 +182,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
                 iconWidth = 8;
                 if (notifications[0].jpegDataSize > 0)
                 {
-                    DisplayManager.drawJPG(0, 0, notifications[0].jpegDataBuffer, notifications[0].jpegDataSize);
+                    DisplayManager.drawJPG(notifications[0].iconPosition + notifications[0].iconOffset, 0, notifications[0].jpegDataBuffer, notifications[0].jpegDataSize);
                 }
                 else
                 {
@@ -363,4 +402,4 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
     DisplayManager.getInstance().resetTextColor();
 }
 
-OverlayCallback overlays[] = {MenuOverlay, NotifyOverlay, StatusOverlay};
+OverlayCallback overlays[] = {MenuOverlay, NotifyOverlay, StatusOverlay, SnowOverlay};

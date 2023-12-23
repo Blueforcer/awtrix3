@@ -353,7 +353,7 @@ void PeripheryManager_::setup()
     {
         dfmp3.begin();
         delay(100);
-        setVolume(VOLUME);
+        setVolume(DFP_VOLUME);
     }
 
 #endif
@@ -442,7 +442,8 @@ void PeripheryManager_::tick()
         uint16_t ADCVALUE = analogRead(BATTERY_PIN);
         // Discard values that are totally out of range, especially the first value read after a reboot.
         // Meaningful values for a Ulanzi are in the range 400..700
-        if ((ADCVALUE > 100) && (ADCVALUE < 1000)) {
+        if ((ADCVALUE > 100) && (ADCVALUE < 1000))
+        {
             BATTERY_PERCENT = max(min((int)map(ADCVALUE, MIN_BATTERY, MAX_BATTERY, 0, 100), 100), 0);
             BATTERY_RAW = ADCVALUE;
             SENSORS_STABLE = true;
@@ -479,7 +480,12 @@ void PeripheryManager_::tick()
             CURRENT_TEMP += TEMP_OFFSET;
             CURRENT_HUM += HUM_OFFSET;
         }
+        else
+        {
+            SENSORS_STABLE = true;
+        }
     }
+
 
     unsigned long currentMillis_LDR = millis();
     if (currentMillis_LDR - previousMillis_LDR >= interval_LDR)
@@ -498,8 +504,8 @@ void PeripheryManager_::tick()
         CURRENT_LUX = (roundf(photocell.getSmoothedLux() * 1000) / 1000);
         if (AUTO_BRIGHTNESS && !MATRIX_OFF)
         {
-            brightnessPercent = sampleAverage / 1023.0 * 100.0;
-            brightnessPercent = (brightnessPercent * brightnessPercent * brightnessPercent) / (100.0 * 100.0); // apply gamma correction (gamma = 3)
+            brightnessPercent = (sampleAverage * LDR_FACTOR) / 1023.0 * 100.0;
+            brightnessPercent = pow(brightnessPercent, LDR_GAMMA) / pow(100.0, LDR_GAMMA - 1);
             BRIGHTNESS = map(brightnessPercent, 0, 100, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
             DisplayManager.setBrightness(BRIGHTNESS);
         }
@@ -512,10 +518,13 @@ unsigned long long PeripheryManager_::readUptime()
     static unsigned long long totalElapsed = 0;
 
     unsigned long currentTime = millis();
-    if (currentTime < lastTime) {
+    if (currentTime < lastTime)
+    {
         // millis() overflow
         totalElapsed += 4294967295UL - lastTime + currentTime + 1;
-    } else {
+    }
+    else
+    {
         totalElapsed += currentTime - lastTime;
     }
     lastTime = currentTime;
@@ -523,7 +532,6 @@ unsigned long long PeripheryManager_::readUptime()
     unsigned long long uptimeSeconds = totalElapsed / 1000;
     return uptimeSeconds;
 }
-
 
 void PeripheryManager_::r2d2(const char *msg)
 {

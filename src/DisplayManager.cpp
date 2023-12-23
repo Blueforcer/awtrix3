@@ -621,7 +621,7 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
   {
     String newIconName = doc["icon"].as<String>();
 
-    if (newIconName.endsWith("="))
+    if (newIconName.length()>64)
     {
       customApp.jpegDataSize = decode_base64((const unsigned char *)newIconName.c_str(), customApp.jpegDataBuffer);
       customApp.isGif = false;
@@ -901,7 +901,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
   {
     String iconValue = doc["icon"].as<String>();
 
-    if (iconValue.endsWith("="))
+    if (iconValue.length()>64)
     {
       newNotification.jpegDataSize = decode_base64((const unsigned char *)iconValue.c_str(), newNotification.jpegDataBuffer);
       newNotification.isGif = false;
@@ -1094,7 +1094,7 @@ void DisplayManager_::setup()
   ui->setTargetFPS(MATRIX_FPS);
   ui->setTimePerApp(TIME_PER_APP);
   ui->setTimePerTransition(TIME_PER_TRANSITION);
-  ui->setOverlays(overlays, 3);
+  ui->setOverlays(overlays, 4);
   ui->setBackgroundEffect(BACKGROUND_EFFECT);
   setAutoTransition(AUTO_TRANSITION);
   ui->init();
@@ -1951,6 +1951,7 @@ String DisplayManager_::getSettings()
   doc["HUM"] = SHOW_HUM;
   doc["TEMP"] = SHOW_TEMP;
   doc["BAT"] = SHOW_BAT;
+
   String jsonString;
   return serializeJson(doc, jsonString), jsonString;
 }
@@ -2001,6 +2002,15 @@ void DisplayManager_::setNewSettings(const char *json)
   SHOW_HUM = doc.containsKey("HUM") ? doc["HUM"].as<bool>() : SHOW_HUM;
   SHOW_TEMP = doc.containsKey("TEMP") ? doc["TEMP"].as<bool>() : SHOW_TEMP;
   SHOW_BAT = doc.containsKey("BAT") ? doc["BAT"].as<bool>() : SHOW_BAT;
+
+  #ifndef ULANZI
+    if (doc.containsKey("VOL"))
+    {
+      DFP_VOLUME = doc["VOL"];
+      PeripheryManager.setVolume(DFP_VOLUME);
+    }
+  #endif
+
   if (doc.containsKey("CCORRECTION"))
   {
     auto colorValue = doc["CCORRECTION"];
@@ -2310,7 +2320,7 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
         {
           for (int col = 0; col < width; ++col)
           {
-            matrix->drawPixel(x + col, y + row, bitmap[bitmapIndex++]);
+            matrix->drawPixel(x + col + xOffset, y + row + yOffset, bitmap[bitmapIndex++]);
           }
         }
       }

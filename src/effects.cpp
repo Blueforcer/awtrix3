@@ -27,7 +27,6 @@ void Pacifica(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *s
 
 void TheaterChase(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
-
     static uint16_t j = 0;
     static uint32_t lastUpdate = 0;
     if (millis() - lastUpdate > 100 - settings->speed * 10)
@@ -249,6 +248,8 @@ void TwinklingStars(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSetti
         }
     }
 }
+
+
 
 // ######## LookingEyes ############
 
