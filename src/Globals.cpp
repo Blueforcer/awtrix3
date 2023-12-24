@@ -321,7 +321,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.92";
+const char *VERSION = "0.93";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -429,6 +429,6 @@ int8_t TRANS_EFFECT = 1;
 String AUTH_USER = "";
 String AUTH_PASS = "awtrix";
 String BUTTON_CALLBACK = "";
-bool SNOW = true;
+bool SNOW = false;
 float LDR_GAMMA = 3.0;
 float LDR_FACTOR = 1.0;
