@@ -28,9 +28,8 @@ It is available as a standalone program or as a plugin for Home Assistant and io
 Here is a demo, please press the triangle to unfold.
 
 <details>
-  <summary>Example for adding a Youtube App as NodeRED flow</summary>
-    
-```json  
+  <summary>Example for adding a Youtube App as NodeRED flow</summary>    
+  <pre><code class="language-json">
 [
   {
     "id": "2a59d30d07abe14f",
@@ -201,7 +200,7 @@ Here is a demo, please press the triangle to unfold.
     "sessionExpiry": ""
   }
 ]  
-```  
+  </code></pre>
 </details>
 
 This Node-RED flow retrieves and displays the subscriber count of a specified YouTube channel on an AWTRIX light device. The flow consists of the following nodes:
