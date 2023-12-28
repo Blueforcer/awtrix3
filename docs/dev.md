@@ -37,7 +37,7 @@ The JSON object has the following properties:
 | `let_it_snow` | boolean | Let it snow as a global Overlay. | true for christmastime |
 
 
-Example of such JSON:
+#### Example:
 ```json
 {
   "temp_dec_places":1,
