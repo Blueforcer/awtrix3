@@ -141,4 +141,5 @@ extern String AUTH_USER;
 extern String AUTH_PASS;
 extern String BUTTON_CALLBACK;
 extern bool SNOW;
+extern bool GAME_ACTIVE;
 #endif // Globals_H

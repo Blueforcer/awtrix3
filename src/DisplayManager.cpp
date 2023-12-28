@@ -19,6 +19,7 @@
 #include <AwtrixFont.h>
 #include <HTTPClient.h>
 #include "base64.hpp"
+#include "GameManager.h"
 
 unsigned long lastArtnetStatusTime = 0;
 const int numberOfChannels = 256 * 3;
@@ -621,7 +622,7 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
   {
     String newIconName = doc["icon"].as<String>();
 
-    if (newIconName.length()>64)
+    if (newIconName.length() > 64)
     {
       customApp.jpegDataSize = decode_base64((const unsigned char *)newIconName.c_str(), customApp.jpegDataBuffer);
       customApp.isGif = false;
@@ -901,7 +902,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
   {
     String iconValue = doc["icon"].as<String>();
 
-    if (iconValue.length()>64)
+    if (iconValue.length() > 64)
     {
       newNotification.jpegDataSize = decode_base64((const unsigned char *)iconValue.c_str(), newNotification.jpegDataBuffer);
       newNotification.isGif = false;
@@ -1168,7 +1169,13 @@ bool universe2_complete = false;
 
 void DisplayManager_::tick()
 {
-  if (AP_MODE)
+  if (GAME_ACTIVE)
+  {
+    matrix->clear();
+    GameManager.tick();
+    matrix->show();
+  }
+  else if (AP_MODE)
   {
     HSVtext(2, 6, "AP MODE", true, 1);
   }
@@ -1210,6 +1217,32 @@ void DisplayManager_::tick()
     {
       ARTNET_MODE = false;
     }
+  }
+
+  DisplayManager.checkNewYear();
+}
+
+bool newYearEventTriggered = false;
+
+void DisplayManager_::checkNewYear()
+{
+  time_t now = time(nullptr);
+  struct tm *timeInfo;
+  timeInfo = localtime(&now);
+  if (timeInfo->tm_mon == 0 && timeInfo->tm_mday == 1 && timeInfo->tm_hour == 0 && timeInfo->tm_min == 0 && timeInfo->tm_sec == 0)
+  {
+    if (!newYearEventTriggered)
+    {
+      int year = 1900 + timeInfo->tm_year;
+      char message[300];
+      sprintf(message, "{'stack':false,'text':'%d','duration':20,'effect':'Fireworks','rtttl':'Auld:d=4,o=6,b=125:a5,d.,8d,d,f#,e.,8d,e,8f#,8e,d.,8d,f#,a,2b.,b,a.,8f#,f#,d,e.,8d,e,8f#,8e,d.,8b5,b5,a5,2d,16p'}", year);
+      DisplayManager.generateNotification(0, message);
+      newYearEventTriggered = true;
+    }
+  }
+  else
+  {
+    newYearEventTriggered = false;
   }
 }
 
@@ -2003,13 +2036,13 @@ void DisplayManager_::setNewSettings(const char *json)
   SHOW_TEMP = doc.containsKey("TEMP") ? doc["TEMP"].as<bool>() : SHOW_TEMP;
   SHOW_BAT = doc.containsKey("BAT") ? doc["BAT"].as<bool>() : SHOW_BAT;
 
-  #ifndef ULANZI
-    if (doc.containsKey("VOL"))
-    {
-      DFP_VOLUME = doc["VOL"];
-      PeripheryManager.setVolume(DFP_VOLUME);
-    }
-  #endif
+#ifndef ULANZI
+  if (doc.containsKey("VOL"))
+  {
+    DFP_VOLUME = doc["VOL"];
+    PeripheryManager.setVolume(DFP_VOLUME);
+  }
+#endif
 
   if (doc.containsKey("CCORRECTION"))
   {
@@ -2474,6 +2507,11 @@ void DisplayManager_::drawRGBBitmap(int16_t x, int16_t y, uint32_t *bitmap, int1
       matrix->drawPixel(x + i, y + j, pixelColor);
     }
   }
+}
+
+void DisplayManager_::drawPixel(int16_t x0, int16_t y0, uint32_t color)
+{
+  matrix->drawPixel(x0, y0, color);
 }
 
 void DisplayManager_::drawCircle(int16_t x0, int16_t y0, int16_t r, uint32_t color)

@@ -13,6 +13,7 @@
 #include "PowerManager.h"
 #include <WiFiUdp.h>
 #include <HTTPClient.h>
+#include "GameManager.h"
 
 WiFiUDP udp;
 unsigned int localUdpPort = 4210; // Wählen Sie einen Port
@@ -176,6 +177,11 @@ void addHandler()
                     } });
     mws.addHandler("/api/r2d2", HTTP_POST, []()
                    { PeripheryManager.r2d2(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
+
+    mws.addHandler("/api/controller", HTTP_POST, []()
+                   {
+        GameManager.ControllerInput(mws.webserver->arg("key"), mws.webserver->arg("status"));
+        mws.webserver->send(200, F("text/plain"), F("OK")); });
 }
 
 void ServerManager_::setup()
@@ -342,7 +348,7 @@ void ServerManager_::sendButton(byte btn, bool state)
         }
         break;
     default:
-        return; 
+        return;
     }
     if (!payload.isEmpty())
     {

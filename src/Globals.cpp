@@ -432,3 +432,4 @@ String BUTTON_CALLBACK = "";
 bool SNOW = false;
 float LDR_GAMMA = 3.0;
 float LDR_FACTOR = 1.0;
+bool GAME_ACTIVE = false;

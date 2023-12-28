@@ -31,6 +31,7 @@ public:
     void loadNativeApps();
     void nextApp();
     void previousApp();
+    void checkNewYear();
     void leftButton();
     void resetTextColor();
     void clearMatrix();
@@ -85,6 +86,7 @@ public:
     void drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint32_t color);
     void drawFilledRect(int16_t x, int16_t y, int16_t w, int16_t h, uint32_t color);
     void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint32_t color);
+    void drawPixel(int16_t x0, int16_t y0, uint32_t color);
     void drawRGBBitmap(int16_t x, int16_t y, uint32_t *bitmap, int16_t w, int16_t h);
     void drawCircle(int16_t x0, int16_t y0, int16_t r, uint32_t color);
     void fillCircle(int16_t x0, int16_t y0, int16_t r, uint32_t color);

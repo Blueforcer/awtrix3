@@ -3,7 +3,7 @@
   - [Quick start](quickstart.md)
   - [Flasher](flasher.md)
   - [Hardware](hardware.md)
-  
+  - [FAQ](faq.md)
 - Settings
 
   - [Webinterface](webinterface.md)
