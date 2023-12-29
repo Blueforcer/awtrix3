@@ -38,8 +38,8 @@ public:
     void setup();
     void tick();
     void playBootSound();
-    bool playFromFile(String file);
-    bool playRTTTLString(String rtttl);
+    const char *playFromFile(String file);
+    const char *playRTTTLString(String rtttl);
     bool parseSound(const char *json);
     bool isPlaying();
     void stopSound();

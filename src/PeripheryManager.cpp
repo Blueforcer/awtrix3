@@ -292,45 +292,51 @@ bool PeripheryManager_::parseSound(const char *json)
     return false;
 }
 
-bool PeripheryManager_::playRTTTLString(String rtttl)
+const char *PeripheryManager_::playRTTTLString(String rtttl)
 {
 #ifdef awtrix2_upgrade
-    return false;
+    return NULL;
 
 #else
+    static char melodyName[64];
     Melody melody = MelodyFactory.loadRtttlString(rtttl.c_str());
     player.playAsync(melody);
-    return melody.isValid();
+    strncpy(melodyName, melody.getTitle().c_str(), sizeof(melodyName));
+    melodyName[sizeof(melodyName) - 1] = '\0';
+    return melodyName;
 #endif
 }
 
-bool PeripheryManager_::playFromFile(String file)
+const char *PeripheryManager_::playFromFile(String file)
 {
     if (!SOUND_ACTIVE)
-        return true;
+        return "";
 
 #ifdef awtrix2_upgrade
     if (DEBUG_MODE)
         DEBUG_PRINTLN(F("Playing MP3 file"));
     if (!DFPLAYER_ACTIVE)
-        return false;
+        return NULL;
     dfmp3.stop();
     delay(50);
     dfmp3.playMp3FolderTrack(file.toInt());
 
-    return true;
+    return file.c_str();
 #else
     if (DEBUG_MODE)
         DEBUG_PRINTLN(F("Playing RTTTL sound file"));
     if (LittleFS.exists("/MELODIES/" + String(file) + ".txt"))
     {
+        static char melodyName[64];
         Melody melody = MelodyFactory.loadRtttlFile("/MELODIES/" + String(file) + ".txt");
         player.playAsync(melody);
-        return true;
+        strncpy(melodyName, melody.getTitle().c_str(), sizeof(melodyName));
+        melodyName[sizeof(melodyName) - 1] = '\0';
+        return melodyName;
     }
     else
     {
-        return false;
+        return NULL;
     }
 #endif
 }
