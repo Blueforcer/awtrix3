@@ -10,8 +10,8 @@
 #include "effects.h"
 #include "MQTTManager.h"
 #include "Overlays.h"
+#include "timer.h"
 
-tm timeInfo;
 uint16_t nativeAppsCount;
 
 int WEATHER_CODE;
@@ -97,16 +97,13 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         DisplayManager.getInstance().resetTextColor();
     }
 
-    time_t now = time(nullptr);
-    struct tm *timeInfo;
-    timeInfo = localtime(&now);
     const char *timeformat = getTimeFormat();
     char t[20];
     char t2[20];
     if (timeformat[2] == ' ')
     {
         strcpy(t2, timeformat);
-        if (now % 2)
+        if (timer_time() % 2)
         {
             t2[2] = ' ';
         }
@@ -114,11 +111,11 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         {
             t2[2] = ':';
         }
-        strftime(t, sizeof(t), t2, localtime(&now));
+        strftime(t, sizeof(t), t2, timer_localtime());
     }
     else
     {
-        strftime(t, sizeof(t), timeformat, localtime(&now));
+        strftime(t, sizeof(t), timeformat, timer_localtime());
     }
 
     int16_t wdPosY;
@@ -151,9 +148,9 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     if (TIME_MODE > 0)
     {
         char day_str[3];
-        sprintf(day_str, "%d", timeInfo->tm_mday);
+        sprintf(day_str, "%d", timer_localtime()->tm_mday);
         DisplayManager.setTextColor(CALENDAR_TEXT_COLOR);
-        if (timeInfo->tm_mday < 10)
+        if (timer_localtime()->tm_mday < 10)
         {
             DisplayManager.setCursor(3 + x, 7 + y);
         }
@@ -178,7 +175,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         int lineStart = LINE_START + i * (LINE_WIDTH + LINE_SPACING);
         int lineEnd = lineStart + LINE_WIDTH - 1;
 
-        if (i == (timeInfo->tm_wday + 6 + dayOffset) % 7)
+        if (i == (timer_localtime()->tm_wday + 6 + dayOffset) % 7)
         {
             DisplayManager.drawLine(lineStart + x, y + wdPosY, lineEnd + x, y + wdPosY, WDC_ACTIVE);
         }
@@ -203,18 +200,15 @@ void DateApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     {
         DisplayManager.getInstance().resetTextColor();
     }
-    time_t now = time(nullptr);
-    struct tm *timeInfo;
-    timeInfo = localtime(&now);
     char d[20];
-    strftime(d, sizeof(d), DATE_FORMAT.c_str(), localtime(&now));
+    strftime(d, sizeof(d), DATE_FORMAT.c_str(), timer_localtime());
     DisplayManager.printText(0 + x, 6 + y, d, true, 2);
     if (!SHOW_WEEKDAY)
         return;
     int dayOffset = START_ON_MONDAY ? 0 : 1;
     for (int i = 0; i <= 6; i++)
     {
-        if (i == (timeInfo->tm_wday + 6 + dayOffset) % 7)
+        if (i == (timer_localtime()->tm_wday + 6 + dayOffset) % 7)
         {
             DisplayManager.drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, WDC_ACTIVE);
         }

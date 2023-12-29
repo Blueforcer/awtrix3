@@ -4,6 +4,7 @@
 #include <ServerManager.h>
 #include <DisplayManager.h>
 #include <PeripheryManager.h>
+#include "timer.h"
 // #include <update.h>
 #include <icons.h>
 #include <UpdateManager.h>
@@ -131,7 +132,6 @@ int convertBRIPercentTo8Bit(int brightness_percent)
 
 String MenuManager_::menutext()
 {
-    time_t now = time(nullptr);
     char t[20];
     char display[20];
     switch (currentState)
@@ -160,18 +160,18 @@ String MenuManager_::menutext()
         if (timeFormat[timeFormatIndex][2] == ' ')
         {
             snprintf(display, sizeof(display), "%s", timeFormat[timeFormatIndex]);
-            display[2] = now % 2 ? ' ' : ':';
+            display[2] = timer_time() % 2 ? ' ' : ':';
         }
         else
         {
             snprintf(display, sizeof(display), "%s", timeFormat[timeFormatIndex]);
         }
 
-        strftime(t, sizeof(t), display, localtime(&now));
+        strftime(t, sizeof(t), display, timer_localtime());
         return t;
     case DateFormatMenu:
         DisplayManager.drawMenuIndicator(dateFormatIndex, dateFormatCount, 0xFBC000);
-        strftime(t, sizeof(t), dateFormat[dateFormatIndex], localtime(&now));
+        strftime(t, sizeof(t), dateFormat[dateFormatIndex], timer_localtime());
         return t;
     case WeekdayMenu:
         return START_ON_MONDAY ? "MON" : "SUN";
