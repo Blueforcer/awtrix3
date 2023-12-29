@@ -8,12 +8,6 @@
 #include <icons.h>
 #include <UpdateManager.h>
 
-String menuText;
-int menuSelection;
-
-int8_t stationIndex = 0;
-bool isPlayingRadio = false;
-
 enum MenuState
 {
     MainMenu,
