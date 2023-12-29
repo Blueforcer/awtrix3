@@ -15,7 +15,7 @@
 class PeripheryManager_
 {
 private:
-    PeripheryManager_() = default;
+    PeripheryManager_();
 #ifdef ULANZI
     const int BatReadings = 10;
     uint16_t TotalBatReadings[10];
@@ -30,6 +30,10 @@ private:
     const unsigned long interval = 1000;
 
 public:
+    EasyButton *buttonL;
+    EasyButton *buttonR;
+    EasyButton *buttonS;
+
     static PeripheryManager_ &getInstance();
     void setup();
     void tick();
