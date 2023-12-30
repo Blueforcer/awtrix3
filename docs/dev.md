@@ -35,7 +35,7 @@ The JSON object has the following properties:
 | `dfplayer` | boolean | Enables DFPLayer for Awtrix2_conversation builds. | false |
 | `button_callback` | string | http callback url for button presses. | - |
 | `let_it_snow` | boolean | Let it snow as a global Overlay. | true for christmastime |
-
+| `new_year` | boolean | Displays fireworks and plays a jingle at newyear. | false |
 
 #### Example:
 ```json

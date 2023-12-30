@@ -24,7 +24,6 @@ struct PlayerStats
     PlayerStats() : x(0), y(0), isJumping(false), verticalSpeed(0), color(0xFFFFFF) {}
 } GamePlayer;
 
-// Globale Variablen für Spielzustand
 Direction dir = NONE;
 bool pressed = false;
 bool jumpButtonPressed = false;

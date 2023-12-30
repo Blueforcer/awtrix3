@@ -1219,7 +1219,8 @@ void DisplayManager_::tick()
     }
   }
 
-  DisplayManager.checkNewYear();
+  if (NEWYEAR)
+    DisplayManager.checkNewYear();
 }
 
 bool newYearEventTriggered = false;

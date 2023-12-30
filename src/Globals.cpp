@@ -166,9 +166,14 @@ void loadDevSettings()
             DEBUG_MODE = doc["debug_mode"].as<bool>();
         }
 
-         if (doc.containsKey("let_it_snow"))
+        if (doc.containsKey("let_it_snow"))
         {
             SNOW = doc["let_it_snow"].as<bool>();
+        }
+
+        if (doc.containsKey("new_year"))
+        {
+            NEWYEAR = doc["new_year"].as<bool>();
         }
 
         if (doc.containsKey("button_callback"))
@@ -321,7 +326,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.93";
+const char *VERSION = "0.94";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -430,6 +435,7 @@ String AUTH_USER = "";
 String AUTH_PASS = "awtrix";
 String BUTTON_CALLBACK = "";
 bool SNOW = false;
+bool NEWYEAR = false;
 float LDR_GAMMA = 3.0;
 float LDR_FACTOR = 1.0;
 bool GAME_ACTIVE = false;
