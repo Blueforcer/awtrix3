@@ -641,7 +641,11 @@ void FSWebServer::replyToCLient(int msg_type = 0, const char *msg = "")
         webserver->send(200, FPSTR(TEXT_PLAIN), msg);
         break;
     case NOT_FOUND:
-        webserver->send(404, FPSTR(TEXT_PLAIN), msg);
+        if (webserver->method() == HTTP_OPTIONS) {
+            webserver->send(204); // preflight CORS OPTIONS requests should return OK status 
+        } else {
+            webserver->send(404, FPSTR(TEXT_PLAIN), msg);
+        }
         break;
     case BAD_REQUEST:
         webserver->send(400, FPSTR(TEXT_PLAIN), msg);
