@@ -73,3 +73,10 @@ Create a `dev.json` file in the root directory using the file manager with the c
 ```
 
 Reboot the device
+
+#### Q: I have a blinking LED on the top left / bottom left corner. What does it mean?
+A: Within the AWTRIX firmware, there are 2 status LEDs indicating different issues:
+
+- Blinking LED in the top left corner indicates a problem connecting to WiFi.
+- Blinking LED in the bottom left corner signifies a problem connecting to your MQTT broker.
+
