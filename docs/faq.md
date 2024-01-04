@@ -2,6 +2,17 @@
 
 Welcome to the FAQ section. Here, you'll find answers to some of the most common questions i receive. If you don't find what you're looking for, please don't hesitate to join the [discord server](https://discord.gg/cyBCpdx).
 
+### Table of Contents
+- [General Questions](#general-questions)
+  - [Can I run AWTRIX Light standalone?](#q-can-i-run-awtrix-light-standalone)
+  - [Can I use different matrix sizes other than 8x32?](#q-can-i-use-different-matrix-sizes-other-than-8x32)
+  - [Error while flashing my Ulanzi clock](#q-why-am-i-getting-an-error-while-flashing-my-ulanzi-clock-with-the-awtrix-web-flasher)
+  - [Accidentally touched DoNotTouch.json](#q-what-should-i-do-if-i-accidentally-touched-the-donottouchjson-file-in-awtrix-web-file-manager)
+  - [Self-built AWTRIX displaying meaningless characters](#q-my-self-built-awtrix-device-is-displaying-meaningless-characters-on-the-matrix-what-should-i-do)
+  - [Which firmware for building my own AWTRIX?](#q-i-want-to-build-my-own-awtrix-which-firmware-should-i-use)
+  - [Ulanzi TC001 temperature sensor reporting high temperature](#q-why-does-the-ulanzi-tc001-temperature-sensor-report-a-high-temperature)
+  - [Blinking LED on top or bottom left corner](#q-i-have-a-blinking-led-on-the-top-left--bottom-left-corner-what-does-it-mean)
+
 
 ### General Questions
 #### Q: Can I Run AWTRIX Light Standalone?
@@ -73,3 +84,10 @@ Create a `dev.json` file in the root directory using the file manager with the c
 ```
 
 Reboot the device
+
+#### Q: I have a blinking LED on the top left / bottom left corner. What does it mean?
+A: Within the AWTRIX firmware, there are 2 status LEDs indicating different issues:
+
+- Blinking LED in the top left corner indicates a problem connecting to WiFi.
+- Blinking LED in the bottom left corner signifies a problem connecting to your MQTT broker.
+
