@@ -99,9 +99,10 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
 
     const char *timeformat = getTimeFormat();
     char t[20];
-    char t2[20];
     if (timeformat[2] == ' ')
     {
+        // blink separator
+        char t2[20];
         strcpy(t2, timeformat);
         if (timer_time() % 2)
         {
@@ -120,52 +121,55 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
 
     int16_t wdPosY;
     int16_t timePosY;
-
-    if (TIME_MODE == 1 || TIME_MODE == 2)
+    if (TIME_MODE == 2 || TIME_MODE == 4)
     {
-        wdPosY = TIME_MODE == 1 ? 7 : 0;
-        timePosY = TIME_MODE == 1 ? 6 : 7;
-        DisplayManager.printText(12 + x, timePosY + y, t, false, 2);
-        DisplayManager.drawFilledRect(x, y, 9, 8, CALENDAR_BODY_COLOR);
-        DisplayManager.drawFilledRect(0 + x, 0 + y, 9, 2, CALENDAR_HEADER_COLOR);
-    }
-    else if (TIME_MODE == 3 || TIME_MODE == 4)
-    {
-        wdPosY = TIME_MODE == 3 ? 7 : 0;
-        timePosY = TIME_MODE == 3 ? 6 : 7;
-        DisplayManager.printText(12 + x, timePosY + y, t, false, 2);
-        DisplayManager.drawFilledRect(0 + x, 0 + y, 9, 8, CALENDAR_BODY_COLOR);
-        DisplayManager.drawLine(1, 0, 2, 0, 0x000000);
-        DisplayManager.drawLine(6, 0, 7, 0, 0x000000);
+        // week days on top line
+        wdPosY = 0;
+        timePosY = 7;
     }
     else
     {
+        // week days on bottom line
         wdPosY = 7;
         timePosY = 6;
-        DisplayManager.printText(0 + x, timePosY + y, t, true, 2);
     }
 
+    // time
+    DisplayManager.printText(12 + x, timePosY + y, t, TIME_MODE == 0, 2);
+
+    // day of month in calendar box
     if (TIME_MODE > 0)
     {
+        int offset;
         char day_str[3];
         sprintf(day_str, "%d", timer_localtime()->tm_mday);
-        DisplayManager.setTextColor(CALENDAR_TEXT_COLOR);
-        if (timer_localtime()->tm_mday < 10)
+
+        // calendar box
+        DisplayManager.drawFilledRect(x, y, 9, 8, CALENDAR_BODY_COLOR);
+        if (TIME_MODE <= 2)
         {
-            DisplayManager.setCursor(3 + x, 7 + y);
+            DisplayManager.drawFilledRect(x, y, 9, 2, CALENDAR_HEADER_COLOR);
         }
         else
         {
-            DisplayManager.setCursor(1 + x, 7 + y);
+            DisplayManager.drawLine(1, 0, 2, 0, 0x000000);
+            DisplayManager.drawLine(6, 0, 7, 0, 0x000000);
         }
+
+        // day of month
+        if (timer_localtime()->tm_mday < 10)
+            offset = 3;
+        else
+            offset = 1;
+        DisplayManager.setCursor(offset + x, 7 + y);
+        DisplayManager.setTextColor(CALENDAR_TEXT_COLOR);
         DisplayManager.matrixPrint(day_str);
-        int16_t wdPosY = TIME_MODE > 0 ? 0 : 8;
-        int16_t timePosY = TIME_MODE > 0 ? 6 : 0;
     }
 
     if (!SHOW_WEEKDAY)
         return;
 
+    // line of week days
     uint8_t LINE_WIDTH = TIME_MODE > 0 ? 2 : 3;
     uint8_t LINE_SPACING = 1;
     uint8_t LINE_START = TIME_MODE > 0 ? 10 : 2;
@@ -175,14 +179,13 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         int lineStart = LINE_START + i * (LINE_WIDTH + LINE_SPACING);
         int lineEnd = lineStart + LINE_WIDTH - 1;
 
+        uint32_t color;
         if (i == (timer_localtime()->tm_wday + 6 + dayOffset) % 7)
-        {
-            DisplayManager.drawLine(lineStart + x, y + wdPosY, lineEnd + x, y + wdPosY, WDC_ACTIVE);
-        }
+            color = WDC_ACTIVE;   // current day
         else
-        {
-            DisplayManager.drawLine(lineStart + x, y + wdPosY, lineEnd + x, y + wdPosY, WDC_INACTIVE);
-        }
+            color = WDC_INACTIVE; // other days
+
+        DisplayManager.drawLine(lineStart + x, wdPosY + y, lineEnd + x, wdPosY + y, color);
     }
 }
 
