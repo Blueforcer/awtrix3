@@ -341,9 +341,10 @@ void MenuManager_::selectButton()
     switch (currentState)
     {
     case MainMenu:
-        switch (menuIndex)
+        currentState = (MenuState)(menuIndex + 1);
+        switch (currentState)
         {
-        case 0:
+        case BrightnessMenu:
             // reverse of convertBRIPercentTo8Bit.
             if (BRIGHTNESS <= 10)
             {
@@ -353,50 +354,11 @@ void MenuManager_::selectButton()
             {
                 BRIGHTNESS_PERCENT = map(BRIGHTNESS, 0, 255, 0, 100);
             }
-            currentState = BrightnessMenu;
-            break;
-        case 1:
-            currentState = ColorMenu;
-            break;
-        case 2:
-            currentState = SwitchMenu;
-            break;
-        case 3:
-            currentState = TspeedMenu;
-            break;
-        case 4:
-            currentState = AppTimeMenu;
-            break;
-        case 5:
-            currentState = TimeFormatMenu;
-            break;
-        case 6:
-            currentState = DateFormatMenu;
-            break;
-        case 7:
-            currentState = WeekdayMenu;
-            break;
-        case 8:
-            currentState = TempMenu;
-            break;
-        case 9:
-            currentState = Appmenu;
-            break;
-        case 10:
-            currentState = SoundMenu;
-            break;
-        case 11:
-#ifdef awtrix2_upgrade
-            currentState = VolumeMenu;
-            break;
-#endif
-        case 12:
+        case UpdateMenu:
             if (UpdateManager.checkUpdate(true))
             {
                 UpdateManager.updateFirmware();
             }
-            break;
-        default:
             break;
         }
         break;
