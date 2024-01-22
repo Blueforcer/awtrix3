@@ -48,18 +48,16 @@ uint32_t hsvToRgb(uint8_t h, uint8_t s, uint8_t v)
     CHSV hsv(h, s, v);
     CRGB rgb;
     hsv2rgb_spectrum(hsv, rgb);
-    return ((uint32_t)rgb.r << 16) | 
-           ((uint32_t)rgb.g << 8)  | 
+    return ((uint32_t)rgb.r << 16) |
+           ((uint32_t)rgb.g << 8) |
            (uint32_t)rgb.b;
 }
-
 
 uint32_t hexToUint32(const char *hexString)
 {
     uint32_t rgbValue = (uint32_t)strtol(hexString, NULL, 16);
-    return rgbValue; 
+    return rgbValue;
 }
-
 
 uint32_t getColorFromJsonVariant(JsonVariant colorVariant, uint32_t defaultColor)
 {
@@ -94,8 +92,8 @@ uint32_t getColorFromJsonVariant(JsonVariant colorVariant, uint32_t defaultColor
 
 double roundToDecimalPlaces(double value, int places)
 {
-  double factor = pow(10.0, places);
-  return round(value * factor) / factor;
+    double factor = pow(10.0, places);
+    return round(value * factor) / factor;
 }
 
 float getTextWidth(const char *text, byte textCase)
@@ -114,9 +112,30 @@ float getTextWidth(const char *text, byte textCase)
         }
         else
         {
-            width += 4;
+            if (current_char == 0x83 ||
+                current_char == 0x85 ||
+                current_char == 0x8B ||
+                current_char == 0x93 ||
+                current_char == 0x97 ||
+                current_char == 0x9A ||
+                current_char == 0x9D)
+            {
+                width += 6;
+            }
+            else if (current_char == 0x98)
+            {
+                width += 7;
+            }
+            else if (current_char == 0x99 || current_char == 0x95)
+            {
+                width += 5;
+            }
+            else
+            {
+                width += 4;
+            }
         }
-        //Serial.printf("Zeichen: %c, ASCII-Wert: %d\n", current_char, static_cast<int>(current_char));
+        // Serial.printf("Zeichen: %c, ASCII-Wert: %d\n", current_char, static_cast<int>(current_char));
     }
     return width;
 }
@@ -135,7 +154,7 @@ byte utf8ascii(byte ascii)
     c1 = ascii;
     switch (last)
     {
-    
+
     case 0xC2:
         return (ascii); // - 34;
         break;
@@ -157,10 +176,10 @@ byte utf8ascii(byte ascii)
             return 0x9F;
 
         if (ascii >= 0x90 && ascii <= 0xAF)
-            return (ascii) - 17;
+            return (ascii)-17;
 
         if (ascii >= 0xB0 && ascii <= 0xBF)
-            return (ascii) - 49;
+            return (ascii)-49;
 
     case 0xD1:
         if (ascii == 0x91) // Ё
@@ -190,7 +209,6 @@ String utf8ascii(String s)
     }
     return r;
 }
-
 
 uint32_t fadeColor(uint32_t color, uint32_t interval)
 {
@@ -227,4 +245,3 @@ uint32_t TextEffect(uint32_t color, uint32_t fade, uint32_t blink)
         return color;
     }
 }
-
