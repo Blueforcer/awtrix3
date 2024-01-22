@@ -1,0 +1,147 @@
+﻿AppType=JavaFX
+Build1=Default,b4j.example
+File1=Layout1.bjl
+FileGroup1=Default Group
+Group=Default Group
+Library1=jcore
+Library2=jfx
+Library3=json
+Library4=jxui
+Library5=jokhttputils2
+NumberOfFiles=1
+NumberOfLibraries=5
+NumberOfModules=0
+Version=9.8
+@EndOfDesignText@
+#Region Project Attributes
+    #MainFormWidth: 210
+    #MainFormHeight: 270
+#End Region
+
+Sub Process_Globals
+	Private fx As JFX
+	Private MainForm As Form
+	Private btDir As Button
+	Private ipTF As TextField
+	Private TargetFolder As String
+	Private ProgressBar1 As ProgressBar
+	Private totalFiles As Int
+	Private processedFiles As Int
+	Private btnStart As Button
+	Private FileLbl As Label
+End Sub
+
+Sub AppStart (Form1 As Form, Args() As String)
+	MainForm = Form1
+	MainForm.RootPane.LoadLayout("Layout1") 'Load the layout file.
+	MainForm.Resizable=False
+	MainForm.SetFormStyle("UTILITY")
+	MainForm.Show
+End Sub
+
+Sub DownloadFiles(path As String) As ResumableSub
+	Dim job As HttpJob
+	job.Initialize("j", Me)
+	job.Download($"http://${ipTF.Text}/list?dir=${path}"$)
+	Wait For (job) JobDone(j As HttpJob)
+	If job.Success Then
+		ProcessResponse(job.GetString, path)
+	Else
+		Log("Error: " & job.ErrorMessage)
+	End If
+	job.Release
+	Return True
+End Sub
+
+Sub ProcessResponse(content As String, path As String)
+	Dim parser As JSONParser
+	parser.Initialize(content)
+	Dim items As List = parser.NextArray
+	For Each item As Map In items
+		Dim itemType As String = item.Get("type")
+		Dim itemName As String = item.Get("name")
+		If itemType = "dir" Then
+			File.MakeDir(TargetFolder,itemName)
+			wait for (DownloadFiles($"${path}${itemName}/"$)) Complete (success As Boolean)
+		Else If itemType = "file" Then
+			wait for (DownloadFile($"${path}${itemName}"$)) Complete (success As Boolean)
+		End If
+	Next
+	If processedFiles=totalFiles Then
+		fx.Msgbox(MainForm,"All files saved!","Finish")
+		btnStart.Enabled=True
+		ipTF.Enabled=True
+		btDir.Enabled=True
+		FileLbl.Text=""
+		ProgressBar1.Progress=0
+	End If
+End Sub
+
+Sub DownloadFile(filePath As String) As ResumableSub
+	Dim job As HttpJob
+	job.Initialize("j", Me)
+	FileLbl.Text=filePath
+	job.Download($"http://${ipTF.Text}${filePath}"$)
+	Wait For (job) JobDone(j As HttpJob)
+	If job.Success Then
+		SaveFile(job.GetInputStream, filePath)
+		processedFiles = processedFiles + 1
+		ProgressBar1.Progress = processedFiles / totalFiles
+	Else
+		Log("Error: " & job.ErrorMessage)
+	End If
+	job.Release
+	Return True
+End Sub
+
+Sub SaveFile(inputStream As InputStream, localPath As String)
+	Dim out As OutputStream = File.OpenOutput(TargetFolder, localPath, False)
+	File.Copy2(inputStream, out)
+	out.Close
+	inputStream.Close
+End Sub
+
+Private Sub btDir_Click
+	Dim dc As DirectoryChooser
+	dc.Initialize
+	TargetFolder=dc.Show(MainForm)
+	btDir.Text=TargetFolder
+End Sub
+
+Sub CountFiles(path As String)
+	Dim job As HttpJob
+	job.Initialize("j", Me)
+	job.Download($"http://${ipTF.Text}/list?dir=${path}"$)
+	Wait For (job) JobDone(j As HttpJob)
+	If job.Success Then
+		ProcessResponseForCounting(job.GetString, path)
+	Else
+		Log("Error: " & job.ErrorMessage)
+	End If
+	job.Release
+End Sub
+
+Sub ProcessResponseForCounting(content As String, path As String)
+	Dim parser As JSONParser
+	parser.Initialize(content)
+	Dim items As List = parser.NextArray
+	For Each item As Map In items
+		Dim itemType As String = item.Get("type")
+		Dim itemName As String = item.Get("name")
+		If itemType = "dir" Then
+			CountFiles($"${path}${itemName}/"$)
+		Else If itemType = "file" Then
+			totalFiles = totalFiles + 1
+		End If
+	Next
+End Sub
+
+Private Sub btnStart_Click
+	totalFiles = 0
+	processedFiles = 0
+	CountFiles("/")
+	DownloadFiles("/")
+	btnStart.Enabled=False
+	ipTF.Enabled=False
+	btDir.Enabled=False
+End Sub

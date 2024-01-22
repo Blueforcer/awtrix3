@@ -3,6 +3,7 @@
 #include <WiFi.h>
 #include <ArduinoJson.h>
 #include <LittleFS.h>
+#include "effects.h"
 
 Preferences Settings;
 
@@ -12,24 +13,35 @@ char *getID()
     WiFi.macAddress(mac);
     char *macStr = new char[24];
     snprintf(macStr, 24, "awtrix_%02x%02x%02x", mac[3], mac[4], mac[5]);
-    DEBUG_PRINTLN(F("Starting filesystem"));
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("Starting filesystem"));
     return macStr;
 }
 
 void startLittleFS()
 {
-    DEBUG_PRINTLN(F("Starting filesystem"));
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("Starting filesystem"));
     if (LittleFS.begin())
     {
+        if (LittleFS.exists("/config.json"))
+        {
+            LittleFS.rename("/config.json", "/DoNotTouch.json");
+        }
+
 #ifdef ULANZI
         LittleFS.mkdir("/MELODIES");
 #endif
         LittleFS.mkdir("/ICONS");
-        DEBUG_PRINTLN(F("Filesystem started"));
+        LittleFS.mkdir("/PALETTES");
+        LittleFS.mkdir("/CUSTOMAPPS");
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Filesystem started"));
     }
     else
     {
-        DEBUG_PRINTLN(F("Filesystem currupt. Formating..."));
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Filesystem corrupt. Formatting..."));
         LittleFS.format();
         ESP.restart();
     }
@@ -37,19 +49,22 @@ void startLittleFS()
 
 void loadDevSettings()
 {
-    DEBUG_PRINTLN("Loading Devsettings");
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN("Loading Devsettings");
     if (LittleFS.exists("/dev.json"))
     {
         File file = LittleFS.open("/dev.json", "r");
-        DynamicJsonDocument doc(128);
+        DynamicJsonDocument doc(1024);
         DeserializationError error = deserializeJson(doc, file);
         if (error)
         {
-            DEBUG_PRINTLN(F("Failed to read dev settings"));
+            if (DEBUG_MODE)
+                DEBUG_PRINTLN(F("Failed to read dev settings"));
             return;
         }
 
-        DEBUG_PRINTF("%i dev settings found", doc.size());
+        if (DEBUG_MODE)
+            DEBUG_PRINTF("%i dev settings found", doc.size());
 
         if (doc.containsKey("bootsound"))
         {
@@ -61,14 +76,74 @@ void loadDevSettings()
             SENSOR_READING = doc["sensor_reading"].as<bool>();
         }
 
+        if (doc.containsKey("dfplayer"))
+        {
+            DFPLAYER_ACTIVE = doc["dfplayer"].as<bool>();
+        }
+
         if (doc.containsKey("matrix"))
         {
             MATRIX_LAYOUT = doc["matrix"];
         }
 
-        if (doc.containsKey("uppercase"))
+        if (doc.containsKey("mirror_screen"))
         {
-            UPPERCASE_LETTERS = doc["uppercase"].as<bool>();
+            MIRROR_DISPLAY = doc["mirror_screen"].as<bool>();
+        }
+
+        if (doc.containsKey("temp_offset"))
+        {
+            TEMP_OFFSET = doc["temp_offset"];
+        }
+
+        if (doc.containsKey("min_battery"))
+        {
+            MIN_BATTERY = doc["min_battery"];
+        }
+
+        if (doc.containsKey("max_battery"))
+        {
+            MAX_BATTERY = doc["max_battery"];
+        }
+
+        if (doc.containsKey("background_effect"))
+        {
+            BACKGROUND_EFFECT = getEffectIndex(doc["background_effect"].as<const char *>());
+        }
+
+        if (doc.containsKey("min_brightness"))
+        {
+            MIN_BRIGHTNESS = doc["min_brightness"];
+        }
+
+        if (doc.containsKey("max_brightness"))
+        {
+            MAX_BRIGHTNESS = doc["max_brightness"];
+        }
+
+        if (doc.containsKey("ldr_factor"))
+        {
+            LDR_FACTOR = doc["ldr_factor"].as<float>();
+        }
+
+        if (doc.containsKey("ldr_gamma"))
+        {
+            LDR_GAMMA = doc["ldr_gamma"].as<float>();
+        }
+
+        if (doc.containsKey("hum_offset"))
+        {
+            HUM_OFFSET = doc["hum_offset"];
+        }
+
+        if (doc.containsKey("ha_prefix"))
+        {
+            HA_PREFIX = doc["ha_prefix"].as<String>();
+        }
+
+        if (doc.containsKey("stats_interval"))
+        {
+            STATS_INTERVAL = doc["stats_interval"].as<long>();
         }
 
         if (doc.containsKey("update_check"))
@@ -86,9 +161,24 @@ void loadDevSettings()
             ROTATE_SCREEN = doc["rotate_screen"].as<bool>();
         }
 
-        if (doc.containsKey("gamma"))
+        if (doc.containsKey("debug_mode"))
         {
-            GAMMA = doc["gamma"].as<float>();
+            DEBUG_MODE = doc["debug_mode"].as<bool>();
+        }
+
+        if (doc.containsKey("let_it_snow"))
+        {
+            SNOW = doc["let_it_snow"].as<bool>();
+        }
+
+        if (doc.containsKey("new_year"))
+        {
+            NEWYEAR = doc["new_year"].as<bool>();
+        }
+
+        if (doc.containsKey("button_callback"))
+        {
+            BUTTON_CALLBACK = doc["button_callback"].as<String>();
         }
 
         if (doc.containsKey("color_correction"))
@@ -119,48 +209,63 @@ void loadDevSettings()
     }
     else
     {
-        DEBUG_PRINTLN("Devsettings not found");
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN("Devsettings not found");
     }
+}
+
+void formatSettings()
+{
+    Settings.begin("awtrix", false);
+    Settings.clear();
+    Settings.end();
 }
 
 void loadSettings()
 {
     startLittleFS();
-    DEBUG_PRINTLN(F("Loading Usersettings"));
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("Loading Usersettings"));
     Settings.begin("awtrix", false);
-    MATRIX_FPS = Settings.getUInt("FPS", 23);
     BRIGHTNESS = Settings.getUInt("BRI", 120);
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", false);
-    TEXTCOLOR_565 = Settings.getUInt("TCOL", 0xFFFF);
-
+    UPPERCASE_LETTERS = Settings.getBool("UPPER", true);
+    TEXTCOLOR_888 = Settings.getUInt("TCOL", 0xFFFFFF);
+    CALENDAR_HEADER_COLOR = Settings.getUInt("CHCOL", 0xFF0000);
+    CALENDAR_TEXT_COLOR = Settings.getUInt("CTCOL", 0x000000);
+    CALENDAR_BODY_COLOR = Settings.getUInt("CBCOL", 0xFFFFFF);
+    TRANS_EFFECT = Settings.getUInt("TEFF", 1);
+    TIME_MODE = Settings.getUInt("TMODE", 1);
     TIME_COLOR = Settings.getUInt("TIME_COL", 0);
     DATE_COLOR = Settings.getUInt("DATE_COL", 0);
     TEMP_COLOR = Settings.getUInt("TEMP_COL", 0);
     HUM_COLOR = Settings.getUInt("HUM_COL", 0);
+#ifdef ULANZI
     BAT_COLOR = Settings.getUInt("BAT_COL", 0);
-
-    WDC_ACTIVE = Settings.getUInt("WDCA", 0xFFFF);
-    WDC_INACTIVE = Settings.getUInt("WDCI", 0x6B6D);
+#endif
+    WDC_ACTIVE = Settings.getUInt("WDCA", 0xFFFFFF);
+    WDC_INACTIVE = Settings.getUInt("WDCI", 0x666666);
     AUTO_TRANSITION = Settings.getBool("ATRANS", true);
     SHOW_WEEKDAY = Settings.getBool("WD", true);
     TIME_PER_TRANSITION = Settings.getUInt("TSPEED", 400);
     TIME_PER_APP = Settings.getUInt("ATIME", 7000);
-    TIME_FORMAT = Settings.getString("TFORMAT", "%H:%M:%S");
+    TIME_FORMAT = Settings.getString("TFORMAT", "%H %M");
     DATE_FORMAT = Settings.getString("DFORMAT", "%d.%m.%y");
     START_ON_MONDAY = Settings.getBool("SOM", true);
+    BLOCK_NAVIGATION = Settings.getBool("BLOCKN", false);
     IS_CELSIUS = Settings.getBool("CEL", true);
     SHOW_TIME = Settings.getBool("TIM", true);
-    SHOW_DATE = Settings.getBool("DAT", true);
+    SHOW_DATE = Settings.getBool("DAT", false);
     SHOW_TEMP = Settings.getBool("TEMP", true);
     SHOW_HUM = Settings.getBool("HUM", true);
     MATRIX_LAYOUT = Settings.getUInt("MAT", 0);
+    SCROLL_SPEED = Settings.getUInt("SSPEED", 100);
 #ifdef ULANZI
     SHOW_BAT = Settings.getBool("BAT", true);
 #endif
     SOUND_ACTIVE = Settings.getBool("SOUND", true);
 #ifndef ULANZI
-    VOLUME_PERCENT = Settings.getUInt("VOL", 50);
-    VOLUME = map(VOLUME_PERCENT, 0, 100, 0, 30);
+    DFP_VOLUME = Settings.getUInt("VOL", 20);
 #endif
     Settings.end();
     uniqueID = getID();
@@ -170,21 +275,28 @@ void loadSettings()
 
 void saveSettings()
 {
-    DEBUG_PRINTLN(F("Saving usersettings"));
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("Saving usersettings"));
     Settings.begin("awtrix", false);
-    Settings.putUInt("FPS", MATRIX_FPS);
+    Settings.putUInt("CHCOL", CALENDAR_HEADER_COLOR);
+    Settings.putUInt("CTCOL", CALENDAR_TEXT_COLOR);
+    Settings.putUInt("CBCOL", CALENDAR_BODY_COLOR);
+    Settings.putUInt("TEFF", TRANS_EFFECT);
     Settings.putUInt("BRI", BRIGHTNESS);
     Settings.putBool("WD", SHOW_WEEKDAY);
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
+    Settings.putBool("BLOCKN", BLOCK_NAVIGATION);
     Settings.putBool("ATRANS", AUTO_TRANSITION);
-    Settings.putUInt("TCOL", TEXTCOLOR_565);
-
+    Settings.putBool("UPPER", UPPERCASE_LETTERS);
+    Settings.putUInt("TCOL", TEXTCOLOR_888);
+    Settings.putUInt("TMODE", TIME_MODE);
     Settings.putUInt("TIME_COL", TIME_COLOR);
     Settings.putUInt("DATE_COL", DATE_COLOR);
     Settings.putUInt("TEMP_COL", TEMP_COLOR);
     Settings.putUInt("HUM_COL", HUM_COLOR);
+#ifdef ULANZI
     Settings.putUInt("BAT_COL", BAT_COLOR);
-
+#endif
     Settings.putUInt("WDCA", WDC_ACTIVE);
     Settings.putUInt("WDCI", WDC_INACTIVE);
     Settings.putUInt("TSPEED", TIME_PER_TRANSITION);
@@ -197,13 +309,13 @@ void saveSettings()
     Settings.putBool("DAT", SHOW_DATE);
     Settings.putBool("TEMP", SHOW_TEMP);
     Settings.putBool("HUM", SHOW_HUM);
-    Settings.putUInt("MAT", MATRIX_LAYOUT);
+    Settings.putUInt("SSPEED", SCROLL_SPEED);
 #ifdef ULANZI
     Settings.putBool("BAT", SHOW_BAT);
 #endif
     Settings.putBool("SOUND", SOUND_ACTIVE);
 #ifndef ULANZI
-    Settings.putUInt("VOL", VOLUME_PERCENT);
+    Settings.putUInt("VOL", DFP_VOLUME);
 #endif
     Settings.end();
 }
@@ -214,7 +326,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.60";
+const char *VERSION = "0.94";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -224,11 +336,10 @@ String MQTT_PREFIX;
 bool IO_BROKER = false;
 bool NET_STATIC = false;
 bool SHOW_TIME = true;
+
 bool SHOW_DATE = true;
 bool SHOW_WEATHER = true;
-#ifdef ULANZI
 bool SHOW_BAT = true;
-#endif
 bool SHOW_TEMP = true;
 bool SHOW_HUM = true;
 bool SHOW_SECONDS = true;
@@ -238,34 +349,41 @@ String NET_GW = "192.168.178.1";
 String NET_SN = "255.255.255.0";
 String NET_PDNS = "8.8.8.8";
 String NET_SDNS = "1.1.1.1";
-int TIME_PER_APP = 7000;
-uint8_t MATRIX_FPS = 23;
+long TIME_PER_APP = 7000;
+uint8_t MATRIX_FPS = 42;
 int TIME_PER_TRANSITION = 400;
 String NTP_SERVER = "de.pool.ntp.org";
 String NTP_TZ = "CET-1CEST,M3.5.0,M10.5.0/3";
 bool HA_DISCOVERY = false;
-
+String HA_PREFIX = "homeassistant";
 // Periphery
 String CURRENT_APP;
 float CURRENT_TEMP;
 bool IS_CELSIUS;
+#ifndef ULANZI
+uint8_t TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_NONE;
+#endif
 float CURRENT_HUM;
 float CURRENT_LUX;
 int BRIGHTNESS = 120;
 int BRIGHTNESS_PERCENT;
-#ifdef ULANZI
-uint8_t BATTERY_PERCENT;
-uint16_t BATTERY_RAW;
+
+uint16_t MIN_BATTERY = 475;
+uint16_t MAX_BATTERY = 665;
+
+#ifdef awtrix2_upgrade
+float TEMP_OFFSET;
+#else
+float TEMP_OFFSET = -9;
+uint8_t BATTERY_PERCENT = 0;
+uint16_t BATTERY_RAW = 0;
 #endif
+float HUM_OFFSET;
 uint16_t LDR_RAW;
 String TIME_FORMAT = "%H:%M:%S";
 String DATE_FORMAT = "%d.%m.%y";
+int BACKGROUND_EFFECT = -1;
 bool START_ON_MONDAY;
-
-String ALARM_SOUND;
-uint8_t SNOOZE_TIME;
-
-String TIMER_SOUND;
 
 // Matrix States
 bool AUTO_TRANSITION = false;
@@ -273,32 +391,51 @@ bool AUTO_BRIGHTNESS = true;
 bool UPPERCASE_LETTERS = true;
 bool AP_MODE;
 bool MATRIX_OFF;
-bool TIMER_ACTIVE;
-bool ALARM_ACTIVE;
-uint16_t TEXTCOLOR_565;
+bool MIRROR_DISPLAY = false;
+uint32_t TEXTCOLOR_888 = 0xFFFFFF;
 bool SOUND_ACTIVE;
 String BOOT_SOUND = "";
 int TEMP_DECIMAL_PLACES = 0;
 #ifndef ULANZI
-uint8_t VOLUME_PERCENT;
-uint8_t VOLUME;
+uint8_t DFP_VOLUME;
 #endif
 int MATRIX_LAYOUT = 0;
 bool UPDATE_AVAILABLE = false;
 long RECEIVED_MESSAGES;
 CRGB COLOR_CORRECTION;
 CRGB COLOR_TEMPERATURE;
-uint16_t WDC_ACTIVE;
-uint16_t WDC_INACTIVE;
+uint32_t WDC_ACTIVE;
+uint32_t WDC_INACTIVE;
 bool BLOCK_NAVIGATION = false;
 bool UPDATE_CHECK = false;
 float GAMMA = 0;
 bool SENSOR_READING = true;
+bool SENSORS_STABLE = false;
+bool DFPLAYER_ACTIVE = false;
 bool ROTATE_SCREEN = false;
-
-uint16_t TIME_COLOR = 0;
-uint16_t DATE_COLOR = 0;
-uint16_t BAT_COLOR = 0;
-uint16_t TEMP_COLOR = 0;
-uint16_t HUM_COLOR = 0;
+uint8_t TIME_MODE = 1;
+uint8_t SCROLL_SPEED = 100;
+uint32_t TIME_COLOR = 0;
+uint32_t CALENDAR_HEADER_COLOR = 0xFF0000;
+uint32_t CALENDAR_TEXT_COLOR = 0x000000;
+uint32_t CALENDAR_BODY_COLOR = 0xFFFFFF;
+uint32_t DATE_COLOR = 0;
+uint32_t BAT_COLOR = 0;
+uint32_t TEMP_COLOR = 0;
+uint32_t HUM_COLOR = 0;
 bool ARTNET_MODE;
+bool MOODLIGHT_MODE;
+long STATS_INTERVAL = 10000;
+bool DEBUG_MODE = false;
+uint8_t MIN_BRIGHTNESS = 2;
+uint8_t MAX_BRIGHTNESS = 160;
+double movementFactor = 0.5;
+int8_t TRANS_EFFECT = 1;
+String AUTH_USER = "";
+String AUTH_PASS = "awtrix";
+String BUTTON_CALLBACK = "";
+bool SNOW = false;
+bool NEWYEAR = false;
+float LDR_GAMMA = 3.0;
+float LDR_FACTOR = 1.0;
+bool GAME_ACTIVE = false;

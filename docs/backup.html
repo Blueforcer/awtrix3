@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWTRIX Light Backup & Restore</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+</head>
+
+<body class="p-5">
+    <h2 class="mb-4">AWTRIX Light Backup & Restore</h2>
+    <p>
+        This tool allows you to create a backup of your AWTRIX Light by downloading all its files into a ZIP
+        archive. You can also restore a backup by uploading a ZIP archive.
+    </p>
+    <p class="text-danger">
+        <strong>Note:</strong> Due to browser restrictions, AWTRIX Backup tool is not allowed to upload to a local
+        IP address by default.
+        <br>
+        <a class="text-xs text-red-500 underline"
+            href="https://experienceleague.adobe.com/docs/target/using/experiences/vec/troubleshoot-composer/mixed-content.html"
+            target="_blank" rel="noopener noreferrer">Please allow Insecure content to use this feature.</a>
+    </p>
+
+    <div class="mb-3">
+        <button class="btn btn-primary" id="backupButton">Download Backup</button>
+        <input type="file" id="fileInput" style="display: none;">
+        <button class="btn btn-secondary ml-2" id="restoreButton">Upload for Restore</button>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="feedbackModalLabel">Status</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="feedbackModalBody">
+                    <!-- Message will be populated here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function trimLeadingSlash(path) {
+            return path.startsWith('/') ? path.slice(1) : path;
+        }
+
+        function joinPaths(...paths) {
+            return paths.join('/').replace(/\/+/g, '/');
+        }
+
+        async function getFilesFromDirectory(source_ip, dir, zip) {
+            try {
+                const response = await fetch(`http://${source_ip}/list?dir=${dir}`, { mode: 'no-cors' });
+
+                if (!response.ok) {
+                    throw new Error('Server responded with status: ' + response.status);
+                }
+                const file_list = await response.json();
+
+                for (let file_info of file_list) {
+                    if (file_info['type'] === 'file') {
+                        const filename = file_info['name'];
+                        const source_file_url = `http://${source_ip}${dir}${filename}`;
+                        const fileResponse = await fetch(source_file_url);
+
+                        if (fileResponse.status === 200) {
+                            const fileContent = await fileResponse.blob();
+                            zip.file(trimLeadingSlash(joinPaths(dir, filename)), fileContent);
+                        } else {
+                            console.error(`Failed to download file ${filename}`);
+                            showModalFeedback('Error', `Failed to download file ${filename}`);
+                        }
+                    } else if (file_info['type'] === 'dir') {
+                        await getFilesFromDirectory(source_ip, `${dir}${file_info['name']}/`, zip);
+                    }
+                }
+            } catch (error) {
+                showModalFeedback('Error', `Failed to fetch data. Please allow Insecure content to use this feature.`);
+                console.error(error);
+            }
+        }
+
+
+        function showModalFeedback(title, message) {
+            document.getElementById('feedbackModalLabel').textContent = title;
+            document.getElementById('feedbackModalBody').textContent = message;
+            $('#feedbackModal').modal('show');
+        }
+
+        document.getElementById('backupButton').addEventListener('click', async function () {
+            const source_ip = prompt("Enter the AWTRIX Light IP address:");
+            let zip = new JSZip();
+
+            await getFilesFromDirectory(source_ip, '/', zip);
+
+            zip.generateAsync({ type: "blob" }).then(function (blob) {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'backup.zip';
+
+                document.body.appendChild(a);
+                a.click();
+
+                window.URL.revokeObjectURL(url);
+            }).catch(function (error) {
+                showModalFeedback('Error', 'Failed to generate backup. ' + error.message);
+            });
+        });
+
+        document.getElementById('restoreButton').addEventListener('click', function () {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', async function () {
+            const target_ip = prompt("Enter the AWTRIX Light IP address:");
+            const file = this.files[0];
+            const zip = new JSZip();
+
+            zip.loadAsync(file).then(async (contents) => {
+                for (let filename in contents.files) {
+                    if (!contents.files[filename].dir) {
+                        const fileContent = await contents.files[filename].async("blob");
+                        const target_file_url = `http://${target_ip}/edit?filename=${filename}`;
+                        const formData = new FormData();
+                        formData.append('file', fileContent, filename);
+
+                        fetch(target_file_url, {
+                            method: 'POST',
+                            body: formData,
+                            mode: 'no-cors' 
+                        }).then(response => {
+                            if (response.ok) {
+                                console.log(`Uploaded ${filename} successfully.`);
+                                showModalFeedback('Success', `Uploaded ${filename} successfully.`);
+                            } else {
+                                console.error(`Failed to upload ${filename}.`);
+                                showModalFeedback('Error', `Failed to upload ${filename}.`);
+                            }
+                        }).catch(function (error) {
+                            showModalFeedback('Error', 'Failed to restore backup. ' + error.message);
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

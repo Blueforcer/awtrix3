@@ -61,11 +61,17 @@ jobs:
       - name: Copy firmware for awtrix2_upgrade to output directory
         run: cp .pio/build/awtrix2_upgrade/firmware.bin docs/awtrix2_flasher/firmware/firmware.bin
 
-      - name: Create new manifest.json
-        run: cat docs/flasher/firmware/manifest.json | jq '.version="${{ steps.version_number.outputs.firmware_version }}"' > docs/flasher/firmware/new-manifest.json
+      - name: Create new manifest.json for ulanzi
+        run: cat docs/ulanzi_flasher/firmware/manifest.json | jq '.version="${{ steps.version_number.outputs.firmware_version }}"' > docs/ulanzi_flasher/firmware/new-manifest.json
       
-      - name: Override previous manifest.json
-        run: mv docs/flasher/firmware/new-manifest.json docs/flasher/firmware/manifest.json
+      - name: Override previous manifest.json for ulanzi
+        run: mv docs/ulanzi_flasher/firmware/new-manifest.json docs/ulanzi_flasher/firmware/manifest.json
+
+      - name: Create new manifest.json for awtrix2_upgrade
+        run: cat docs/awtrix2_flasher/firmware/manifest.json | jq '.version="${{ steps.version_number.outputs.firmware_version }}"' > docs/awtrix2_flasher/firmware/new-manifest.json
+      
+      - name: Override previous manifest.json for awtrix2_upgrade
+        run: mv docs/awtrix2_flasher/firmware/new-manifest.json docs/awtrix2_flasher/firmware/manifest.json
 
       - name: Upload ulanzi firmware as artifact
         uses: actions/upload-artifact@v2
@@ -98,7 +104,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: .pio/build/ulanzi/firmware.bin
-          asset_name: ulanzi_firmware.bin
+          asset_name: ulanzi_TC001_${{ steps.version_number.outputs.firmware_version }}.bin
           asset_content_type: application/octet-stream
 
       - name: Upload awtrix2_upgrade Release Asset
@@ -109,7 +115,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: .pio/build/awtrix2_upgrade/firmware.bin
-          asset_name: awtrix2_upgrade_firmware.bin
+          asset_name: old_awtrix2_conversion_${{ steps.version_number.outputs.firmware_version }}.bin
           asset_content_type: application/octet-stream
 
       - name: Commit

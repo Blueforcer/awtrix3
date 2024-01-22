@@ -16,8 +16,6 @@
 #define URL_fw_Bin "https://raw.githubusercontent.com/Blueforcer/awtrix-light/main/docs/awtrix2_flasher/firmware/firmware.bin"
 #endif
 
-Ticker UpdateTicker;
-
 // The getter for the instantiated singleton instance
 UpdateManager_ &UpdateManager_::getInstance()
 {
@@ -30,10 +28,12 @@ UpdateManager_ &UpdateManager = UpdateManager.getInstance();
 
 void update_started()
 {
+    
 }
 
 void update_finished()
 {
+
 }
 
 void update_progress(int cur, int total)
@@ -42,8 +42,9 @@ void update_progress(int cur, int total)
     int progress = (cur * 100) / total;
     char progressStr[5];
     snprintf(progressStr, 5, "%d%%", progress);
+    DisplayManager.resetTextColor();
     DisplayManager.printText(0, 6, progressStr, true, false);
-    DisplayManager.drawProgressBar(0, 7, progress, 0xCE59, 0x07E0);
+    DisplayManager.drawProgressBar(0, 7, progress, 0x00FF00, 0xFFFFFF);
     DisplayManager.show();
 }
 
@@ -68,15 +69,15 @@ void UpdateManager_::updateFirmware()
     switch (ret)
     {
     case HTTP_UPDATE_FAILED:
-        DEBUG_PRINTF("HTTP_UPDATE_FAILD Error (%d): %s\n", httpUpdate.getLastError(), httpUpdate.getLastErrorString().c_str());
+        if (DEBUG_MODE) DEBUG_PRINTF("HTTP_UPDATE_FAILED Error (%d): %s\n", httpUpdate.getLastError(), httpUpdate.getLastErrorString().c_str());
         break;
 
     case HTTP_UPDATE_NO_UPDATES:
-        DEBUG_PRINTLN(F("HTTP_UPDATE_NO_UPDATES"));
+        if (DEBUG_MODE) DEBUG_PRINTLN(F("HTTP_UPDATE_NO_UPDATES"));
         break;
 
     case HTTP_UPDATE_OK:
-        DEBUG_PRINTLN(F("HTTP_UPDATE_OK"));
+        if (DEBUG_MODE) DEBUG_PRINTLN(F("HTTP_UPDATE_OK"));
         break;
     }
 }
@@ -86,6 +87,7 @@ bool UpdateManager_::checkUpdate(bool withScreen)
     if (withScreen)
     {
         DisplayManager.clear();
+        DisplayManager.resetTextColor();
         DisplayManager.printText(0, 6, "CHECK", true, true);
         DisplayManager.show();
     }
@@ -96,7 +98,7 @@ bool UpdateManager_::checkUpdate(bool withScreen)
     fwurl += URL_fw_Version;
     fwurl += "?";
     fwurl += String(rand());
-    DEBUG_PRINTLN(F("Check firmwareversion"));
+    if (DEBUG_MODE) DEBUG_PRINTLN(F("Check firmwareversion"));
 
     static WiFiClientSecure client; // Statische Variable
 
@@ -114,10 +116,11 @@ bool UpdateManager_::checkUpdate(bool withScreen)
         }
         else
         {
-            DEBUG_PRINTLN(F("Error in downloading version file"));
+            if (DEBUG_MODE) DEBUG_PRINTLN(F("Error in downloading version file"));
             if (withScreen)
             {
                 DisplayManager.clear();
+                 DisplayManager.resetTextColor();
                 DisplayManager.printText(0, 6, "ERR CNCT", true, true);
                 DisplayManager.show();
                 delay(1000);
@@ -132,10 +135,11 @@ bool UpdateManager_::checkUpdate(bool withScreen)
         if (payload.equals(VERSION))
         {
             UPDATE_AVAILABLE = false;
-            DEBUG_PRINTF("\nDevice already on latest firmware version: %s\n", VERSION);
+            if (DEBUG_MODE) DEBUG_PRINTF("\nDevice already on latest firmware version: %s\n", VERSION);
             if (withScreen)
             {
                 DisplayManager.clear();
+                 DisplayManager.resetTextColor();
                 DisplayManager.printText(0, 6, "NO UP :(", true, true);
                 DisplayManager.show();
                 delay(1000);
@@ -144,7 +148,7 @@ bool UpdateManager_::checkUpdate(bool withScreen)
         }
         else
         {
-            DEBUG_PRINTLN(F("New firmwareversion found!"));
+            if (DEBUG_MODE) DEBUG_PRINTLN(F("New firmwareversion found!"));
             UPDATE_AVAILABLE = true;
             return 1;
         }
@@ -161,6 +165,5 @@ void checkUpdateNoReturn()
 
 void UpdateManager_::setup()
 {
-    if (UPDATE_CHECK)
-        UpdateTicker.attach(120, checkUpdateNoReturn);
+   
 }

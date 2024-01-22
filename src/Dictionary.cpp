@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "Dictionary.h"
-
+ 
 // MQTT
 const char StatsTopic[] PROGMEM = {"stats"};
 const char ButtonLeftTopic[] PROGMEM = {"stats/buttonLeft"};
@@ -15,7 +15,7 @@ const char State1[] PROGMEM = {"1"};
 const char HAmanufacturer[] PROGMEM = {"Blueforcer"};
 const char HAmodel[] PROGMEM = {"AWTRIX Light"};
 const char HAmatID[] PROGMEM = {"%s_mat"};
-const char HAmatIcon[] PROGMEM = {"mdi:lightbulb"};
+const char HAmatIcon[] PROGMEM = {"mdi:clock-digital"};
 const char HAmatName[] PROGMEM = {"Matrix"};
 
 const char HAi1ID[] PROGMEM = {"%s_ind1"};
@@ -23,13 +23,26 @@ const char HAi1Icon[] PROGMEM = {"mdi:arrow-top-right-thick"};
 const char HAi1Name[] PROGMEM = {"Indicator 1"};
 
 const char HAi2ID[] PROGMEM = {"%s_ind2"};
-const char HAi2Icon[] PROGMEM = {"mdi:arrow-bottom-right-thick"};
+const char HAi2Icon[] PROGMEM = {"mdi:arrow-right-thick"};
 const char HAi2Name[] PROGMEM = {"Indicator 2"};
+
+const char HAi3ID[] PROGMEM = {"%s_ind3"};
+const char HAi3Icon[] PROGMEM = {"mdi:arrow-bottom-right-thick"};
+const char HAi3Name[] PROGMEM = {"Indicator 3"};
+
+const char HASPEEDID[] PROGMEM = {"%s_sspeed"};
+const char HASPEEDIcon[] PROGMEM = {"mdi:speedometer"};
+const char HASPEEDName[] PROGMEM = {"Scrollspeed"};
 
 const char HAbriID[] PROGMEM = {"%s_bri"};
 const char HAbriIcon[] PROGMEM = {"mdi:brightness-auto"};
 const char HAbriName[] PROGMEM = {"Brightness mode"};
 const char HAbriOptions[] PROGMEM = {"Manual;Auto"};
+
+const char HAeffectID[] PROGMEM = {"%s_eff"};
+const char HAeffectIcon[] PROGMEM = {"mdi:auto-fix"};
+const char HAeffectName[] PROGMEM = {"Transition effect"};
+const char HAeffectOptions[] PROGMEM = {"Random;Slide;Dim;Zoom;Rotate;Pixelate;Curtain;Ripple;Blink;Reload;Fade"};
 
 const char HAbtnaID[] PROGMEM = {"%s_btna"};
 const char HAbtnaIcon[] PROGMEM = {"mdi:bell-off"};
@@ -46,6 +59,12 @@ const char HAbtncName[] PROGMEM = {"Previous app"};
 const char HAappID[] PROGMEM = {"%s_app"};
 const char HAappIcon[] PROGMEM = {"mdi:apps"};
 const char HAappName[] PROGMEM = {"Current app"};
+
+
+const char HAIDID[] PROGMEM = {"%s_id"};
+const char HAIDIcon[] PROGMEM = {"mdi:id-card"};
+const char HAIDName[] PROGMEM = {"Device topic"};
+
 
 const char HAtempID[] PROGMEM = {"%s_temp"};
 const char HAtempIcon[] PROGMEM = {"mdi:thermometer"};
@@ -76,7 +95,7 @@ const char HAverName[] PROGMEM = {"Version"};
 
 const char HAtransID[] PROGMEM = {"%s_tra"};
 const char HAtransName[] PROGMEM = {"Transition"};
-const char HAtransIcon[] PROGMEM = {"mdi:swap-vertical"};
+const char HAtransIcon[] PROGMEM = {"mdi:swap-horizontal"};
 
 const char HAupdateID[] PROGMEM = {"%s_upd"};
 const char HAupdateName[] PROGMEM = {"Update"};
@@ -99,21 +118,32 @@ const char HAupClass[] PROGMEM = {"duration"};
 
 const char HAbtnLID[] PROGMEM = {"%s_btnL"};
 const char HAbtnLName[] PROGMEM = {"Button left"};
+const char HAbtnLIcon[] PROGMEM = {"mdi:chevron-left-box-outline"};
 
 const char HAbtnMID[] PROGMEM = {"%s_btnM"};
 const char HAbtnMName[] PROGMEM = {"Button select"};
+const char HAbtnMIcon[] PROGMEM = {"mdi:circle-box-outline"};
 
 const char HAbtnRID[] PROGMEM = {"%s_btnR"};
 const char HAbtnRName[] PROGMEM = {"Button right"};
+const char HAbtnRIcon[] PROGMEM = {"mdi:chevron-right-box-outline"};
 
 const char HAramRID[] PROGMEM = {"%s_ram"};
-const char HAramIcon[] PROGMEM = {"mdi:application-cog"};
+const char HAramIcon[] PROGMEM = {"mdi:memory"};
 const char HAramName[] PROGMEM = {"Free ram"};
 const char HAramClass[] PROGMEM = {"data_size"};
 const char HAramUnit[] PROGMEM = {"B"};
 
-// JSON properites
-#ifdef ULANZI
+
+// JSON properties
+
+const char HAipAddrRID[] PROGMEM = {"%s_ip_address"};
+const char HAipAddrName[] PROGMEM = {"IP Address"};
+const char HAipAddrIcon[] PROGMEM = {"mdi:wifi"};
+
+
+
+#ifndef awtrix2_upgrade
 const char BatKey[] PROGMEM = {"bat"};
 const char BatRawKey[] PROGMEM = {"bat_raw"};
 #endif
@@ -128,3 +158,4 @@ const char UpdateKey[] PROGMEM = {"up_available"};
 const char MessagesKey[] PROGMEM = {"messages"};
 const char VersionKey[] PROGMEM = {"version"};
 const char RamKey[] PROGMEM = {"ram"};
+const char IpAddrKey[] PROGMEM = {"ip_address"};

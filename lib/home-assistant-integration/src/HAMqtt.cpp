@@ -208,6 +208,7 @@ bool HAMqtt::publish(const char *topic, const char *payload, bool retained)
     return _mqtt->endPublish();
 }
 
+
 bool HAMqtt::beginPublish(
     const char *topic,
     uint16_t payloadLength,

@@ -16,7 +16,6 @@ class PeripheryManager_
 {
 private:
     PeripheryManager_() = default;
-    void checkAlarms();
 #ifdef ULANZI
     const int BatReadings = 10;
     uint16_t TotalBatReadings[10];
@@ -35,14 +34,17 @@ public:
     void setup();
     void tick();
     void playBootSound();
-    void playFromFile(String file);
-    void parseSound(const char *json);
+    bool playFromFile(String file);
+    bool playRTTTLString(String rtttl);
+    bool parseSound(const char *json);
     bool isPlaying();
     void stopSound();
+    void r2d2(const char* msg);
+    uint8_t getMatrixPin();
 #ifndef ULANZI
     void setVolume(uint8_t);
 #endif
-    const char *readUptime();
+    unsigned long long readUptime();
 };
 
 extern PeripheryManager_ &PeripheryManager;
