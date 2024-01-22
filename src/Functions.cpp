@@ -126,7 +126,10 @@ float getTextWidth(const char *text, byte textCase)
             {
                 width += 7;
             }
-            else if (current_char == 0x99 || current_char == 0x95)
+            else if (current_char == 0x99 || 
+                current_char == 0x95 ||
+                current_char == 0x87 ||
+                current_char == 0x88)
             {
                 width += 5;
             }
