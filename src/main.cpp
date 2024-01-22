@@ -40,6 +40,7 @@
 
 TaskHandle_t taskHandle;
 volatile bool StopTask = false;
+bool stopBoot;
 
 void BootAnimation(void *parameter)
 {
@@ -61,8 +62,8 @@ void setup()
   pinMode(15, OUTPUT);
   digitalWrite(15, LOW);
   delay(2000);
-  loadSettings();
   Serial.begin(115200);
+  loadSettings();
   PeripheryManager.setup();
   ServerManager.loadSettings();
   DisplayManager.setup();
@@ -70,19 +71,24 @@ void setup()
   delay(500);
   xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 0);
   ServerManager.setup();
-  //PeripheryManager.playBootSound();
   if (ServerManager.isConnected)
   {
-    MQTTManager.setup();
     DisplayManager.loadNativeApps();
+    DisplayManager.loadCustomApps();
     UpdateManager.setup();
-    DisplayManager.startE131();
+    DisplayManager.startArtnet();
     StopTask = true;
     float x = 4;
     while (x >= -85)
     {
       DisplayManager.HSVtext(x, 6, ("AWTRIX   " + ServerManager.myIP.toString()).c_str(), true, 0);
       x -= 0.18;
+    }
+    if (MQTT_HOST != "")
+    {
+      DisplayManager.HSVtext(4, 6, "MQTT...", true, 0);
+      MQTTManager.setup();
+      MQTTManager.tick();
     }
   }
   else

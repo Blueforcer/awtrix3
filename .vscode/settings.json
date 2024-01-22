@@ -57,5 +57,6 @@
         "thread": "cpp",
         "set": "cpp"
     },
-    "cmake.configureOnOpen": true
+    "cmake.configureOnOpen": true,
+    "DevChat.DevChatPath": "C:\\Users\\Micro\\.chat\\mamba\\envs\\devchat\\Scripts\\devchat"
 }

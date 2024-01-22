@@ -105,12 +105,6 @@ public:
     physical = port;
   }
 
-  [[deprecated]]
-  inline void setPhisical(uint8_t port)
-  {
-    setPhysical(port);
-  }
-
   inline uint16_t getLength(void)
   {
     return dmxDataLength;

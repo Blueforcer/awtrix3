@@ -12,3 +12,7 @@ AWTRIX 2.0 icons can be found in the respective software. In a future update, no
 
 You can also create your own icon and place it in the "ICONS" folder via the web interface file browser.  
 The icon needs to be a GIF (.gif) or JPG (.jpg) with a resolution of 8x8.
+  
+!> The Awtrix GIF renderer only supports 8bit gifs at the moment without transparency.
+If you have some graphic glitches on the matrix, try to replace the transparency pixels with solid black color.
+For example with this [online tool](https://onlinegiftools.com/add-gif-background)

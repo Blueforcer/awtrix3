@@ -8,23 +8,24 @@
 #include "Dictionary.h"
 #include "PeripheryManager.h"
 #include "UpdateManager.h"
+#include "PowerManager.h"
 
 WiFiClient espClient;
 HADevice device;
-HAMqtt mqtt(espClient, device, 25);
-
-HALight *Matrix, *Indikator1, *Indikator2 = nullptr;
-HASelect *BriMode = nullptr;
+HAMqtt mqtt(espClient, device, 26);
+// HANumber *ScrollSpeed = nullptr;
+HALight *Matrix, *Indikator1, *Indikator2, *Indikator3 = nullptr;
+HASelect *BriMode, *transEffect = nullptr;
 HAButton *dismiss, *nextApp, *prevApp, *doUpdate = nullptr;
 HASwitch *transition = nullptr;
-#ifdef ULANZI
+#ifndef awtrix2_upgrade
 HASensor *battery = nullptr;
 #endif
-HASensor *temperature, *humidity, *illuminance, *uptime, *strength, *version, *ram, *curApp = nullptr;
+HASensor *temperature, *humidity, *illuminance, *uptime, *strength, *version, *ram, *curApp, *myOwnID, *ipAddr = nullptr;
 HABinarySensor *btnleft, *btnmid, *btnright = nullptr;
-
-char matID[40], ind1ID[40], ind2ID[40], briID[40], btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], doUpdateID[40], batID[40];
-
+bool connected;
+char matID[40], ind1ID[40], ind2ID[40], ind3ID[40], briID[40], btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], doUpdateID[40], batID[40], myID[40], sSpeed[40], effectID[40], ipAddrID[40];
+long previousMillis_Stats;
 // The getter for the instantiated singleton instance
 MQTTManager_ &MQTTManager_::getInstance()
 {
@@ -68,36 +69,46 @@ void onSwitchCommand(bool state, HASwitch *sender)
 
 void onSelectCommand(int8_t index, HASelect *sender)
 {
-
-    sender->setState(index); // report the selected option back to the HA panel
-    switch (index)
+    if (sender == BriMode)
     {
-    case 0:
-        AUTO_BRIGHTNESS = false;
-        Matrix->setBrightness(BRIGHTNESS, true);
-        break;
-    case 1:
-        AUTO_BRIGHTNESS = true;
-        break;
+        switch (index)
+        {
+        case 0:
+            AUTO_BRIGHTNESS = false;
+            Matrix->setBrightness(BRIGHTNESS, true);
+            break;
+        case 1:
+            AUTO_BRIGHTNESS = true;
+            break;
+        }
     }
-
+    else if (sender == transEffect)
+    {
+        TRANS_EFFECT = index;
+    }
     saveSettings();
+    sender->setState(index);
 }
 
 void onRGBColorCommand(HALight::RGBColor color, HALight *sender)
 {
     if (sender == Matrix)
     {
-        TEXTCOLOR_565 = ((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F);
+        TEXTCOLOR_888 = (color.red << 16) | (color.green << 8) | color.blue;
+        DisplayManager.setCustomAppColors(TEXTCOLOR_888);
         saveSettings();
     }
     else if (sender == Indikator1)
     {
-        DisplayManager.setIndicator1Color(((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F));
+        DisplayManager.setIndicator1Color((color.red << 16) | (color.green << 8) | color.blue);
     }
     else if (sender == Indikator2)
     {
-        DisplayManager.setIndicator2Color(((color.red & 0x1F) << 11) | ((color.green & 0x3F) << 5) | (color.blue & 0x1F));
+        DisplayManager.setIndicator2Color((color.red << 16) | (color.green << 8) | color.blue);
+    }
+    else if (sender == Indikator3)
+    {
+        DisplayManager.setIndicator3Color((color.red << 16) | (color.green << 8) | color.blue);
     }
     sender->setRGBColor(color); // report color back to the Home Assistant
 }
@@ -116,6 +127,10 @@ void onStateCommand(bool state, HALight *sender)
     {
         DisplayManager.setIndicator2State(state);
     }
+    else if (sender == Indikator3)
+    {
+        DisplayManager.setIndicator3State(state);
+    }
     sender->setState(state);
 }
 
@@ -129,14 +144,31 @@ void onBrightnessCommand(uint8_t brightness, HALight *sender)
     DisplayManager.setBrightness(brightness);
 }
 
+void onNumberCommand(HANumeric number, HANumber *sender)
+{
+    if (!number.isSet())
+    {
+        // the reset command was send by Home Assistant
+    }
+    else
+    {
+        SCROLL_SPEED = number.toInt8();
+        saveSettings();
+    }
+
+    sender->setState(number); // report the selected option back to the HA panel
+}
+
 void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
 {
-    DEBUG_PRINTF("MQTT message received at topic %s", topic);
+    if (DEBUG_MODE)
+        DEBUG_PRINTF("MQTT message received at topic %s", topic);
     String strTopic = String(topic);
     char *payloadCopy = new char[length + 1];
     memcpy(payloadCopy, payload, length);
     payloadCopy[length] = '\0';
-    DEBUG_PRINTF("Payload:  %s", payloadCopy);
+    if (DEBUG_MODE)
+        DEBUG_PRINTF("Payload:  %s", payloadCopy);
     ++RECEIVED_MESSAGES;
     if (strTopic.equals(MQTT_PREFIX + "/notify"))
     {
@@ -145,14 +177,7 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
             delete[] payloadCopy;
             return;
         }
-        DisplayManager.generateNotification(payloadCopy);
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/timer"))
-    {
-        DisplayManager.gererateTimer(payloadCopy);
+        DisplayManager.generateNotification(0, payloadCopy);
         delete[] payloadCopy;
         return;
     }
@@ -160,6 +185,16 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
     if (strTopic.equals(MQTT_PREFIX + "/notify/dismiss"))
     {
         DisplayManager.dismissNotify();
+        delete[] payloadCopy;
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/doupdate"))
+    {
+        if (UpdateManager.checkUpdate(true))
+        {
+            UpdateManager.updateFirmware();
+        }
         delete[] payloadCopy;
         return;
     }
@@ -178,9 +213,23 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         return;
     }
 
+    if (strTopic.equals(MQTT_PREFIX + "/sendscreen"))
+    {
+        MQTTManager.getInstance().publish("screen", DisplayManager.ledsAsJson().c_str());
+        delete[] payloadCopy;
+        return;
+    }
+
     if (strTopic.equals(MQTT_PREFIX + "/settings"))
     {
         DisplayManager.setNewSettings(payloadCopy);
+        delete[] payloadCopy;
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/r2d2"))
+    {
+        PeripheryManager.r2d2(payloadCopy);
         delete[] payloadCopy;
         return;
     }
@@ -198,6 +247,14 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
+
+    if (strTopic.equals(MQTT_PREFIX + "/rtttl"))
+    {
+        PeripheryManager.playRTTTLString(payloadCopy);
+        delete[] payloadCopy;
+        return;
+    }
+
     if (strTopic.equals(MQTT_PREFIX + "/doupdate"))
     {
         if (UpdateManager.checkUpdate(true))
@@ -207,13 +264,15 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
+
     if (strTopic.equals(MQTT_PREFIX + "/power"))
     {
         StaticJsonDocument<128> doc;
         DeserializationError error = deserializeJson(doc, payload);
         if (error)
         {
-            DEBUG_PRINTLN(F("Failed to parse json"));
+            if (DEBUG_MODE)
+                DEBUG_PRINTLN(F("Failed to parse json"));
             return;
         }
         if (doc.containsKey("power"))
@@ -224,32 +283,72 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         delete[] payloadCopy;
         return;
     }
+
+    if (strTopic.equals(MQTT_PREFIX + "/sleep"))
+    {
+        StaticJsonDocument<128> doc;
+        DeserializationError error = deserializeJson(doc, payload);
+        if (error)
+        {
+            if (DEBUG_MODE)
+                DEBUG_PRINTLN(F("Failed to parse json"));
+            return;
+        }
+        if (doc.containsKey("sleep"))
+        {
+            DisplayManager.setPower(false);
+            PowerManager.sleep(doc["sleep"].as<uint64_t>());
+        }
+
+        delete[] payloadCopy;
+        return;
+    }
+
     if (strTopic.equals(MQTT_PREFIX + "/indicator1"))
     {
         DisplayManager.indicatorParser(1, payloadCopy);
         delete[] payloadCopy;
         return;
     }
+
     if (strTopic.equals(MQTT_PREFIX + "/indicator2"))
     {
         DisplayManager.indicatorParser(2, payloadCopy);
         delete[] payloadCopy;
         return;
     }
+
+    if (strTopic.equals(MQTT_PREFIX + "/indicator3"))
+    {
+        DisplayManager.indicatorParser(3, payloadCopy);
+        delete[] payloadCopy;
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/moodlight"))
+    {
+        DisplayManager.moodlight(payloadCopy);
+        delete[] payloadCopy;
+        return;
+    }
+
     if (strTopic.equals(MQTT_PREFIX + "/reboot"))
     {
-        DEBUG_PRINTLN("REBOOT COMMAND RECEIVED")
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN("REBOOT COMMAND RECEIVED")
         delay(1000);
         ESP.restart();
         delete[] payloadCopy;
         return;
     }
+
     if (strTopic.equals(MQTT_PREFIX + "/sound"))
     {
         PeripheryManager.parseSound(payloadCopy);
         delete[] payloadCopy;
         return;
     }
+
     if (strTopic.startsWith(MQTT_PREFIX + "/custom"))
     {
         String topic_str = topic;
@@ -257,24 +356,22 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
         if (topic_str.startsWith(prefix))
         {
             topic_str = topic_str.substring(prefix.length());
-            DisplayManager.generateCustomPage(topic_str, payloadCopy);
+            DisplayManager.parseCustomPage(topic_str, payloadCopy, false);
         }
 
         delete[] payloadCopy;
         return;
     }
-    DEBUG_PRINTLN(F("Unknown MQTT command!"));
 }
 
 void onMqttConnected()
 {
-    DEBUG_PRINTLN(F("MQTT Connected"));
-    String prefix = MQTT_PREFIX;
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("MQTT Connected"));
     const char *topics[] PROGMEM = {
         "/brightness",
         "/notify/dismiss",
         "/notify",
-        "/timer",
         "/custom/#",
         "/switch",
         "/settings",
@@ -284,17 +381,45 @@ void onMqttConnected()
         "/nextapp",
         "/apps",
         "/power",
+        "/sleep",
         "/indicator1",
         "/indicator2",
+        "/indicator3",
         "/timeformat",
         "/dateformat",
         "/reboot",
-        "/sound"};
+        "/moodlight",
+        "/sound",
+        "/rtttl",
+        "/sendscreen",
+        "/r2d2"};
     for (const char *topic : topics)
     {
-        DEBUG_PRINTF("Subscribe to topic %s", topic);
-        String fullTopic = prefix + topic;
-        mqtt.subscribe(fullTopic.c_str());
+        if (DEBUG_MODE)
+            DEBUG_PRINTF("Subscribe to topic %s", topic);
+        mqtt.subscribe((MQTT_PREFIX + topic).c_str());
+        delay(30);
+    }
+    delay(200);
+    if (HA_DISCOVERY)
+    {
+        myOwnID->setValue(MQTT_PREFIX.c_str());
+        version->setValue(VERSION);
+    }
+    MQTTManager.publish("stats/effects", DisplayManager.getEffectNames().c_str());
+    MQTTManager.publish("stats/transitions", DisplayManager.getTransitionNames().c_str());
+    connected = true;
+}
+
+bool MQTTManager_::isConnected()
+{
+    if (MQTT_HOST != "")
+    {
+        return mqtt.isConnected();
+    }
+    else
+    {
+        return true;
     }
 }
 
@@ -305,13 +430,66 @@ void connect()
 
     if (MQTT_USER == "" || MQTT_PASS == "")
     {
-        DEBUG_PRINTLN(F("Connecting to MQTT w/o login"));
-        mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, nullptr, nullptr, MQTT_PREFIX.c_str());
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Connecting to MQTT w/o login"));
+        mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, nullptr, nullptr, uniqueID);
     }
     else
     {
-        DEBUG_PRINTLN(F("Connecting to MQTT with login"));
-        mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, MQTT_USER.c_str(), MQTT_PASS.c_str(), MQTT_PREFIX.c_str());
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Connecting to MQTT with login"));
+        mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, MQTT_USER.c_str(), MQTT_PASS.c_str(), uniqueID);
+    }
+}
+
+void MQTTManager_::sendStats()
+{
+    if (mqtt.isConnected())
+    {
+        if (HA_DISCOVERY && mqtt.isConnected())
+        {
+            char buffer[8];
+#ifndef awtrix2_upgrade
+            snprintf(buffer, 5, "%d", BATTERY_PERCENT);
+            battery->setValue(buffer);
+#endif
+
+            if (SENSOR_READING)
+            {
+                snprintf(buffer, sizeof(buffer), "%.*f", TEMP_DECIMAL_PLACES, CURRENT_TEMP);
+                temperature->setValue(buffer);
+                snprintf(buffer, 5, "%.0f", CURRENT_HUM);
+                humidity->setValue(buffer);
+            }
+
+            snprintf(buffer, 5, "%.0f", CURRENT_LUX);
+            illuminance->setValue(buffer);
+            BriMode->setState(AUTO_BRIGHTNESS, false);
+            Matrix->setBrightness(BRIGHTNESS);
+            Matrix->setState(!MATRIX_OFF, false);
+            HALight::RGBColor color;
+            color.isSet = true;
+            color.red = (TEXTCOLOR_888 >> 16) & 0xFF;
+            color.green = (TEXTCOLOR_888 >> 8) & 0xFF;
+            color.blue = TEXTCOLOR_888 & 0xFF;
+            Matrix->setRGBColor(color);
+            int8_t rssiValue = WiFi.RSSI();
+            char rssiString[4];
+            snprintf(rssiString, sizeof(rssiString), "%d", rssiValue);
+            strength->setValue(rssiString);
+
+            char rambuffer[10];
+            int freeHeapBytes = ESP.getFreeHeap();
+            itoa(freeHeapBytes, rambuffer, 10);
+            ram->setValue(rambuffer);
+            char uptimeStr[25]; // Buffer for string representation
+            sprintf(uptimeStr, "%ld", PeripheryManager.readUptime());
+            uptime->setValue(uptimeStr);
+            transition->setState(AUTO_TRANSITION, false);
+            ipAddr->setValue(ServerManager.myIP.toString().c_str());
+        }
+
+        publish(StatsTopic, DisplayManager.getStats().c_str());
     }
 }
 
@@ -319,16 +497,19 @@ void MQTTManager_::setup()
 {
     if (HA_DISCOVERY)
     {
-        DEBUG_PRINTLN(F("Starting Homeassistant discovery"));
-
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Starting Homeassistant discovery"));
+        mqtt.setDiscoveryPrefix(HA_PREFIX.c_str());
+        mqtt.setDataPrefix(MQTT_PREFIX.c_str());
         uint8_t mac[6];
         WiFi.macAddress(mac);
-        char *macStr = new char[18 + 1];
-        snprintf(macStr, 24, "%02x%02x%02x", mac[3], mac[4], mac[5]);
+        char macStr[7];
+        snprintf(macStr, 7, "%02x%02x%02x", mac[3], mac[4], mac[5]);
         device.setUniqueId(mac, sizeof(mac));
         device.setName(uniqueID);
         device.setSoftwareVersion(VERSION);
         device.setManufacturer(HAmanufacturer);
+
         device.setModel(HAmodel);
         device.setAvailability(true);
         device.enableSharedAvailability();
@@ -349,14 +530,11 @@ void MQTTManager_::setup()
 
         HALight::RGBColor color;
         color.isSet = true;
-        color.red = (TEXTCOLOR_565 >> 11) & 0x1F;  // Bitverschiebung um 11 Bits und Maskierung mit 0x1F
-        color.green = (TEXTCOLOR_565 >> 5) & 0x3F; // Bitverschiebung um 5 Bits und Maskierung mit 0x3F
-        color.blue = TEXTCOLOR_565 & 0x1F;         // Maskierung mit 0x1F
-        color.red <<= 3;
-        color.green <<= 2;
-        color.blue <<= 3;
+        color.red = (TEXTCOLOR_888 >> 16) & 0xFF;  // Die obersten 8 Bits für Rot
+        color.green = (TEXTCOLOR_888 >> 8) & 0xFF; // Die mittleren 8 Bits für Grün
+        color.blue = TEXTCOLOR_888 & 0xFF;         // Die untersten 8 Bits für Blau
         Matrix->setCurrentRGBColor(color);
-        Matrix->setState(true, true);
+        Matrix->setState(MATRIX_OFF, true);
 
         sprintf(ind1ID, HAi1ID, macStr);
         Indikator1 = new HALight(ind1ID, HALight::RGBFeature);
@@ -372,6 +550,13 @@ void MQTTManager_::setup()
         Indikator2->onStateCommand(onStateCommand);
         Indikator2->onRGBColorCommand(onRGBColorCommand);
 
+        sprintf(ind3ID, HAi3ID, macStr);
+        Indikator3 = new HALight(ind3ID, HALight::RGBFeature);
+        Indikator3->setIcon(HAi3Icon);
+        Indikator3->setName(HAi3Name);
+        Indikator3->onStateCommand(onStateCommand);
+        Indikator3->onRGBColorCommand(onRGBColorCommand);
+
         sprintf(briID, HAbriID, macStr);
         BriMode = new HASelect(briID);
         BriMode->setOptions(HAbriOptions);
@@ -379,6 +564,14 @@ void MQTTManager_::setup()
         BriMode->setIcon(HAbriIcon);
         BriMode->setName(HAbriName);
         BriMode->setState(AUTO_BRIGHTNESS, true);
+
+        sprintf(effectID, HAeffectID, macStr);
+        transEffect = new HASelect(effectID);
+        transEffect->setOptions(HAeffectOptions);
+        transEffect->onCommand(onSelectCommand);
+        transEffect->setIcon(HAeffectIcon);
+        transEffect->setName(HAeffectName);
+        transEffect->setState(TRANS_EFFECT, true);
 
         sprintf(btnAID, HAbtnaID, macStr);
         dismiss = new HAButton(btnAID);
@@ -401,6 +594,11 @@ void MQTTManager_::setup()
         curApp = new HASensor(appID);
         curApp->setIcon(HAappIcon);
         curApp->setName(HAappName);
+
+        sprintf(myID, HAIDID, macStr);
+        myOwnID = new HASensor(myID);
+        myOwnID->setIcon(HAIDIcon);
+        myOwnID->setName(HAIDName);
 
         sprintf(btnBID, HAbtnbID, macStr);
         nextApp = new HAButton(btnBID);
@@ -480,6 +678,11 @@ void MQTTManager_::setup()
         ram->setIcon(HAramIcon);
         ram->setName(HAramName);
         ram->setUnitOfMeasurement(HAramUnit);
+
+        sprintf(ipAddrID, HAipAddrRID, macStr);
+        ipAddr = new HASensor(ipAddrID);
+        ipAddr->setName(HAipAddrName);
+        ipAddr->setIcon(HAipAddrIcon);
     }
     else
     {
@@ -494,6 +697,12 @@ void MQTTManager_::tick()
     if (MQTT_HOST != "")
     {
         mqtt.loop();
+        unsigned long currentMillis_Stats = millis();
+        if ((currentMillis_Stats - previousMillis_Stats >= STATS_INTERVAL) && (SENSORS_STABLE))
+        {
+            previousMillis_Stats = currentMillis_Stats;
+            sendStats();
+        }
     }
 }
 
@@ -508,69 +717,31 @@ void MQTTManager_::publish(const char *topic, const char *payload)
     mqtt.publish(result, payload, false);
 }
 
-void MQTTManager_::setCurrentApp(String appName)
+void MQTTManager_::rawPublish(const char *prefix, const char *topic, const char *payload)
 {
-    DEBUG_PRINTF("Publish current app %s", appName.c_str());
-    if (HA_DISCOVERY)
-        curApp->setValue(appName.c_str());
-
-    publish("currentApp", appName.c_str());
+    if (!mqtt.isConnected())
+        return;
+    char result[100];
+    strcpy(result, prefix);
+    strcat(result, "/");
+    strcat(result, topic);
+    mqtt.publish(result, payload, false);
 }
 
-void MQTTManager_::sendStats()
+void MQTTManager_::setCurrentApp(String appName)
 {
-    if (HA_DISCOVERY)
-    {
-        char buffer[5];
-#ifdef ULANZI
-        snprintf(buffer, 5, "%d", BATTERY_PERCENT);
-        battery->setValue(buffer);
+    static String lastApp = "";
 
-#endif
+    if (lastApp == appName)
+        return;
 
-        if (SENSOR_READING)
-        {
-            snprintf(buffer, 5, "%.0f", CURRENT_TEMP);
-            temperature->setValue(buffer);
-            snprintf(buffer, 5, "%.0f", CURRENT_HUM);
-            humidity->setValue(buffer);
-        }
+    if (DEBUG_MODE)
+        DEBUG_PRINTF("Publish current app %s", appName.c_str());
+    if (HA_DISCOVERY && mqtt.isConnected())
+        curApp->setValue(appName.c_str());
 
-        snprintf(buffer, 5, "%.0f", CURRENT_LUX);
-        illuminance->setValue(buffer);
-
-        BriMode->setState(AUTO_BRIGHTNESS, false);
-        Matrix->setBrightness(BRIGHTNESS);
-        Matrix->setState(!MATRIX_OFF, false);
-        HALight::RGBColor color;
-        color.isSet = true;
-        color.red = (TEXTCOLOR_565 >> 11) & 0x1F;
-        color.green = (TEXTCOLOR_565 >> 5) & 0x3F;
-        color.blue = TEXTCOLOR_565 & 0x1F;
-        color.red <<= 3;
-        color.green <<= 2;
-        color.blue <<= 3;
-        Matrix->setRGBColor(color);
-        int8_t rssiValue = WiFi.RSSI();
-        char rssiString[4];
-        snprintf(rssiString, sizeof(rssiString), "%d", rssiValue);
-        strength->setValue(rssiString);
-
-        char rambuffer[10];
-        int freeHeapBytes = ESP.getFreeHeap();
-        itoa(freeHeapBytes, rambuffer, 10);
-        ram->setValue(rambuffer);
-        uptime->setValue(PeripheryManager.readUptime());
-
-        transition->setState(AUTO_TRANSITION, false);
-        version->setValue(VERSION);
-        // update->setState(UPDATE_AVAILABLE, false);
-    }
-    else
-    {
-    }
-
-    publish(StatsTopic, DisplayManager.getStats().c_str());
+    publish("stats/currentApp", appName.c_str());
+    lastApp = appName;
 }
 
 void MQTTManager_::sendButton(byte btn, bool state)
@@ -582,7 +753,7 @@ void MQTTManager_::sendButton(byte btn, bool state)
     case 0:
         if (btn0State != state)
         {
-            if (HA_DISCOVERY)
+            if (HA_DISCOVERY && mqtt.isConnected())
                 btnleft->setState(state, false);
             btn0State = state;
             publish(ButtonLeftTopic, state ? State1 : State0);
@@ -591,7 +762,7 @@ void MQTTManager_::sendButton(byte btn, bool state)
     case 1:
         if (btn1State != state)
         {
-            if (HA_DISCOVERY)
+            if (HA_DISCOVERY && mqtt.isConnected())
                 btnmid->setState(state, false);
             btn1State = state;
             publish(ButtonSelectTopic, state ? State1 : State0);
@@ -601,7 +772,7 @@ void MQTTManager_::sendButton(byte btn, bool state)
     case 2:
         if (btn2State != state)
         {
-            if (HA_DISCOVERY)
+            if (HA_DISCOVERY && mqtt.isConnected())
                 btnright->setState(state, false);
             btn2State = state;
             publish(ButtonRightTopic, state ? State1 : State0);
@@ -612,18 +783,15 @@ void MQTTManager_::sendButton(byte btn, bool state)
     }
 }
 
-void MQTTManager_::setIndicatorState(uint8_t indicator, bool state, uint16_t color)
+void MQTTManager_::setIndicatorState(uint8_t indicator, bool state, uint32_t color)
 {
-    if (HA_DISCOVERY)
+    if (HA_DISCOVERY && mqtt.isConnected())
     {
         HALight::RGBColor c;
         c.isSet = true;
-        c.red = (color >> 11) & 0x1F;
-        c.green = (color >> 5) & 0x3F;
-        c.blue = color & 0x1F;
-        c.red <<= 3;
-        c.green <<= 2;
-        c.blue <<= 3;
+        c.red = (color >> 16) & 0xFF;  // Rote Komponente 8-Bit
+        c.green = (color >> 8) & 0xFF; // Grüne Komponente 8-Bit
+        c.blue = color & 0xFF;
 
         switch (indicator)
         {
@@ -635,8 +803,27 @@ void MQTTManager_::setIndicatorState(uint8_t indicator, bool state, uint16_t col
             Indikator2->setRGBColor(c);
             Indikator2->setState(state);
             break;
+        case 3:
+            Indikator3->setRGBColor(c);
+            Indikator3->setState(state);
+            break;
         default:
             break;
         }
     }
+}
+
+void MQTTManager_::beginPublish(const char *topic, unsigned int plength, boolean retained)
+{
+    mqtt.beginPublish(topic, plength, retained);
+}
+
+void MQTTManager_::writePayload(const char *data, const uint16_t length)
+{
+    mqtt.writePayload(data, length);
+}
+
+void MQTTManager_::endPublish()
+{
+    mqtt.endPublish();
 }

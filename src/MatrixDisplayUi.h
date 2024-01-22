@@ -28,12 +28,10 @@
 #ifndef MatrixDisplayUi_h
 #define MatrixDisplayUi_h
 
-
 #include <Arduino.h>
 #include "FastLED_NeoMatrix.h"
 #include "GifPlayer.h"
 #include "DisplayManager.h"
-
 
 #ifndef DEBUG_MatrixDisplayUi
 #define DEBUG_MatrixDisplayUi(...)
@@ -45,6 +43,21 @@ enum AnimationDirection
   SLIDE_DOWN
 };
 
+enum TransitionType
+{
+  RANDOM,
+  SLIDE,
+  FADE,
+  ZOOM,
+  ROTATE,
+  PIXELATE,
+  CURTAIN,
+  RIPPLE,
+  BLINK,
+  RELOAD,
+  CROSSFADE
+};
+
 enum AppState
 {
   IN_TRANSITION,
@@ -54,9 +67,8 @@ enum AppState
 // Structure of the UiState
 struct MatrixDisplayUiState
 {
-
   u_int64_t lastUpdate = 0;
-  uint16_t ticksSinceLastStateSwitch = 0;
+  long ticksSinceLastStateSwitch = 0;
 
   AppState appState = FIXED;
   uint8_t currentApp = 0;
@@ -64,25 +76,26 @@ struct MatrixDisplayUiState
   // Normal = 1, Inverse = -1;
   int8_t appTransitionDirection = 1;
   bool lastFrameShown = false;
-  bool manuelControll = false;
+  bool manualControl = false;
 
   // Custom data that can be used by the user
   void *userData = NULL;
 };
 
-typedef void (*AppCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, bool firstFrame, bool lastFrame, GifPlayer *gifPlayer);
+typedef void (*AppCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer);
 typedef void (*OverlayCallback)(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
+typedef void (*BackgroundCallback)(FastLED_NeoMatrix *matrix);
 
 class MatrixDisplayUi
 {
 private:
   FastLED_NeoMatrix *matrix;
-
+  CRGB ledsCopy[256];
   // Values for the Apps
   AnimationDirection appAnimationDirection = SLIDE_DOWN;
   int8_t lastTransitionDirection = 1;
 
-  uint16_t ticksPerApp = 151;       // ~ 5000ms at 30 FPS
+  long ticksPerApp = 151;           // ~ 5000ms at 30 FPS
   uint16_t ticksPerTransition = 15; // ~  500ms at 30 FPS
 
   bool setAutoTransition = true;
@@ -94,22 +107,35 @@ private:
 
   // Values for Overlays
   OverlayCallback *overlayFunctions;
+  BackgroundCallback backgroundFunction;
   uint8_t overlayCount = 0;
-
+  int BackgroundEffect;
   // UI State
   MatrixDisplayUiState state;
 
-  // Bookeeping for update
-  uint8_t updateInterval = 33;
+  // Bookkeeping for update
+  long updateInterval = 33;
 
   void drawApp();
   void drawOverlays();
+  void drawBackground();
   void tick();
   void resetState();
   bool isCurrentAppValid();
+  void curtainTransition();
+  void slideTransition();
+  void fadeTransition();
+  void zoomTransition();
+  void rotateTransition();
+  void pixelateTransition();
+  void rippleTransition();
+  void blinkTransition();
+  void reloadTransition();
+  void crossfadeTransition();
 
 public:
   MatrixDisplayUi(FastLED_NeoMatrix *matrix);
+  uint32_t fadeColor(uint32_t color, uint32_t interval);
   uint8_t AppCount = 0;
   /**
    * Initialise the display
@@ -122,17 +148,16 @@ public:
    */
   void setTargetFPS(uint8_t fps);
 
-  // Automatic Controll
+  void setBackgroundEffect(int effect);
+  // Automatic Control
   /**
    * Enable automatic transition to next app after the some time can be configured with `setTimePerApp` and `setTimePerTransition`.
    */
   void enablesetAutoTransition();
-
   /**
    * Disable automatic transition to next app.
    */
   void disablesetAutoTransition();
-
   /**
    * Set the direction if the automatic transitioning
    */
@@ -142,21 +167,27 @@ public:
   /**
    *  Set the approx. time a app is displayed
    */
-  void setTimePerApp(uint16_t time);
+  void setTimePerApp(long time);
 
   /**
    * Set the approx. time a transition will take
    */
   void setTimePerTransition(uint16_t time);
 
-  void setIndicator1Color(uint16_t color);
+  void setIndicator1Color(uint32_t color);
   void setIndicator1State(bool state);
-  void setIndicator2Color(uint16_t color);
+  void setIndicator1Blink(int Blink);
+  void setIndicator1Fade(int fade);
+
+  void setIndicator2Color(uint32_t color);
   void setIndicator2State(bool state);
+  void setIndicator2Blink(int Blink);
+  void setIndicator2Fade(int fade);
 
-  void setIndicator1Blink(bool Blink);
-  void setIndicator2Blink(bool Blink);
-
+  void setIndicator3Color(uint32_t color);
+  void setIndicator3State(bool state);
+  void setIndicator3Blink(int Blink);
+  void setIndicator3Fade(int fade);
   void drawIndicators();
   // Customize indicator position and style
 
@@ -178,7 +209,7 @@ public:
    * Add overlays drawing functions that are draw independent of the Apps
    */
   void setOverlays(OverlayCallback *overlayFunctions, uint8_t overlayCount);
-
+  void setBackground(BackgroundCallback backgroundfunction);
   // Manual Control
   void nextApp();
   void previousApp();
@@ -186,7 +217,7 @@ public:
   /**
    * Switch without transition to app `app`.
    */
-  void switchToApp(uint8_t app);
+  bool switchToApp(uint8_t app);
 
   /**
    * Transition to app `app`, when the `app` number is bigger than the current
@@ -199,11 +230,20 @@ public:
 
   int8_t update();
 
-  uint16_t indicator1Color = 63488;
-  uint16_t indicator2Color = 31;
+  uint32_t indicator1Color = 0xFF0000;
+  uint32_t indicator2Color = 0x00FF00;
+  uint32_t indicator3Color = 0x0000FF;
+
   bool indicator1State = false;
   bool indicator2State = false;
-  bool indicator1Blink = false;
-  bool indicator2Blink = false;
+  bool indicator3State = false;
+
+  int indicator1Blink = 0;
+  int indicator2Blink = 0;
+  int indicator3Blink = 0;
+
+  int indicator1Fade = 0;
+  int indicator2Fade = 0;
+  int indicator3Fade = 0;
 };
 #endif

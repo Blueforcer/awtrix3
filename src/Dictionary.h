@@ -26,10 +26,19 @@ extern const char HAi2ID[];
 extern const char HAi2Icon[];
 extern const char HAi2Name[];
 
+extern const char HAi3ID[];
+extern const char HAi3Icon[];
+extern const char HAi3Name[];
+
 extern const char HAbriID[];
 extern const char HAbriIcon[];
 extern const char HAbriName[];
 extern const char HAbriOptions[];
+
+extern const char HAeffectID[];
+extern const char HAeffectIcon[];
+extern const char HAeffectName[];
+extern const char HAeffectOptions[];
 
 extern const char HAbtnaID[];
 extern const char HAbtnaIcon[];
@@ -46,6 +55,14 @@ extern const char HAbtncName[];
 extern const char HAappID[];
 extern const char HAappIcon[];
 extern const char HAappName[];
+
+extern const char HAIDID[];
+extern const char HAIDIcon[];
+extern const char HAIDName[];
+
+extern const char HASPEEDID[];
+extern const char HASPEEDIcon[];
+extern const char HASPEEDName[];
 
 extern const char HAtempID[];
 extern const char HAtempIcon[];
@@ -114,8 +131,14 @@ extern const char HAramName[];
 extern const char HAramClass[];
 extern const char HAramUnit[];
 
-// JSON properites
-#ifdef ULANZI
+
+// JSON properties
+
+extern const char HAipAddrRID[];
+extern const char HAipAddrName[];
+extern const char HAipAddrIcon[];
+
+#ifndef awtrix2_upgrade
 extern const char BatKey[];
 extern const char BatRawKey[];
 #endif
@@ -130,4 +153,5 @@ extern const char UpdateKey[];
 extern const char MessagesKey[];
 extern const char VersionKey[];
 extern const char RamKey[];
+extern const char IpAddrKey[];
 #endif
