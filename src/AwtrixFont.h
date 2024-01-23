@@ -5,6 +5,11 @@
 ** Copyright 1999 Vassilii Khachaturov
 ** Portions (of vt100.c/vt100.h) copyright Dan Marks
 ** Modifications for Awtrix for improved readability and LaMetric Style Copyright 2023 Blueforcer
+** Cyrillic font for Awtrix by 10der (Ukraine). Cyrillic font tests by megadimich (Ukraine)
+** All rights reserved.
+**
+** Redistribution and use in source and binary forms, with or without
+
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
