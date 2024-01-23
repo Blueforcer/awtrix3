@@ -161,6 +161,7 @@ byte utf8ascii(byte ascii)
     case 0xC2:
         return (ascii); // - 34;
         break;
+
     case 0xC3:
         return (ascii | 0xC0); // - 34;
         break;
@@ -168,13 +169,14 @@ byte utf8ascii(byte ascii)
     case 0x82:
         if (ascii == 0xAC)
             return (0xEA);
+
     case 0xD0:
         if (ascii == 0x81) // Ё
             return 0x84;
         if (ascii == 0x84) // Є
             return 0xA0;
         if (ascii == 0x86) // І
-            return 0x49;
+            return 0x69;
         if (ascii == 0x87) // Ї
             return 0x9F;
 
@@ -190,16 +192,24 @@ byte utf8ascii(byte ascii)
         if (ascii == 0x94) // Є
             return 0xA0;
         if (ascii == 0x96) // І
-            return 0x49;
+            return 0x69;
         if (ascii == 0x97) // Ї
             return 0x9F;
 
         if (ascii >= 0x80 && ascii <= 0x8F)
             return (ascii) + 15;
+
+    case 0xD2:
+        if (ascii == 0x90) // Ґ
+            return 0x82;
+
+        if (ascii == 0x91) // ґ
+            return 0x82;
+
     }
     return (0);
 }
-
+                       
 String utf8ascii(String s)
 {
     String r = "";
