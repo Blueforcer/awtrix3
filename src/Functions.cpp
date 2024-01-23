@@ -146,7 +146,7 @@ float getTextWidth(const char *text, byte textCase)
 static byte c1;
 byte utf8ascii(byte ascii)
 {
-    Serial.printf("last: %d, ASCII: %d\n", c1, ascii);
+    // Serial.printf("last: %d, ASCII: %d\n", c1, ascii);
 
     if (ascii < 128)
     {
