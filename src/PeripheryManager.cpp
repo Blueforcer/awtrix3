@@ -18,6 +18,8 @@
 #include <LightDependentResistor.h>
 #include <MenuManager.h>
 #include <ServerManager.h>
+#include <MedianFilterLib.h>
+#include <MeanFilterLib.h>
 const int buzzerPin = 2;       // Buzzer an GPIO2
 const int baudRate = 50;       // Nachrichtenübertragungsrate
 const char *message = "HELLO"; // Die Nachricht, die gesendet werden soll
@@ -25,6 +27,8 @@ const char *message = "HELLO"; // Die Nachricht, die gesendet werden soll
 #define LEDC_RESOLUTION 8 // 8 bit resolution
 #define LEDC_TIMER LEDC_TIMER_0
 #define LEDC_MODE LEDC_LOW_SPEED_MODE
+#define MEDIAN_WND 7 // A median filter window size of seven should be enough to filter out most spikes
+#define MEAN_WND 7   // After filtering the spikes we don't need many samples anymore for the average
 
 #ifdef awtrix2_upgrade
 // Pinouts für das WEMOS_D1_MINI32-Environment
@@ -94,12 +98,13 @@ const unsigned long interval_LDR = 100;
 int total = 0;
 unsigned long startTime;
 
-const int LDRReadings = 1000;
-int TotalLDRReadings[LDRReadings];
-float sampleSum = 0.0;
-float sampleAverage = 0.0;
+
+MedianFilter<uint16_t> medianFilterBatt(MEDIAN_WND); 
+MedianFilter<uint16_t> medianFilterLDR(MEDIAN_WND); 
+MeanFilter<uint16_t> meanFilterBatt(MEAN_WND); 
+MeanFilter<uint16_t> meanFilterLDR(MEAN_WND); 
+
 float brightnessPercent = 0.0;
-int lastBrightness = 0;
 
 // The getter for the instantiated singleton instance
 PeripheryManager_ &PeripheryManager_::getInstance()
@@ -441,11 +446,12 @@ void PeripheryManager_::tick()
 #ifndef awtrix2_upgrade
         uint16_t ADCVALUE = analogRead(BATTERY_PIN);
         // Discard values that are totally out of range, especially the first value read after a reboot.
-        // Meaningful values for a Ulanzi are in the range 400..700
+        // Meaningful values for an Ulanzi clock are in the range 400..700
         if ((ADCVALUE > 100) && (ADCVALUE < 1000))
         {
-            BATTERY_PERCENT = max(min((int)map(ADCVALUE, MIN_BATTERY, MAX_BATTERY, 0, 100), 100), 0);
-            BATTERY_RAW = ADCVALUE;
+            // Send ADC values through median filter to get rid of the remaining spikes and then calculate the average
+            BATTERY_RAW = meanFilterBatt.AddValue(medianFilterBatt.AddValue(ADCVALUE));
+            BATTERY_PERCENT = max(min((int)map(BATTERY_RAW, MIN_BATTERY, MAX_BATTERY, 0, 100), 100), 0);
             SENSORS_STABLE = true;
         }
 #else
@@ -491,20 +497,15 @@ void PeripheryManager_::tick()
     if (currentMillis_LDR - previousMillis_LDR >= interval_LDR)
     {
         previousMillis_LDR = currentMillis_LDR;
-        TotalLDRReadings[sampleIndex] = analogRead(LDR_PIN);
 
-        sampleIndex = (sampleIndex + 1) % LDRReadings;
-        sampleSum = 0.0;
-        for (int i = 0; i < LDRReadings; i++)
-        {
-            sampleSum += TotalLDRReadings[i];
-        }
-        sampleAverage = sampleSum / (float)LDRReadings;
-        LDR_RAW = sampleAverage;
+        uint16_t LDRVALUE = analogRead(LDR_PIN);
+
+        // Send LDR values through median filter to get rid of the remaining spikes and then calculate the average
+        LDR_RAW = medianFilterLDR.AddValue(medianFilterLDR.AddValue(LDRVALUE));
         CURRENT_LUX = (roundf(photocell.getSmoothedLux() * 1000) / 1000);
         if (AUTO_BRIGHTNESS && !MATRIX_OFF)
         {
-            brightnessPercent = (sampleAverage * LDR_FACTOR) / 1023.0 * 100.0;
+            brightnessPercent = (LDR_RAW * LDR_FACTOR) / 1023.0 * 100.0;
             brightnessPercent = pow(brightnessPercent, LDR_GAMMA) / pow(100.0, LDR_GAMMA - 1);
             BRIGHTNESS = map(brightnessPercent, 0, 100, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
             DisplayManager.setBrightness(BRIGHTNESS);
