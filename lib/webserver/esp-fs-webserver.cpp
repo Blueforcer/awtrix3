@@ -201,8 +201,10 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
                 return ip;
             }
             // If no connection after a while go in Access Point mode
-            if (millis() - startTime > m_timeout)
+            if (millis() - startTime > m_timeout) {
+                Serial.println(F("No connection after a while -> go in Access Point mode"));
                 break;
+            }
         }
     }
 
