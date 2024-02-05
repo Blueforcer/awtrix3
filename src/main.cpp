@@ -37,6 +37,7 @@
 #include "ServerManager.h"
 #include "Globals.h"
 #include "UpdateManager.h"
+#include "timer.h"
 
 TaskHandle_t taskHandle;
 volatile bool StopTask = false;
@@ -105,6 +106,7 @@ void loop()
   ServerManager.tick();
   DisplayManager.tick();
   PeripheryManager.tick();
+  timer_tick();
   if (ServerManager.isConnected)
   {
     MQTTManager.tick();

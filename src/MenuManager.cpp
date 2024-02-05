@@ -4,15 +4,10 @@
 #include <ServerManager.h>
 #include <DisplayManager.h>
 #include <PeripheryManager.h>
+#include "timer.h"
 // #include <update.h>
 #include <icons.h>
 #include <UpdateManager.h>
-
-String menuText;
-int menuSelection;
-
-int8_t stationIndex = 0;
-bool isPlayingRadio = false;
 
 enum MenuState
 {
@@ -27,12 +22,12 @@ enum MenuState
     WeekdayMenu,
     TempMenu,
     Appmenu,
-#ifdef ULANZI
-    SoundMenu
-#else
     SoundMenu,
-    VolumeMenu
+#ifdef awtrix2_upgrade
+    VolumeMenu,
 #endif
+    UpdateMenu,
+    MaxMenu
 };
 
 const char *menuItems[] PROGMEM = {
@@ -53,12 +48,7 @@ const char *menuItems[] PROGMEM = {
     "UPDATE"};
 
 int8_t menuIndex = 0;
-#ifdef awtrix2_upgrade
-uint8_t menuItemCount = 13;
-
-#else
-uint8_t menuItemCount = 12;
-#endif
+uint8_t menuItemCount = MaxMenu - 1;
 
 const char *timeFormat[] PROGMEM = {
     "%H:%M:%S",
@@ -142,7 +132,6 @@ int convertBRIPercentTo8Bit(int brightness_percent)
 
 String MenuManager_::menutext()
 {
-    time_t now = time(nullptr);
     char t[20];
     char display[20];
     switch (currentState)
@@ -171,18 +160,18 @@ String MenuManager_::menutext()
         if (timeFormat[timeFormatIndex][2] == ' ')
         {
             snprintf(display, sizeof(display), "%s", timeFormat[timeFormatIndex]);
-            display[2] = now % 2 ? ' ' : ':';
+            display[2] = timer_time() % 2 ? ' ' : ':';
         }
         else
         {
             snprintf(display, sizeof(display), "%s", timeFormat[timeFormatIndex]);
         }
 
-        strftime(t, sizeof(t), display, localtime(&now));
+        strftime(t, sizeof(t), display, timer_localtime());
         return t;
     case DateFormatMenu:
         DisplayManager.drawMenuIndicator(dateFormatIndex, dateFormatCount, 0xFBC000);
-        strftime(t, sizeof(t), dateFormat[dateFormatIndex], localtime(&now));
+        strftime(t, sizeof(t), dateFormat[dateFormatIndex], timer_localtime());
         return t;
     case WeekdayMenu:
         return START_ON_MONDAY ? "MON" : "SUN";
@@ -352,9 +341,10 @@ void MenuManager_::selectButton()
     switch (currentState)
     {
     case MainMenu:
-        switch (menuIndex)
+        currentState = (MenuState)(menuIndex + 1);
+        switch (currentState)
         {
-        case 0:
+        case BrightnessMenu:
             // reverse of convertBRIPercentTo8Bit.
             if (BRIGHTNESS <= 10)
             {
@@ -364,50 +354,11 @@ void MenuManager_::selectButton()
             {
                 BRIGHTNESS_PERCENT = map(BRIGHTNESS, 0, 255, 0, 100);
             }
-            currentState = BrightnessMenu;
-            break;
-        case 1:
-            currentState = ColorMenu;
-            break;
-        case 2:
-            currentState = SwitchMenu;
-            break;
-        case 3:
-            currentState = TspeedMenu;
-            break;
-        case 4:
-            currentState = AppTimeMenu;
-            break;
-        case 5:
-            currentState = TimeFormatMenu;
-            break;
-        case 6:
-            currentState = DateFormatMenu;
-            break;
-        case 7:
-            currentState = WeekdayMenu;
-            break;
-        case 8:
-            currentState = TempMenu;
-            break;
-        case 9:
-            currentState = Appmenu;
-            break;
-        case 10:
-            currentState = SoundMenu;
-            break;
-        case 11:
-#ifdef awtrix2_upgrade
-            currentState = VolumeMenu;
-            break;
-#endif
-        case 12:
+        case UpdateMenu:
             if (UpdateManager.checkUpdate(true))
             {
                 UpdateManager.updateFirmware();
             }
-            break;
-        default:
             break;
         }
         break;

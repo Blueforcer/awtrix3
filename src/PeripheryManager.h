@@ -15,17 +15,31 @@
 class PeripheryManager_
 {
 private:
-    PeripheryManager_() = default;
+    PeripheryManager_();
+#ifdef ULANZI
+    const int BatReadings = 10;
+    uint16_t TotalBatReadings[10];
+#endif
+    int readIndex = 0;
+    uint16_t total = 0;
+    uint16_t average = 0;
+    const int LDRReadings = 30;
+    uint16_t TotalLDRReadings[30];
+    int sampleIndex = 0;
     unsigned long previousMillis = 0;
     const unsigned long interval = 1000;
 
 public:
+    EasyButton *buttonL;
+    EasyButton *buttonR;
+    EasyButton *buttonS;
+
     static PeripheryManager_ &getInstance();
     void setup();
     void tick();
     void playBootSound();
-    bool playFromFile(String file);
-    bool playRTTTLString(String rtttl);
+    const char *playFromFile(String file);
+    const char *playRTTTLString(String rtttl);
     bool parseSound(const char *json);
     bool isPlaying();
     void stopSound();

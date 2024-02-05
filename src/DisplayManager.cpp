@@ -7,6 +7,7 @@
 #include "MQTTManager.h"
 #include "GifPlayer.h"
 #include <Ticker.h>
+#include "timer.h"
 #include "Functions.h"
 #include "ServerManager.h"
 #include "MenuManager.h"
@@ -1227,9 +1228,7 @@ bool newYearEventTriggered = false;
 
 void DisplayManager_::checkNewYear()
 {
-  time_t now = time(nullptr);
-  struct tm *timeInfo;
-  timeInfo = localtime(&now);
+  struct tm *timeInfo = timer_localtime();
   if (timeInfo->tm_mon == 0 && timeInfo->tm_mday == 1 && timeInfo->tm_hour == 0 && timeInfo->tm_min == 0 && timeInfo->tm_sec == 0)
   {
     if (!newYearEventTriggered)
