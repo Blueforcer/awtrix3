@@ -56,7 +56,7 @@ Support our journey and enhance your Awtrix experience. Your contribution matter
 <a href='https://apps.apple.com/de/app/awtrix-light/id6459478110'>
   <img style="width: 20%; height: auto;" alt='Get it on Google Play' src='appstore_button.png'/>
 </a>
-<a href='[https://apps.apple.com/de/app/awtrix-light/id6459478110](https://www.amazon.com/gp/product/B0CGQ4JZX4)'>
+<a href='https://www.amazon.com/gp/product/B0CGQ4JZX4'>
   <img style="width: 20%; height: auto;" alt='Get it on Amazon' src='amazon.png'/>
 </a>
 
