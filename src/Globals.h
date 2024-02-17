@@ -142,5 +142,7 @@ extern String AUTH_PASS;
 extern String BUTTON_CALLBACK;
 extern bool SNOW;
 extern bool NEWYEAR;
+extern bool SWAP_BUTTONS;
+extern bool LDR_ON_GROUND;
 extern bool GAME_ACTIVE;
 #endif // Globals_H

@@ -36,6 +36,8 @@ The JSON object has the following properties:
 | `button_callback` | string | http callback url for button presses. | - |
 | `let_it_snow` | boolean | Let it snow as a global Overlay. | true for christmastime |
 | `new_year` | boolean | Displays fireworks and plays a jingle at newyear. | false |
+| `swap_buttons` | boolean | Swaps the left and right hardware button. | false |
+| `ldr_on_ground` | boolean | Sets the LDR configuration to LDR-on-ground. | false |
 
 #### Example:
 ```json
@@ -43,6 +45,6 @@ The JSON object has the following properties:
   "temp_dec_places":1,
   "bootsound":true,
   "hum_offset":-2,
-  "let_it_snow": true
+  "let_it_snow":true
 }
 ```

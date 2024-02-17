@@ -361,7 +361,7 @@ void PeripheryManager_::setup()
     button_right.begin();
     button_select.begin();
 
-    if (ROTATE_SCREEN)
+    if ((ROTATE_SCREEN && !SWAP_BUTTONS) || (!ROTATE_SCREEN && SWAP_BUTTONS))
     {
         Serial.println("Button rotation");
         button_left.onPressed(right_button_pressed);
@@ -402,7 +402,8 @@ void PeripheryManager_::setup()
     sht31.begin(0x44);
 
 #endif
-    photocell.setPhotocellPositionOnGround(false);
+    if (!LDR_ON_GROUND)
+        photocell.setPhotocellPositionOnGround(false);
 }
 
 void PeripheryManager_::tick()
@@ -500,6 +501,8 @@ void PeripheryManager_::tick()
             sampleSum += TotalLDRReadings[i];
         }
         sampleAverage = sampleSum / (float)LDRReadings;
+        if (LDR_ON_GROUND)
+            sampleAverage = 1023.0 - sampleAverage;
         LDR_RAW = sampleAverage;
         CURRENT_LUX = (roundf(photocell.getSmoothedLux() * 1000) / 1000);
         if (AUTO_BRIGHTNESS && !MATRIX_OFF)
