@@ -205,6 +205,7 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
             {
                 ip = WiFi.localIP();
                 WiFi.persistent(true);
+                delete[] my_ssid;
                 return ip;
             }
             // If no connection after a while go in Access Point mode
@@ -223,6 +224,8 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
     Serial.print(F("\nAP mode.\nServer IP address: "));
     Serial.println(ip);
     Serial.println();
+
+    delete[] my_ssid;
     return ip;
 }
 
