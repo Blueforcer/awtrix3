@@ -272,9 +272,9 @@ AWTRIX Light allows you to present text where specific fragments can be colorize
 }
 ```
 
-### Sending Multiple Custom Pages Simultaneously
+### Sending Multiple Custom Apps Simultaneously
 
-AWTRIX Light enables you to dispatch multiple custom pages in a single action. Instead of transmitting one custom page object, you can forward an array of objects.
+AWTRIX Light enables you to dispatch multiple custom apps in a single action. Instead of transmitting one custom app object, you can forward an array of objects.
 
 **e.g. MQTT Topic:** `/custom/test`
 
@@ -285,7 +285,7 @@ AWTRIX Light enables you to dispatch multiple custom pages in a single action. I
 ]
 ```
 
-**Handling of Multiple Custom Pages:**
+**Handling of Multiple Custom Apps:**
 - **Suffix Assignment**: Internally, the app name receives a suffix, turning it into formats like `test0`, `test1`, etc.
 - **Updates**: You can refresh each app individually or update all of them collectively.
 - **Deletion**: 
