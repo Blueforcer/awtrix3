@@ -3,16 +3,19 @@
 if you want to build your own AWTRIX Light, here are the pinout of the Ulanzi clock  
   
 
-| GPIO  | Usage or part                                 |
-|-------|-----------------------------------------------|
-| 34    | Battery sensor                                |
-| 35    | LDR (light) sensor (GL5516)                   |
-| 32    | Matrix                                        |
-| 26    | Left button                                   |
-| 27    | Middle button                                 |
-| 14    | Right button                                  |
-| 15    | Buzzer                                        |
-| 21/22 | Temperature and Humidity Sensors (SHT3x)      |
+|ESP32 PIN | GPIO  | Usage or part                          |
+|---|-------|-----------------------------------------------|
+|6| ADC6 / GPIO34    | Battery sensor                      |
+|7 | ADC7 / GPIO35   | LDR (light) sensor (GL5516)          |
+|8| GPIO32    | Matrix                                      |
+|11| GPIO26    | Left button                                |
+|12| GPIO27    | Middle button                              |
+|13| GPIO14    | Right button                               |
+|23| GPIO15    | Buzzer                                     |
+|33/36| 21/22 | Temperature and Humidity Sensors (SHT3x)    |
+
+
+
 
 If the matrix displays meaningless characters, the matrix type must be changed.
 
