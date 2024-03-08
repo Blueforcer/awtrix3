@@ -5,7 +5,7 @@ You can play sound with the integrated passive buzzer in the Ulanzi Clock or you
 ## Buzzer
 With the Buzzer you can play monophone RTTTL melodies in two ways:
   
-**via API command:**  
+**via API:**  
 You can send the RTTTL string directly with your API request.  
 See documentation for commands:  
 [Single sounds](https://blueforcer.github.io/awtrix-light/#/api?id=sound-playback)  
