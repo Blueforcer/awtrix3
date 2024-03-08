@@ -10,6 +10,7 @@ You can send the RTTTL string directly with your API request.
 See documentation for commands:  
 [Single sounds](https://blueforcer.github.io/awtrix-light/#/api?id=sound-playback)  
 [With your notification](https://blueforcer.github.io/awtrix-light/#/api?id=json-properties)  
+  
 **via file:**  
 This method is to avoid long jsons beacuse the receive buffer is limited.  
 Go to the file manager in the web interface and create a new text file in the "MELODIES" folder.  
