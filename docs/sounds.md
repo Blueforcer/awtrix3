@@ -4,18 +4,18 @@ You can play sound with the integrated passive buzzer in the Ulanzi Clock or you
 
 ## Buzzer
 With the Buzzer you can play monophone RTTTL melodies in two ways:
-
-**via API command:**
-You can send the RTTTL string directly with your API request.
-See documentation for commands:
-[Single sounds](https://blueforcer.github.io/awtrix-light/#/api?id=sound-playback)
-[With your notification](https://blueforcer.github.io/awtrix-light/#/api?id=json-properties)
-**via file:**
-This method is to avoid long jsons beacuse the receive buffer is limited.
-Go to the file manager in the web interface and create a new text file in the "MELODIES" folder.
-Name it whatever you like but use the ".txt" extension, e.g. "alarm.txt". Inside the file, place a melody in RTTTL format.
-When using the sound file anywhere, omit the file extension.
-
+  
+**via API command:**  
+You can send the RTTTL string directly with your API request.  
+See documentation for commands:  
+[Single sounds](https://blueforcer.github.io/awtrix-light/#/api?id=sound-playback)  
+[With your notification](https://blueforcer.github.io/awtrix-light/#/api?id=json-properties)  
+**via file:**  
+This method is to avoid long jsons beacuse the receive buffer is limited.  
+Go to the file manager in the web interface and create a new text file in the "MELODIES" folder.  
+Name it whatever you like but use the ".txt" extension, e.g. "alarm.txt". Inside the file, place a melody in RTTTL format.  
+When using the sound file anywhere, omit the file extension.  
+  
 You can find many melodies on the internet. For example:
 * [Laub-Home Wiki: RTTTL Songs](https://www.laub-home.de/wiki/RTTTL_Songs)
 * [Online RTTTL player](https://adamonsoon.github.io/rtttl-play/)
