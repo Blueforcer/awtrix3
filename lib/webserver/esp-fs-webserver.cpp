@@ -183,6 +183,13 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
     _ssid = reinterpret_cast<const char *>(conf.sta.ssid);
     _pass = reinterpret_cast<const char *>(conf.sta.password);
 
+    char * my_ssid;
+    my_ssid = new char[32+1];
+    strncpy(my_ssid, _ssid, 32);
+    my_ssid[32] = '\0';
+    if (strlen(my_ssid) < strlen(_ssid))
+        _ssid = my_ssid;
+
     if (strlen(_ssid) && strlen(_pass))
     {
         WiFi.begin(_ssid, _pass, 0, 0, true);
@@ -198,6 +205,7 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
             {
                 ip = WiFi.localIP();
                 WiFi.persistent(true);
+                delete[] my_ssid;
                 return ip;
             }
             // If no connection after a while go in Access Point mode
@@ -218,6 +226,8 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
     Serial.print(F("\nAP mode.\nServer IP address: "));
     Serial.println(ip);
     Serial.println();
+
+    delete[] my_ssid;
     return ip;
 }
 
