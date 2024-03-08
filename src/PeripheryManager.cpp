@@ -514,7 +514,7 @@ void PeripheryManager_::tick()
         uint16_t LDRVALUE = analogRead(LDR_PIN);
 
         // Send LDR values through median filter to get rid of the remaining spikes and then calculate the average
-        LDR_RAW = medianFilterLDR.AddValue(medianFilterLDR.AddValue(LDRVALUE));
+        LDR_RAW = meanFilterLDR.AddValue(medianFilterLDR.AddValue(LDRVALUE));
         CURRENT_LUX = (roundf(photocell.getSmoothedLux() * 1000) / 1000);
         if (AUTO_BRIGHTNESS && !MATRIX_OFF)
         {
