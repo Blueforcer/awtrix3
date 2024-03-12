@@ -14,6 +14,7 @@
 #include <WiFiUdp.h>
 #include <HTTPClient.h>
 #include "GameManager.h"
+#include <EEPROM.h>
 
 WiFiUDP udp;
 unsigned int localUdpPort = 4210; // Wählen Sie einen Port
@@ -38,6 +39,18 @@ void versionHandler()
     webRequest->send(200, F("text/plain"), VERSION);
 }
 
+void ServerManager_::erase()
+{
+    DisplayManager.HSVtext(0,6,"RESET",true,0);
+    wifi_config_t conf;
+    memset(&conf, 0, sizeof(conf)); // Set all the bytes in the structure to 0
+    esp_wifi_set_config(WIFI_IF_STA, &conf);
+    LittleFS.format();
+    delay(200);
+    formatSettings();
+    delay(200);
+}
+
 void saveHandler()
 {
     WebServerClass *webRequest = mws.getRequest();
@@ -47,6 +60,7 @@ void saveHandler()
 
 void addHandler()
 {
+
     mws.addHandler("/api/power", HTTP_POST, []()
                    { DisplayManager.powerStateParse(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler(
@@ -128,7 +142,7 @@ void addHandler()
     mws.addHandler("/api/settings", HTTP_POST, []()
                    { DisplayManager.setNewSettings(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/erase", HTTP_ANY, []()
-                   { LittleFS.format(); delay(200); formatSettings();   mws.webserver->send(200,F("text/plain"),F("OK"));delay(200); ESP.restart(); });
+                   { ServerManager.erase();  mws.webserver->send(200,F("text/plain"),F("OK"));delay(200); ESP.restart(); });
     mws.addHandler("/api/resetSettings", HTTP_ANY, []()
                    { formatSettings();   mws.webserver->send(200,F("text/plain"),F("OK"));delay(200); ESP.restart(); });
     mws.addHandler("/api/reorder", HTTP_POST, []()
@@ -192,8 +206,8 @@ void ServerManager_::setup()
     {
         WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS);
     }
-    WiFi.setHostname(uniqueID); // define hostname
-    myIP = mws.startWiFi(15000, uniqueID, "12345678");
+    WiFi.setHostname(HOSTNAME.c_str()); // define hostname
+    myIP = mws.startWiFi(AP_TIMEOUT * 1000, HOSTNAME.c_str(), "12345678");
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
     if (DEBUG_MODE)
         DEBUG_PRINTF("My IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
@@ -232,9 +246,9 @@ void ServerManager_::setup()
             DEBUG_PRINTLN(F("Webserver loaded"));
     }
     mws.addHandler("/version", HTTP_GET, versionHandler);
-    mws.begin();
+    mws.begin(WEB_PORT);
 
-    if (!MDNS.begin(MQTT_PREFIX))
+    if (!MDNS.begin(HOSTNAME))
     {
         if (DEBUG_MODE)
             DEBUG_PRINTLN(F("Error starting mDNS"));
@@ -244,7 +258,7 @@ void ServerManager_::setup()
         MDNS.addService("http", "tcp", 80);
         MDNS.addService("awtrix", "tcp", 80);
         MDNS.addServiceTxt("awtrix", "tcp", "id", uniqueID);
-        MDNS.addServiceTxt("awtrix", "tcp", "name", MQTT_PREFIX);
+        MDNS.addServiceTxt("awtrix", "tcp", "name", HOSTNAME.c_str());
         MDNS.addServiceTxt("awtrix", "tcp", "type", "awtrix_light");
     }
 
@@ -270,7 +284,17 @@ void ServerManager_::tick()
             if (strcmp(incomingPacket, "FIND_AWTRIX") == 0)
             {
                 udp.beginPacket(udp.remoteIP(), 4211);
-                udp.printf(MQTT_PREFIX.c_str());
+                if (WEB_PORT != 80)
+                {
+                    char buffer[128];
+                    sprintf(buffer, "%s:%d", HOSTNAME.c_str(), WEB_PORT);
+                    udp.printf(buffer);
+                }
+                else
+                {
+                    udp.printf(HOSTNAME.c_str());
+                }
+
                 udp.endPacket();
             }
         }

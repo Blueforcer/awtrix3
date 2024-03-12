@@ -2,6 +2,7 @@
 #define Overlays_H
 
 #include "MatrixDisplayUi.h"
+#include "effects.h"
 
 uint32_t TextEffect(uint32_t color, uint32_t fade, uint32_t blink);
 
@@ -47,10 +48,13 @@ struct Notification
     String sound;
     bool loopSound;
     String rtttl;
+    OverlayEffect overlay;
     int gradient[2] = {0};
     uint8_t jpegDataBuffer[1000];
     unsigned int jpegDataSize = 0;
 };
+
+
 extern std::vector<Notification> notifications;
 extern bool notifyFlag;
 
@@ -60,7 +64,7 @@ void MenuOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlay
 
 void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
 
-void SnowOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer);
+
 
 extern OverlayCallback overlays[];
 #endif

@@ -79,7 +79,7 @@ public:
 
     FSWebServer(fs::FS &fs, WebServerClass &server);
 
-    bool begin(const char *path = nullptr);
+    bool begin( int port = 80,const char *path = nullptr);
 
     void run();
     void onNotFound(WebServerClass::THandlerFunction fn);

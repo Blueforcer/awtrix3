@@ -1,6 +1,6 @@
 # Icons
 
-AWTRIX Light doesn't offer any cloud connection like AWTRIX 2.0. However, to use your favorite icon for a custom page or notification, you can use the integrated icon downloader in the web interface.
+AWTRIX 3 doesn't offer any cloud connection like AWTRIX 2.0. However, to use your favorite icon for a custom page or notification, you can use the integrated icon downloader in the web interface.
 
 <div align=center>
 <img width="400" src="icons.png"/>

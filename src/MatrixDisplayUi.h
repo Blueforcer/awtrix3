@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2016 by Daniel Eichhorn
  * Copyright (c) 2016 by Fabrice Weinberg
- * Highly modified 2023 for AWTRIX Light by Stephan Muehl (Blueforcer)
+ * Highly modified 2023 for AWTRIX 3 by Stephan Muehl (Blueforcer)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal

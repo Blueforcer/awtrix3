@@ -12,7 +12,7 @@ void Pacifica(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *s
         for (uint16_t j = 0; j < 8; j++)
         {
             uint16_t ulx, uly;
-            ulx = (sPacificaTime / 8) - (i * 16); 
+            ulx = (sPacificaTime / 8) - (i * 16);
             uly = (sPacificaTime / 4) + (j * 16);
             uint16_t v = 0;
             v += sin16(ulx * 6 + sPacificaTime / 2) / 8 + 127;
@@ -208,13 +208,13 @@ void ColorWaves(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings 
 #define MAX_BRIGHTNESS 255
 #define FADE_RATE 0.02
 
-struct Star
+struct Particle
 {
     CRGB color;
     float brightness;
 };
 
-Star stars[32][8]; // Create a buffer to store the state of the LEDs
+Particle stars[32][8]; // Create a buffer to store the state of the LEDs
 
 void TwinklingStars(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
@@ -228,7 +228,8 @@ void TwinklingStars(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSetti
             stars[i][j].brightness -= 0.01;
             if (stars[i][j].brightness < 0)
                 stars[i][j].brightness = 0;
-            matrix->drawPixel(x + i, y + j, stars[i][j].color.nscale8_video(stars[i][j].brightness * 255));
+            if (stars[i][j].brightness > 0.8)
+                matrix->drawPixel(x + i, y + j, stars[i][j].color.nscale8_video(stars[i][j].brightness * 255));
         }
     }
 
@@ -248,8 +249,6 @@ void TwinklingStars(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSetti
         }
     }
 }
-
-
 
 // ######## LookingEyes ############
 
@@ -1189,6 +1188,171 @@ void updateEffectSettings(u_int8_t index, String json)
         {
             effects[index].settings.blend = doc["blend"].as<bool>();
         }
+
         doc.clear();
+    }
+}
+
+OverlayEffect getOverlay(String overlay)
+{
+    if (overlay.equalsIgnoreCase("drizzle"))
+    {
+        return DRIZZLE;
+    }
+    else if (overlay.equalsIgnoreCase("rain"))
+    {
+        return RAIN;
+    }
+    else if (overlay.equalsIgnoreCase("snow"))
+    {
+        return SNOW;
+    }
+    else if (overlay.equalsIgnoreCase("storm"))
+    {
+        return STORM;
+    }
+    else if (overlay.equalsIgnoreCase("thunder"))
+    {
+        return THUNDER;
+    }
+    else if (overlay.equalsIgnoreCase("frost"))
+    {
+        return FROST;
+    }
+    else if (overlay.equalsIgnoreCase("clear"))
+    {
+        return NONE;
+    }
+    else
+    {
+        Serial.print(F("Invalid effect: "));
+        Serial.println(overlay);
+        return NONE; // return an appropriate default
+    }
+}
+
+void EffectOverlay(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, OverlayEffect effect)
+{
+    static CRGB leds[32][8] = {CRGB::Black}; // Initialize all LEDs to black
+    static int colorChanges[32][8] = {0};
+    static bool lightning = false;                // Track whether lightning is happening
+    static unsigned long lastLightningMillis = 0; // Store last time lightning happened
+    static unsigned long lastUpdate[32][8] = {0}; // Store the last update time for each LED
+    static int lightningDuration = 50;            // Duration of lightning flash in milliseconds
+    static int updateFrame = 0;                   // Counter to control the update rate of the display
+    static int windFrame = 0;                     // Additional variable for wind logic during storms
+    static unsigned long lastIceUpdateMillis = 0; // Store the last time ice pixels were updated
+    static int fadeInterval = 10;                 // Interval in milliseconds for each fade step
+
+    // Handle lightning logic
+    if (effect == THUNDER)
+    {
+        if (random8() < 1)
+        { // Chance of lightning
+            lightning = true;
+            lastLightningMillis = millis();
+        }
+        else if (lightning && (millis() - lastLightningMillis > lightningDuration))
+        {
+            lightning = false;
+        }
+    }
+
+    // Generate weather effects based on the specified effect
+    int rainChance = (effect == STORM || effect == THUNDER ? 60 : (effect == DRIZZLE ? 15 : 50));
+    CRGB color = (effect == DRIZZLE ? CHSV(160, 255, 230) : CHSV(160, 255, 200)); // Lighter blue for drizzle
+    if (effect == RAIN || effect == STORM || effect == THUNDER || effect == DRIZZLE)
+    {
+        if (random8() < rainChance)
+        {
+            int randomColumn = random8(32);
+            leds[randomColumn][0] = color;
+        }
+    }
+    else if (effect == SNOW && random8() < 20)
+    {
+        int randomColumn = random8(32);
+        leds[randomColumn][0] = CHSV(0, 0, 255); // White for snow
+    }
+
+    // ICE effect logic
+    if (effect == FROST)
+    {
+        // Go through each LED and update its status
+        for (int i = 0; i < 32; i++)
+        {
+            for (int j = 0; j < 8; j++)
+            {
+                // If a pixel is currently active, update its color
+                if (colorChanges[i][j] > 0)
+                {
+                    leds[i][j] = ColorFromPalette(OceanColors_p, random8(), 255, LINEARBLEND);
+                    colorChanges[i][j]++;
+                    // Turn off the pixel after MAX_COLOR_CHANGES changes
+                    if (colorChanges[i][j] > 6)
+                    {
+                        leds[i][j] = CRGB::Black;
+                        colorChanges[i][j] = 0; // Reset the counter for this pixel
+                    }
+                }
+            }
+        }
+
+        // Randomly activate new pixels
+        if (random8() < 25)
+        {
+            int i = random8(32);
+            int j = random8(8);
+            // Activate the new pixel only if it is currently off
+            if (colorChanges[i][j] == 0)
+            {
+                colorChanges[i][j] = 1;
+                leds[i][j] = ColorFromPalette(OceanColors_p, random8(), 255, LINEARBLEND);
+            }
+        }
+    }
+
+    // Update movement for all effects except NONE and ICE
+    if (effect != NONE && effect != FROST && ++updateFrame >= (effect == SNOW ? 5 : 2))
+    {
+        for (int i = 0; i < 32; i++)
+        {
+            for (int j = 7; j > 0; j--)
+            {
+                leds[i][j] = leds[i][j - 1];
+            }
+            leds[i][0] = CRGB::Black;
+        }
+        updateFrame = 0;
+    }
+
+    // Wind logic for storm and thunder
+    if ((effect == STORM || effect == THUNDER) && ++windFrame >= 3)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            for (int i = 31; i > 0; i--)
+            {
+                leds[i][j] = leds[i - 1][j];
+            }
+            leds[0][j] = CRGB::Black;
+        }
+        windFrame = 0;
+    }
+
+    // Draw the updated LEDs
+    for (int i = 0; i < 32; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            if (lightning && effect == THUNDER)
+            {
+                matrix->drawPixel(i + x, j + y, CHSV(0, 0, 255)); // Lightning effect
+            }
+            else if (leds[i][j])
+            {
+                matrix->drawPixel(i + x, j + y, leds[i][j]);
+            }
+        }
     }
 }

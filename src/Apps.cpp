@@ -181,7 +181,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
 
         uint32_t color;
         if (i == (timer_localtime()->tm_wday + 6 + dayOffset) % 7)
-            color = WDC_ACTIVE;   // current day
+            color = WDC_ACTIVE; // current day
         else
             color = WDC_INACTIVE; // other days
 
@@ -600,6 +600,11 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     if (ca->lifeTimeEnd)
     {
         DisplayManager.drawRect(x, y, 32 + x, 8 + y, 0x6e0700);
+    }
+
+    if (!ca->overlay == NONE)
+    {
+        EffectOverlay(matrix, x, y, ca->overlay);
     }
 
     DisplayManager.getInstance().resetTextColor();

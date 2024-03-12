@@ -432,13 +432,13 @@ void connect()
     {
         if (DEBUG_MODE)
             DEBUG_PRINTLN(F("Connecting to MQTT w/o login"));
-        mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, nullptr, nullptr, uniqueID);
+        mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, nullptr, nullptr, HOSTNAME.c_str());
     }
     else
     {
         if (DEBUG_MODE)
             DEBUG_PRINTLN(F("Connecting to MQTT with login"));
-        mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, MQTT_USER.c_str(), MQTT_PASS.c_str(), uniqueID);
+        mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, MQTT_USER.c_str(), MQTT_PASS.c_str(), HOSTNAME.c_str());
     }
 }
 
@@ -506,7 +506,7 @@ void MQTTManager_::setup()
         char macStr[7];
         snprintf(macStr, 7, "%02x%02x%02x", mac[3], mac[4], mac[5]);
         device.setUniqueId(mac, sizeof(mac));
-        device.setName(uniqueID);
+        device.setName(HOSTNAME.c_str());
         device.setSoftwareVersion(VERSION);
         device.setManufacturer(HAmanufacturer);
 

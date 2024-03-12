@@ -86,11 +86,14 @@ void changeTone(MelodyPlayer* player) {
                      + " iteration=" + player->melodyState->getIndex());
 
     if (player->melodyState->isSilence()) {
+      if(!player->muted)
+      {
 #ifdef ESP32
-      ledcWriteTone(player->pwmChannel, 0);
+        ledcWriteTone(player->pwmChannel, 0);
 #else
-      tone(player->pin, 0);
+        tone(player->pin, 0);
 #endif
+      }
 
 #ifdef ESP32
       player->ticker.once_ms(duration, changeTone, player);
@@ -98,11 +101,15 @@ void changeTone(MelodyPlayer* player) {
       player->ticker.once_ms_scheduled(duration, std::bind(changeTone, player));
 #endif
     } else {
+      if(!player->muted)
+      {
 #ifdef ESP32
-      ledcWriteTone(player->pwmChannel, computedNote.frequency);
+        ledcWriteTone(player->pwmChannel, computedNote.frequency);
+        ledcWrite(player->pwmChannel,player->volume);
 #else
-      tone(player->pin, computedNote.frequency);
+        tone(player->pin, computedNote.frequency);
 #endif
+      }
 
 #ifdef ESP32
       player->ticker.once_ms(duration, changeTone, player);
@@ -112,7 +119,16 @@ void changeTone(MelodyPlayer* player) {
     }
     player->supportSemiNote = millis() + duration;
   } else {
+    // End of the melody
     player->stop();
+    if(player->loop)
+    { // Loop mode => start over
+      player->playAsync();
+    }
+    else if(player->stopCallback != NULL)
+    {
+      player->stopCallback();
+    }
   }
 }
 
@@ -130,9 +146,11 @@ void MelodyPlayer::playAsync() {
 #endif
 }
 
-void MelodyPlayer::playAsync(Melody& melody) {
+void MelodyPlayer::playAsync(Melody& melody, bool loopMelody, void(*callback)(void)) {
   if (!melody) { return; }
   melodyState = make_unique<MelodyState>(melody);
+  loop = loopMelody;
+  stopCallback = callback;
   playAsync();
 }
 
@@ -211,7 +229,17 @@ void MelodyPlayer::turnOn() {
   // 2000 is a frequency, it will be changed at the first play
   ledcSetup(pwmChannel, 2000, resolution);
   ledcAttachPin(pin, pwmChannel);
-  ledcWrite(pwmChannel, 125);
+  ledcWrite(pwmChannel, volume);
+#endif
+}
+
+void MelodyPlayer::setVolume(byte newVolume) {
+  volume = newVolume/2;
+#ifdef ESP32
+  if(state == State::PLAY)
+  {
+    ledcWrite(pwmChannel, volume);
+  }
 #endif
 }
 
@@ -225,6 +253,22 @@ void MelodyPlayer::turnOff() {
   noTone(pin);
 #endif
 
-  pinMode(pin, LOW);
+  pinMode(pin, OUTPUT);
   digitalWrite(pin, offLevel);
+}
+
+void MelodyPlayer::mute() {
+  muted = true;
+}
+
+void MelodyPlayer::unmute() {
+#ifdef ESP32
+  ledcAttachPin(pin, pwmChannel);
+#endif
+  muted = false;
+}
+
+void MelodyPlayer::changeTempo(int newTempo) {
+  if (melodyState == nullptr) { return; }
+  melodyState->changeTempo(newTempo);
 }

@@ -1,6 +1,6 @@
 # Apps
 
-The AWTRIX Light system comes equipped with several built-in applications, including Time, Date, Temperature, Humidity, and Battery status.  
+The AWTRIX 3 system comes equipped with several built-in applications, including Time, Date, Temperature, Humidity, and Battery status.  
 As it is designed to integrate seamlessly with your smart home ecosystem, additional applications can be created using MQTT or HTTP requests.
 
 There are numerous benefits to this approach:
@@ -13,17 +13,17 @@ There are numerous benefits to this approach:
 You can use any system you like which is able to build json strings and send them to a mqtt topic.
 
 ## AWTRIX FLOWS
-This is your go-to hub for sharing and discovering AWTRIX Light automations, also known as custom Apps for several services.  
-Enhance your AWTRIX Light experience, exchange ideas, and get inspired. Lets bring our creative automations to life together!  
+This is your go-to hub for sharing and discovering AWTRIX 3 automations, also known as custom Apps for several services.  
+Enhance your AWTRIX 3 experience, exchange ideas, and get inspired. Lets bring our creative automations to life together!  
 No login is necessary, neither for creating new flows. As a creator you will get a link with which you can always edit your flow. Keep it save!  
-You can upload your icons to your flow, and user can copy them directly to their AWTRIX light with one click!  
+You can upload your icons to your flow, and user can copy them directly to their AWTRIX 3 with one click!  
 New flows are regularly moderated.  
 https://flows.blueforcer.de/   
     
 
 ## Flow example with Node-RED
 [Node-RED](https://nodered.org/) serves as an ideal software solution for creating these applications.  
-It is available as a standalone program or as a plugin for Home Assistant and ioBroker, allowing you to further enhance the capabilities of your AWTRIX Light system.
+It is available as a standalone program or as a plugin for Home Assistant and ioBroker, allowing you to further enhance the capabilities of your AWTRIX 3 system.
     
 Here is a demo, please press the triangle to unfold.
 
@@ -203,7 +203,7 @@ Here is a demo, please press the triangle to unfold.
   </code></pre>
 </details>
 
-This Node-RED flow retrieves and displays the subscriber count of a specified YouTube channel on an AWTRIX light device. The flow consists of the following nodes:
+This Node-RED flow retrieves and displays the subscriber count of a specified YouTube channel on an AWTRIX 3 device. The flow consists of the following nodes:
 
 1. **Inject**: This node triggers the flow periodically (every hour) or manually.
 2. **Data (Function)**: This node contains the YouTube channel ID and the YouTube API key. Replace "XXX" with your YouTube API key and Youtube ID. The node constructs a payload containing the channel ID, API key, and required statistics and sends it to the "HTTP request" node.

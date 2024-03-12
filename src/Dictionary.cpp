@@ -13,7 +13,7 @@ const char State1[] PROGMEM = {"1"};
 
 // HA
 const char HAmanufacturer[] PROGMEM = {"Blueforcer"};
-const char HAmodel[] PROGMEM = {"AWTRIX Light"};
+const char HAmodel[] PROGMEM = {"AWTRIX 3"};
 const char HAmatID[] PROGMEM = {"%s_mat"};
 const char HAmatIcon[] PROGMEM = {"mdi:clock-digital"};
 const char HAmatName[] PROGMEM = {"Matrix"};

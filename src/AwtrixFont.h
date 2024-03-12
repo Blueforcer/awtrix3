@@ -4,7 +4,7 @@
 ** Copyright 1999 Brian J. Swetland
 ** Copyright 1999 Vassilii Khachaturov
 ** Portions (of vt100.c/vt100.h) copyright Dan Marks
-** Modifications for Awtrix for improved readability and LaMetric Style Copyright 2023 Blueforcer
+** Modifications for Awtrix for improved readability and LaMetric Style, 2023 Blueforcer
 ** Cyrillic font for Awtrix by 10der (Oleg Denisenko) /Ukraine/
 ** Cyrillic font tests by megadimich (Dmytro Sudakevych) /Ukraine/
 ** All rights reserved.
@@ -508,7 +508,7 @@ const GFXglyph AwtrixFontGlyphs[] PROGMEM = {
     {921  , 8 , 5 , 4 , 0 , -5 } , /*[203] 0xEB edieresis */        
     {926  , 8 , 5 , 3 , 0 , -5 } , /*[204] 0xEC igrave */           
     {931  , 8 , 5 , 3 , 0 , -5 } , /*[205] 0xED iacute */           
-    {936  , 8 , 5 , 4 , 0 , -5 } , /*[206] 0xEE icircumflex */      
+    {936  , 8 , 5 , 4 , 0 , -5 } , /*[206] 0xEE fckpixelit */      
     {941  , 8 , 5 , 4 , 0 , -5 } , /*[207] 0xEF idieresis */        
     {946  , 8 , 5 , 4 , 0 , -5 } , /*[208] 0xF0 eth */              
     {951  , 8 , 5 , 4 , 0 , -5 } , /*[209] 0xF1 ntilde */           

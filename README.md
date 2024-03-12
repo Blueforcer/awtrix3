@@ -11,13 +11,13 @@
   
 ![Alt text](/logo.png?raw=true "Title")
 <br>
-![GitHub all releases](https://img.shields.io/github/downloads/blueforcer/awtrix-light/total?style=flat-square)
+![GitHub all releases](https://img.shields.io/github/downloads/blueforcer/awtrix3/total?style=flat-square)
 ![GitHub Sponsors](https://img.shields.io/github/sponsors/blueforcer?style=flat-square)
 ![Discord](https://img.shields.io/discord/546407049148366859?label=Discord&style=flat-square)
 </div>  
 <br>  
   
-**AWTRIX Light is an open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882?ref=28e02dxl) or as upgrade for the old AWTRIX 2 Mainboard and even self build matrix clock**
+**AWTRIX 3 is an open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882?ref=28e02dxl) or as upgrade for the old AWTRIX 2 Mainboard and even self build matrix clock**
 
 **Note: This Firmware is only compatible with ESP32**
 
@@ -29,11 +29,11 @@ Our discord community, with over 3000 people, are willing to help you!
 
 It is ready to use straight out of the box, with time, date, temperature, and humidity pages pre-installed. You don't need to do anything other than turning it on to start using these features.    
 
-However, for those with more advanced skills, the customization options available with customapps and mqtt commands allows you to take Awtrix Light to its full potential.
+However, for those with more advanced skills, the customization options available with customapps and mqtt commands allows you to take AWTRIX 3 to its full potential.
 Just send all your customapps from your smarthome via MQTT or HTTP and update it in realtime.
 The powerful icon system brings your ideas to life and lets you enjoy a hassle-free experience.   
 
-Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 and Awtrix Light and experience the difference today! 
+Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 and AWTRIX 3 and experience the difference today! 
   
 
 
@@ -47,13 +47,13 @@ Take your Awtrix experience to the next level with the mobile app, tailored for 
 - **Exclusive Icon Database:** Get unique icons only available for app users.
 - **Icon Creation & Sharing:** Design and share your icons with our community.
 
-By purchasing the app, you're directly contributing to the future of Awtrix Light. Dive deep, explore more, and be a part of the innovation.
+By purchasing the app, you're directly contributing to the future of AWTRIX 3. Dive deep, explore more, and be a part of the innovation.
 Support our journey and enhance your Awtrix experience. Your contribution matters. ✨
 
 <a href='https://play.google.com/store/apps/details?id=de.awtrix.light&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'>
   <img style="width: 20%; height: auto;" alt='Get it on Google Play' src='playstore_button.png'/>
 </a>
-<a href='https://apps.apple.com/de/app/awtrix-light/id6459478110'>
+<a href='https://apps.apple.com/de/app/awtrix3/id6459478110'>
   <img style="width: 20%; height: auto;" alt='Get it on Google Play' src='appstore_button.png'/>
 </a>
 <a href='https://www.amazon.com/gp/product/B0CGQ4JZX4'>
@@ -63,8 +63,8 @@ Support our journey and enhance your Awtrix experience. Your contribution matter
 
 
 
-# AWTRIX Light flows  
-This is your go-to hub for sharing and discovering AWTRIX Light automations. Enhance your AWTRIX Light experience, exchange ideas, and get inspired. Let's bring our creative automations to life together!  
+# AWTRIX 3 flows  
+This is your go-to hub for sharing and discovering AWTRIX 3 automations. Enhance your AWTRIX 3 experience, exchange ideas, and get inspired. Let's bring our creative automations to life together!  
 https://flows.blueforcer.de/
   
 # Features
@@ -89,7 +89,7 @@ https://flows.blueforcer.de/
 
 # Getting Started
 Starting is easy as 1-2-3
-[with the documentation](https://blueforcer.github.io/awtrix-light/)
+[with the documentation](https://blueforcer.github.io/awtrix3/)
   
 # Community 
 Join the discord channel with over 3000 Users  
@@ -118,8 +118,8 @@ https://www.buymeacoffee.com/blueforcer
 https://www.paypal.me/blueforcer  
   
 # Contributors 
-<a href="https://github.com/Blueforcer/awtrix-light/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=Blueforcer/awtrix-light" />
+<a href="https://github.com/Blueforcer/awtrix3/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Blueforcer/awtrix3" />
 </a>
 
 # Disclaimer

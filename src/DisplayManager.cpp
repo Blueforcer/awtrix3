@@ -12,6 +12,7 @@
 #include "ServerManager.h"
 #include "MenuManager.h"
 #include "Apps.h"
+#include "Effects.h"
 #include "Overlays.h"
 #include "Dictionary.h"
 #include <set>
@@ -619,6 +620,8 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
   customApp.noScrolling = doc.containsKey("noScroll") ? doc["noScroll"] : false;
   customApp.name = name;
 
+  customApp.overlay = doc.containsKey("overlay") ? getOverlay(doc["overlay"].as<String>()) : NONE;
+
   if (doc.containsKey("icon"))
   {
     String newIconName = doc["icon"].as<String>();
@@ -678,6 +681,8 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     customApp.color = TEXTCOLOR_888;
   }
 
+  customApp.colors.clear();
+  customApp.fragments.clear();
   if (doc.containsKey("text") && doc["text"].is<JsonArray>())
   {
     JsonArray textArray = doc["text"].as<JsonArray>();
@@ -778,6 +783,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     }
   }
 
+  newNotification.overlay = doc.containsKey("overlay") ? getOverlay(doc["overlay"].as<String>()) : NONE;
   newNotification.loopSound = doc.containsKey("loopSound") ? doc["loopSound"].as<bool>() : false;
   newNotification.center = doc.containsKey("center") ? doc["center"].as<bool>() : true;
   newNotification.sound = doc.containsKey("sound") ? doc["sound"].as<String>() : "";
@@ -1096,7 +1102,7 @@ void DisplayManager_::setup()
   ui->setTargetFPS(MATRIX_FPS);
   ui->setTimePerApp(TIME_PER_APP);
   ui->setTimePerTransition(TIME_PER_TRANSITION);
-  ui->setOverlays(overlays, 4);
+  ui->setOverlays(overlays, 3);
   ui->setBackgroundEffect(BACKGROUND_EFFECT);
   setAutoTransition(AUTO_TRANSITION);
   ui->init();
@@ -1943,6 +1949,28 @@ String CRGBtoHex(CRGB color)
   return String(buf);
 }
 
+String getOverlayName() {
+    switch(GLOBAL_OVERLAY) {
+        case DRIZZLE:
+            return "drizzle";
+        case RAIN:
+            return "rain";
+        case SNOW:
+            return "snow";
+        case STORM:
+            return "storm";
+        case THUNDER:
+            return "thunder";
+        case FROST:
+            return "frost";
+        case NONE:
+            return "clear";
+        default:
+            Serial.println(F("Invalid effect."));
+            return "invalid"; // Oder einen leeren String oder einen Fehlerwert zurückgeben
+    }
+}
+
 String DisplayManager_::getSettings()
 {
   StaticJsonDocument<1024> doc;
@@ -1984,10 +2012,13 @@ String DisplayManager_::getSettings()
   doc["HUM"] = SHOW_HUM;
   doc["TEMP"] = SHOW_TEMP;
   doc["BAT"] = SHOW_BAT;
-
+  doc["VOL"] = SOUND_VOLUME;
+  doc["OVERLAY"] = getOverlayName();
   String jsonString;
   return serializeJson(doc, jsonString), jsonString;
 }
+
+
 
 void DisplayManager_::setNewSettings(const char *json)
 {
@@ -2014,6 +2045,14 @@ void DisplayManager_::setNewSettings(const char *json)
   {
     TIME_PER_APP = TIME_PER_APP;
   }
+
+  if (doc.containsKey("OVERLAY"))
+  {
+    GLOBAL_OVERLAY = getOverlay(doc["OVERLAY"].as<String>());
+    if (doc.size() == 1)
+      return;
+  }
+
   TIME_MODE = doc.containsKey("TMODE") ? doc["TMODE"].as<int>() : TIME_MODE;
   TRANS_EFFECT = doc.containsKey("TEFF") ? doc["TEFF"] : TRANS_EFFECT;
   TIME_PER_TRANSITION = doc.containsKey("TSPEED") ? doc["TSPEED"] : TIME_PER_TRANSITION;
@@ -2036,13 +2075,11 @@ void DisplayManager_::setNewSettings(const char *json)
   SHOW_TEMP = doc.containsKey("TEMP") ? doc["TEMP"].as<bool>() : SHOW_TEMP;
   SHOW_BAT = doc.containsKey("BAT") ? doc["BAT"].as<bool>() : SHOW_BAT;
 
-#ifndef ULANZI
   if (doc.containsKey("VOL"))
   {
-    DFP_VOLUME = doc["VOL"];
-    PeripheryManager.setVolume(DFP_VOLUME);
+    SOUND_VOLUME = doc["VOL"];
+    PeripheryManager.setVolume(SOUND_VOLUME);
   }
-#endif
 
   if (doc.containsKey("CCORRECTION"))
   {

@@ -80,6 +80,6 @@ class LedScreenApp:
 # Hauptteil des Programms
 root = tk.Tk()
 root.resizable(False, False)
-ip_address = simpledialog.askstring("AWTRIX LIGHT", "Please enter IP address:")
+ip_address = simpledialog.askstring("AWTRIX 3", "Please enter IP address:")
 app = LedScreenApp(root, ip_address)
 root.mainloop()

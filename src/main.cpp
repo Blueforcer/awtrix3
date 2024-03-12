@@ -13,7 +13,7 @@
 
  ***************************************************************************
  *                                                                         *
- *   AWTRIX Light, a custom firmware for the Ulanzi clock                  *
+ *   AWTRIX 3, a custom firmware for the Ulanzi clock                  *
  *                                                                         *
  *   Copyright (C) 2023  Stephan Mühl aka Blueforcer                       *
  *                                                                         *
@@ -22,7 +22,7 @@
  *   4.0 International License.                                            *
  *                                                                         *
  *   More information:                                                     *
- *   https://github.com/Blueforcer/awtrix-light/blob/main/LICENSE.md       *
+ *   https://github.com/Blueforcer/awtrix3/blob/main/LICENSE.md       *
  *                                                                         *
  *   This firmware is distributed in the hope that it will be useful,      *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
@@ -74,15 +74,24 @@ void setup()
   ServerManager.setup();
   if (ServerManager.isConnected)
   {
+    // timer_init();
     DisplayManager.loadNativeApps();
     DisplayManager.loadCustomApps();
     UpdateManager.setup();
     DisplayManager.startArtnet();
     StopTask = true;
     float x = 4;
-    while (x >= -85)
+    String textForDisplay = "AWTRIX   " + ServerManager.myIP.toString();
+
+    if (WEB_PORT != 80)
     {
-      DisplayManager.HSVtext(x, 6, ("AWTRIX   " + ServerManager.myIP.toString()).c_str(), true, 0);
+      textForDisplay += ":" + String(WEB_PORT);
+    }
+
+    int textLength = textForDisplay.length() * 4;
+    while (x >= -textLength)
+    {
+      DisplayManager.HSVtext(x, 6, textForDisplay.c_str(), true, 0);
       x -= 0.18;
     }
     if (MQTT_HOST != "")
@@ -103,10 +112,10 @@ void setup()
 
 void loop()
 {
+  timer_tick();
   ServerManager.tick();
   DisplayManager.tick();
   PeripheryManager.tick();
-  timer_tick();
   if (ServerManager.isConnected)
   {
     MQTTManager.tick();

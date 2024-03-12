@@ -57,8 +57,10 @@ public:
   /**
    * Play the given melody in asynchronous way (return immediately).
    * If the melody is not valid, this call has no effect.
+   * Set loop to true if you want the melody to start over after at the end.
+   * A call back can be provided to be called at the end of the melody (only used if loop is false)
    */
-  void playAsync(Melody& melody);
+  void playAsync(Melody& melody, bool loop = false, void(*stopCallback)(void) = NULL);
 
   /**
    * Stop the current melody.
@@ -74,11 +76,35 @@ public:
   void pause();
 
   /**
+   * Mute the sound of the current melody without stoppig it
+   * When unmute will be called the melody be resumed
+  */
+  void mute();
+
+  /**
+   * Unmute the current melody
+  */
+  void unmute();
+
+  /**
    * Tell if playing.
    */
   bool isPlaying() const {
     return state == State::PLAY;
   }
+
+  /**
+   * Change the tempo of the current melody to the proided value
+   */
+  void changeTempo(int newTempo);
+
+  /**
+   * Set the volume (0-255 value) of the player (only works on ESP32 platform)
+   * The volume is changed by adjusting the duty-cycle of the pwm signal sent to the piezo
+   * A value of 0 will produce no sound while a value of 255 will set the duty cycle to 50%,
+   * wich will produce the highest possible volume for the piezo.
+   */
+  void setVolume(byte volume);
 
   /**
    * Move the current melody and player's state to the given destination Player.
@@ -96,6 +122,10 @@ public:
 
 private:
   unsigned char pin;
+  byte volume = 125;
+  bool loop = false;
+  bool muted = false;
+  void (*stopCallback)(void) = NULL;
 
 #ifdef ESP32
   unsigned char pwmChannel;
@@ -116,9 +146,9 @@ private:
    */
   class MelodyState {
   public:
-    MelodyState() : first(true), index(0), remainingNoteTime(0){};
+    MelodyState() : first(true), index(0), remainingNoteTime(0), timeUnit(0) {};
     MelodyState(const Melody& melody)
-      : melody(melody), first(true), silence(false), index(0), remainingNoteTime(0){};
+      : melody(melody), first(true), silence(false), index(0), remainingNoteTime(0), timeUnit(melody.getTimeUnit()){};
     Melody melody;
 
     unsigned short getIndex() const {
@@ -127,6 +157,10 @@ private:
 
     bool isSilence() const {
       return silence;
+    }
+
+    void changeTempo(int newTempo) {
+      timeUnit = (60 * 1000 * 4 / newTempo / 32);
     }
 
     /**
@@ -192,7 +226,7 @@ private:
      */
     NoteDuration getCurrentComputedNote() const {
       NoteDuration note = melody.getNote(getIndex());
-      note.duration = melody.getTimeUnit() * note.duration;
+      note.duration = timeUnit * note.duration;
       // because the fixed point notation
       note.duration /= 2;
       return note;
@@ -202,6 +236,7 @@ private:
     bool first;
     bool silence;
     unsigned short index;
+    unsigned short timeUnit;
 
     /**
      * Variable to support precise pauses and move/duplicate melodies between Players.

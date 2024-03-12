@@ -1,6 +1,6 @@
 # Onscreen menu
 
-AWTRIX Light provides a **onscreen menu** directly on your clock.  
+AWTRIX 3 provides a **onscreen menu** directly on your clock.  
 Press and hold the middle button for 2 seconds to access the menu.   
 Navigate through the items with the left and right buttons and choose the submenu with a push on the middle button.  
 Hold down the middle button for 2s to exit the current menu and to save your setting.  

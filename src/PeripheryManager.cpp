@@ -1,15 +1,12 @@
 #include <PeripheryManager.h>
-#ifdef awtrix2_upgrade
+#include "Adafruit_SHT31.h"
 #include "Adafruit_BME280.h"
 #include "Adafruit_BMP280.h"
 #include "Adafruit_HTU21DF.h"
 #include "SoftwareSerial.h"
 #include <DFMiniMp3.h>
-#else
 #include <melody_player.h>
 #include <melody_factory.h>
-#include "Adafruit_SHT31.h"
-#endif
 #include "Globals.h"
 #include "DisplayManager.h"
 #include "MQTTManager.h"
@@ -30,14 +27,18 @@ const char *message = "HELLO"; // Die Nachricht, die gesendet werden soll
 #define MEDIAN_WND 7 // A median filter window size of seven should be enough to filter out most spikes
 #define MEAN_WND 7   // After filtering the spikes we don't need many samples anymore for the average
 
+#define DFPLAYER_RX 23
+#define DFPLAYER_TX 18
+#define BUZZER_PIN 15
+#define RESET_PIN 13
+
 #ifdef awtrix2_upgrade
 // Pinouts für das WEMOS_D1_MINI32-Environment
 #define LDR_PIN A0
 #define BUTTON_UP_PIN D0
 #define BUTTON_DOWN_PIN D8
 #define BUTTON_SELECT_PIN D4
-#define DFPLAYER_RX D7
-#define DFPLAYER_TX D5
+
 #define I2C_SCL_PIN D1
 #define I2C_SDA_PIN D3
 #elif ESP32_S3
@@ -52,7 +53,7 @@ const char *message = "HELLO"; // Die Nachricht, die gesendet werden soll
 #else
 // Pinouts für das ULANZI-Environment
 #define BATTERY_PIN 34
-#define BUZZER_PIN 15
+
 #define LDR_PIN 35
 #define BUTTON_UP_PIN 26
 #define BUTTON_DOWN_PIN 14
@@ -61,27 +62,31 @@ const char *message = "HELLO"; // Die Nachricht, die gesendet werden soll
 #define I2C_SDA_PIN 21
 #endif
 
-#ifdef awtrix2_upgrade
 Adafruit_BME280 bme280;
 Adafruit_BMP280 bmp280;
 Adafruit_HTU21DF htu21df;
+Adafruit_SHT31 sht31;
+
+#ifdef awtrix2_upgrade
+#define USED_PHOTOCELL LightDependentResistor::GL5528
+#define PHOTOCELL_SERIES_RESISTOR 1000
+#else
+#define USED_PHOTOCELL LightDependentResistor::GL5516
+#define PHOTOCELL_SERIES_RESISTOR 10000
+#endif
+
 class Mp3Notify
 {
 };
 SoftwareSerial mySoftwareSerial(DFPLAYER_RX, DFPLAYER_TX); // RX, TX
 DFMiniMp3<SoftwareSerial, Mp3Notify> dfmp3(mySoftwareSerial);
-#define USED_PHOTOCELL LightDependentResistor::GL5528
-#define PHOTOCELL_SERIES_RESISTOR 1000
-#else
-Adafruit_SHT31 sht31;
+
 MelodyPlayer player(BUZZER_PIN, 1, LOW);
-#define USED_PHOTOCELL LightDependentResistor::GL5516
-#define PHOTOCELL_SERIES_RESISTOR 10000
-#endif
 
 EasyButton button_left(BUTTON_UP_PIN);
 EasyButton button_right(BUTTON_DOWN_PIN);
 EasyButton button_select(BUTTON_SELECT_PIN);
+EasyButton button_reset(RESET_PIN);
 
 LightDependentResistor photocell(LDR_PIN,
                                  PHOTOCELL_SERIES_RESISTOR,
@@ -98,11 +103,10 @@ const unsigned long interval_LDR = 100;
 int total = 0;
 unsigned long startTime;
 
-
-MedianFilter<uint16_t> medianFilterBatt(MEDIAN_WND); 
-MedianFilter<uint16_t> medianFilterLDR(MEDIAN_WND); 
-MeanFilter<uint16_t> meanFilterBatt(MEAN_WND); 
-MeanFilter<uint16_t> meanFilterLDR(MEAN_WND); 
+MedianFilter<uint16_t> medianFilterBatt(MEDIAN_WND);
+MedianFilter<uint16_t> medianFilterLDR(MEDIAN_WND);
+MeanFilter<uint16_t> meanFilterBatt(MEAN_WND);
+MeanFilter<uint16_t> meanFilterLDR(MEAN_WND);
 
 float brightnessPercent = 0.0;
 
@@ -111,6 +115,7 @@ PeripheryManager_::PeripheryManager_()
     this->buttonL = &button_left;
     this->buttonR = &button_right;
     this->buttonS = &button_select;
+    this->buttonRST = &button_reset;
 }
 
 // The getter for the instantiated singleton instance
@@ -127,9 +132,9 @@ void left_button_pressed()
 {
     if (!BLOCK_NAVIGATION)
     {
-#ifndef ULANZI
-        PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
-#endif
+        if (DFPLAYER_ACTIVE)
+            PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
+
         DisplayManager.leftButton();
         MenuManager.leftButton();
         if (DEBUG_MODE)
@@ -146,9 +151,9 @@ void right_button_pressed()
 {
     if (!BLOCK_NAVIGATION)
     {
-#ifndef ULANZI
-        PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
-#endif
+        if (DFPLAYER_ACTIVE)
+            PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
+
         DisplayManager.rightButton();
         MenuManager.rightButton();
         if (DEBUG_MODE)
@@ -165,9 +170,9 @@ void select_button_pressed()
 {
     if (!BLOCK_NAVIGATION)
     {
-#ifndef ULANZI
-        PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
-#endif
+        if (DFPLAYER_ACTIVE)
+            PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
+
         DisplayManager.selectButton();
         MenuManager.selectButton();
         if (DEBUG_MODE)
@@ -180,29 +185,28 @@ void select_button_pressed()
     }
 }
 
+void reset_button_pressed_long()
+{
+    ServerManager.erase();
+    ESP.restart();
+}
+
 void select_button_pressed_long()
 {
+    if (DFPLAYER_ACTIVE)
+        PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
     if (AP_MODE)
     {
-#ifndef ULANZI
-        PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
         ++MATRIX_LAYOUT;
         if (MATRIX_LAYOUT < 0)
             MATRIX_LAYOUT = 2;
         saveSettings();
         ESP.restart();
-#endif
     }
     else if (!BLOCK_NAVIGATION)
     {
-#ifndef ULANZI
-        PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
-#endif
-
         MenuManager.selectButtonLong();
-
         DisplayManager.selectButtonLong();
-
         if (DEBUG_MODE)
             DEBUG_PRINTLN(F("Select button pressed long"));
     }
@@ -214,9 +218,9 @@ void select_button_double()
         DEBUG_PRINTLN(F("Select button double pressed"));
     if (!BLOCK_NAVIGATION)
     {
-#ifndef ULANZI
-        PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
-#endif
+        if (DFPLAYER_ACTIVE)
+            PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
+
         if (MATRIX_OFF)
         {
             DisplayManager.setPower(true);
@@ -241,16 +245,18 @@ void PeripheryManager_::playBootSound()
 
     if (BOOT_SOUND == "")
     {
-#ifdef ULANZI
-        // no standard sound
-        const int nNotes = 6;
-        String notes[nNotes] = {"E5", "C5", "G4", "E4", "G4", "C5"};
-        const int timeUnit = 150;
-        Melody melody = MelodyFactory.load("Bootsound", timeUnit, notes, nNotes);
-        player.playAsync(melody);
-#else
-        playFromFile(DFMINI_MP3_BOOT);
-#endif
+        if (DFPLAYER_ACTIVE)
+        {
+            playFromFile(DFMINI_MP3_BOOT);
+        }
+        else
+        {
+            const int nNotes = 6;
+            String notes[nNotes] = {"E5", "C5", "G4", "E4", "G4", "C5"};
+            const int timeUnit = 150;
+            Melody melody = MelodyFactory.load("Bootsound", timeUnit, notes, nNotes);
+            player.playAsync(melody);
+        }
     }
     else
     {
@@ -260,27 +266,32 @@ void PeripheryManager_::playBootSound()
 
 void PeripheryManager_::stopSound()
 {
-#ifdef awtrix2_upgrade
-    if (!DFPLAYER_ACTIVE)
-        return;
-    dfmp3.stopAdvertisement();
-    delay(50);
-    dfmp3.stop();
-#else
-    player.stop();
-#endif
+    if (DFPLAYER_ACTIVE)
+    {
+        dfmp3.stopAdvertisement();
+        delay(50);
+        dfmp3.stop();
+    }
+    else
+    {
+        player.stop();
+    }
 }
 
-#ifdef awtrix2_upgrade
 void PeripheryManager_::setVolume(uint8_t vol)
 {
-    if (!DFPLAYER_ACTIVE)
-        return;
-    uint8_t curVolume = dfmp3.getVolume(); // need to read volume in order to work. Donno why! :(
-    dfmp3.setVolume(vol);
-    delay(50);
+    if (DFPLAYER_ACTIVE)
+    {
+        uint8_t curVolume = dfmp3.getVolume(); // need to read volume in order to work. Donno why! :(
+        dfmp3.setVolume(vol);
+        delay(50);
+    }
+    else
+    {
+        int scaledVol = (vol * 255) / 30;
+        player.setVolume(scaledVol);
+    }
 }
-#endif
 
 bool PeripheryManager_::parseSound(const char *json)
 {
@@ -299,17 +310,15 @@ bool PeripheryManager_::parseSound(const char *json)
 
 const char *PeripheryManager_::playRTTTLString(String rtttl)
 {
-#ifdef awtrix2_upgrade
-    return NULL;
-
-#else
-    static char melodyName[64];
-    Melody melody = MelodyFactory.loadRtttlString(rtttl.c_str());
-    player.playAsync(melody);
-    strncpy(melodyName, melody.getTitle().c_str(), sizeof(melodyName));
-    melodyName[sizeof(melodyName) - 1] = '\0';
-    return melodyName;
-#endif
+    if (!DFPLAYER_ACTIVE)
+    {
+        static char melodyName[64];
+        Melody melody = MelodyFactory.loadRtttlString(rtttl.c_str());
+        player.playAsync(melody);
+        strncpy(melodyName, melody.getTitle().c_str(), sizeof(melodyName));
+        melodyName[sizeof(melodyName) - 1] = '\0';
+        return melodyName;
+    }
 }
 
 const char *PeripheryManager_::playFromFile(String file)
@@ -317,47 +326,51 @@ const char *PeripheryManager_::playFromFile(String file)
     if (!SOUND_ACTIVE)
         return "";
 
-#ifdef awtrix2_upgrade
-    if (DEBUG_MODE)
-        DEBUG_PRINTLN(F("Playing MP3 file"));
-    if (!DFPLAYER_ACTIVE)
-        return NULL;
-    dfmp3.stop();
-    delay(50);
-    dfmp3.playMp3FolderTrack(file.toInt());
-
-    return file.c_str();
-#else
-    if (DEBUG_MODE)
-        DEBUG_PRINTLN(F("Playing RTTTL sound file"));
-    if (LittleFS.exists("/MELODIES/" + String(file) + ".txt"))
+    if (DFPLAYER_ACTIVE)
     {
-        static char melodyName[64];
-        Melody melody = MelodyFactory.loadRtttlFile("/MELODIES/" + String(file) + ".txt");
-        player.playAsync(melody);
-        strncpy(melodyName, melody.getTitle().c_str(), sizeof(melodyName));
-        melodyName[sizeof(melodyName) - 1] = '\0';
-        return melodyName;
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Playing MP3 file"));
+        if (!DFPLAYER_ACTIVE)
+            return NULL;
+        dfmp3.stop();
+        delay(50);
+        dfmp3.playMp3FolderTrack(file.toInt());
+
+        return file.c_str();
     }
     else
     {
-        return NULL;
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Playing RTTTL sound file"));
+        if (LittleFS.exists("/MELODIES/" + String(file) + ".txt"))
+        {
+            static char melodyName[64];
+            Melody melody = MelodyFactory.loadRtttlFile("/MELODIES/" + String(file) + ".txt");
+            player.playAsync(melody);
+            strncpy(melodyName, melody.getTitle().c_str(), sizeof(melodyName));
+            melodyName[sizeof(melodyName) - 1] = '\0';
+            return melodyName;
+        }
+        else
+        {
+            return NULL;
+        }
     }
-#endif
 }
 
 bool PeripheryManager_::isPlaying()
 {
-#ifdef awtrix2_upgrade
-    if (!DFPLAYER_ACTIVE)
-        return false;
-    if ((dfmp3.getStatus() & 0xff) == 0x01) // 0x01 = DfMp3_StatusState_Playing
-        return true;
+    if (DFPLAYER_ACTIVE)
+    {
+        if ((dfmp3.getStatus() & 0xff) == 0x01) // 0x01 = DfMp3_StatusState_Playing
+            return true;
+        else
+            return false;
+    }
     else
-        return false;
-#else
-    return player.isPlaying();
-#endif
+    {
+        return player.isPlaying();
+    }
 }
 
 void PeripheryManager_::setup()
@@ -366,18 +379,17 @@ void PeripheryManager_::setup()
         DEBUG_PRINTLN(F("Setup periphery"));
     startTime = millis();
     pinMode(LDR_PIN, INPUT);
-#ifdef awtrix2_upgrade
+    pinMode(RESET_PIN, INPUT);
     if (DFPLAYER_ACTIVE)
     {
         dfmp3.begin();
         delay(100);
-        setVolume(DFP_VOLUME);
+        setVolume(SOUND_VOLUME);
     }
-
-#endif
     button_left.begin();
     button_right.begin();
     button_select.begin();
+    button_reset.begin();
 
     if (ROTATE_SCREEN)
     {
@@ -395,8 +407,12 @@ void PeripheryManager_::setup()
     button_select.onPressedFor(1000, select_button_pressed_long);
     button_select.onSequence(2, 300, select_button_double);
 
+#ifdef ULANZI
+    button_reset.onPressedFor(5000, reset_button_pressed_long);
+#endif
+
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
-#ifdef awtrix2_upgrade
+
     if (bme280.begin(BME280_ADDRESS) || bme280.begin(BME280_ADDRESS_ALTERNATE))
     {
         if (DEBUG_MODE)
@@ -415,9 +431,16 @@ void PeripheryManager_::setup()
             DEBUG_PRINTLN(F("HTU21DF sensor detected"));
         TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_HTU21DF;
     }
+    else if (sht31.begin(0x44))
+    {
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("SHT31 sensor detected"));
+        TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_SHT31;
+    }
+
+#ifdef awtrix2_upgrade
     dfmp3.begin();
 #else
-    sht31.begin(0x44);
 
 #endif
     photocell.setPhotocellPositionOnGround(false);
@@ -452,6 +475,8 @@ void PeripheryManager_::tick()
         button_right.read();
     }
 
+    button_reset.read();
+
     unsigned long currentMillis_BatTempHum = millis();
     if (currentMillis_BatTempHum - previousMillis_BatTempHum >= interval_BatTempHum)
     {
@@ -472,7 +497,6 @@ void PeripheryManager_::tick()
 #endif
         if (SENSOR_READING)
         {
-#ifdef awtrix2_upgrade
             switch (TEMP_SENSOR_TYPE)
             {
             case TEMP_SENSOR_TYPE_BME280:
@@ -487,15 +511,15 @@ void PeripheryManager_::tick()
                 CURRENT_TEMP = htu21df.readTemperature();
                 CURRENT_HUM = htu21df.readHumidity();
                 break;
+            case TEMP_SENSOR_TYPE_SHT31:
+                sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
+                break;
             default:
                 CURRENT_TEMP = 0;
                 CURRENT_HUM = 0;
                 break;
             }
 
-#else
-            sht31.readBoth(&CURRENT_TEMP, &CURRENT_HUM);
-#endif
             CURRENT_TEMP += TEMP_OFFSET;
             CURRENT_HUM += HUM_OFFSET;
         }
@@ -504,7 +528,6 @@ void PeripheryManager_::tick()
             SENSORS_STABLE = true;
         }
     }
-
 
     unsigned long currentMillis_LDR = millis();
     if (currentMillis_LDR - previousMillis_LDR >= interval_LDR)

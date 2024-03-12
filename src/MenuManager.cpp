@@ -23,9 +23,7 @@ enum MenuState
     TempMenu,
     Appmenu,
     SoundMenu,
-#ifdef awtrix2_upgrade
     VolumeMenu,
-#endif
     UpdateMenu,
     MaxMenu
 };
@@ -42,9 +40,7 @@ const char *menuItems[] PROGMEM = {
     "TEMP",
     "APPS",
     "SOUND",
-#ifdef awtrix2_upgrade
     "VOLUME",
-#endif
     "UPDATE"};
 
 int8_t menuIndex = 0;
@@ -202,10 +198,8 @@ String MenuManager_::menutext()
             break;
         }
         break;
-#ifndef ULANZI
     case VolumeMenu:
-        return String(DFP_VOLUME);
-#endif
+        return String(SOUND_VOLUME);
     default:
         break;
     }
@@ -259,13 +253,12 @@ void MenuManager_::rightButton()
     case TempMenu:
         IS_CELSIUS = !IS_CELSIUS;
         break;
-#ifdef awtrix2_upgrade
     case VolumeMenu:
-        if ((DFP_VOLUME + 1) > 30)
-            DFP_VOLUME = 0;
+        if ((SOUND_VOLUME + 1) > 30)
+            SOUND_VOLUME = 0;
         else
-            DFP_VOLUME++;
-#endif
+            SOUND_VOLUME++;
+        break;
     default:
         break;
     }
@@ -320,13 +313,11 @@ void MenuManager_::leftButton()
     case SoundMenu:
         SOUND_ACTIVE = !SOUND_ACTIVE;
         break;
-#ifdef awtrix2_upgrade
     case VolumeMenu:
-        if ((DFP_VOLUME - 1) < 0)
-            DFP_VOLUME = 30;
+        if ((SOUND_VOLUME - 1) < 0)
+            SOUND_VOLUME = 30;
         else
-            DFP_VOLUME--;
-#endif
+            SOUND_VOLUME--;
     default:
         break;
     }
@@ -354,6 +345,7 @@ void MenuManager_::selectButton()
             {
                 BRIGHTNESS_PERCENT = map(BRIGHTNESS, 0, 255, 0, 100);
             }
+            break;
         case UpdateMenu:
             if (UpdateManager.checkUpdate(true))
             {
@@ -441,12 +433,10 @@ void MenuManager_::selectButtonLong()
             DisplayManager.loadNativeApps();
             saveSettings();
             break;
-#ifdef awtrix2_upgrade
         case VolumeMenu:
-            PeripheryManager.setVolume(DFP_VOLUME);
+            PeripheryManager.setVolume(SOUND_VOLUME);
             saveSettings();
             break;
-#endif
         default:
             break;
         }

@@ -1,6 +1,6 @@
 # DIY Hardware
 
-if you want to build your own AWTRIX Light, here are the pinout of the Ulanzi clock  
+if you want to build your own AWTRIX 3, here are the pinout of the Ulanzi clock  
   
 
 |ESP32 PIN | GPIO  | Usage or part                          |
