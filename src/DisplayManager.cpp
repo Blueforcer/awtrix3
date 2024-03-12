@@ -12,7 +12,7 @@
 #include "ServerManager.h"
 #include "MenuManager.h"
 #include "Apps.h"
-#include "Effects.h"
+#include "effects.h"
 #include "Overlays.h"
 #include "Dictionary.h"
 #include <set>
