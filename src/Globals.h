@@ -27,6 +27,7 @@
 #define DEBUG_PRINTLN(x)
 #define DEBUG_PRINTF(format, ...)
 #endif
+
 void formatSettings();
 extern const char *uniqueID;
 extern const char *VERSION;
@@ -146,4 +147,5 @@ extern uint32_t AP_TIMEOUT;
 extern OverlayEffect GLOBAL_OVERLAY;
 extern String HOSTNAME;
 extern int WEB_PORT;
+extern bool BUZ_VOL;
 #endif // Globals_H

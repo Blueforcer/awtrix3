@@ -259,7 +259,7 @@ void ServerManager_::setup()
         MDNS.addService("awtrix", "tcp", 80);
         MDNS.addServiceTxt("awtrix", "tcp", "id", uniqueID);
         MDNS.addServiceTxt("awtrix", "tcp", "name", HOSTNAME.c_str());
-        MDNS.addServiceTxt("awtrix", "tcp", "type", "awtrix_light");
+        MDNS.addServiceTxt("awtrix", "tcp", "type", "awtrix3");
     }
 
     configTzTime(NTP_TZ.c_str(), NTP_SERVER.c_str());

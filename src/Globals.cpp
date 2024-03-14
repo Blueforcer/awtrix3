@@ -161,6 +161,11 @@ void loadDevSettings()
             HOSTNAME = doc["hostname"].as<String>();
         }
 
+         if (doc.containsKey("buzzer_volume"))
+        {
+            BUZ_VOL = doc["buzzer_volume"].as<bool>();
+        }
+
         if (doc.containsKey("web_port"))
         {
             WEB_PORT = doc["web_port"];
@@ -333,7 +338,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.95";
+const char *VERSION = "0.96";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -447,3 +452,4 @@ uint32_t AP_TIMEOUT = 15;
 int WEB_PORT = 80;
 OverlayEffect GLOBAL_OVERLAY = NONE;
 String HOSTNAME = "";
+bool BUZ_VOL = false;

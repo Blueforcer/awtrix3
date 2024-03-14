@@ -126,10 +126,10 @@ float getTextWidth(const char *text, byte textCase)
             {
                 width += 7;
             }
-            else if (current_char == 0x99 || 
-                current_char == 0x95 ||
-                current_char == 0x87 ||
-                current_char == 0x88)
+            else if (current_char == 0x99 ||
+                     current_char == 0x95 ||
+                     current_char == 0x87 ||
+                     current_char == 0x88)
             {
                 width += 5;
             }
@@ -168,7 +168,8 @@ byte utf8ascii(byte ascii)
 
     case 0x82:
         if (ascii == 0xAC)
-            return (0xEA);
+            // return (0xEA);
+            return (0xB6);
 
     case 0xD0:
         if (ascii == 0x81) // Ё
@@ -205,11 +206,10 @@ byte utf8ascii(byte ascii)
 
         if (ascii == 0x91) // ґ
             return 0x9F;
-
     }
     return (0);
 }
-                       
+
 String utf8ascii(String s)
 {
     String r = "";

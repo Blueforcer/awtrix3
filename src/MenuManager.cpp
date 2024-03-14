@@ -199,7 +199,15 @@ String MenuManager_::menutext()
         }
         break;
     case VolumeMenu:
-        return String(SOUND_VOLUME);
+        if (!(DFPLAYER_ACTIVE || BUZ_VOL))
+        {
+            return "N/A";
+        }
+        else
+        {
+            return String(SOUND_VOLUME);
+        }
+
     default:
         break;
     }
@@ -254,6 +262,8 @@ void MenuManager_::rightButton()
         IS_CELSIUS = !IS_CELSIUS;
         break;
     case VolumeMenu:
+        if (!(DFPLAYER_ACTIVE || BUZ_VOL))
+            break;
         if ((SOUND_VOLUME + 1) > 30)
             SOUND_VOLUME = 0;
         else
@@ -314,6 +324,8 @@ void MenuManager_::leftButton()
         SOUND_ACTIVE = !SOUND_ACTIVE;
         break;
     case VolumeMenu:
+        if (!(DFPLAYER_ACTIVE || BUZ_VOL))
+            break;
         if ((SOUND_VOLUME - 1) < 0)
             SOUND_VOLUME = 30;
         else

@@ -5,8 +5,8 @@
 #include "Adafruit_HTU21DF.h"
 #include "SoftwareSerial.h"
 #include <DFMiniMp3.h>
-#include <melody_player.h>
-#include <melody_factory.h>
+#include <MelodyPlayer/melody_player.h>
+#include <MelodyPlayer/melody_factory.h>
 #include "Globals.h"
 #include "DisplayManager.h"
 #include "MQTTManager.h"
