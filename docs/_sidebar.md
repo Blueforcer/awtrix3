@@ -4,6 +4,8 @@
   - [Flasher](flasher.md)
   - [Hardware](hardware.md)
   - [FAQ](faq.md)
+  - [Remove AWTRIX](original.md)
+    
 - Settings
 
   - [Webinterface](webinterface.md)
@@ -18,4 +20,5 @@
 
 - API
   - [MQTT/HTTP](api.md)
+
 
