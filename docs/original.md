@@ -7,7 +7,8 @@ This tutorial is for the Windows software, but you can use the firmware in any o
 3. Hit Connect -> Erase
 4. Upload the .bin file and enter 0x00000. Then hit "program"  
 ![image](https://github.com/Blueforcer/awtrix3/assets/31169771/b79bdf7e-477e-47f6-a41e-9106519f636b)
-
+  
+  
   
 ## Method 2 (Windows only) 
 1. Download the [ESP32 download tool](https://www.espressif.com/en/support/download/other-tools)
