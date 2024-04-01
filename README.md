@@ -8,11 +8,11 @@
 } -->
 
 <div align="center">
-  
+![Alt text](/logo.png?raw=true "Title")
 <br>
-![GitHub all releases](https://img.shields.io/github/downloads/blueforcer/awtrix3/total?style=flat-square)
-![GitHub Sponsors](https://img.shields.io/github/sponsors/blueforcer?style=flat-square)
-![Discord](https://img.shields.io/discord/546407049148366859?label=Discord&style=flat-square)
+![GitHub all releases](https://img.shields.io/github/downloads/blueforcer/awtrix3/total?style=flat-square)  
+![GitHub Sponsors](https://img.shields.io/github/sponsors/blueforcer?style=flat-square)  
+![Discord](https://img.shields.io/discord/546407049148366859?label=Discord&style=flat-square)  
 </div>  
 <br>  
   
