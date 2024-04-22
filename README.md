@@ -30,9 +30,9 @@ Our discord community, with over 4500 people, are willing to help you!
 It is ready to use straight out of the box, with time, date, temperature, and humidity pages pre-installed. You don't need to do anything other than turning it on to start using these features.    
 
 However, for those with more advanced skills, the customization options available with customapps and mqtt commands allows you to take AWTRIX 3 to its full potential.  
-customapps are new pages that are added to the apploop and whose structure and appearance are sent by the smarthome via MQTT or HTTP and update it in realtime.  
 
-**Note: In AWTRIX, the term 'Apps' does not refer to traditional smartphone apps that you download and install. Instead, in AWTRIX, CustomApps function more like dynamic pages that rotate within the App loop of the display. These pages do not store or execute their own logic; instead, they display content that is sent from an external system, such as a smarthome. This content must be transmitted using MQTT or HTTP protocols via the CustomApp API.
+**Note:  
+In AWTRIX, the term 'Apps' does not refer to traditional smartphone apps that you download and install. Instead, in AWTRIX, CustomApps function more like dynamic pages that rotate within the App loop of the display. These pages do not store or execute their own logic; instead, they display content that is sent from an external system, such as a smarthome.  This content must be transmitted using MQTT or HTTP protocols via the CustomApp API.    
 It is important to note that all the logic for managing the content displayed in these CustomApps needs to be handled by your external system. AWTRIX only provides the platform for displaying the information. You have the flexibility to update the content shown on your CustomApps in real-time at any moment, making it a versatile tool for displaying personalized information in your smarthome setup.**
 
 Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 and AWTRIX 3 and experience the difference today! 
