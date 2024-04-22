@@ -6,12 +6,12 @@ AWTRIX 3 is a custom firmware for the [Ulanzi Smart Pixel clock](https://www.ula
 It meant to be a companion for your smarthome like HomeAssistant, IOBroker, NodeRed and so on.    
 Even if you don't have a Smarthome system, but would like to experiment, you are still welcome to join us. There are many users who are willing to help you!  
    
-It is ready to use straight out of the box, with time, date, temperature, and humidity apps pre-installed. You don't need to do anything other than turning it on to start using these features.    
-
-During the development of AWTRIX 3, usability and simplicity are my top priorities. My aim is to make it easy for non-tech-savvy users to benefit from AWTRIX 3 without any headaches or hours of scripting.  
-AWTRIX 3 is ready to use straight out of the box, without the need for a single line of code.  
+It is ready to use straight out of the box, with time, date, temperature, and humidity apps pre-installed. You don't need to do anything other than turning it on to start using these features.     
 However, for those with more advanced skills, the customization options available with custom apps allow you to take AWTRIX 3 to its full potential.  
-With AWTRIX 3, you can effortlessly bring your ideas to life and enjoy a hassle-free experience. 
+
+!> In AWTRIX, the term 'Apps' does not refer to traditional smartphone apps that you download and install. Instead, in AWTRIX, CustomApps function more like dynamic pages that rotate within the Apploop rotation of the display. These pages do not store or execute their own logic; instead, they display content that is sent from an external system, such as a smarthome. This content must be transmitted using MQTT or HTTP protocols via the [CustomApp API](https://blueforcer.github.io/awtrix3/#/api?id=custom-apps-and-notifications).  
+It is important to note that all the logic for managing the content displayed in these CustomApps needs to be handled by your external system. AWTRIX only provides the platform for displaying the information. You have the flexibility to update the content shown on your CustomApps in real-time at any moment, making it a versatile tool for displaying personalized information in your smarthome setup.  
+  
 Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 and AWTRIX 3 and experience the difference today! 
 https://discord.gg/cyBCpdx  
 
