@@ -338,11 +338,11 @@ Directly transition to a desired app using its name.
 | `[PREFIX]/switch`            | `http://[IP]/api/switch`           | `{"name":"time"}` | POST       |
 
 **Built-in App Names**:
-- `Time`
-- `Date`
-- `Temperature`
-- `Humidity`
-- `Battery`
+- `time`
+- `date`
+- `temperature`
+- `humidity`
+- `battery`
 
 For custom apps, employ the name you designated in the topic or HTTP parameter. In MQTT, if `[PREFIX]/custom/test` is your topic, then `test` would be the app's name.
   
