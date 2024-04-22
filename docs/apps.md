@@ -3,7 +3,8 @@
 The AWTRIX 3 system comes equipped with several built-in applications, including Time, Date, Temperature, Humidity, and Battery status.  
 As it is designed to integrate seamlessly with your smart home ecosystem, additional applications can be created using MQTT or HTTP requests.
 
-!> Note: In AWTRIX, 'Apps' are not similar to smartphone apps. CustomApps are likely static pages that rotate in the Apploop. You need to send the content of the page from your external system, such as a smart home setup. You can update them in real-time at any time.
+!> In AWTRIX, the term 'Apps' does not refer to traditional smartphone apps that you download and install. Instead, in AWTRIX, CustomApps function more like dynamic display panels that rotate within the App loop of the display. These panels do not store or execute their own logic; instead, they display content that is sent from an external system, such as a smart home controller. This content must be transmitted using MQTT or HTTP protocols via the [CustomApp API](https://blueforcer.github.io/awtrix3/#/api?id=custom-apps-and-notifications), as detailed in the AWTRIX documentation.
+It is important to note that all the logic for managing the content displayed in these CustomApps needs to be handled by your external system. AWTRIX only provides the platform for displaying the information, but does not manage or execute any of the application logic. You have the flexibility to update the content shown on your CustomApps in real-time at any moment, making it a versatile tool for displaying personalized information in your smart home setup.
 
 There are numerous benefits to this approach:
 
