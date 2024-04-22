@@ -3,7 +3,7 @@
 The AWTRIX 3 system comes equipped with several built-in applications, including Time, Date, Temperature, Humidity, and Battery status.  
 As it is designed to integrate seamlessly with your smart home ecosystem, additional applications can be created using MQTT or HTTP requests.
 
-<! Note: In AWTRIX, 'Apps' are not similar to smartphone apps. CustomApps are likely static pages that rotate in the Apploop. You need to send the content of the page from your external system, such as a smart home setup. You can update them in real-time at any time.
+!> Note: In AWTRIX, 'Apps' are not similar to smartphone apps. CustomApps are likely static pages that rotate in the Apploop. You need to send the content of the page from your external system, such as a smart home setup. You can update them in real-time at any time.
 
 There are numerous benefits to this approach:
 
