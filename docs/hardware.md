@@ -12,7 +12,7 @@ if you want to build your own AWTRIX 3, here are the pinout of the Ulanzi clock
 |12 | GPIO27    | Middle button (optional)                             |
 |13 | GPIO14    | Right button  (optional)                              |
 |23 | GPIO15    | Buzzer  (optional)                                    |
-|33/36| 21 (SCL) /22(SDA)  | Temperature and Humidity Sensors (optional)     |
+|33/36| 21 (SDA) /22(SCL)  | Temperature and Humidity Sensors (optional)     |
 |37/30| 23(RX)/18(TX) | DFplayer (optional)     |
 
 Supported Sensors:
