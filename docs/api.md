@@ -335,14 +335,14 @@ Directly transition to a desired app using its name.
 
 | MQTT Topic                   | HTTP URL                           | Payload/Body     | HTTP Method |
 | ---------------------------- | ---------------------------------- | ---------------- | ----------- |
-| `[PREFIX]/switch`            | `http://[IP]/api/switch`           | `{"name":"time"}` | POST       |
+| `[PREFIX]/switch`            | `http://[IP]/api/switch`           | `{"name":"Time"}` | POST       |
 
 **Built-in App Names**:
-- `time`
-- `date`
-- `temperature`
-- `humidity`
-- `battery`
+- `Time`
+- `Date`
+- `Temperature`
+- `Humidity`
+- `Battery`
 
 For custom apps, employ the name you designated in the topic or HTTP parameter. In MQTT, if `[PREFIX]/custom/test` is your topic, then `test` would be the app's name.
   
