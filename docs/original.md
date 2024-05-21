@@ -1,4 +1,5 @@
-If you want to remove AWTRIX from your Ulanzi TC001 you can flash the original Firmware.
+If you want to remove AWTRIX from your Ulanzi TC001 you need to flash the original Firmware.
+
 
 ## Method 1
 1. Download the dump of the [original firmware](https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/ulanzi_original_firmware.bin)
@@ -6,9 +7,7 @@ If you want to remove AWTRIX from your Ulanzi TC001 you can flash the original F
 3. Hit Connect -> Erase
 4. Upload the .bin file and enter 0x00000. Then hit "program"  
 ![image](https://github.com/Blueforcer/awtrix3/assets/31169771/b79bdf7e-477e-47f6-a41e-9106519f636b)
-  
-  
-  
+    
 ## Method 2 (Windows only) 
 1. Download the [ESP32 download tool](https://www.espressif.com/en/support/download/other-tools)
 2. Download the dump of the [original firmware](https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/ulanzi_original_firmware.bin)
