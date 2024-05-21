@@ -1,5 +1,4 @@
 If you want to remove AWTRIX from your Ulanzi TC001 you can flash the original Firmware.
-This tutorial is for the Windows software, but you can use the firmware in any other flasher for different platforms.
 
 ## Method 1
 1. Download the dump of the [original firmware](https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/ulanzi_original_firmware.bin)
