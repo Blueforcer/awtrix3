@@ -2,7 +2,7 @@
 
 To personalize your custom page or notification with your favorite icon, you can use one of these simple methods:
 
-## Downloading an Icon
+### Downloading an Icon
 
 1. **Integrated downloader**: Open webinterface and go to the icon tab.
 2. **Enter the Icon ID**: Input the ID of a LaMetric icon in the provided field.
@@ -11,11 +11,11 @@ To personalize your custom page or notification with your favorite icon, you can
 
 You can explore and find LaMetric icons at [LaMetric Icon Gallery](https://developer.lametric.com/icons).
 
-## AWTRIX 3 App
+### AWTRIX 3 App
 
 With the AWTRIX 3 app, available for both Android and iOS, you gain exclusive access to the official AWTRIX database, featuring over 1500 icons and animations in 8x8 and 32x8 formats. The app also allows you to create your own icons and to upload them directly to your AWTRIX device or to the cloud database.
 
-## Custom Icons
+### Custom Icons
 
 You can create custom icons using any image editing tool and upload them via the web interface's file browser to the "ICONS" folder. Ensure that the icons adhere to the following specifications:
 
