@@ -1,18 +1,30 @@
 # Icons
 
-AWTRIX 3 doesn't offer any cloud connection like AWTRIX 2.0. However, to use your favorite icon for a custom page or notification, you can use the integrated icon downloader in the web interface.
+To personalize your custom page or notification with your favorite icon, follow these simple steps using the integrated icon downloader in the web interface.
 
-<div align=center>
-<img width="400" src="icons.png"/>
+<div align="center">
+<img width="400" src="icons.png" alt="Icons"/>
 </div>
 
-To download an icon, simply enter the ID of a LaMetric or AWTRIX 2.0 icon in the input field. After previewing the icon, you can download it and use it instantly without the need to restart or convert anything. You can find LaMetric icons at [lametric.com](https://developer.lametric.com/icons).
+## Downloading an Icon
 
-AWTRIX 2.0 icons can be found in the respective software. In a future update, non-AWTRIX 2.0 users will also get access to the database.
+1. **Enter the Icon ID**: Input the ID of a LaMetric icon in the provided field.
+2. **Preview**: Review the icon to ensure it's the one you want.
+3. **Download**: Click to download the icon and use it immediately without the need for any additional steps like restarting or converting.
 
-You can also create your own icon and place it in the "ICONS" folder via the web interface file browser.  
-The icon needs to be a GIF (.gif) or JPG (.jpg) with a resolution of 8x8.
-  
-!> The Awtrix GIF renderer only supports 8bit gifs at the moment without transparency.
-If you have some graphic glitches on the matrix, try to replace the transparency pixels with solid black color.
-For example with this [online tool](https://onlinegiftools.com/add-gif-background)
+You can explore and find LaMetric icons at [LaMetric Icon Gallery](https://developer.lametric.com/icons).
+
+## AWTRIX 3 App
+
+With the AWTRIX 3 app, available for both Android and iOS, you gain exclusive access to the official AWTRIX database, featuring over 1500 icons and animations in 8x8 and 32x8 formats. The app also allows you to create your own icons and to upload them directly to your AWTRIX device or to the cloud database.
+
+## Custom Icons
+
+You can create custom icons using any image editing tool and upload them via the web interface's file browser to the "ICONS" folder. Ensure that the icons adhere to the following specifications:
+
+- **GIF**: Maximum size of 32x8 pixels.
+- **JPG**: Maximum size of 8x8 pixels.
+
+### Important Note
+
+The AWTRIX GIF renderer currently supports only 8-bit GIFs without transparency. If you experience graphic glitches on the matrix, try replacing transparent pixels with solid black using an online tool such as [Online GIF Tools](https://onlinegiftools.com/add-gif-background).
