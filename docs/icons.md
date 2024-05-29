@@ -1,16 +1,13 @@
 # Icons
 
-To personalize your custom page or notification with your favorite icon, follow these simple steps using the integrated icon downloader in the web interface.
-
-<div align="center">
-<img width="400" src="icons.png" alt="Icons"/>
-</div>
+To personalize your custom page or notification with your favorite icon, you can use one of these simple methods:
 
 ## Downloading an Icon
 
-1. **Enter the Icon ID**: Input the ID of a LaMetric icon in the provided field.
-2. **Preview**: Review the icon to ensure it's the one you want.
-3. **Download**: Click to download the icon and use it immediately without the need for any additional steps like restarting or converting.
+1. **Integrated downloader**: Open webinterface and go to the icon tab.
+2. **Enter the Icon ID**: Input the ID of a LaMetric icon in the provided field.
+3. **Preview**: Review the icon to ensure it's the one you want.
+4. **Download**: Click to download the icon and use it immediately without the need for any additional steps like restarting or converting.
 
 You can explore and find LaMetric icons at [LaMetric Icon Gallery](https://developer.lametric.com/icons).
 
