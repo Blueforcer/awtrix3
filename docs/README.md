@@ -14,6 +14,10 @@ It is important to note that all the logic for managing the content displayed in
 Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 and AWTRIX 3 and experience the difference today! 
 https://discord.gg/cyBCpdx  
 
+## Who i am?
+My name is Stephan, also known as Blueforcer, from Frankfurt, Germany. I am a husband and father of two children, and I have a strong passion for technology.  
+In my free time, I engage in a wide range of activities including 3D printing, programming, FPV drones, electric cars, gaming, and much more. I constantly seek new technological adventures and enjoy exploring various innovative fields.
+  
 ## Support
 
 If you like my work, please consider supporting the project.  
