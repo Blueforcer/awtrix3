@@ -28,7 +28,7 @@ A: If you encounter errors during the flashing process, i recommend trying a dif
 #### Q: I'm experiencing drawing glitches with my icons.
 A: The AWTRIX GIF renderer currently supports only 8-bit GIFs without transparency. If you notice graphic glitches on the matrix, try replacing transparent pixels with solid black. You can easily do this using an online tool like [this one](https://onlinegiftools.com/add-gif-background). 
 
-### Q: I only have 192KB of free flash memory. What's wrong?
+#### Q: I only have 192KB of free flash memory. What's wrong?
 A: The issue arises because Ulanzi uses a different partition table, which results in a smaller SPIFFS partition.  
 To utilize the full 1350KB of flash memory, make sure to use the AWTRIX online flasher.
 
