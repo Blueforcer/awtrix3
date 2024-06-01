@@ -23,7 +23,7 @@
 
 You can get an Ulanzi TC001 [here](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882?ref=28e02dxl) (affiliate link)
 
-AWL meant to be a companion for your smarthome like HomeAssistant, IOBroker, FHEM, NodeRed and so on.    
+AWTRIX3 meant to be a companion for your smarthome like HomeAssistant, IOBroker, FHEM, NodeRed and so on.    
 Even if you don't have a Smarthome system, but would like to experiment with NodeRed or N8N, you are still welcome to join us.  
 Our discord community, with over 5000 people, are willing to help you!  
 
