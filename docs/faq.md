@@ -24,6 +24,9 @@ A: Currently, AWTRIX is optimized for the Ulanzi Pixelclock, which supports a ma
 #### Q: Why Am I Getting an Error While Flashing My Ulanzi Clock with the AWTRIX Web Flasher?
 A: If you encounter errors during the flashing process, i recommend trying a different USB cable and USB port. Some users have reported issues with the original cable provided with the device.
 
+### Q: I'm experiencing drawing glitches with my icons.
+A: The AWTRIX GIF renderer currently supports only 8-bit GIFs without transparency. If you notice graphic glitches on the matrix, try replacing transparent pixels with solid black. You can easily do this using an online tool like [this one](https://onlinegiftools.com/add-gif-background).  
+
 #### Q: What should I do if I accidentally touched the `DoNotTouch.json` file in AWTRIX Web File Manager?
 A: The `DoNotTouch.json` file contains settings such as:
 
