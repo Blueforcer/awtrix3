@@ -185,7 +185,7 @@ Below are the properties you can utilize in the JSON object. **All keys are opti
 | `repeat` | integer | Sets how many times the text should be scrolled through the matrix before the app ends. | -1 | X | X |
 | `duration` | integer | Sets how long the app or notification should be displayed. | 5 | X | X |
 | `hold` | boolean | Set it to true, to hold your **notification** on top until you press the middle button or dismiss it via HomeAssistant. This key only belongs to notification. | false |  | X |
-| `sound` | string | The filename of your RTTTL ringtone file placed in the MELODIES folder (without extension). | N/A |  | X |
+| `sound` | string | The filename of your RTTTL ringtone file placed in the MELODIES folder (without extension). Or the 4 digit number of your MP3 if youre using a DFplayer | N/A |  | X |
 | `rtttl` | string | Allows to send the RTTTL sound string with the json. | N/A |  | X |
 | `loopSound` | boolean | Loops the sound or rtttl as long as the notification is running. | false |  | X |
 | `bar` | array of integers | Draws a bargraph. Without icon maximum 16 values, with icon 11 values. | N/A | X | X |
