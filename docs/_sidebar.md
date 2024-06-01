@@ -9,7 +9,7 @@
 - Settings
 
   - [Webinterface](webinterface.md)
-  - [Onscreen](onscreen.md)
+  - [Onscreen menu](onscreen.md)
 
 - Features
   - [Apps](apps.md)
