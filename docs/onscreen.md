@@ -5,6 +5,8 @@ Press and hold the middle button for 2 seconds to access the menu.
 Navigate through the items with the left and right buttons and choose the submenu with a push on the middle button.  
 Hold down the middle button for 2s to exit the current menu and to save your setting.  
   
+!>  You can easily turn your AWTRIX matrix on or off by simply double-pressing the middle button if your not in Menu.
+    
 | Menu Item | Description |
 | --- | --- |
 | `BRIGHT` | Allows adjustment of the brightness of the display. Switch between Auto and manual brightnesscontrol with the middle button. |
