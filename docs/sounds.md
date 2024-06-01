@@ -25,5 +25,5 @@ You can find many melodies on the internet. For example:
 ## DFPlayer
 
 The DFPlayer is used for the output of sounds and can be used optionally. It stores mp3 files on a memory card, which is inserted into the micro SD slot of the player. This allows you to have your awtrix speak to you or play sounds when you receive notifications, for example.
-
-You need to create a folder “MP3” on your DFplayer SD card and move your mp3s to this folder. The mp3 must start with a 4-digit number, e.g. 0001.mp3 or 0001 - Testfile.mp3.
+You need to create a folder “MP3” on your DFplayer SD card and move your mp3s to this folder. The mp3 must start with a 4-digit number, e.g. 0001.mp3 or 0001 - Testfile.mp3.  
+You can now play them by using the /sound API or the "sound" key in your notification.
