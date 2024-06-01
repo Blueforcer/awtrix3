@@ -25,7 +25,7 @@ You can get an Ulanzi TC001 [here](https://www.ulanzi.com/products/ulanzi-pixel-
 
 AWL meant to be a companion for your smarthome like HomeAssistant, IOBroker, FHEM, NodeRed and so on.    
 Even if you don't have a Smarthome system, but would like to experiment with NodeRed or N8N, you are still welcome to join us.  
-Our discord community, with over 4500 people, are willing to help you!  
+Our discord community, with over 5000 people, are willing to help you!  
 
 It is ready to use straight out of the box, with time, date, temperature, and humidity pages pre-installed. You don't need to do anything other than turning it on to start using these features.    
 
@@ -93,7 +93,7 @@ Starting is easy as 1-2-3
 [with the documentation](https://blueforcer.github.io/awtrix3/)
   
 # Community 
-Join the discord channel with over 4500 Users  
+Join the discord channel with over 5000 Users  
 https://discord.gg/cyBCpdx  
 
 Youtube videos from some awesome creators to get a quick first look.
