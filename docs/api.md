@@ -78,8 +78,9 @@ AWTRIX will only wakeup after time or if you press the middle button once. There
   
 ## Sound Playback
 
-Play a RTTTL sound from the MELODIES folder:
-
+Play a RTTTL sound from the MELODIES folder.  
+If youre using a DFplayer, use the /sound API and enter the 4 digit number of your MP3.  
+  
 | MQTT Topic        | HTTP URL                     | Payload/Body        | HTTP Method |
 | ----------------- | ---------------------------- | ------------------- | ----------- |
 | `[PREFIX]/sound`  | `http://[IP]/api/sound`      | `{"sound":"alarm"}` | POST        |
