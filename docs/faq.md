@@ -7,6 +7,7 @@ Welcome to the FAQ section. Here, you'll find answers to some of the most common
   - [Can I run AWTRIX 3 standalone?](#q-can-i-run-awtrix3-standalone)
   - [Can I use different matrix sizes other than 8x32?](#q-can-i-use-different-matrix-sizes-other-than-8x32)
   - [Error while flashing my Ulanzi clock](#q-why-am-i-getting-an-error-while-flashing-my-ulanzi-clock-with-the-awtrix-web-flasher)
+  - [I'm experiencing drawing glitches with my icons](#q-i39m-experiencing-drawing-glitches-with-my-icons)
   - [Accidentally touched DoNotTouch.json](#q-what-should-i-do-if-i-accidentally-touched-the-donottouchjson-file-in-awtrix-web-file-manager)
   - [Self-built AWTRIX displaying meaningless characters](#q-my-self-built-awtrix-device-is-displaying-meaningless-characters-on-the-matrix-what-should-i-do)
   - [Which firmware for building my own AWTRIX?](#q-i-want-to-build-my-own-awtrix-which-firmware-should-i-use)
