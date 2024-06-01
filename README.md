@@ -81,8 +81,7 @@ https://flows.blueforcer.de/
 - Effects
 - Custom icons without recompiling
 - Easy to use icon system
-- Powerful MQTT commands
-- HTTP API
+- Powerful MQTT and HTTP API
 - RTTTL melody player
 - Integrated filebrowser
 - No cloud 
