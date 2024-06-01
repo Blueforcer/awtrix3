@@ -15,8 +15,10 @@ Join the thousands of satisfied awtrix users who have already chosen Awtrix 2 an
 https://discord.gg/cyBCpdx  
 
 ## Who i am?
-My name is Stephan, also known as Blueforcer, from Frankfurt, Germany. I am a husband and father of two children, and I have a strong passion for technology.  
-In my free time, I engage in a wide range of activities including 3D printing, programming, FPV drones, electric cars, gaming, and much more. I constantly seek new technological adventures and enjoy exploring various innovative fields.
+My name is Stephan, also known as Blueforcer, from Frankfurt, Germany. I am a husband and father of two children, and I have a strong passion for technology. 
+I started AWTRIX 1 in 2018 and im still in love with my project 6 years later. As a one-man show, I spend a lot of time developing AWTRIX and, more recently, my own AWTRIX mobile apps.   
+In my free time, I engage in a wide range of activities including 3D printing, programming, FPV drones, electric cars, gaming, and much more.  
+I constantly seek new technological adventures and enjoy exploring various innovative fields.  
   
 ## Support
 
