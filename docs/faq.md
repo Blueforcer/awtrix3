@@ -30,8 +30,9 @@ A: If you encounter errors during the flashing process, i recommend trying a dif
 A: The AWTRIX GIF renderer currently supports only 8-bit GIFs without transparency. If you notice graphic glitches on the matrix, try replacing transparent pixels with solid black. You can easily do this using an online tool like [this one](https://onlinegiftools.com/add-gif-background). 
 
 #### Q: I only have 192KB of free flash memory. What's wrong?
-A: The issue arises because Ulanzi uses a different partition table, which results in a smaller SPIFFS partition.  
-To utilize the full 1350KB of flash memory, make sure to use the AWTRIX online flasher.
+A: The issue arises because Ulanzi uses a different partition table, resulting in a smaller SPIFFS partition.  
+To utilize the full 1350KB of flash memory, make sure to use the AWTRIX online flasher, which also writes to all other partitions.  
+The Ulanzi web updater only writes to the program partition.
 
 #### Q: What should I do if I accidentally touched the `DoNotTouch.json` file in AWTRIX Web File Manager?
 A: The `DoNotTouch.json` file contains settings such as:
