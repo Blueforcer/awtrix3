@@ -22,6 +22,7 @@
 #include <HTTPClient.h>
 #include "base64.hpp"
 #include "GameManager.h"
+#include "reset.h"
 
 unsigned long lastArtnetStatusTime = 0;
 const int numberOfChannels = 256 * 3;
@@ -1623,6 +1624,7 @@ String DisplayManager_::getStats()
   doc[F("uid")] = uniqueID;
   doc[F("matrix")] = !MATRIX_OFF;
   doc[IpAddrKey] = WiFi.localIP();
+  doc[ResetReasonKey] = ESP_getResetReason();
   String jsonString;
   serializeJson(doc, jsonString);
   return jsonString;

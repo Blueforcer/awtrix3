@@ -154,4 +154,5 @@ extern const char MessagesKey[];
 extern const char VersionKey[];
 extern const char RamKey[];
 extern const char IpAddrKey[];
+extern const char ResetReasonKey[];
 #endif
