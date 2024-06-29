@@ -30,6 +30,7 @@
  *                                                                         *
  ***************************************************************************/
 
+
 #include <Arduino.h>
 #include "DisplayManager.h"
 #include "PeripheryManager.h"
@@ -94,11 +95,19 @@ void setup()
       DisplayManager.HSVtext(x, 6, textForDisplay.c_str(), true, 0);
       x -= 0.18;
     }
-    if (MQTT_HOST != "")
+
+    if (MQTT_BROKER)
     {
-      DisplayManager.HSVtext(4, 6, "MQTT...", true, 0);
       MQTTManager.setup();
-      MQTTManager.tick();
+    }
+    else
+    {
+      if (MQTT_HOST != "")
+      {
+        DisplayManager.HSVtext(4, 6, "MQTT...", true, 0);
+        MQTTManager.setup();
+        MQTTManager.tick();
+      }
     }
   }
   else

@@ -121,6 +121,12 @@ void loadDevSettings()
             MIN_BRIGHTNESS = doc["min_brightness"];
         }
 
+        if (doc.containsKey("mqtt_broker"))
+        {
+            MQTT_BROKER = doc["mqtt_broker"].as<bool>();
+            ;
+        }
+
         if (doc.containsKey("max_brightness"))
         {
             MAX_BRIGHTNESS = doc["max_brightness"];
@@ -161,7 +167,7 @@ void loadDevSettings()
             HOSTNAME = doc["hostname"].as<String>();
         }
 
-         if (doc.containsKey("buzzer_volume"))
+        if (doc.containsKey("buzzer_volume"))
         {
             BUZ_VOL = doc["buzzer_volume"].as<bool>();
         }
@@ -338,7 +344,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.96";
+const char *VERSION = "0.97B2";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -436,7 +442,7 @@ uint32_t HUM_COLOR = 0;
 bool ARTNET_MODE;
 bool MOODLIGHT_MODE;
 long STATS_INTERVAL = 10000;
-bool DEBUG_MODE = false;
+bool DEBUG_MODE = true;
 uint8_t MIN_BRIGHTNESS = 2;
 uint8_t MAX_BRIGHTNESS = 160;
 double movementFactor = 0.5;
@@ -453,3 +459,4 @@ int WEB_PORT = 80;
 OverlayEffect GLOBAL_OVERLAY = NONE;
 String HOSTNAME = "";
 bool BUZ_VOL = false;
+bool MQTT_BROKER = false;
