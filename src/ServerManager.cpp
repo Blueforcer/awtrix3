@@ -13,7 +13,6 @@
 #include "PowerManager.h"
 #include <WiFiUdp.h>
 #include <HTTPClient.h>
-#include "GameManager.h"
 #include <EEPROM.h>
 
 WiFiUDP udp;
@@ -191,11 +190,6 @@ void addHandler()
                     } });
     mws.addHandler("/api/r2d2", HTTP_POST, []()
                    { PeripheryManager.r2d2(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
-
-    mws.addHandler("/api/controller", HTTP_POST, []()
-                   {
-        GameManager.ControllerInput(mws.webserver->arg("key"), mws.webserver->arg("status"));
-        mws.webserver->send(200, F("text/plain"), F("OK")); });
 }
 
 void ServerManager_::setup()

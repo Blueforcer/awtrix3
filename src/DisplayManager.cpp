@@ -21,7 +21,6 @@
 #include <AwtrixFont.h>
 #include <HTTPClient.h>
 #include "base64.hpp"
-#include "GameManager.h"
 
 unsigned long lastArtnetStatusTime = 0;
 const int numberOfChannels = 256 * 3;
@@ -1176,13 +1175,7 @@ bool universe2_complete = false;
 
 void DisplayManager_::tick()
 {
-  if (GAME_ACTIVE)
-  {
-    matrix->clear();
-    GameManager.tick();
-    matrix->show();
-  }
-  else if (AP_MODE)
+  if (AP_MODE)
   {
     HSVtext(2, 6, "AP MODE", true, 1);
   }

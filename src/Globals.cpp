@@ -447,7 +447,6 @@ String BUTTON_CALLBACK = "";
 bool NEWYEAR = false;
 float LDR_GAMMA = 3.0;
 float LDR_FACTOR = 1.0;
-bool GAME_ACTIVE = false;
 uint32_t AP_TIMEOUT = 15;
 int WEB_PORT = 80;
 OverlayEffect GLOBAL_OVERLAY = NONE;
