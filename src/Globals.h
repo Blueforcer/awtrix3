@@ -142,7 +142,6 @@ extern String AUTH_USER;
 extern String AUTH_PASS;
 extern String BUTTON_CALLBACK;
 extern bool NEWYEAR;
-extern bool GAME_ACTIVE;
 extern uint32_t AP_TIMEOUT;
 extern OverlayEffect GLOBAL_OVERLAY;
 extern String HOSTNAME;
