@@ -2,6 +2,7 @@
 
   - [Quick start](quickstart.md)
   - [Flasher](flasher.md)
+  - [Upgrade](upgrade.md)
   - [Hardware](hardware.md)
   - [FAQ](faq.md)
   - [Remove AWTRIX](original.md)
