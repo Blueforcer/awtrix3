@@ -1,7 +1,3 @@
-Here's a short English guide on how to flash the firmware for AWTRIX 3 using `esptool` for the ESP32:
-
----
-
 ### Flashing AWTRIX 3 Firmware on ESP32 with esptool
 
 1. **Install esptool**  
