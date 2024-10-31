@@ -381,7 +381,7 @@ You can adjust each property in the JSON object according to your preferences. I
 | `TFORMAT`     | string                    | Time format for the TimeApp.                                                                        | Varies (see below)                                 | N/A     |
 | `DFORMAT`     | string                    | Date format for the DateApp.                                                                        | Varies (see below)                                 | N/A     |
 | `SOM`         | boolean                   | Start the week on Monday.                                                                           | `true`/`false`                                     | true    |
-| `CEL`         | boolean                   | Shows the temperture in celsius (Fahrenheit when false).                                            | `true`/`false`                                     | true    |
+| `CEL`         | boolean                   | Shows the temperature in celsius (fahrenheit when false).                                           | `true`/`false`                                     | true    |
 | `BLOCKN`      | boolean                   | Block physical navigation keys (still sends input to MQTT).                                         | `true`/`false`                                     | false   |
 | `UPPERCASE`   | boolean                   | Display text in uppercase.                                                                          | `true`/`false`                                     | true    |
 | `TIME_COL`    | string/array of ints      | Text color of the time app. Use 0 for global text color.                                            | RGB array or hex color                             | N/A     |
