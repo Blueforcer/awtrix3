@@ -159,3 +159,4 @@ const char MessagesKey[] PROGMEM = {"messages"};
 const char VersionKey[] PROGMEM = {"version"};
 const char RamKey[] PROGMEM = {"ram"};
 const char IpAddrKey[] PROGMEM = {"ip_address"};
+const char ResetReasonKey[] PROGMEM = {"reset_reason"};
