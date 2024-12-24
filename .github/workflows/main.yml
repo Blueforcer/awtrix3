@@ -74,13 +74,13 @@ jobs:
         run: mv docs/awtrix2_flasher/firmware/new-manifest.json docs/awtrix2_flasher/firmware/manifest.json
 
       - name: Upload ulanzi firmware as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ulanzi_firmware
           path: .pio/build/ulanzi/firmware.bin
 
       - name: Upload awtrix2_upgrade firmware as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: awtrix2_upgrade_firmware
           path: .pio/build/awtrix2_upgrade/firmware.bin
