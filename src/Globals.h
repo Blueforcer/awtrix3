@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <FastLED.h>
 #include "effects.h"
-
+ 
 #define DEBUG
 
 #ifdef DEBUG
