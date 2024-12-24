@@ -15,8 +15,8 @@ class LedScreenApp:
         self.labels = []
         
         screen_width = root.winfo_screenwidth()
-        label_width = (screen_width // 32) // 2
-        label_height = label_width
+        label_width = (screen_width // self.width) // 2
+        label_height = label_width  # 1:1 Verhältnis (ratio)
         padding = 1
         top_margin = 0
 
