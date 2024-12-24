@@ -50,7 +50,7 @@ public:
     void drawProgressBar(int16_t x, int16_t y, int progress, uint32_t pColor, uint32_t pbColor);
     void drawMenuIndicator(int cur, int total, uint32_t color);
     void drawBMP(int16_t x, int16_t y, const uint16_t bitmap[], int16_t w, int16_t h);
-    void drawBarChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint32_t color);
+    void drawBarChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint32_t color, uint32_t barBG);
     void drawLineChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint32_t color);
     void updateAppVector(const char *json);
     void setMatrixLayout(int layout);

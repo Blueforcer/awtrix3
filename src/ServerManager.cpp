@@ -318,6 +318,7 @@ void ServerManager_::loadSettings()
         MQTT_USER = doc["Username"].as<String>();
         MQTT_PASS = doc["Password"].as<String>();
         MQTT_PREFIX = doc["Prefix"].as<String>();
+        MQTT_PREFIX.trim();
         NET_STATIC = doc["Static IP"];
         HA_DISCOVERY = doc["Homeassistant Discovery"];
         NET_IP = doc["Local IP"].as<String>();

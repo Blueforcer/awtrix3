@@ -32,6 +32,7 @@ struct Notification
     int barData[16] = {0};
     int lineData[16] = {0};
     int barSize;
+    uint32_t barBG = 0;
     int lineSize;
     std::vector<uint32_t> colors;
     std::vector<String> fragments;

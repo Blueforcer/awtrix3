@@ -15,7 +15,7 @@
  *                                                                         *
  *   AWTRIX 3, a custom firmware for the Ulanzi clock                  *
  *                                                                         *
- *   Copyright (C) 2023  Stephan Mühl aka Blueforcer                       *
+ *   Copyright (C) 2024  Stephan Mühl aka Blueforcer                       *
  *                                                                         *
  *   This work is licensed under a                                         *
  *   Creative Commons Attribution-NonCommercial-ShareAlike                 *
@@ -29,6 +29,7 @@
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                  *
  *                                                                         *
  ***************************************************************************/
+
 
 #include <Arduino.h>
 #include "DisplayManager.h"
@@ -94,12 +95,15 @@ void setup()
       DisplayManager.HSVtext(x, 6, textForDisplay.c_str(), true, 0);
       x -= 0.18;
     }
-    if (MQTT_HOST != "")
-    {
-      DisplayManager.HSVtext(4, 6, "MQTT...", true, 0);
-      MQTTManager.setup();
-      MQTTManager.tick();
-    }
+
+    
+      if (MQTT_HOST != "")
+      {
+        DisplayManager.HSVtext(4, 6, "MQTT...", true, 0);
+        MQTTManager.setup();
+        MQTTManager.tick();
+      }
+    
   }
   else
   {

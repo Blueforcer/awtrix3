@@ -176,7 +176,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
 
         if (notifications[0].barSize > 0)
         {
-            DisplayManager.drawBarChart(0, 0, notifications[0].barData, notifications[0].barSize, hasIcon, notifications[0].color);
+            DisplayManager.drawBarChart(0, 0, notifications[0].barData, notifications[0].barSize, hasIcon, notifications[0].color, notifications[0].barBG);
         }
 
         if (notifications[0].lineSize > 0)

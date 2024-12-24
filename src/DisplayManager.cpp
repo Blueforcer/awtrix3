@@ -458,6 +458,26 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json, bool
   return true;
 }
 
+// Function to subscribe to MQTT topics based on placeholders in text
+void subscribeToPlaceholders(String text)
+{
+  int start = 0;
+  while ((start = text.indexOf("{{", start)) != -1)
+  {
+    int end = text.indexOf("}}", start);
+    if (end == -1)
+    {
+      break;
+    }
+    String placeholder = text.substring(start + 2, end);
+    String topic = placeholder;
+
+    MQTTManager.subscribe(topic.c_str());
+
+    start = end + 2;
+  }
+}
+
 bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, bool preventSave)
 {
   CustomApp customApp;
@@ -543,6 +563,11 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
     if (doc.containsKey(key))
     {
+      if (doc.containsKey("barBC"))
+      {
+        auto color = doc["barBC"];
+        customApp.barBG = getColorFromJsonVariant(color, 0);
+      }
       JsonArray data = doc[key];
       int index = 0;
       int maximum = 0;
@@ -683,6 +708,13 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
   customApp.colors.clear();
   customApp.fragments.clear();
+
+  if (doc.containsKey("text"))
+  {
+    String text = doc["text"];
+    subscribeToPlaceholders(utf8ascii(text));
+  }
+
   if (doc.containsKey("text") && doc["text"].is<JsonArray>())
   {
     JsonArray textArray = doc["text"].as<JsonArray>();
@@ -847,6 +879,12 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
 
     if (doc.containsKey(key))
     {
+
+      if (doc.containsKey("barBC"))
+      {
+        auto color = doc["barBC"];
+        newNotification.barBG = getColorFromJsonVariant(color, 0);
+      }
       JsonArray data = doc[key];
       int index = 0;
       int maximum = 0;
@@ -1445,7 +1483,7 @@ void DisplayManager_::drawMenuIndicator(int cur, int total, uint32_t color)
   }
 }
 
-void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int newData[], byte dataSize, bool withIcon, uint32_t color)
+void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint32_t color, uint32_t barBG)
 {
   int availableWidth = withIcon ? (32 - 9) : 32;
   int gap = 1;
@@ -1456,27 +1494,30 @@ void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int newData[], by
   for (int i = 0; i < dataSize; i++)
   {
     int x1 = x + startX + i * (barWidth + gap);
-    int barHeight = newData[i];
-    int y1 = (barHeight > 0) ? (8 - barHeight) : 8;
+    int barHeight = data[i];
 
-    if (barHeight > 0)
+    if (barBG > 0)
     {
-      drawFilledRect(x1, y1 + y, barWidth, barHeight, color);
+      // Draw background bar
+      drawFilledRect(x1, y, barWidth, 8, barBG);
     }
+
+    int y1 = (barHeight > 0) ? (8 - barHeight) : 8;
+    drawFilledRect(x1, y1 + y, barWidth, barHeight, color);
   }
 }
 
-void DisplayManager_::drawLineChart(int16_t x, int16_t y, const int newData[], byte dataSize, bool withIcon, uint32_t color)
+void DisplayManager_::drawLineChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint32_t color)
 {
   int availableWidth = withIcon ? (32 - 9) : 32;
   int startX = withIcon ? 9 : 0;
   float xStep = static_cast<float>(availableWidth) / static_cast<float>(dataSize - 1);
   int lastX = x + startX;
-  int lastY = y + 8 - newData[0];
+  int lastY = y + 8 - data[0];
   for (int i = 1; i < dataSize; i++)
   {
     int x1 = x + startX + static_cast<int>(xStep * i);
-    int y1 = y + 8 - newData[i];
+    int y1 = y + 8 - data[i];
     drawLine(lastX, lastY, x1, y1, color);
     lastX = x1;
     lastY = y1;
@@ -1949,26 +1990,28 @@ String CRGBtoHex(CRGB color)
   return String(buf);
 }
 
-String getOverlayName() {
-    switch(GLOBAL_OVERLAY) {
-        case DRIZZLE:
-            return "drizzle";
-        case RAIN:
-            return "rain";
-        case SNOW:
-            return "snow";
-        case STORM:
-            return "storm";
-        case THUNDER:
-            return "thunder";
-        case FROST:
-            return "frost";
-        case NONE:
-            return "clear";
-        default:
-            Serial.println(F("Invalid effect."));
-            return "invalid"; // Oder einen leeren String oder einen Fehlerwert zurückgeben
-    }
+String getOverlayName()
+{
+  switch (GLOBAL_OVERLAY)
+  {
+  case DRIZZLE:
+    return "drizzle";
+  case RAIN:
+    return "rain";
+  case SNOW:
+    return "snow";
+  case STORM:
+    return "storm";
+  case THUNDER:
+    return "thunder";
+  case FROST:
+    return "frost";
+  case NONE:
+    return "clear";
+  default:
+    Serial.println(F("Invalid effect."));
+    return "invalid"; // Oder einen leeren String oder einen Fehlerwert zurückgeben
+  }
 }
 
 String DisplayManager_::getSettings()
@@ -2017,8 +2060,6 @@ String DisplayManager_::getSettings()
   String jsonString;
   return serializeJson(doc, jsonString), jsonString;
 }
-
-
 
 void DisplayManager_::setNewSettings(const char *json)
 {

@@ -192,6 +192,7 @@ Below are the properties you can utilize in the JSON object. **All keys are opti
 | `bar` | array of integers | Draws a bargraph. Without icon maximum 16 values, with icon 11 values. | N/A | X | X |
 | `line` | array of integers | Draws a linechart. Without icon maximum 16 values, with icon 11 values. | N/A | X | X |
 | `autoscale` | boolean | Enables or disables autoscaling for bar and linechart. | true | X | X |
+| `barBC` | string or array of integers | Backgroundcolor of the bars. | 0 | X | X |
 | `progress` | integer | Shows a progress bar. Value can be 0-100. | -1 | X | X |
 | `progressC` | string or array of integers | The color of the progress bar. | -1 | X | X |
 | `progressBC` | string or array of integers | The color of the progress bar background. | -1 | X | X |
@@ -232,7 +233,14 @@ Here's a sample JSON to present the text "Hello, AWTRIX 3!" in rainbow colors fo
   "duration": 10
 }
 ```
+  
+### MQTT Placeholder  
+This feature is particularly useful for users without a full smart home system. It eliminates the need for an external system to display data, such as from an inverter wich can send its data vie MQTT. You can simply create a [AppName].json file in the CUSTOMAPP folder with your custom app JSON keys. This JSON file will be loaded upon boot, so you don't need to send it from an external source. Or you can also use it in your HTTP or MQTT API request.
+The placeholders inside the `text` value enclosed in {{}} will be replaced with the payload of the specified MQTT topic. Currently, there are no options available for formatting the payload.  
 
+```json
+{"text": "Solar: {{inverter/total/P_AC}} W"}
+```
   
 ### Drawing Instructions
 !> Please note: Depending on the number of objects, the RAM usage can be very high. This could cause freezes or reboots.

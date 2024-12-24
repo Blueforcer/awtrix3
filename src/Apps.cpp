@@ -131,7 +131,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     {
         // week days on bottom line
         wdPosY = 7;
-        timePosY = 6;
+        timePosY = 6 ;
     }
 
     // time
@@ -299,6 +299,21 @@ void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
 }
 #endif
 
+String replacePlaceholders(String text) {
+    int start = 0;
+    while ((start = text.indexOf("{{", start)) != -1) {
+        int end = text.indexOf("}}", start);
+        if (end == -1) {
+            break;
+        }
+        String placeholder = text.substring(start + 2, end);
+        String topic = placeholder;
+        text.replace("{{" + placeholder + "}}", MQTTManager.getValueForTopic(topic));
+        start = end + 2;
+    }
+    return text;
+}
+
 void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     // Abort if notifyFlag is set
@@ -355,19 +370,20 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 
     bool hasIcon = ca->icon || ca->jpegDataSize > 0;
 
-    // Calculate text and available width
-    uint16_t textWidth = 0;
-    if (!ca->fragments.empty())
+uint16_t textWidth = 0;
+if (!ca->fragments.empty())
+{
+    for (const auto &fragment : ca->fragments)
     {
-        for (const auto &fragment : ca->fragments)
-        {
-            textWidth += getTextWidth(fragment.c_str(), ca->textCase);
-        }
+        String replacedFragment = replacePlaceholders(fragment);
+        textWidth += getTextWidth(replacedFragment.c_str(), ca->textCase);
     }
-    else
-    {
-        textWidth = getTextWidth(ca->text.c_str(), ca->textCase);
-    }
+}
+else
+{
+    String replacedText = replacePlaceholders(ca->text);
+    textWidth = getTextWidth(replacedText.c_str(), ca->textCase);
+}
 
     uint16_t availableWidth = (hasIcon) ? 24 : 32;
 
@@ -436,7 +452,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 
         if (ca->barSize > 0)
         {
-            DisplayManager.drawBarChart(x, y, ca->barData, ca->barSize, hasIcon, ca->color);
+            DisplayManager.drawBarChart(x, y, ca->barData, ca->barSize, hasIcon, ca->color, ca->barBG);
         }
 
         if (ca->lineSize > 0)
@@ -531,6 +547,8 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         textX = hasIcon ? 9 : 0;
     }
 
+    String text =replacePlaceholders(ca->text);
+
     if (noScrolling)
     {
         ca->repeat = -1; // Disable repeat if text is too short for scrolling
@@ -540,25 +558,27 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             int16_t fragmentX = textX + ca->textOffset;
             for (size_t i = 0; i < ca->fragments.size(); ++i)
             {
+                String text =replacePlaceholders(ca->fragments[i]);
                 DisplayManager.setTextColor(TextEffect(ca->colors[i], ca->fade, ca->blink));
-                DisplayManager.printText(x + fragmentX, y + 6, ca->fragments[i].c_str(), false, ca->textCase);
-                fragmentX += getTextWidth(ca->fragments[i].c_str(), ca->textCase);
+                DisplayManager.printText(x + fragmentX, y + 6, text.c_str(), false, ca->textCase);
+                fragmentX += getTextWidth(text.c_str(), ca->textCase);
             }
         }
         else
         {
+            String text =replacePlaceholders(ca->text);
             if (ca->rainbow)
             {
-                DisplayManager.HSVtext(x + textX + ca->textOffset, 6 + y, ca->text.c_str(), false, ca->textCase);
+                DisplayManager.HSVtext(x + textX + ca->textOffset, 6 + y, text.c_str(), false, ca->textCase);
             }
             else if (ca->gradient[0] > -1 && ca->gradient[1] > -1)
             {
-                DisplayManager.GradientText(x + textX + ca->textOffset, 6 + y, ca->text.c_str(), ca->gradient[0], ca->gradient[1], false, ca->textCase);
+                DisplayManager.GradientText(x + textX + ca->textOffset, 6 + y, text.c_str(), ca->gradient[0], ca->gradient[1], false, ca->textCase);
             }
             else
             {
                 DisplayManager.setTextColor(TextEffect(ca->color, ca->fade, ca->blink));
-                DisplayManager.printText(x + textX + ca->textOffset, y + 6, ca->text.c_str(), false, ca->textCase);
+                DisplayManager.printText(x + textX + ca->textOffset, y + 6, text.c_str(), false, ca->textCase);
             }
         }
     }
@@ -569,25 +589,26 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             int16_t fragmentX = ca->scrollposition + ca->textOffset;
             for (size_t i = 0; i < ca->fragments.size(); ++i)
             {
+                String text =replacePlaceholders(ca->fragments[i]);
                 DisplayManager.setTextColor(TextEffect(ca->colors[i], ca->fade, ca->blink));
-                DisplayManager.printText(x + fragmentX, y + 6, ca->fragments[i].c_str(), false, ca->textCase);
-                fragmentX += getTextWidth(ca->fragments[i].c_str(), ca->textCase);
+                DisplayManager.printText(x + fragmentX, y + 6, text.c_str(), false, ca->textCase);
+                fragmentX += getTextWidth(text.c_str(), ca->textCase);
             }
         }
         else
         {
             if (ca->rainbow)
             {
-                DisplayManager.HSVtext(x + ca->scrollposition + ca->textOffset, 6 + y, ca->text.c_str(), false, ca->textCase);
+                DisplayManager.HSVtext(x + ca->scrollposition + ca->textOffset, 6 + y, text.c_str(), false, ca->textCase);
             }
             else if (ca->gradient[0] > -1 && ca->gradient[1] > -1)
             {
-                DisplayManager.GradientText(x + ca->scrollposition + ca->textOffset, 6 + y, ca->text.c_str(), ca->gradient[0], ca->gradient[1], false, ca->textCase);
+                DisplayManager.GradientText(x + ca->scrollposition + ca->textOffset, 6 + y, text.c_str(), ca->gradient[0], ca->gradient[1], false, ca->textCase);
             }
             else
             {
                 DisplayManager.setTextColor(TextEffect(ca->color, ca->fade, ca->blink));
-                DisplayManager.printText(x + ca->scrollposition + ca->textOffset, 6 + y, ca->text.c_str(), false, ca->textCase);
+                DisplayManager.printText(x + ca->scrollposition + ca->textOffset, 6 + y, text.c_str(), false, ca->textCase);
             }
         }
     }

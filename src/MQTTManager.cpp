@@ -10,6 +10,8 @@
 #include "UpdateManager.h"
 #include "PowerManager.h"
 
+const uint16_t PORT = 1883;
+
 WiFiClient espClient;
 HADevice device;
 HAMqtt mqtt(espClient, device, 26);
@@ -26,6 +28,8 @@ HABinarySensor *btnleft, *btnmid, *btnright = nullptr;
 bool connected;
 char matID[40], ind1ID[40], ind2ID[40], ind3ID[40], briID[40], btnAID[40], btnBID[40], btnCID[40], appID[40], tempID[40], humID[40], luxID[40], verID[40], ramID[40], upID[40], sigID[40], btnLID[40], btnMID[40], btnRID[40], transID[40], doUpdateID[40], batID[40], myID[40], sSpeed[40], effectID[40], ipAddrID[40];
 long previousMillis_Stats;
+std::map<String, String> mqttValues;
+std::vector<String> topicsToSubscribe;
 // The getter for the instantiated singleton instance
 MQTTManager_ &MQTTManager_::getInstance()
 {
@@ -35,6 +39,189 @@ MQTTManager_ &MQTTManager_::getInstance()
 
 // Initialize the global shared instance
 MQTTManager_ &MQTTManager = MQTTManager.getInstance();
+
+void processMqttMessage(const String &strTopic, const String &payloadCopy)
+{
+    if (DEBUG_MODE)
+    {
+        DEBUG_PRINTF("Processing MQTT message for topic %s", strTopic.c_str());
+        DEBUG_PRINTF("Payload: %s", payloadCopy.c_str());
+    }
+
+    ++RECEIVED_MESSAGES;
+
+    if (strTopic.equals(MQTT_PREFIX + "/notify"))
+    {
+        if (payloadCopy[0] != '{' || payloadCopy[payloadCopy.length() - 1] != '}')
+        {
+            return;
+        }
+        DisplayManager.generateNotification(0, payloadCopy.c_str());
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/notify/dismiss"))
+    {
+        DisplayManager.dismissNotify();
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/doupdate"))
+    {
+        if (UpdateManager.checkUpdate(true))
+        {
+            UpdateManager.updateFirmware();
+        }
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/apps"))
+    {
+        DisplayManager.updateAppVector(payloadCopy.c_str());
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/switch"))
+    {
+        DisplayManager.switchToApp(payloadCopy.c_str());
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/sendscreen"))
+    {
+        MQTTManager.getInstance().publish("screen", DisplayManager.ledsAsJson().c_str());
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/settings"))
+    {
+        DisplayManager.setNewSettings(payloadCopy.c_str());
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/r2d2"))
+    {
+        PeripheryManager.r2d2(payloadCopy.c_str());
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/nextapp"))
+    {
+        DisplayManager.nextApp();
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/previousapp"))
+    {
+        DisplayManager.previousApp();
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/rtttl"))
+    {
+        PeripheryManager.playRTTTLString(payloadCopy.c_str());
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/power"))
+    {
+        StaticJsonDocument<128> doc;
+        DeserializationError error = deserializeJson(doc, payloadCopy.c_str());
+        if (error)
+        {
+            if (DEBUG_MODE)
+                DEBUG_PRINTLN(F("Failed to parse json"));
+            return;
+        }
+        if (doc.containsKey("power"))
+        {
+            DisplayManager.setPower(doc["power"].as<bool>());
+        }
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/sleep"))
+    {
+        StaticJsonDocument<128> doc;
+        DeserializationError error = deserializeJson(doc, payloadCopy.c_str());
+        if (error)
+        {
+            if (DEBUG_MODE)
+                DEBUG_PRINTLN(F("Failed to parse json"));
+            return;
+        }
+        if (doc.containsKey("sleep"))
+        {
+            DisplayManager.setPower(false);
+            PowerManager.sleep(doc["sleep"].as<uint64_t>());
+        }
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/indicator1"))
+    {
+        DisplayManager.indicatorParser(1, payloadCopy.c_str());
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/indicator2"))
+    {
+        DisplayManager.indicatorParser(2, payloadCopy.c_str());
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/indicator3"))
+    {
+        DisplayManager.indicatorParser(3, payloadCopy.c_str());
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/moodlight"))
+    {
+        DisplayManager.moodlight(payloadCopy.c_str());
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/reboot"))
+    {
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN("REBOOT COMMAND RECEIVED");
+        delay(1000);
+        ESP.restart();
+        return;
+    }
+
+    if (strTopic.equals(MQTT_PREFIX + "/sound"))
+    {
+        PeripheryManager.parseSound(payloadCopy.c_str());
+        return;
+    }
+
+    if (strTopic.startsWith(MQTT_PREFIX + "/custom"))
+    {
+        String topic_str = strTopic;
+        String prefix = MQTT_PREFIX + "/custom/";
+        if (topic_str.startsWith(prefix))
+        {
+            topic_str = topic_str.substring(prefix.length());
+            DisplayManager.parseCustomPage(topic_str, payloadCopy.c_str(), false);
+        }
+        return;
+    }
+
+    if (mqttValues.find(strTopic) != mqttValues.end())
+    {
+        mqttValues[strTopic] = payloadCopy;
+        if (DEBUG_MODE)
+        {
+            Serial.print("Updated existing topic: ");
+            Serial.println(strTopic);
+            Serial.print("New value: ");
+            Serial.println(mqttValues[strTopic]);
+        }
+        return;
+    }
+}
 
 void onButtonCommand(HAButton *sender)
 {
@@ -163,209 +350,34 @@ void onMqttMessage(const char *topic, const uint8_t *payload, uint16_t length)
 {
     if (DEBUG_MODE)
         DEBUG_PRINTF("MQTT message received at topic %s", topic);
-    String strTopic = String(topic);
+
+    // Create a copy of the payload
     char *payloadCopy = new char[length + 1];
     memcpy(payloadCopy, payload, length);
     payloadCopy[length] = '\0';
-    if (DEBUG_MODE)
-        DEBUG_PRINTF("Payload:  %s", payloadCopy);
-    ++RECEIVED_MESSAGES;
-    if (strTopic.equals(MQTT_PREFIX + "/notify"))
+
+    // Convert to String and handle the message
+    processMqttMessage(String(topic), String(payloadCopy));
+
+    // Clean up the payload copy
+    delete[] payloadCopy;
+}
+
+String MQTTManager_::getValueForTopic(const String &topic)
+{
+    if (mqttValues.find(topic) != mqttValues.end())
     {
-        if (payload[0] != '{' || payload[length - 1] != '}')
-        {
-            delete[] payloadCopy;
-            return;
-        }
-        DisplayManager.generateNotification(0, payloadCopy);
-        delete[] payloadCopy;
-        return;
+        return mqttValues[topic];
     }
-
-    if (strTopic.equals(MQTT_PREFIX + "/notify/dismiss"))
+    else
     {
-        DisplayManager.dismissNotify();
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/doupdate"))
-    {
-        if (UpdateManager.checkUpdate(true))
-        {
-            UpdateManager.updateFirmware();
-        }
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/apps"))
-    {
-        DisplayManager.updateAppVector(payloadCopy);
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/switch"))
-    {
-        DisplayManager.switchToApp(payloadCopy);
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/sendscreen"))
-    {
-        MQTTManager.getInstance().publish("screen", DisplayManager.ledsAsJson().c_str());
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/settings"))
-    {
-        DisplayManager.setNewSettings(payloadCopy);
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/r2d2"))
-    {
-        PeripheryManager.r2d2(payloadCopy);
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/nextapp"))
-    {
-        DisplayManager.nextApp();
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/previousapp"))
-    {
-        DisplayManager.previousApp();
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/rtttl"))
-    {
-        PeripheryManager.playRTTTLString(payloadCopy);
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/doupdate"))
-    {
-        if (UpdateManager.checkUpdate(true))
-        {
-            UpdateManager.updateFirmware();
-        }
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/power"))
-    {
-        StaticJsonDocument<128> doc;
-        DeserializationError error = deserializeJson(doc, payload);
-        if (error)
-        {
-            if (DEBUG_MODE)
-                DEBUG_PRINTLN(F("Failed to parse json"));
-            return;
-        }
-        if (doc.containsKey("power"))
-        {
-            DisplayManager.setPower(doc["power"].as<bool>());
-        }
-
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/sleep"))
-    {
-        StaticJsonDocument<128> doc;
-        DeserializationError error = deserializeJson(doc, payload);
-        if (error)
-        {
-            if (DEBUG_MODE)
-                DEBUG_PRINTLN(F("Failed to parse json"));
-            return;
-        }
-        if (doc.containsKey("sleep"))
-        {
-            DisplayManager.setPower(false);
-            PowerManager.sleep(doc["sleep"].as<uint64_t>());
-        }
-
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/indicator1"))
-    {
-        DisplayManager.indicatorParser(1, payloadCopy);
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/indicator2"))
-    {
-        DisplayManager.indicatorParser(2, payloadCopy);
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/indicator3"))
-    {
-        DisplayManager.indicatorParser(3, payloadCopy);
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/moodlight"))
-    {
-        DisplayManager.moodlight(payloadCopy);
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/reboot"))
-    {
-        if (DEBUG_MODE)
-            DEBUG_PRINTLN("REBOOT COMMAND RECEIVED")
-        delay(1000);
-        ESP.restart();
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.equals(MQTT_PREFIX + "/sound"))
-    {
-        PeripheryManager.parseSound(payloadCopy);
-        delete[] payloadCopy;
-        return;
-    }
-
-    if (strTopic.startsWith(MQTT_PREFIX + "/custom"))
-    {
-        String topic_str = topic;
-        String prefix = MQTT_PREFIX + "/custom/";
-        if (topic_str.startsWith(prefix))
-        {
-            topic_str = topic_str.substring(prefix.length());
-            DisplayManager.parseCustomPage(topic_str, payloadCopy, false);
-        }
-
-        delete[] payloadCopy;
-        return;
+        return "N/A"; // Return "N/A" if the topic is not found
     }
 }
 
 void onMqttConnected()
 {
+
     if (DEBUG_MODE)
         DEBUG_PRINTLN(F("MQTT Connected"));
     const char *topics[] PROGMEM = {
@@ -400,15 +412,40 @@ void onMqttConnected()
         mqtt.subscribe((MQTT_PREFIX + topic).c_str());
         delay(30);
     }
+
+    for (const auto &topic : topicsToSubscribe)
+    {
+        mqtt.subscribe(topic.c_str());
+        if (DEBUG_MODE)
+            Serial.printf("Subscribed to topic %s\n", topic.c_str());
+    }
+
     delay(200);
     if (HA_DISCOVERY)
     {
         myOwnID->setValue(MQTT_PREFIX.c_str());
         version->setValue(VERSION);
     }
+
     MQTTManager.publish("stats/effects", DisplayManager.getEffectNames().c_str());
     MQTTManager.publish("stats/transitions", DisplayManager.getTransitionNames().c_str());
+    // MQTTManager.publish("stats/device", "online");
+
     connected = true;
+}
+
+bool MQTTManager_::subscribe(const char *topic)
+{
+    mqttValues[topic] = "N/A";
+    if (mqtt.isConnected())
+    {
+        mqtt.subscribe(topic);
+    }
+    else
+    {
+        topicsToSubscribe.push_back(topic);
+    }
+    return true;
 }
 
 bool MQTTManager_::isConnected()
@@ -425,8 +462,13 @@ bool MQTTManager_::isConnected()
 
 void connect()
 {
+
     mqtt.onMessage(onMqttMessage);
     mqtt.onConnected(onMqttConnected);
+
+    //char topic[50];
+    //snprintf(topic, sizeof(topic), "%s/stats/device", MQTT_PREFIX.c_str()); // .c_str() hinzugefügt
+    //mqtt.setLastWill(topic, "offline", false);                              // "offline" statt 0
 
     if (MQTT_USER == "" || MQTT_PASS == "")
     {
@@ -444,57 +486,54 @@ void connect()
 
 void MQTTManager_::sendStats()
 {
-    if (mqtt.isConnected())
+
+    if (HA_DISCOVERY && mqtt.isConnected())
     {
-        if (HA_DISCOVERY && mqtt.isConnected())
-        {
-            char buffer[8];
+        char buffer[8];
 #ifndef awtrix2_upgrade
-            snprintf(buffer, 5, "%d", BATTERY_PERCENT);
-            battery->setValue(buffer);
+        snprintf(buffer, 5, "%d", BATTERY_PERCENT);
+        battery->setValue(buffer);
 #endif
-
-            if (SENSOR_READING)
-            {
-                snprintf(buffer, sizeof(buffer), "%.*f", TEMP_DECIMAL_PLACES, CURRENT_TEMP);
-                temperature->setValue(buffer);
-                snprintf(buffer, 5, "%.0f", CURRENT_HUM);
-                humidity->setValue(buffer);
-            }
-
-            snprintf(buffer, 5, "%.0f", CURRENT_LUX);
-            illuminance->setValue(buffer);
-            BriMode->setState(AUTO_BRIGHTNESS, false);
-            Matrix->setBrightness(BRIGHTNESS);
-            Matrix->setState(!MATRIX_OFF, false);
-            HALight::RGBColor color;
-            color.isSet = true;
-            color.red = (TEXTCOLOR_888 >> 16) & 0xFF;
-            color.green = (TEXTCOLOR_888 >> 8) & 0xFF;
-            color.blue = TEXTCOLOR_888 & 0xFF;
-            Matrix->setRGBColor(color);
-            int8_t rssiValue = WiFi.RSSI();
-            char rssiString[4];
-            snprintf(rssiString, sizeof(rssiString), "%d", rssiValue);
-            strength->setValue(rssiString);
-
-            char rambuffer[10];
-            int freeHeapBytes = ESP.getFreeHeap();
-            itoa(freeHeapBytes, rambuffer, 10);
-            ram->setValue(rambuffer);
-            char uptimeStr[25]; // Buffer for string representation
-            sprintf(uptimeStr, "%ld", PeripheryManager.readUptime());
-            uptime->setValue(uptimeStr);
-            transition->setState(AUTO_TRANSITION, false);
-            ipAddr->setValue(ServerManager.myIP.toString().c_str());
+        if (SENSOR_READING)
+        {
+            snprintf(buffer, sizeof(buffer), "%.*f", TEMP_DECIMAL_PLACES, CURRENT_TEMP);
+            temperature->setValue(buffer);
+            snprintf(buffer, 5, "%.0f", CURRENT_HUM);
+            humidity->setValue(buffer);
         }
 
-        publish(StatsTopic, DisplayManager.getStats().c_str());
+        snprintf(buffer, 5, "%.0f", CURRENT_LUX);
+        illuminance->setValue(buffer);
+        BriMode->setState(AUTO_BRIGHTNESS, false);
+        Matrix->setBrightness(BRIGHTNESS);
+        Matrix->setState(!MATRIX_OFF, false);
+        HALight::RGBColor color;
+        color.isSet = true;
+        color.red = (TEXTCOLOR_888 >> 16) & 0xFF;
+        color.green = (TEXTCOLOR_888 >> 8) & 0xFF;
+        color.blue = TEXTCOLOR_888 & 0xFF;
+        Matrix->setRGBColor(color);
+        int8_t rssiValue = WiFi.RSSI();
+        char rssiString[4];
+        snprintf(rssiString, sizeof(rssiString), "%d", rssiValue);
+        strength->setValue(rssiString);
+
+        char rambuffer[10];
+        int freeHeapBytes = ESP.getFreeHeap();
+        itoa(freeHeapBytes, rambuffer, 10);
+        ram->setValue(rambuffer);
+        char uptimeStr[25]; // Buffer for string representation
+        sprintf(uptimeStr, "%ld", PeripheryManager.readUptime());
+        uptime->setValue(uptimeStr);
+        transition->setState(AUTO_TRANSITION, false);
+        ipAddr->setValue(ServerManager.myIP.toString().c_str());
     }
+    publish(StatsTopic, DisplayManager.getStats().c_str());
 }
 
 void MQTTManager_::setup()
 {
+
     if (HA_DISCOVERY)
     {
         if (DEBUG_MODE)
@@ -689,6 +728,7 @@ void MQTTManager_::setup()
         Serial.println(F("Homeassistant discovery disabled"));
         mqtt.disableHA();
     }
+
     connect();
 }
 
@@ -697,23 +737,25 @@ void MQTTManager_::tick()
     if (MQTT_HOST != "")
     {
         mqtt.loop();
-        unsigned long currentMillis_Stats = millis();
-        if ((currentMillis_Stats - previousMillis_Stats >= STATS_INTERVAL) && (SENSORS_STABLE))
-        {
-            previousMillis_Stats = currentMillis_Stats;
-            sendStats();
-        }
+    }
+    unsigned long currentMillis_Stats = millis();
+    if ((currentMillis_Stats - previousMillis_Stats >= STATS_INTERVAL) && (SENSORS_STABLE))
+    {
+        previousMillis_Stats = currentMillis_Stats;
+        sendStats();
     }
 }
 
 void MQTTManager_::publish(const char *topic, const char *payload)
 {
-    if (!mqtt.isConnected())
-        return;
     char result[100];
     strcpy(result, MQTT_PREFIX.c_str());
     strcat(result, "/");
     strcat(result, topic);
+
+    if (!mqtt.isConnected())
+        return;
+
     mqtt.publish(result, payload, false);
 }
 
