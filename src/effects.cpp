@@ -1291,10 +1291,13 @@ void EffectOverlay(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, OverlayEffec
                     // Turn off the pixel after MAX_COLOR_CHANGES changes
                     if (colorChanges[i][j] > 6)
                     {
-                        leds[i][j] = CRGB::Black;
                         colorChanges[i][j] = 0; // Reset the counter for this pixel
                     }
                 }
+                if (colorChanges[i][j] == 0)
+                {
+                    leds[i][j] = CRGB::Black;
+                }            
             }
         }
 
