@@ -6,7 +6,7 @@ AWTRIX 3 can show effects wherever you want
   
 Just call the name for your favorite effect.  
 AWTRIX sends all effect names once after start via MQTT to stats/effects. So you can create external selectors.  
-Its also accessible via HTTTP /api/effects  
+Its also accessible via HTTP /api/effects  
 
 <table>
   <tr>
