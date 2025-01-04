@@ -5,15 +5,15 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AWTRIX Light Backup & Restore</title>
+    <title>AWTRIX 3 Backup & Restore</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
 </head>
 
 <body class="p-5">
-    <h2 class="mb-4">AWTRIX Light Backup & Restore</h2>
+    <h2 class="mb-4">AWTRIX 3 Backup & Restore</h2>
     <p>
-        This tool allows you to create a backup of your AWTRIX Light by downloading all its files into a ZIP
+        This tool allows you to create a backup of your AWTRIX 3 by downloading all its files into a ZIP
         archive. You can also restore a backup by uploading a ZIP archive.
     </p>
     <p class="text-danger">
@@ -100,7 +100,7 @@
         }
 
         document.getElementById('backupButton').addEventListener('click', async function () {
-            const source_ip = prompt("Enter the AWTRIX Light IP address:");
+            const source_ip = prompt("Enter the AWTRIX 3 IP address:");
             let zip = new JSZip();
 
             await getFilesFromDirectory(source_ip, '/', zip);
@@ -126,7 +126,7 @@
         });
 
         document.getElementById('fileInput').addEventListener('change', async function () {
-            const target_ip = prompt("Enter the AWTRIX Light IP address:");
+            const target_ip = prompt("Enter the AWTRIX 3 IP address:");
             const file = this.files[0];
             const zip = new JSZip();
 

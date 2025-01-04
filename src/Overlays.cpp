@@ -7,6 +7,7 @@
 #include "effects.h"
 #include "MQTTManager.h"
 
+
 std::vector<Notification> notifications;
 bool notifyFlag = false;
 
@@ -31,45 +32,6 @@ void MenuOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlay
     matrix->fillScreen(0);
     DisplayManager.setTextColor(0xFFFFFF);
     DisplayManager.printText(0, 6, utf8ascii(MenuManager.menutext()).c_str(), true, 2);
-}
-
-CRGB snowLeds[32][8];
-uint8_t updateFrame = 0;
-
-void SnowOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
-{
-    if (!SNOW)
-        return;
-
-    if (random8() < 20)
-    {
-        int randomColumn = random8(32);
-        snowLeds[randomColumn][0] = CHSV(0, 0, 255);
-    }
-
-    if (++updateFrame >= 5)
-    {
-        for (int i = 0; i < 32; i++)
-        {
-            for (int j = 7; j > 0; j--)
-            {
-                snowLeds[i][j] = snowLeds[i][j - 1];
-            }
-            snowLeds[i][0] = CRGB::Black;
-        }
-        updateFrame = 0;
-    }
-
-    for (int i = 0; i < 32; i++)
-    {
-        for (int j = 0; j < 8; j++)
-        {
-            if (snowLeds[i][j])
-            {
-                matrix->drawPixel(i, j, snowLeds[i][j]);
-            }
-        }
-    }
 }
 
 void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
@@ -214,7 +176,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
 
         if (notifications[0].barSize > 0)
         {
-            DisplayManager.drawBarChart(0, 0, notifications[0].barData, notifications[0].barSize, hasIcon, notifications[0].color);
+            DisplayManager.drawBarChart(0, 0, notifications[0].barData, notifications[0].barSize, hasIcon, notifications[0].color, notifications[0].barBG);
         }
 
         if (notifications[0].lineSize > 0)
@@ -398,8 +360,13 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
         notifications[0].soundPlayed = true;
     }
 
+    if (!notifications[0].overlay == NONE)
+    {
+        EffectOverlay(matrix, 0, 0, notifications[0].overlay);
+    }
+
     // Reset text color after displaying notification
     DisplayManager.getInstance().resetTextColor();
 }
 
-OverlayCallback overlays[] = {MenuOverlay, NotifyOverlay, StatusOverlay, SnowOverlay};
+OverlayCallback overlays[] = {MenuOverlay, NotifyOverlay, StatusOverlay};

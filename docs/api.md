@@ -78,8 +78,9 @@ AWTRIX will only wakeup after time or if you press the middle button once. There
   
 ## Sound Playback
 
-Play a RTTTL sound from the MELODIES folder:
-
+Play a RTTTL sound from the MELODIES folder.  
+If youre using a DFplayer, use the /sound API and enter the 4 digit number of your MP3.  
+  
 | MQTT Topic        | HTTP URL                     | Payload/Body        | HTTP Method |
 | ----------------- | ---------------------------- | ------------------- | ----------- |
 | `[PREFIX]/sound`  | `http://[IP]/api/sound`      | `{"sound":"alarm"}` | POST        |
@@ -148,7 +149,7 @@ Colored indicators serve as small notification signs displayed on specific areas
 
 ## Custom Apps and Notifications
 
-With AWTRIX Light, you can design custom apps or notifications to showcase your unique text and icons.
+With AWTRIX 3, you can design custom apps or notifications to showcase your unique text and icons.
 
 ### Interaction
 
@@ -176,7 +177,7 @@ Below are the properties you can utilize in the JSON object. **All keys are opti
 | `center` | boolean | Centers a short, non-scrollable text. | true | X | X |
 | `color` | string or array of integers | The text, bar or line color. | N/A | X | X |
 | `gradient` | Array of string or integers | Colorizes the text in a gradient of two given colors  | N/A | X | X |
-| `blinkText` | Integer | Blinks the text in an given interval, not compatible with gradient or rainbow | N/A | X | X |
+| `blinkText` | Integer | Blinks the text in an given interval in ms, not compatible with gradient or rainbow | N/A | X | X |
 | `fadeText` | Integer | Fades the text on and off in an given interval, not compatible with gradient or rainbow  | N/A | X | X |
 | `background` | string or array of integers | Sets a background color. | N/A | X | X |
 | `rainbow` | boolean | Fades each letter in the text differently through the entire RGB spectrum. | false | X | X |
@@ -185,12 +186,13 @@ Below are the properties you can utilize in the JSON object. **All keys are opti
 | `repeat` | integer | Sets how many times the text should be scrolled through the matrix before the app ends. | -1 | X | X |
 | `duration` | integer | Sets how long the app or notification should be displayed. | 5 | X | X |
 | `hold` | boolean | Set it to true, to hold your **notification** on top until you press the middle button or dismiss it via HomeAssistant. This key only belongs to notification. | false |  | X |
-| `sound` | string | The filename of your RTTTL ringtone file placed in the MELODIES folder (without extension). | N/A |  | X |
+| `sound` | string | The filename of your RTTTL ringtone file placed in the MELODIES folder (without extension). Or the 4 digit number of your MP3 if youre using a DFplayer | N/A |  | X |
 | `rtttl` | string | Allows to send the RTTTL sound string with the json. | N/A |  | X |
 | `loopSound` | boolean | Loops the sound or rtttl as long as the notification is running. | false |  | X |
 | `bar` | array of integers | Draws a bargraph. Without icon maximum 16 values, with icon 11 values. | N/A | X | X |
 | `line` | array of integers | Draws a linechart. Without icon maximum 16 values, with icon 11 values. | N/A | X | X |
 | `autoscale` | boolean | Enables or disables autoscaling for bar and linechart. | true | X | X |
+| `barBC` | string or array of integers | Backgroundcolor of the bars. | 0 | X | X |
 | `progress` | integer | Shows a progress bar. Value can be 0-100. | -1 | X | X |
 | `progressC` | string or array of integers | The color of the progress bar. | -1 | X | X |
 | `progressBC` | string or array of integers | The color of the progress bar background. | -1 | X | X |
@@ -203,24 +205,42 @@ Below are the properties you can utilize in the JSON object. **All keys are opti
 | `noScroll` | boolean | Disables the text scrolling. | false | X | X |
 | `clients` | array of strings | Allows forwarding a notification to other awtrix devices. Use the MQTT prefix for MQTT and IP addresses for HTTP. |  |  | X |
 | `scrollSpeed` | integer | Modifies the scroll speed. Enter a percentage value of the original scroll speed. | 100 | X | X |
-| `effect` | string | Shows an [effect](https://blueforcer.github.io/awtrix-light/#/effects) as background.The effect can be removed by sending an empty string for effect|  | X | X |
-| `effectSettings` | json map | Changes color and speed of the [effect](https://blueforcer.github.io/awtrix-light/#/effects). |  | X | X |
+| `effect` | string | Shows an [effect](https://blueforcer.github.io/awtrix3/#/effects) as background.The effect can be removed by sending an empty string for effect|  | X | X |
+| `effectSettings` | json map | Changes color and speed of the [effect](https://blueforcer.github.io/awtrix3/#/effects). |  | X | X |
 | `save` | boolean | Saves your custom app into flash and reloads it after boot. Avoid this for custom apps with high update frequencies because the ESP's flash memory has limited write cycles. |  | X |  |
+| `overlay`| string  | Sets an effect overlay (cannot be used with global overlays).  |  | X | X |
 
 **Color**: Accepts a hex string or an R,G,B array: `"#FFFFFF"` or `[255,255,0]`.
+  
+**Overlay effects:**   
+- "clear"  
+- "snow"  
+- "rain"  
+- "drizzle"  
+- "storm"  
+- "thunder"  
+- "frost"  
+  
 
 #### Example
 
-Here's a sample JSON to present the text "Hello, AWTRIX Light!" in rainbow colors for a duration of 10 seconds:
+Here's a sample JSON to present the text "Hello, AWTRIX 3!" in rainbow colors for a duration of 10 seconds:
 
 ```json
 {
-  "text": "Hello, AWTRIX Light!",
+  "text": "Hello, AWTRIX 3!",
   "rainbow": true,
   "duration": 10
 }
 ```
+  
+### MQTT Placeholder  
+This feature is particularly useful for users without a full smart home system. It eliminates the need for an external system to display data, such as from an inverter wich can send its data vie MQTT. You can simply create a [AppName].json file in the CUSTOMAPP folder with your custom app JSON keys. This JSON file will be loaded upon boot, so you don't need to send it from an external source. Or you can also use it in your HTTP or MQTT API request.
+The placeholders inside the `text` value enclosed in {{}} will be replaced with the payload of the specified MQTT topic. Currently, there are no options available for formatting the payload.  
 
+```json
+{"text": "Solar: {{inverter/total/P_AC}} W"}
+```
   
 ### Drawing Instructions
 !> Please note: Depending on the number of objects, the RAM usage can be very high. This could cause freezes or reboots.
@@ -254,7 +274,7 @@ Here's an example JSON object to draw a red circle, a blue rectangle, and the te
   
 ### Display Text in Colored Fragments
 
-AWTRIX Light allows you to present text where specific fragments can be colorized. Use an array of fragments with `"t"` representing the text fragment and `"c"` denoting the color's hex value.
+AWTRIX 3 allows you to present text where specific fragments can be colorized. Use an array of fragments with `"t"` representing the text fragment and `"c"` denoting the color's hex value.
 
 ```json
 {
@@ -274,7 +294,7 @@ AWTRIX Light allows you to present text where specific fragments can be colorize
 
 ### Sending Multiple Custom Apps Simultaneously
 
-AWTRIX Light enables you to dispatch multiple custom apps in a single action. Instead of transmitting one custom app object, you can forward an array of objects.
+AWTRIX 3 enables you to dispatch multiple custom apps in a single action. Instead of transmitting one custom app object, you can forward an array of objects.
 
 **e.g. MQTT Topic:** `/custom/test`
 
@@ -324,7 +344,7 @@ Directly transition to a desired app using its name.
 
 | MQTT Topic                   | HTTP URL                           | Payload/Body     | HTTP Method |
 | ---------------------------- | ---------------------------------- | ---------------- | ----------- |
-| `[PREFIX]/switch`            | `http://[IP]/api/switch`           | `{"name":"time"}` | POST       |
+| `[PREFIX]/switch`            | `http://[IP]/api/switch`           | `{"name":"Time"}` | POST       |
 
 **Built-in App Names**:
 - `Time`
@@ -366,9 +386,10 @@ You can adjust each property in the JSON object according to your preferences. I
 | `ATRANS`      | boolean                   | Automatic switching to the next app.                                                                | `true`/`false`                                     | N/A     |
 | `CCORRECTION` | array of ints             | Color correction for the matrix.                                                                    | RGB array                                          | N/A     |
 | `CTEMP`       | array of ints             | Color temperature for the matrix.                                                                   | RGB array                                          | N/A     |
-| `TFORMAT`     | string                    | Time format for the TimeApp.                                                                        | Varies (see documentation)                         | N/A     |
-| `DFORMAT`     | string                    | Date format for the DateApp.                                                                        | Varies (see documentation)                         | N/A     |
+| `TFORMAT`     | string                    | Time format for the TimeApp.                                                                        | Varies (see below)                                 | N/A     |
+| `DFORMAT`     | string                    | Date format for the DateApp.                                                                        | Varies (see below)                                 | N/A     |
 | `SOM`         | boolean                   | Start the week on Monday.                                                                           | `true`/`false`                                     | true    |
+| `CEL`         | boolean                   | Shows the temperature in celsius (fahrenheit when false).                                           | `true`/`false`                                     | true    |
 | `BLOCKN`      | boolean                   | Block physical navigation keys (still sends input to MQTT).                                         | `true`/`false`                                     | false   |
 | `UPPERCASE`   | boolean                   | Display text in uppercase.                                                                          | `true`/`false`                                     | true    |
 | `TIME_COL`    | string/array of ints      | Text color of the time app. Use 0 for global text color.                                            | RGB array or hex color                             | N/A     |
@@ -383,26 +404,20 @@ You can adjust each property in the JSON object according to your preferences. I
 | `TEMP`        | boolean                   | Enable or disable the native temperature app (requires reboot).                                     | `true`/`false`                                     | true    |
 | `BAT`         | boolean                   | Enable or disable the native battery app (requires reboot).                                         | `true`/`false`                                     | true    |
 | `MATP`        | boolean                   | Enable or disable the matrix. Similar to `power` Endpoint but without the animation.                | `true`/`false`                                     | true    |
-| `VOL`         | integer                   | Allows to set the Volume of the DFplayer (Only for **old** AWTRIX2.0 upgrades       )               | 0-30                                               | true    |
+| `VOL`         | integer                   | Allows to set the Volume of the Buzzer and DFplayer                                                 | 0-30                                               | true    |
+| `OVERLAY`     | string                    | Sets a global effect overlay (cannot be used with app specific overlays)                            | Varies (see below)                                 | N/A     |
 
 **Color Values**: Can either be an RGB array (e.g., `[255,0,0]`) or a valid 6-digit hexadecimal color value (e.g., "#FF0000" for red).
-
-
-**Transition effects:**  
-```bash  
-0 - Random
-1 - Slide
-2 - Dim
-3 - Zoom
-4 - Rotate
-5 - Pixelate
-6 - Curtain
-7 - Ripple
-8 - Blink
-9 - Reload
-10 - Fade 
-```
-
+  
+**Overlay effects:**   
+- "clear"  
+- "snow"  
+- "rain"  
+- "drizzle"  
+- "storm"  
+- "thunder"  
+- "frost"  
+  
 **Timeformats:**  
 ```bash  
 %H:%M:%S     13:30:45  
@@ -427,6 +442,21 @@ You can adjust each property in the JSON object according to your preferences. I
 %d/%m        16/04  
 %m-%d-%y     04-16-22  
 ```  
+
+**Transition effects:**  
+```bash  
+0 - Random
+1 - Slide
+2 - Dim
+3 - Zoom
+4 - Rotate
+5 - Pixelate
+6 - Curtain
+7 - Ripple
+8 - Blink
+9 - Reload
+10 - Fade 
+```
     
 ## Update
 

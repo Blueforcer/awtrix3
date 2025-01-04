@@ -1,1 +1,34 @@
+### Flashing AWTRIX 3 Firmware on ESP32 with esptool
+
+1. **Install esptool**  
+   First, ensure you have `esptool` installed. You can install it using pip:
+   ```bash
+   pip install esptool
+   ```
+
+2. **Prepare the Files**  
+   Make sure you have the necessary binary files (`bootloader.bin`, `partitions.bin`, `boot_app0.bin`, and `firmware.bin`) ready in the same folder.
+
+3. **Put ESP32 in Flash Mode**  
+   Connect your ESP32 to your computer and put it in flash mode by holding down the **BOOT** button while pressing the **EN** (Enable) button.
+
+4. **Flash the Files**  
+   Use the following `esptool.py` commands to flash each part of the firmware to the appropriate offsets:
+
+   ```bash
+   esptool.py --chip esp32 --port /dev/ttyUSB0 --baud 460800 write_flash \
+   0x1000 bootloader.bin \
+   0x8000 partitions.bin \
+   0xe000 boot_app0.bin \
+   0x10000 firmware.bin
+   ```
+
+   - Replace `/dev/ttyUSB0` with your ESP32's port.
+   - Adjust the baud rate if necessary.
+
+5. **Restart the ESP32**  
+   After flashing, restart the ESP32 by pressing the **EN** button. The device should now run the new firmware.
+
+6. **Troubleshooting**  
+   If the device doesn't boot, try lowering the baud rate or checking the connections.
 

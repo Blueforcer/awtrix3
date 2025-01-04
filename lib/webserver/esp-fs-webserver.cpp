@@ -80,7 +80,7 @@ bool FSWebServer::checkDir(char *dirname, uint8_t levels)
     return true;
 }
 
-bool FSWebServer::begin(const char *path)
+bool FSWebServer::begin( int port,const char *path)
 {
     DebugPrintln("\nList the files of webserver: ");
     if (path != nullptr)
@@ -127,7 +127,7 @@ bool FSWebServer::begin(const char *path)
     webserver->enableCORS(true);
 
     webserver->setContentLength(1024);
-    webserver->begin();
+    webserver->begin(port);
 
     return true;
 }
@@ -179,9 +179,14 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
 
     wifi_config_t conf;
     esp_wifi_get_config(WIFI_IF_STA, &conf);
-
+  
     _ssid = reinterpret_cast<const char *>(conf.sta.ssid);
     _pass = reinterpret_cast<const char *>(conf.sta.password);
+
+    char *my_ssid = new char[33];
+    strncpy(my_ssid, _ssid, 32);
+    my_ssid[32] = '\0';
+    _ssid = my_ssid;
 
     if (strlen(_ssid) && strlen(_pass))
     {
@@ -198,11 +203,15 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
             {
                 ip = WiFi.localIP();
                 WiFi.persistent(true);
+                delete[] my_ssid;
                 return ip;
             }
             // If no connection after a while go in Access Point mode
             if (millis() - startTime > m_timeout)
+            {
+                Serial.println(F("No connection after a while -> go in Access Point mode"));
                 break;
+            }
         }
     }
 
@@ -216,6 +225,7 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
     Serial.print(F("\nAP mode.\nServer IP address: "));
     Serial.println(ip);
     Serial.println();
+    delete[] my_ssid;
     return ip;
 }
 
@@ -641,7 +651,14 @@ void FSWebServer::replyToCLient(int msg_type = 0, const char *msg = "")
         webserver->send(200, FPSTR(TEXT_PLAIN), msg);
         break;
     case NOT_FOUND:
-        webserver->send(404, FPSTR(TEXT_PLAIN), msg);
+        if (webserver->method() == HTTP_OPTIONS)
+        {
+            webserver->send(204); // preflight CORS OPTIONS requests should return OK status
+        }
+        else
+        {
+            webserver->send(404, FPSTR(TEXT_PLAIN), msg);
+        }
         break;
     case BAD_REQUEST:
         webserver->send(400, FPSTR(TEXT_PLAIN), msg);

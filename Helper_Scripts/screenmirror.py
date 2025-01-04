@@ -15,8 +15,8 @@ class LedScreenApp:
         self.labels = []
         
         screen_width = root.winfo_screenwidth()
-        label_width = (screen_width // 32) // 2
-        label_height = label_width
+        label_width = (screen_width // self.width) // 2
+        label_height = label_width  # 1:1 Verhältnis (ratio)
         padding = 1
         top_margin = 0
 
@@ -80,6 +80,6 @@ class LedScreenApp:
 # Hauptteil des Programms
 root = tk.Tk()
 root.resizable(False, False)
-ip_address = simpledialog.askstring("AWTRIX LIGHT", "Please enter IP address:")
+ip_address = simpledialog.askstring("AWTRIX 3", "Please enter IP address:")
 app = LedScreenApp(root, ip_address)
 root.mainloop()

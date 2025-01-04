@@ -6,7 +6,7 @@ labels: feature request
 assignees: ''
 ---
 
-<!-- Make sure to read the README (https://blueforcer.github.io/awtrix-light/#/README) before opening an issue. -->
+<!-- Make sure to read the README (https://blueforcer.github.io/awtrix3/#/README) before opening an issue. -->
 
 # Feature Request
 

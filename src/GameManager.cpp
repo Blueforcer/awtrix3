@@ -12,7 +12,7 @@ enum Direction
 {
     LEFT,
     RIGHT,
-    NONE
+    STOP
 };
 
 struct PlayerStats
@@ -24,7 +24,7 @@ struct PlayerStats
     PlayerStats() : x(0), y(0), isJumping(false), verticalSpeed(0), color(0xFFFFFF) {}
 } GamePlayer;
 
-Direction dir = NONE;
+Direction dir = STOP;
 bool pressed = false;
 bool jumpButtonPressed = false;
 

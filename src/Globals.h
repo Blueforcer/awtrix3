@@ -2,7 +2,8 @@
 #define GLOBALS_H
 #include <Arduino.h>
 #include <FastLED.h>
-
+#include "effects.h"
+ 
 #define DEBUG
 
 #ifdef DEBUG
@@ -26,6 +27,7 @@
 #define DEBUG_PRINTLN(x)
 #define DEBUG_PRINTF(format, ...)
 #endif
+
 void formatSettings();
 extern const char *uniqueID;
 extern const char *VERSION;
@@ -88,19 +90,18 @@ extern String TIME_FORMAT;
 extern String DATE_FORMAT;
 extern bool START_ON_MONDAY;
 extern bool IS_CELSIUS;
-#ifndef ULANZI    
+  
 #define TEMP_SENSOR_TYPE_NONE 0
 #define TEMP_SENSOR_TYPE_BME280 1
 #define TEMP_SENSOR_TYPE_HTU21DF 2
 #define TEMP_SENSOR_TYPE_BMP280 3
+#define TEMP_SENSOR_TYPE_SHT31 4
 extern uint8_t TEMP_SENSOR_TYPE;
-#endif
+
 extern bool SOUND_ACTIVE;
 extern String BOOT_SOUND;
 extern int TEMP_DECIMAL_PLACES;
-#ifndef ULANZI
-extern uint8_t DFP_VOLUME;
-#endif
+extern uint8_t SOUND_VOLUME;
 extern int MATRIX_LAYOUT;
 extern bool UPDATE_AVAILABLE;
 extern long RECEIVED_MESSAGES;
@@ -140,9 +141,13 @@ extern bool DEBUG_MODE;
 extern String AUTH_USER;
 extern String AUTH_PASS;
 extern String BUTTON_CALLBACK;
-extern bool SNOW;
 extern bool NEWYEAR;
 extern bool SWAP_BUTTONS;
 extern bool LDR_ON_GROUND;
 extern bool GAME_ACTIVE;
+extern uint32_t AP_TIMEOUT;
+extern OverlayEffect GLOBAL_OVERLAY;
+extern String HOSTNAME;
+extern int WEB_PORT;
+extern bool BUZ_VOL;
 #endif // Globals_H

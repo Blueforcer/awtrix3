@@ -5,7 +5,7 @@
  * Copyright (c) 2016 by Fabrice Weinberg
  * Copyright (c) 2023 by Stephan Muehl (Blueforcer)
  * Note: This old lib for SSD1306 displays has been extremely
- * modified for AWTRIX Light and has nothing to do with the original purposes.
+ * modified for AWTRIX 3 and has nothing to do with the original purposes.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@
 #include "AwtrixFont.h"
 #include "effects.h"
 #include "Globals.h"
+#include "effects.h"
 
 GifPlayer gif1;
 GifPlayer gif2;
@@ -245,6 +246,10 @@ void MatrixDisplayUi::tick()
     this->drawApp();
   this->drawOverlays();
   this->drawIndicators();
+  if (GLOBAL_OVERLAY > 0)
+  {
+    EffectOverlay(matrix, 0, 0, GLOBAL_OVERLAY);
+  }
   DisplayManager.gammaCorrection();
   this->matrix->show();
 }
@@ -621,36 +626,36 @@ void MatrixDisplayUi::slideTransition()
 
 void MatrixDisplayUi::curtainTransition()
 {
-    CRGB *leds = DisplayManager.getLeds();
-    float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
-    int curtainWidth = (int)(16 * progress); // 16 ist die Hälfte der Matrix-Breite
+  CRGB *leds = DisplayManager.getLeds();
+  float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
+  int curtainWidth = (int)(16 * progress); // 16 ist die Hälfte der Matrix-Breite
 
-    if (this->state.ticksSinceLastStateSwitch == 1 || this->state.ticksSinceLastStateSwitch == 0)
-    {
-        // Kopieren Sie die aktuelle App-Ansicht in ledsCopy
-        (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
-        for (int i = 0; i < 32; i++)
-        {
-            for (int j = 0; j < 8; j++)
-            {
-                ledsCopy[i + j * 32] = leds[this->matrix->XY(i, j)];
-            }
-        }
-    }
-    // Zeichnen Sie die neue App-Ansicht
-    (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
-
-    // Anwenden des Vorhang-Effekts basierend auf dem Fortschritt
+  if (this->state.ticksSinceLastStateSwitch == 1 || this->state.ticksSinceLastStateSwitch == 0)
+  {
+    // Kopieren Sie die aktuelle App-Ansicht in ledsCopy
+    (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
     for (int i = 0; i < 32; i++)
     {
-        for (int j = 0; j < 8; j++)
-        {
-            if ((i < (16 - curtainWidth)) || (i >= (16 + curtainWidth)))
-            {
-                leds[this->matrix->XY(i, j)] = ledsCopy[i + j * 32];
-            }
-        }
+      for (int j = 0; j < 8; j++)
+      {
+        ledsCopy[i + j * 32] = leds[this->matrix->XY(i, j)];
+      }
     }
+  }
+  // Zeichnen Sie die neue App-Ansicht
+  (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
+
+  // Anwenden des Vorhang-Effekts basierend auf dem Fortschritt
+  for (int i = 0; i < 32; i++)
+  {
+    for (int j = 0; j < 8; j++)
+    {
+      if ((i < (16 - curtainWidth)) || (i >= (16 + curtainWidth)))
+      {
+        leds[this->matrix->XY(i, j)] = ledsCopy[i + j * 32];
+      }
+    }
+  }
 }
 
 void MatrixDisplayUi::zoomTransition()

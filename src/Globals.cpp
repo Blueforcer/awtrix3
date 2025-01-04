@@ -106,6 +106,11 @@ void loadDevSettings()
             MAX_BATTERY = doc["max_battery"];
         }
 
+        if (doc.containsKey("ap_timeout"))
+        {
+            AP_TIMEOUT = doc["ap_timeout"];
+        }
+
         if (doc.containsKey("background_effect"))
         {
             BACKGROUND_EFFECT = getEffectIndex(doc["background_effect"].as<const char *>());
@@ -151,6 +156,21 @@ void loadDevSettings()
             UPDATE_CHECK = doc["update_check"].as<bool>();
         }
 
+        if (doc.containsKey("hostname"))
+        {
+            HOSTNAME = doc["hostname"].as<String>();
+        }
+
+        if (doc.containsKey("buzzer_volume"))
+        {
+            BUZ_VOL = doc["buzzer_volume"].as<bool>();
+        }
+
+        if (doc.containsKey("web_port"))
+        {
+            WEB_PORT = doc["web_port"];
+        }
+
         if (doc.containsKey("temp_dec_places"))
         {
             TEMP_DECIMAL_PLACES = doc["temp_dec_places"].as<int>();
@@ -164,11 +184,6 @@ void loadDevSettings()
         if (doc.containsKey("debug_mode"))
         {
             DEBUG_MODE = doc["debug_mode"].as<bool>();
-        }
-
-        if (doc.containsKey("let_it_snow"))
-        {
-            SNOW = doc["let_it_snow"].as<bool>();
         }
 
         if (doc.containsKey("new_year"))
@@ -274,12 +289,11 @@ void loadSettings()
     SHOW_BAT = Settings.getBool("BAT", true);
 #endif
     SOUND_ACTIVE = Settings.getBool("SOUND", true);
-#ifndef ULANZI
-    DFP_VOLUME = Settings.getUInt("VOL", 20);
-#endif
+    SOUND_VOLUME = Settings.getUInt("VOL", 25);
     Settings.end();
     uniqueID = getID();
     MQTT_PREFIX = String(uniqueID);
+    HOSTNAME = String(uniqueID);
     loadDevSettings();
 }
 
@@ -324,9 +338,7 @@ void saveSettings()
     Settings.putBool("BAT", SHOW_BAT);
 #endif
     Settings.putBool("SOUND", SOUND_ACTIVE);
-#ifndef ULANZI
-    Settings.putUInt("VOL", DFP_VOLUME);
-#endif
+    Settings.putUInt("VOL", SOUND_VOLUME);
     Settings.end();
 }
 
@@ -336,7 +348,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.94";
+const char *VERSION = "0.97";
 
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
@@ -370,9 +382,9 @@ String HA_PREFIX = "homeassistant";
 String CURRENT_APP;
 float CURRENT_TEMP;
 bool IS_CELSIUS;
-#ifndef ULANZI
+
 uint8_t TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_NONE;
-#endif
+
 float CURRENT_HUM;
 float CURRENT_LUX;
 int BRIGHTNESS = 120;
@@ -406,9 +418,7 @@ uint32_t TEXTCOLOR_888 = 0xFFFFFF;
 bool SOUND_ACTIVE;
 String BOOT_SOUND = "";
 int TEMP_DECIMAL_PLACES = 0;
-#ifndef ULANZI
-uint8_t DFP_VOLUME;
-#endif
+uint8_t SOUND_VOLUME = 30;
 int MATRIX_LAYOUT = 0;
 bool UPDATE_AVAILABLE = false;
 long RECEIVED_MESSAGES;
@@ -436,7 +446,7 @@ uint32_t HUM_COLOR = 0;
 bool ARTNET_MODE;
 bool MOODLIGHT_MODE;
 long STATS_INTERVAL = 10000;
-bool DEBUG_MODE = false;
+bool DEBUG_MODE = true;
 uint8_t MIN_BRIGHTNESS = 2;
 uint8_t MAX_BRIGHTNESS = 160;
 double movementFactor = 0.5;
@@ -444,10 +454,14 @@ int8_t TRANS_EFFECT = 1;
 String AUTH_USER = "";
 String AUTH_PASS = "awtrix";
 String BUTTON_CALLBACK = "";
-bool SNOW = false;
 bool NEWYEAR = false;
 bool SWAP_BUTTONS = false;
 bool LDR_ON_GROUND = false;
 float LDR_GAMMA = 3.0;
 float LDR_FACTOR = 1.0;
 bool GAME_ACTIVE = false;
+uint32_t AP_TIMEOUT = 15;
+int WEB_PORT = 80;
+OverlayEffect GLOBAL_OVERLAY = NONE;
+String HOSTNAME = "";
+bool BUZ_VOL = false;

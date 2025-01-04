@@ -10,8 +10,8 @@
 #include "effects.h"
 #include "MQTTManager.h"
 #include "Overlays.h"
+#include "timer.h"
 
-tm timeInfo;
 uint16_t nativeAppsCount;
 
 int WEATHER_CODE;
@@ -97,16 +97,14 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         DisplayManager.getInstance().resetTextColor();
     }
 
-    time_t now = time(nullptr);
-    struct tm *timeInfo;
-    timeInfo = localtime(&now);
     const char *timeformat = getTimeFormat();
     char t[20];
-    char t2[20];
     if (timeformat[2] == ' ')
     {
+        // blink separator
+        char t2[20];
         strcpy(t2, timeformat);
-        if (now % 2)
+        if (timer_time() % 2)
         {
             t2[2] = ' ';
         }
@@ -114,61 +112,64 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         {
             t2[2] = ':';
         }
-        strftime(t, sizeof(t), t2, localtime(&now));
+        strftime(t, sizeof(t), t2, timer_localtime());
     }
     else
     {
-        strftime(t, sizeof(t), timeformat, localtime(&now));
+        strftime(t, sizeof(t), timeformat, timer_localtime());
     }
 
     int16_t wdPosY;
     int16_t timePosY;
-
-    if (TIME_MODE == 1 || TIME_MODE == 2)
+    if (TIME_MODE == 2 || TIME_MODE == 4)
     {
-        wdPosY = TIME_MODE == 1 ? 7 : 0;
-        timePosY = TIME_MODE == 1 ? 6 : 7;
-        DisplayManager.printText(12 + x, timePosY + y, t, false, 2);
-        DisplayManager.drawFilledRect(x, y, 9, 8, CALENDAR_BODY_COLOR);
-        DisplayManager.drawFilledRect(0 + x, 0 + y, 9, 2, CALENDAR_HEADER_COLOR);
-    }
-    else if (TIME_MODE == 3 || TIME_MODE == 4)
-    {
-        wdPosY = TIME_MODE == 3 ? 7 : 0;
-        timePosY = TIME_MODE == 3 ? 6 : 7;
-        DisplayManager.printText(12 + x, timePosY + y, t, false, 2);
-        DisplayManager.drawFilledRect(0 + x, 0 + y, 9, 8, CALENDAR_BODY_COLOR);
-        DisplayManager.drawLine(1, 0, 2, 0, 0x000000);
-        DisplayManager.drawLine(6, 0, 7, 0, 0x000000);
+        // week days on top line
+        wdPosY = 0;
+        timePosY = 7;
     }
     else
     {
+        // week days on bottom line
         wdPosY = 7;
-        timePosY = 6;
-        DisplayManager.printText(0 + x, timePosY + y, t, true, 2);
+        timePosY = 6 ;
     }
 
+    // time
+    DisplayManager.printText(12 + x, timePosY + y, t, TIME_MODE == 0, 2);
+
+    // day of month in calendar box
     if (TIME_MODE > 0)
     {
+        int offset;
         char day_str[3];
-        sprintf(day_str, "%d", timeInfo->tm_mday);
-        DisplayManager.setTextColor(CALENDAR_TEXT_COLOR);
-        if (timeInfo->tm_mday < 10)
+        sprintf(day_str, "%d", timer_localtime()->tm_mday);
+
+        // calendar box
+        DisplayManager.drawFilledRect(x, y, 9, 8, CALENDAR_BODY_COLOR);
+        if (TIME_MODE <= 2)
         {
-            DisplayManager.setCursor(3 + x, 7 + y);
+            DisplayManager.drawFilledRect(x, y, 9, 2, CALENDAR_HEADER_COLOR);
         }
         else
         {
-            DisplayManager.setCursor(1 + x, 7 + y);
+            DisplayManager.drawLine(1, 0, 2, 0, 0x000000);
+            DisplayManager.drawLine(6, 0, 7, 0, 0x000000);
         }
+
+        // day of month
+        if (timer_localtime()->tm_mday < 10)
+            offset = 3;
+        else
+            offset = 1;
+        DisplayManager.setCursor(offset + x, 7 + y);
+        DisplayManager.setTextColor(CALENDAR_TEXT_COLOR);
         DisplayManager.matrixPrint(day_str);
-        int16_t wdPosY = TIME_MODE > 0 ? 0 : 8;
-        int16_t timePosY = TIME_MODE > 0 ? 6 : 0;
     }
 
     if (!SHOW_WEEKDAY)
         return;
 
+    // line of week days
     uint8_t LINE_WIDTH = TIME_MODE > 0 ? 2 : 3;
     uint8_t LINE_SPACING = 1;
     uint8_t LINE_START = TIME_MODE > 0 ? 10 : 2;
@@ -178,14 +179,13 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         int lineStart = LINE_START + i * (LINE_WIDTH + LINE_SPACING);
         int lineEnd = lineStart + LINE_WIDTH - 1;
 
-        if (i == (timeInfo->tm_wday + 6 + dayOffset) % 7)
-        {
-            DisplayManager.drawLine(lineStart + x, y + wdPosY, lineEnd + x, y + wdPosY, WDC_ACTIVE);
-        }
+        uint32_t color;
+        if (i == (timer_localtime()->tm_wday + 6 + dayOffset) % 7)
+            color = WDC_ACTIVE; // current day
         else
-        {
-            DisplayManager.drawLine(lineStart + x, y + wdPosY, lineEnd + x, y + wdPosY, WDC_INACTIVE);
-        }
+            color = WDC_INACTIVE; // other days
+
+        DisplayManager.drawLine(lineStart + x, wdPosY + y, lineEnd + x, wdPosY + y, color);
     }
 }
 
@@ -203,18 +203,15 @@ void DateApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     {
         DisplayManager.getInstance().resetTextColor();
     }
-    time_t now = time(nullptr);
-    struct tm *timeInfo;
-    timeInfo = localtime(&now);
     char d[20];
-    strftime(d, sizeof(d), DATE_FORMAT.c_str(), localtime(&now));
+    strftime(d, sizeof(d), DATE_FORMAT.c_str(), timer_localtime());
     DisplayManager.printText(0 + x, 6 + y, d, true, 2);
     if (!SHOW_WEEKDAY)
         return;
     int dayOffset = START_ON_MONDAY ? 0 : 1;
     for (int i = 0; i <= 6; i++)
     {
-        if (i == (timeInfo->tm_wday + 6 + dayOffset) % 7)
+        if (i == (timer_localtime()->tm_wday + 6 + dayOffset) % 7)
         {
             DisplayManager.drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, WDC_ACTIVE);
         }
@@ -302,6 +299,21 @@ void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
 }
 #endif
 
+String replacePlaceholders(String text) {
+    int start = 0;
+    while ((start = text.indexOf("{{", start)) != -1) {
+        int end = text.indexOf("}}", start);
+        if (end == -1) {
+            break;
+        }
+        String placeholder = text.substring(start + 2, end);
+        String topic = placeholder;
+        text.replace("{{" + placeholder + "}}", MQTTManager.getValueForTopic(topic));
+        start = end + 2;
+    }
+    return text;
+}
+
 void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     // Abort if notifyFlag is set
@@ -358,19 +370,20 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 
     bool hasIcon = ca->icon || ca->jpegDataSize > 0;
 
-    // Calculate text and available width
-    uint16_t textWidth = 0;
-    if (!ca->fragments.empty())
+uint16_t textWidth = 0;
+if (!ca->fragments.empty())
+{
+    for (const auto &fragment : ca->fragments)
     {
-        for (const auto &fragment : ca->fragments)
-        {
-            textWidth += getTextWidth(fragment.c_str(), ca->textCase);
-        }
+        String replacedFragment = replacePlaceholders(fragment);
+        textWidth += getTextWidth(replacedFragment.c_str(), ca->textCase);
     }
-    else
-    {
-        textWidth = getTextWidth(ca->text.c_str(), ca->textCase);
-    }
+}
+else
+{
+    String replacedText = replacePlaceholders(ca->text);
+    textWidth = getTextWidth(replacedText.c_str(), ca->textCase);
+}
 
     uint16_t availableWidth = (hasIcon) ? 24 : 32;
 
@@ -439,7 +452,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 
         if (ca->barSize > 0)
         {
-            DisplayManager.drawBarChart(x, y, ca->barData, ca->barSize, hasIcon, ca->color);
+            DisplayManager.drawBarChart(x, y, ca->barData, ca->barSize, hasIcon, ca->color, ca->barBG);
         }
 
         if (ca->lineSize > 0)
@@ -534,6 +547,8 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         textX = hasIcon ? 9 : 0;
     }
 
+    String text =replacePlaceholders(ca->text);
+
     if (noScrolling)
     {
         ca->repeat = -1; // Disable repeat if text is too short for scrolling
@@ -543,25 +558,27 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             int16_t fragmentX = textX + ca->textOffset;
             for (size_t i = 0; i < ca->fragments.size(); ++i)
             {
+                String text =replacePlaceholders(ca->fragments[i]);
                 DisplayManager.setTextColor(TextEffect(ca->colors[i], ca->fade, ca->blink));
-                DisplayManager.printText(x + fragmentX, y + 6, ca->fragments[i].c_str(), false, ca->textCase);
-                fragmentX += getTextWidth(ca->fragments[i].c_str(), ca->textCase);
+                DisplayManager.printText(x + fragmentX, y + 6, text.c_str(), false, ca->textCase);
+                fragmentX += getTextWidth(text.c_str(), ca->textCase);
             }
         }
         else
         {
+            String text =replacePlaceholders(ca->text);
             if (ca->rainbow)
             {
-                DisplayManager.HSVtext(x + textX + ca->textOffset, 6 + y, ca->text.c_str(), false, ca->textCase);
+                DisplayManager.HSVtext(x + textX + ca->textOffset, 6 + y, text.c_str(), false, ca->textCase);
             }
             else if (ca->gradient[0] > -1 && ca->gradient[1] > -1)
             {
-                DisplayManager.GradientText(x + textX + ca->textOffset, 6 + y, ca->text.c_str(), ca->gradient[0], ca->gradient[1], false, ca->textCase);
+                DisplayManager.GradientText(x + textX + ca->textOffset, 6 + y, text.c_str(), ca->gradient[0], ca->gradient[1], false, ca->textCase);
             }
             else
             {
                 DisplayManager.setTextColor(TextEffect(ca->color, ca->fade, ca->blink));
-                DisplayManager.printText(x + textX + ca->textOffset, y + 6, ca->text.c_str(), false, ca->textCase);
+                DisplayManager.printText(x + textX + ca->textOffset, y + 6, text.c_str(), false, ca->textCase);
             }
         }
     }
@@ -572,25 +589,26 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             int16_t fragmentX = ca->scrollposition + ca->textOffset;
             for (size_t i = 0; i < ca->fragments.size(); ++i)
             {
+                String text =replacePlaceholders(ca->fragments[i]);
                 DisplayManager.setTextColor(TextEffect(ca->colors[i], ca->fade, ca->blink));
-                DisplayManager.printText(x + fragmentX, y + 6, ca->fragments[i].c_str(), false, ca->textCase);
-                fragmentX += getTextWidth(ca->fragments[i].c_str(), ca->textCase);
+                DisplayManager.printText(x + fragmentX, y + 6, text.c_str(), false, ca->textCase);
+                fragmentX += getTextWidth(text.c_str(), ca->textCase);
             }
         }
         else
         {
             if (ca->rainbow)
             {
-                DisplayManager.HSVtext(x + ca->scrollposition + ca->textOffset, 6 + y, ca->text.c_str(), false, ca->textCase);
+                DisplayManager.HSVtext(x + ca->scrollposition + ca->textOffset, 6 + y, text.c_str(), false, ca->textCase);
             }
             else if (ca->gradient[0] > -1 && ca->gradient[1] > -1)
             {
-                DisplayManager.GradientText(x + ca->scrollposition + ca->textOffset, 6 + y, ca->text.c_str(), ca->gradient[0], ca->gradient[1], false, ca->textCase);
+                DisplayManager.GradientText(x + ca->scrollposition + ca->textOffset, 6 + y, text.c_str(), ca->gradient[0], ca->gradient[1], false, ca->textCase);
             }
             else
             {
                 DisplayManager.setTextColor(TextEffect(ca->color, ca->fade, ca->blink));
-                DisplayManager.printText(x + ca->scrollposition + ca->textOffset, 6 + y, ca->text.c_str(), false, ca->textCase);
+                DisplayManager.printText(x + ca->scrollposition + ca->textOffset, 6 + y, text.c_str(), false, ca->textCase);
             }
         }
     }
@@ -603,6 +621,11 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     if (ca->lifeTimeEnd)
     {
         DisplayManager.drawRect(x, y, 32 + x, 8 + y, 0x6e0700);
+    }
+
+    if (!ca->overlay == NONE)
+    {
+        EffectOverlay(matrix, x, y, ca->overlay);
     }
 
     DisplayManager.getInstance().resetTextColor();

@@ -28,10 +28,12 @@ struct CustomApp
     int16_t repeat = 0;
     int16_t currentRepeat = 0;
     String name;
+    OverlayEffect overlay;
     byte pushIcon = 0;
     float iconPosition = 0;
     bool iconWasPushed = false;
     int barData[16] = {0};
+    uint32_t barBG = 0;
     int lineData[16] = {0};
     int gradient[2] = {0};
     int barSize;

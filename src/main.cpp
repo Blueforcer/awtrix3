@@ -13,22 +13,23 @@
 
  ***************************************************************************
  *                                                                         *
- *   AWTRIX Light, a custom firmware for the Ulanzi clock                  *
+ *   AWTRIX 3, a custom firmware for the Ulanzi clock                  *
  *                                                                         *
- *   Copyright (C) 2023  Stephan Mühl aka Blueforcer                       *
+ *   Copyright (C) 2024  Stephan Mühl aka Blueforcer                       *
  *                                                                         *
  *   This work is licensed under a                                         *
  *   Creative Commons Attribution-NonCommercial-ShareAlike                 *
  *   4.0 International License.                                            *
  *                                                                         *
  *   More information:                                                     *
- *   https://github.com/Blueforcer/awtrix-light/blob/main/LICENSE.md       *
+ *   https://github.com/Blueforcer/awtrix3/blob/main/LICENSE.md       *
  *                                                                         *
  *   This firmware is distributed in the hope that it will be useful,      *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                  *
  *                                                                         *
  ***************************************************************************/
+
 
 #include <Arduino.h>
 #include "DisplayManager.h"
@@ -37,6 +38,7 @@
 #include "ServerManager.h"
 #include "Globals.h"
 #include "UpdateManager.h"
+#include "timer.h"
 
 TaskHandle_t taskHandle;
 volatile bool StopTask = false;
@@ -73,23 +75,35 @@ void setup()
   ServerManager.setup();
   if (ServerManager.isConnected)
   {
+    // timer_init();
     DisplayManager.loadNativeApps();
     DisplayManager.loadCustomApps();
     UpdateManager.setup();
     DisplayManager.startArtnet();
     StopTask = true;
     float x = 4;
-    while (x >= -85)
+    String textForDisplay = "AWTRIX   " + ServerManager.myIP.toString();
+
+    if (WEB_PORT != 80)
     {
-      DisplayManager.HSVtext(x, 6, ("AWTRIX   " + ServerManager.myIP.toString()).c_str(), true, 0);
+      textForDisplay += ":" + String(WEB_PORT);
+    }
+
+    int textLength = textForDisplay.length() * 4;
+    while (x >= -textLength)
+    {
+      DisplayManager.HSVtext(x, 6, textForDisplay.c_str(), true, 0);
       x -= 0.18;
     }
-    if (MQTT_HOST != "")
-    {
-      DisplayManager.HSVtext(4, 6, "MQTT...", true, 0);
-      MQTTManager.setup();
-      MQTTManager.tick();
-    }
+
+    
+      if (MQTT_HOST != "")
+      {
+        DisplayManager.HSVtext(4, 6, "MQTT...", true, 0);
+        MQTTManager.setup();
+        MQTTManager.tick();
+      }
+    
   }
   else
   {
@@ -102,6 +116,7 @@ void setup()
 
 void loop()
 {
+  timer_tick();
   ServerManager.tick();
   DisplayManager.tick();
   PeripheryManager.tick();

@@ -79,7 +79,7 @@ public:
 
     FSWebServer(fs::FS &fs, WebServerClass &server);
 
-    bool begin(const char *path = nullptr);
+    bool begin( int port = 80,const char *path = nullptr);
 
     void run();
     void onNotFound(WebServerClass::THandlerFunction fn);
@@ -143,7 +143,7 @@ public:
     {
         // String trimmed = script;
         //  removeWhiteSpaces(trimmed);
-        addOption("raw-javascript", script, true);
+        addOption("raw-javascript", script, true, MIN_F, MAX_F, 1.0, true);
     }
 
     void addDropdownList(const char *label, const char **array, size_t size);
@@ -165,7 +165,7 @@ public:
     // Add custom option to config webpage (type of parameter will be deduced from variable itself)
     template <typename T>
     inline void addOption(const char *label, T val, bool hidden = false,
-                          double d_min = MIN_F, double d_max = MAX_F, double step = 1.0)
+                          double d_min = MIN_F, double d_max = MAX_F, double step = 1.0, bool replace = false)
     {
         File file = m_filesystem->open("/DoNotTouch.json", "r");
         int sz = file.size() * 1.33;
@@ -205,8 +205,8 @@ public:
             key += numOptions;
         }
 
-        // If key is present in json, we don't need to create it.
-        if (doc.containsKey(key.c_str()))
+        // If key is present in json and replace is false, we don't need to create it.
+        if (doc.containsKey(key.c_str()) && !replace)
             return;
 
         // if min, max, step != from default, treat this as object in order to set other properties

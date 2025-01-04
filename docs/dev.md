@@ -12,6 +12,8 @@ The JSON object has the following properties:
 
 | Key | Type | Description | Default |
 | --- | ---- | ----------- | ------- |
+| `hostname` | string | Changes the hostname of your awtrix. This is used for App discovery, mDNS etc. | uniqeID |
+| `ap_timeout` | integer | The timeout in seconds before AWTRIX switches to AP mode if the saved WLAN was not found. | 15 |
 | `bootsound` | string | Uses a custom melodie while booting |  |
 | `matrix` | integer | Changes the matrix layout (0,1 or 2) | `0` |
 | `color_correction` | array of int | Sets the colorcorrection of the matrix | `[255,255,255]` |
@@ -29,22 +31,22 @@ The JSON object has the following properties:
 | `min_battery` | integer | Calibrates the minimum battery measurement by the given raw value. You will get that from the stats api | `475` |
 | `max_battery` | integer | Calibrates the maximum battery measurement by the given raw value. You will get that from the stats api | `665` |
 | `ha_prefix` | string | Sets the prefix for Homassistant discovery | `homeassistant` |
-| `background_effect` | string | Sets an [effect](https://blueforcer.github.io/awtrix-light/#/effects) as global background layer | - |
+| `background_effect` | string | Sets an [effect](https://blueforcer.github.io/awtrix3/#/effects) as global background layer | - |
 | `stats_interval` | integer | Sets the interval in milliseconds when awtrix should send its stats to HA and MQTT | 10000 |
 | `debug_mode` | boolean | Enables serial debug outputs. | false |
 | `dfplayer` | boolean | Enables DFPLayer for Awtrix2_conversation builds. | false |
+| `buzzer_volume` | boolean | Activates the volume control for the buzzer, doesnt work with every tones | false |
 | `button_callback` | string | http callback url for button presses. | - |
-| `let_it_snow` | boolean | Let it snow as a global Overlay. | true for christmastime |
 | `new_year` | boolean | Displays fireworks and plays a jingle at newyear. | false |
 | `swap_buttons` | boolean | Swaps the left and right hardware button. | false |
 | `ldr_on_ground` | boolean | Sets the LDR configuration to LDR-on-ground. | false |
+
 
 #### Example:
 ```json
 {
   "temp_dec_places":1,
   "bootsound":true,
-  "hum_offset":-2,
-  "let_it_snow":true
+  "hum_offset":-2
 }
 ```

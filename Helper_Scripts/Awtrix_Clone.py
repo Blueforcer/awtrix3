@@ -1,4 +1,4 @@
-#Clones the ICONS and MELODIES folder from one to another AWTRIX Light
+#Clones the ICONS and MELODIES folder from one to another AWTRIX 3
 
 import os
 import argparse

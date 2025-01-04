@@ -7,10 +7,12 @@
 #include "MQTTManager.h"
 #include "GifPlayer.h"
 #include <Ticker.h>
+#include "timer.h"
 #include "Functions.h"
 #include "ServerManager.h"
 #include "MenuManager.h"
 #include "Apps.h"
+#include "effects.h"
 #include "Overlays.h"
 #include "Dictionary.h"
 #include <set>
@@ -456,6 +458,26 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json, bool
   return true;
 }
 
+// Function to subscribe to MQTT topics based on placeholders in text
+void subscribeToPlaceholders(String text)
+{
+  int start = 0;
+  while ((start = text.indexOf("{{", start)) != -1)
+  {
+    int end = text.indexOf("}}", start);
+    if (end == -1)
+    {
+      break;
+    }
+    String placeholder = text.substring(start + 2, end);
+    String topic = placeholder;
+
+    MQTTManager.subscribe(topic.c_str());
+
+    start = end + 2;
+  }
+}
+
 bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, bool preventSave)
 {
   CustomApp customApp;
@@ -541,6 +563,11 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
     if (doc.containsKey(key))
     {
+      if (doc.containsKey("barBC"))
+      {
+        auto color = doc["barBC"];
+        customApp.barBG = getColorFromJsonVariant(color, 0);
+      }
       JsonArray data = doc[key];
       int index = 0;
       int maximum = 0;
@@ -618,6 +645,8 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
   customApp.noScrolling = doc.containsKey("noScroll") ? doc["noScroll"] : false;
   customApp.name = name;
 
+  customApp.overlay = doc.containsKey("overlay") ? getOverlay(doc["overlay"].as<String>()) : NONE;
+
   if (doc.containsKey("icon"))
   {
     String newIconName = doc["icon"].as<String>();
@@ -675,6 +704,15 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
   {
     customApp.hasCustomColor = false;
     customApp.color = TEXTCOLOR_888;
+  }
+
+  customApp.colors.clear();
+  customApp.fragments.clear();
+
+  if (doc.containsKey("text"))
+  {
+    String text = doc["text"];
+    subscribeToPlaceholders(utf8ascii(text));
   }
 
   if (doc.containsKey("text") && doc["text"].is<JsonArray>())
@@ -777,6 +815,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
     }
   }
 
+  newNotification.overlay = doc.containsKey("overlay") ? getOverlay(doc["overlay"].as<String>()) : NONE;
   newNotification.loopSound = doc.containsKey("loopSound") ? doc["loopSound"].as<bool>() : false;
   newNotification.center = doc.containsKey("center") ? doc["center"].as<bool>() : true;
   newNotification.sound = doc.containsKey("sound") ? doc["sound"].as<String>() : "";
@@ -840,6 +879,12 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
 
     if (doc.containsKey(key))
     {
+
+      if (doc.containsKey("barBC"))
+      {
+        auto color = doc["barBC"];
+        newNotification.barBG = getColorFromJsonVariant(color, 0);
+      }
       JsonArray data = doc[key];
       int index = 0;
       int maximum = 0;
@@ -1095,7 +1140,7 @@ void DisplayManager_::setup()
   ui->setTargetFPS(MATRIX_FPS);
   ui->setTimePerApp(TIME_PER_APP);
   ui->setTimePerTransition(TIME_PER_TRANSITION);
-  ui->setOverlays(overlays, 4);
+  ui->setOverlays(overlays, 3);
   ui->setBackgroundEffect(BACKGROUND_EFFECT);
   setAutoTransition(AUTO_TRANSITION);
   ui->init();
@@ -1227,9 +1272,7 @@ bool newYearEventTriggered = false;
 
 void DisplayManager_::checkNewYear()
 {
-  time_t now = time(nullptr);
-  struct tm *timeInfo;
-  timeInfo = localtime(&now);
+  struct tm *timeInfo = timer_localtime();
   if (timeInfo->tm_mon == 0 && timeInfo->tm_mday == 1 && timeInfo->tm_hour == 0 && timeInfo->tm_min == 0 && timeInfo->tm_sec == 0)
   {
     if (!newYearEventTriggered)
@@ -1440,7 +1483,7 @@ void DisplayManager_::drawMenuIndicator(int cur, int total, uint32_t color)
   }
 }
 
-void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int newData[], byte dataSize, bool withIcon, uint32_t color)
+void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint32_t color, uint32_t barBG)
 {
   int availableWidth = withIcon ? (32 - 9) : 32;
   int gap = 1;
@@ -1451,27 +1494,30 @@ void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int newData[], by
   for (int i = 0; i < dataSize; i++)
   {
     int x1 = x + startX + i * (barWidth + gap);
-    int barHeight = newData[i];
-    int y1 = (barHeight > 0) ? (8 - barHeight) : 8;
+    int barHeight = data[i];
 
-    if (barHeight > 0)
+    if (barBG > 0)
     {
-      drawFilledRect(x1, y1 + y, barWidth, barHeight, color);
+      // Draw background bar
+      drawFilledRect(x1, y, barWidth, 8, barBG);
     }
+
+    int y1 = (barHeight > 0) ? (8 - barHeight) : 8;
+    drawFilledRect(x1, y1 + y, barWidth, barHeight, color);
   }
 }
 
-void DisplayManager_::drawLineChart(int16_t x, int16_t y, const int newData[], byte dataSize, bool withIcon, uint32_t color)
+void DisplayManager_::drawLineChart(int16_t x, int16_t y, const int data[], byte dataSize, bool withIcon, uint32_t color)
 {
   int availableWidth = withIcon ? (32 - 9) : 32;
   int startX = withIcon ? 9 : 0;
   float xStep = static_cast<float>(availableWidth) / static_cast<float>(dataSize - 1);
   int lastX = x + startX;
-  int lastY = y + 8 - newData[0];
+  int lastY = y + 8 - data[0];
   for (int i = 1; i < dataSize; i++)
   {
     int x1 = x + startX + static_cast<int>(xStep * i);
-    int y1 = y + 8 - newData[i];
+    int y1 = y + 8 - data[i];
     drawLine(lastX, lastY, x1, y1, color);
     lastX = x1;
     lastY = y1;
@@ -1944,6 +1990,30 @@ String CRGBtoHex(CRGB color)
   return String(buf);
 }
 
+String getOverlayName()
+{
+  switch (GLOBAL_OVERLAY)
+  {
+  case DRIZZLE:
+    return "drizzle";
+  case RAIN:
+    return "rain";
+  case SNOW:
+    return "snow";
+  case STORM:
+    return "storm";
+  case THUNDER:
+    return "thunder";
+  case FROST:
+    return "frost";
+  case NONE:
+    return "clear";
+  default:
+    Serial.println(F("Invalid effect."));
+    return "invalid"; // Oder einen leeren String oder einen Fehlerwert zurückgeben
+  }
+}
+
 String DisplayManager_::getSettings()
 {
   StaticJsonDocument<1024> doc;
@@ -1985,7 +2055,8 @@ String DisplayManager_::getSettings()
   doc["HUM"] = SHOW_HUM;
   doc["TEMP"] = SHOW_TEMP;
   doc["BAT"] = SHOW_BAT;
-
+  doc["VOL"] = SOUND_VOLUME;
+  doc["OVERLAY"] = getOverlayName();
   String jsonString;
   return serializeJson(doc, jsonString), jsonString;
 }
@@ -2015,6 +2086,14 @@ void DisplayManager_::setNewSettings(const char *json)
   {
     TIME_PER_APP = TIME_PER_APP;
   }
+
+  if (doc.containsKey("OVERLAY"))
+  {
+    GLOBAL_OVERLAY = getOverlay(doc["OVERLAY"].as<String>());
+    if (doc.size() == 1)
+      return;
+  }
+
   TIME_MODE = doc.containsKey("TMODE") ? doc["TMODE"].as<int>() : TIME_MODE;
   TRANS_EFFECT = doc.containsKey("TEFF") ? doc["TEFF"] : TRANS_EFFECT;
   TIME_PER_TRANSITION = doc.containsKey("TSPEED") ? doc["TSPEED"] : TIME_PER_TRANSITION;
@@ -2037,13 +2116,11 @@ void DisplayManager_::setNewSettings(const char *json)
   SHOW_TEMP = doc.containsKey("TEMP") ? doc["TEMP"].as<bool>() : SHOW_TEMP;
   SHOW_BAT = doc.containsKey("BAT") ? doc["BAT"].as<bool>() : SHOW_BAT;
 
-#ifndef ULANZI
   if (doc.containsKey("VOL"))
   {
-    DFP_VOLUME = doc["VOL"];
-    PeripheryManager.setVolume(DFP_VOLUME);
+    SOUND_VOLUME = doc["VOL"];
+    PeripheryManager.setVolume(SOUND_VOLUME);
   }
-#endif
 
   if (doc.containsKey("CCORRECTION"))
   {

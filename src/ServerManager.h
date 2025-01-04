@@ -14,7 +14,7 @@ public:
     void tick();
     void loadSettings();
     void sendButton(byte btn, bool state);
-    void sendHTTPRequest(const String& topic, const String& state);
+    void erase();
     bool isConnected;
     IPAddress myIP;
 };
