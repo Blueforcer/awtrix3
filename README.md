@@ -112,10 +112,11 @@ Youtube videos from some awesome creators to get a quick first look.
 # Support  
 If you want to support my work, I really appreciate your donation!
 All the money will be allocated towards purchasing new hardware for testing purposes, software licenses, server costs, and a significant portion will also be set aside for dinners and trips with my wife and kids so that they can continue to endure the many hours I spend programming :) 
-  
-https://github.com/sponsors/Blueforcer  
+
+https://www.paypal.me/blueforcer   
+https://github.com/sponsors/Blueforcer   
 https://www.buymeacoffee.com/blueforcer  
-https://www.paypal.me/blueforcer  
+ 
   
 # Contributors 
 <a href="https://github.com/Blueforcer/awtrix3/graphs/contributors">
