@@ -70,6 +70,12 @@ Its also accessible via HTTTP /api/effects
     <td>MovingLine</td>
     <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/MovingLine.gif" style="max-height:100px;"></td>
   </tr>
+  <tr>
+    <td>Fade</td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/Fade.gif" style="max-height:100px;"></td>
+    <td>&nbsp</td>
+    <td>&nbsp</td>
+  </tr>
 </table>
 
 
