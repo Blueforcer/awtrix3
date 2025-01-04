@@ -38,6 +38,8 @@ The JSON object has the following properties:
 | `buzzer_volume` | boolean | Activates the volume control for the buzzer, doesnt work with every tones | false |
 | `button_callback` | string | http callback url for button presses. | - |
 | `new_year` | boolean | Displays fireworks and plays a jingle at newyear. | false |
+| `swap_buttons` | boolean | Swaps the left and right hardware button. | false |
+| `ldr_on_ground` | boolean | Sets the LDR configuration to LDR-on-ground. | false |
 
 
 #### Example:

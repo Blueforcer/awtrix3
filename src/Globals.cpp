@@ -191,6 +191,16 @@ void loadDevSettings()
             NEWYEAR = doc["new_year"].as<bool>();
         }
 
+        if (doc.containsKey("swap_buttons"))
+        {
+            SWAP_BUTTONS = doc["swap_buttons"].as<bool>();
+        }
+
+        if (doc.containsKey("ldr_on_ground"))
+        {
+            LDR_ON_GROUND = doc["ldr_on_ground"].as<bool>();
+        }
+
         if (doc.containsKey("button_callback"))
         {
             BUTTON_CALLBACK = doc["button_callback"].as<String>();
@@ -445,6 +455,8 @@ String AUTH_USER = "";
 String AUTH_PASS = "awtrix";
 String BUTTON_CALLBACK = "";
 bool NEWYEAR = false;
+bool SWAP_BUTTONS = false;
+bool LDR_ON_GROUND = false;
 float LDR_GAMMA = 3.0;
 float LDR_FACTOR = 1.0;
 bool GAME_ACTIVE = false;

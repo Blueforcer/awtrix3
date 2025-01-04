@@ -393,7 +393,7 @@ void PeripheryManager_::setup()
     button_select.begin();
     button_reset.begin();
 
-    if (ROTATE_SCREEN)
+    if ((ROTATE_SCREEN && !SWAP_BUTTONS) || (!ROTATE_SCREEN && SWAP_BUTTONS))
     {
         Serial.println("Button rotation");
         button_left.onPressed(right_button_pressed);
@@ -445,7 +445,8 @@ void PeripheryManager_::setup()
 #else
 
 #endif
-    photocell.setPhotocellPositionOnGround(false);
+    if (!LDR_ON_GROUND)
+        photocell.setPhotocellPositionOnGround(false);
 }
 
 void PeripheryManager_::tick()
@@ -532,18 +533,25 @@ void PeripheryManager_::tick()
     }
 
     unsigned long currentMillis_LDR = millis();
-    if (currentMillis_LDR - previousMillis_LDR >= interval_LDR)
+   if (currentMillis_LDR - previousMillis_LDR >= interval_LDR)
     {
         previousMillis_LDR = currentMillis_LDR;
+        TotalLDRReadings[sampleIndex] = analogRead(LDR_PIN);
 
-        uint16_t LDRVALUE = analogRead(LDR_PIN);
-
-        // Send LDR values through median filter to get rid of the remaining spikes and then calculate the average
-        LDR_RAW = meanFilterLDR.AddValue(medianFilterLDR.AddValue(LDRVALUE));
+        sampleIndex = (sampleIndex + 1) % LDRReadings;
+        sampleSum = 0.0;
+        for (int i = 0; i < LDRReadings; i++)
+        {
+            sampleSum += TotalLDRReadings[i];
+        }
+        sampleAverage = sampleSum / (float)LDRReadings;
+        if (LDR_ON_GROUND)
+            sampleAverage = 1023.0 - sampleAverage;
+        LDR_RAW = sampleAverage;
         CURRENT_LUX = (roundf(photocell.getSmoothedLux() * 1000) / 1000);
         if (AUTO_BRIGHTNESS && !MATRIX_OFF)
         {
-            brightnessPercent = (LDR_RAW * LDR_FACTOR) / 1023.0 * 100.0;
+            brightnessPercent = (sampleAverage * LDR_FACTOR) / 1023.0 * 100.0;
             brightnessPercent = pow(brightnessPercent, LDR_GAMMA) / pow(100.0, LDR_GAMMA - 1);
             BRIGHTNESS = map(brightnessPercent, 0, 100, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
             DisplayManager.setBrightness(BRIGHTNESS);
