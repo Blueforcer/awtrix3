@@ -6,7 +6,7 @@ AWTRIX 3 can show effects wherever you want
   
 Just call the name for your favorite effect.  
 AWTRIX sends all effect names once after start via MQTT to stats/effects. So you can create external selectors.  
-Its also accessible via HTTTP /api/effects  
+Its also accessible via HTTP /api/effects  
 
 <table>
   <tr>
@@ -69,6 +69,12 @@ Its also accessible via HTTTP /api/effects
     <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/PlasmaCloud.gif" style="max-height:100px;"></td>
     <td>MovingLine</td>
     <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/MovingLine.gif" style="max-height:100px;"></td>
+  </tr>
+  <tr>
+    <td>Fade</td>
+    <td><img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/Fade.gif" style="max-height:100px;"></td>
+    <td>&nbsp</td>
+    <td>&nbsp</td>
   </tr>
 </table>
 

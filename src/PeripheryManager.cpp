@@ -320,6 +320,7 @@ const char *PeripheryManager_::playRTTTLString(String rtttl)
         melodyName[sizeof(melodyName) - 1] = '\0';
         return melodyName;
     }
+    return nullptr; // RTTTL not supported with DFPlayer
 }
 
 const char *PeripheryManager_::playFromFile(String file)
