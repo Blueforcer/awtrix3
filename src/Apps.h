@@ -7,6 +7,7 @@
 
 struct CustomApp
 {
+    int bounceDir = 0;
     bool hasCustomColor = false;
     uint8_t currentFrame = 0;
     String iconName;
@@ -15,6 +16,7 @@ struct CustomApp
     int16_t scrollDelay = 0;
     byte lifetimeMode = 0;
     String text;
+    bool bounce = false;
     uint32_t color;
     File icon;
     bool isGif;

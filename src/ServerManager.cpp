@@ -13,15 +13,26 @@
 #include "PowerManager.h"
 #include <WiFiUdp.h>
 #include <HTTPClient.h>
-#include "GameManager.h"
+#include "Games/GameManager.h"
 #include <EEPROM.h>
 
 WiFiUDP udp;
-unsigned int localUdpPort = 4210; // Wählen Sie einen Port
+
+unsigned int localUdpPort = 4210;
 char incomingPacket[255];
 
+// Pufferdefinition
+#define BUFFER_SIZE 64
+char dataBuffer[BUFFER_SIZE];
+int bufferIndex = 0;
+
+// Aktueller verbundener Client
+WiFiClient currentClient = WiFiClient();
 WebServer server(80);
 FSWebServer mws(LittleFS, server);
+
+// Erstelle eine Server-Instanz
+WiFiServer TCPserver(8080);
 
 // The getter for the instantiated singleton instance
 ServerManager_ &ServerManager_::getInstance()
@@ -41,7 +52,7 @@ void versionHandler()
 
 void ServerManager_::erase()
 {
-    DisplayManager.HSVtext(0,6,"RESET",true,0);
+    DisplayManager.HSVtext(0, 6, "RESET", true, 0);
     wifi_config_t conf;
     memset(&conf, 0, sizeof(conf)); // Set all the bytes in the structure to 0
     esp_wifi_set_config(WIFI_IF_STA, &conf);
@@ -191,15 +202,12 @@ void addHandler()
                     } });
     mws.addHandler("/api/r2d2", HTTP_POST, []()
                    { PeripheryManager.r2d2(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
-
-    mws.addHandler("/api/controller", HTTP_POST, []()
-                   {
-        GameManager.ControllerInput(mws.webserver->arg("key"), mws.webserver->arg("status"));
-        mws.webserver->send(200, F("text/plain"), F("OK")); });
 }
 
 void ServerManager_::setup()
 {
+    esp_wifi_set_max_tx_power(80); // 82 * 0.25 dBm = 20.5 dBm
+    esp_wifi_set_ps(WIFI_PS_NONE); // Power Saving deaktivieren
     if (!local_IP.fromString(NET_IP) || !gateway.fromString(NET_GW) || !subnet.fromString(NET_SN) || !primaryDNS.fromString(NET_PDNS) || !secondaryDNS.fromString(NET_SDNS))
         NET_STATIC = false;
     if (NET_STATIC)
@@ -265,6 +273,8 @@ void ServerManager_::setup()
     configTzTime(NTP_TZ.c_str(), NTP_SERVER.c_str());
     tm timeInfo;
     getLocalTime(&timeInfo);
+    TCPserver.begin();
+    TCPserver.setNoDelay(true);
 }
 
 void ServerManager_::tick()
@@ -298,6 +308,43 @@ void ServerManager_::tick()
                 udp.endPacket();
             }
         }
+    }
+
+    if (!currentClient || !currentClient.connected()) {
+        if (TCPserver.hasClient()) {
+            if (currentClient) {
+                currentClient.stop();
+                Serial.println("Vorheriger Client getrennt, um neuen Client zu akzeptieren.");
+            }
+            currentClient = TCPserver.available();
+            Serial.println("Neuer Client verbunden.");
+        }
+    }
+
+    if (currentClient && currentClient.connected()) {
+        while (currentClient.available()) {
+            char incomingByte = currentClient.read();            
+            if (incomingByte == '\n') {
+                dataBuffer[bufferIndex] = '\0';               
+                GameManager.ControllerInput(dataBuffer);
+                bufferIndex = 0;
+            }
+            else if (incomingByte != '\r') {
+                if (bufferIndex < BUFFER_SIZE - 1) {
+                    dataBuffer[bufferIndex++] = incomingByte;
+                }
+                else {
+                    bufferIndex = 0;
+                }
+            }
+        }
+    }
+}
+
+void ServerManager_::sendTCP(String message)
+{
+    if (currentClient && currentClient.connected()) {
+        currentClient.print(message);
     }
 }
 

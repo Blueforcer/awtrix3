@@ -27,7 +27,6 @@
  *
  */
 #include "MatrixDisplayUi.h"
-#include "AwtrixFont.h"
 #include "effects.h"
 #include "Globals.h"
 #include "effects.h"

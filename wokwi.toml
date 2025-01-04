@@ -1,0 +1,4 @@
+[wokwi]
+version = 1
+elf = '.pio\build\ulanzi\firmware.elf'
+firmware = '.pio\build\ulanzi\firmware.bin'

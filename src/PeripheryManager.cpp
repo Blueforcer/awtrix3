@@ -17,6 +17,7 @@
 #include <ServerManager.h>
 #include <MedianFilterLib.h>
 #include <MeanFilterLib.h>
+#include <Games/GameManager.h>
 const int buzzerPin = 2;       // Buzzer an GPIO2
 const int baudRate = 50;       // Nachrichtenübertragungsrate
 const char *message = "HELLO"; // Die Nachricht, die gesendet werden soll

@@ -5,7 +5,6 @@
 #include <DisplayManager.h>
 #include <PeripheryManager.h>
 #include "timer.h"
-// #include <update.h>
 #include <icons.h>
 #include <UpdateManager.h>
 
@@ -207,7 +206,6 @@ String MenuManager_::menutext()
         {
             return String(SOUND_VOLUME);
         }
-
     default:
         break;
     }
@@ -405,8 +403,16 @@ void MenuManager_::selectButton()
 
 void MenuManager_::selectButtonLong()
 {
+
     if (inMenu)
     {
+        if (GAME_ACTIVE)
+        {
+            currentState = MainMenu;
+            inMenu = false;
+            GAME_ACTIVE = false;
+            return;
+        }
         switch (currentState)
         {
         case BrightnessMenu:

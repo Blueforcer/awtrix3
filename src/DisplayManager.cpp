@@ -21,7 +21,7 @@
 #include <AwtrixFont.h>
 #include <HTTPClient.h>
 #include "base64.hpp"
-#include "GameManager.h"
+#include "Games/GameManager.h"
 
 unsigned long lastArtnetStatusTime = 0;
 const int numberOfChannels = 256 * 3;
@@ -568,6 +568,10 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
         auto color = doc["barBC"];
         customApp.barBG = getColorFromJsonVariant(color, 0);
       }
+      else
+      {
+        customApp.barBG = 0;
+      }
       JsonArray data = doc[key];
       int index = 0;
       int maximum = 0;
@@ -635,6 +639,7 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     customApp.lifetime = 0;
   }
 
+  customApp.bounce = doc.containsKey("bounce") ? doc["bounce"].as<bool>() : false;
   customApp.iconOffset = doc.containsKey("iconOffset") ? doc["iconOffset"] : 0;
   customApp.textOffset = doc.containsKey("textOffset") ? doc["textOffset"] : 0;
   customApp.scrollSpeed = doc.containsKey("scrollSpeed") ? doc["scrollSpeed"].as<int>() : -1;
@@ -709,21 +714,15 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
   customApp.colors.clear();
   customApp.fragments.clear();
 
-  if (doc.containsKey("text"))
-  {
-    String text = doc["text"];
-    subscribeToPlaceholders(utf8ascii(text));
-  }
-
   if (doc.containsKey("text") && doc["text"].is<JsonArray>())
   {
     JsonArray textArray = doc["text"].as<JsonArray>();
     parseFragmentsText(textArray, customApp.colors, customApp.fragments, customApp.color);
-    // Der Code zur Zuweisung von customApp.text könnte hier angepasst werden, je nachdem, wie Sie die Textinformationen verwenden möchten.
   }
-  else if (doc.containsKey("text") && doc["text"].is<String>())
+  else if (doc.containsKey("text"))
   {
-    String text = doc["text"];
+    String text = doc["text"].as<String>();
+    subscribeToPlaceholders(utf8ascii(text));
     customApp.text = utf8ascii(text);
   }
   else
@@ -1216,7 +1215,6 @@ void DisplayManager_::tick()
 {
   if (GAME_ACTIVE)
   {
-    matrix->clear();
     GameManager.tick();
     matrix->show();
   }
@@ -1495,6 +1493,7 @@ void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte 
   {
     int x1 = x + startX + i * (barWidth + gap);
     int barHeight = data[i];
+    int y1 = (barHeight > 0) ? (8 - barHeight) : 8;
 
     if (barBG > 0)
     {
@@ -1502,8 +1501,10 @@ void DisplayManager_::drawBarChart(int16_t x, int16_t y, const int data[], byte 
       drawFilledRect(x1, y, barWidth, 8, barBG);
     }
 
-    int y1 = (barHeight > 0) ? (8 - barHeight) : 8;
-    drawFilledRect(x1, y1 + y, barWidth, barHeight, color);
+    if (barHeight > 0)
+    {
+      drawFilledRect(x1, y1 + y, barWidth, barHeight, color);
+    }
   }
 }
 
@@ -2094,6 +2095,20 @@ void DisplayManager_::setNewSettings(const char *json)
       return;
   }
 
+  if (doc.containsKey("GAMEMODE"))
+  {
+    bool gamemode = doc["GAMEMODE"];
+    GameManager.start(gamemode);
+    return;
+  }
+
+  if (doc.containsKey("GAME"))
+  {
+    int game = doc["GAME"];
+    GameManager.ChooseGame(game);
+    return;
+  }
+
   TIME_MODE = doc.containsKey("TMODE") ? doc["TMODE"].as<int>() : TIME_MODE;
   TRANS_EFFECT = doc.containsKey("TEFF") ? doc["TEFF"] : TRANS_EFFECT;
   TIME_PER_TRANSITION = doc.containsKey("TSPEED") ? doc["TSPEED"] : TIME_PER_TRANSITION;
@@ -2575,7 +2590,7 @@ void DisplayManager_::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, u
   }
 }
 
-void DisplayManager_::drawRGBBitmap(int16_t x, int16_t y, uint32_t *bitmap, int16_t w, int16_t h)
+void DisplayManager_::drawRGBBitmap(int16_t x, int16_t y, const uint32_t *bitmap, int16_t w, int16_t h)
 {
   for (int16_t i = 0; i < w; i++)
   {

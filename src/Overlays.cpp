@@ -7,7 +7,6 @@
 #include "effects.h"
 #include "MQTTManager.h"
 
-
 std::vector<Notification> notifications;
 bool notifyFlag = false;
 
@@ -28,6 +27,7 @@ void MenuOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlay
 
     if (!MenuManager.inMenu)
         return;
+
 
     matrix->fillScreen(0);
     DisplayManager.setTextColor(0xFFFFFF);

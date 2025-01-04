@@ -12,6 +12,26 @@
 #include "Overlays.h"
 #include "timer.h"
 
+const uint8_t bigdigits_mask[12][7] = {
+    {132, 48, 48, 48, 48, 48, 132},      // 0
+    {204, 140, 204, 204, 204, 204, 0},   // 1
+    {132, 48, 240, 196, 156, 48, 0},     // 2
+    {132, 48, 240, 196, 240, 48, 132},   // 3
+    {228, 196, 132, 36, 0, 228, 192},    // 4
+    {0, 60, 4, 240, 240, 48, 132},       // 5
+    {196, 156, 60, 4, 48, 48, 132},      // 6
+    {0, 48, 240, 228, 204, 204, 204},    // 7
+    {132, 48, 48, 132, 48, 48, 132},     // 8
+    {132, 48, 48, 128, 240, 228, 140},   // 9
+    {252, 204, 204, 252, 204, 204, 252}, // :
+    {252, 252, 252, 252, 252, 252, 252}  // ; (blank)
+};
+
+uint32_t COLOR_HOUR_ON = 0xFF0000;   // Rot
+uint32_t COLOR_MINUTE_ON = 0x00FF00; // Grün
+uint32_t COLOR_SECOND_ON = 0x0000FF; // Blau
+uint32_t COLOR_OFF = 0xFFFFFF;       // Weiß
+
 uint16_t nativeAppsCount;
 
 int WEATHER_CODE;
@@ -88,6 +108,99 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         return;
     CURRENT_APP = "Time";
     currentCustomApp = "";
+    const char *timeformat = getTimeFormat();
+    if (TIME_MODE == 5)
+    {
+
+        char t[20];
+        strftime(t, sizeof(t), timeformat, timer_localtime());
+
+        static bool BIGTIME_BG_CHECKED = false;
+        static bool BIGTIME_BG_ISGIF = false;
+        static File BIGTIME_BG_GIF;
+        static uint16_t BIGTIME_BG_CURRENTFRAME = 0;
+        if (!BIGTIME_BG_CHECKED)
+        {
+            if (LittleFS.exists("/bigtime.gif"))
+            {
+                BIGTIME_BG_GIF = LittleFS.open("/bigtime.gif");
+                BIGTIME_BG_ISGIF = true;
+            }
+
+            BIGTIME_BG_CHECKED = true;
+        }
+
+        if (BIGTIME_BG_ISGIF)
+        {
+            gifPlayer->playGif(0 + x, 0 + y, &BIGTIME_BG_GIF, BIGTIME_BG_CURRENTFRAME);
+            BIGTIME_BG_CURRENTFRAME = gifPlayer->getFrame();
+        }
+        else
+        {
+            DisplayManager.drawFilledRect(0 + x, 0 + y, 32, 8, TEXTCOLOR_888);
+        }
+
+        t[2] = (timeformat[2] == ' ' && timer_time() % 2) ? ';' : ':';
+        t[0] = t[0] == ' ' ? ';' : t[0];
+        for (int i = 0; i < 5; i++)
+        {
+            int xx = i * 7 - (i > 2 ? 2 : 0) - (i == 2);
+            matrix->drawBitmap(xx + x, y, bigdigits_mask[t[i] - '0'], 6, 7, 0);
+        }
+
+        matrix->drawFastHLine(0 + x, 7 + y, 32, 0);
+        matrix->drawFastVLine(6 + x, 0 + y, 7, 0);
+        matrix->drawFastVLine(25 + x, 0 + y, 7, 0);
+        return;
+    }
+    else if (TIME_MODE == 6)
+    {
+
+        struct tm *currentTime = timer_localtime();
+        int hour = currentTime->tm_hour;
+        int minute = currentTime->tm_min;
+        int second = currentTime->tm_sec;
+
+        auto drawBit = [&](int bit, int x1, int y1, uint32_t colorOn, uint32_t colorOff)
+        {
+            bool isSet = bit;
+            uint32_t color = isSet ? colorOn : colorOff;
+            for (int dx = 0; dx < 2; dx++)
+            {
+                for (int dy = 0; dy < 2; dy++)
+                {
+                    matrix->drawPixel(x1 + dx + x, y1 + dy + y, color);
+                }
+            }
+        };
+
+        for (int i = 0; i < 6; i++)
+        {
+            int bitValue = (hour >> (6 - 1 - i)) & 1;
+            int x1 = 5 + i * 4;
+            int y1 = 0;
+            drawBit(bitValue, x1 + x, y1 + y, COLOR_HOUR_ON, COLOR_OFF);
+        }
+
+        for (int i = 0; i < 6; i++)
+        {
+            int bitValue = (minute >> (6 - 1 - i)) & 1;
+            int x1 = 5 + i * 4;
+            int y1 = 3;
+            drawBit(bitValue, x1 + x, y1 + y, COLOR_MINUTE_ON, COLOR_OFF);
+        }
+
+        for (int i = 0; i < 6; i++)
+        {
+            int bitValue = (second >> (6 - 1 - i)) & 1;
+            int x1 = 5 + i * 4;
+            int y1 = 6;
+            drawBit(bitValue, x1 + x, y1 + y, COLOR_SECOND_ON, COLOR_OFF);
+        }
+
+        return;
+    }
+
     if (TIME_COLOR > 0)
     {
         DisplayManager.setTextColor(TIME_COLOR);
@@ -97,7 +210,6 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         DisplayManager.getInstance().resetTextColor();
     }
 
-    const char *timeformat = getTimeFormat();
     char t[20];
     if (timeformat[2] == ' ')
     {
@@ -131,7 +243,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     {
         // week days on bottom line
         wdPosY = 7;
-        timePosY = 6 ;
+        timePosY = 6;
     }
 
     // time
@@ -299,11 +411,14 @@ void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
 }
 #endif
 
-String replacePlaceholders(String text) {
+String replacePlaceholders(String text)
+{
     int start = 0;
-    while ((start = text.indexOf("{{", start)) != -1) {
+    while ((start = text.indexOf("{{", start)) != -1)
+    {
         int end = text.indexOf("}}", start);
-        if (end == -1) {
+        if (end == -1)
+        {
             break;
         }
         String placeholder = text.substring(start + 2, end);
@@ -362,28 +477,27 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 ca->isGif = isGifFlags[i];
                 ca->icon = LittleFS.open(filePath);
                 ca->currentFrame = 0;
-                break; // Exit loop if icon was found
+                break; 
             }
         }
-        // ca->iconSearched = true;
     }
 
     bool hasIcon = ca->icon || ca->jpegDataSize > 0;
 
-uint16_t textWidth = 0;
-if (!ca->fragments.empty())
-{
-    for (const auto &fragment : ca->fragments)
+    uint16_t textWidth = 0;
+    if (!ca->fragments.empty())
     {
-        String replacedFragment = replacePlaceholders(fragment);
-        textWidth += getTextWidth(replacedFragment.c_str(), ca->textCase);
+        for (const auto &fragment : ca->fragments)
+        {
+            String replacedFragment = replacePlaceholders(fragment);
+            textWidth += getTextWidth(replacedFragment.c_str(), ca->textCase);
+        }
     }
-}
-else
-{
-    String replacedText = replacePlaceholders(ca->text);
-    textWidth = getTextWidth(replacedText.c_str(), ca->textCase);
-}
+    else
+    {
+        String replacedText = replacePlaceholders(ca->text);
+        textWidth = getTextWidth(replacedText.c_str(), ca->textCase);
+    }
 
     uint16_t availableWidth = (hasIcon) ? 24 : 32;
 
@@ -547,7 +661,7 @@ else
         textX = hasIcon ? 9 : 0;
     }
 
-    String text =replacePlaceholders(ca->text);
+    String text = replacePlaceholders(ca->text);
 
     if (noScrolling)
     {
@@ -558,7 +672,7 @@ else
             int16_t fragmentX = textX + ca->textOffset;
             for (size_t i = 0; i < ca->fragments.size(); ++i)
             {
-                String text =replacePlaceholders(ca->fragments[i]);
+                String text = replacePlaceholders(ca->fragments[i]);
                 DisplayManager.setTextColor(TextEffect(ca->colors[i], ca->fade, ca->blink));
                 DisplayManager.printText(x + fragmentX, y + 6, text.c_str(), false, ca->textCase);
                 fragmentX += getTextWidth(text.c_str(), ca->textCase);
@@ -566,7 +680,7 @@ else
         }
         else
         {
-            String text =replacePlaceholders(ca->text);
+            String text = replacePlaceholders(ca->text);
             if (ca->rainbow)
             {
                 DisplayManager.HSVtext(x + textX + ca->textOffset, 6 + y, text.c_str(), false, ca->textCase);
@@ -589,7 +703,7 @@ else
             int16_t fragmentX = ca->scrollposition + ca->textOffset;
             for (size_t i = 0; i < ca->fragments.size(); ++i)
             {
-                String text =replacePlaceholders(ca->fragments[i]);
+                String text = replacePlaceholders(ca->fragments[i]);
                 DisplayManager.setTextColor(TextEffect(ca->colors[i], ca->fade, ca->blink));
                 DisplayManager.printText(x + fragmentX, y + 6, text.c_str(), false, ca->textCase);
                 fragmentX += getTextWidth(text.c_str(), ca->textCase);
