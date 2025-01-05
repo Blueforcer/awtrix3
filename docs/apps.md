@@ -26,7 +26,7 @@ Displays the time with the weekday bar at the bottom and a different calendar ic
 
 **TMODE=4**  
 <img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/TMODE4.png" style="max-height:70px;">   
-Similar to `TMODE=2`, but places the weekday bar at the top.    
+Similar to `TMODE=3`, but places the weekday bar at the top.    
 
 **TMODE=5**  
 <img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/TMODE5.png" style="max-height:70px;">   
@@ -35,6 +35,8 @@ If a 32x8 GIF named `bigtime.gif` exists in the root directory, it will be playe
 Please note: Once the GIF is displayed in BigTime mode, it cannot be directly replaced because the file is in use.  
 To replace the icon, switch the mode to TMODE first, and then you'll be able to update the GIF.    
 If no GIF is found, the global textcolor is used.     
+
+(You can get some bigtime GIFs examples here)[https://github.com/Blueforcer/awtrix3/tree/main/Bigtime_GIFs].   
 
 **TMODE=6**  
 <img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/TMODE6.png" style="max-height:70px;">   
