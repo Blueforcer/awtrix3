@@ -3,7 +3,7 @@
 The native Time app offers extensive customization options. Almost everything can be configured via the API, and most settings can also be adjusted through the AWTRIX3 app.   
 The time format can be customized to your preferences. By default, it is set to `HH:mm`.   
 If the selected format doesn't fit on the screen, it will automatically revert to this default.   
-You might notice some lines at the bottom of the screen. These lines represent the weekdays, with the current day highlighted brighter.   
+You might notice some lines at the bottom of the screen. These lines represent the weekdays, with the current day highlighted brighter. It is also possible to deactive this weekday bar.  
 You can also customize the colors for the calendar icon, the weekday bar and also the textcolor with the [SettingsAPI](https://blueforcer.github.io/awtrix3/#/api?id=change-settings) or the mobile App.    
 
 The `TMODE` setting determines the layout and style of the Time App. 
