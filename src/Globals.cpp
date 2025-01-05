@@ -348,8 +348,7 @@ IPAddress gateway;
 IPAddress subnet;
 IPAddress primaryDNS;
 IPAddress secondaryDNS;
-const char *VERSION = "0.97";
-
+const char *VERSION = "0.98";
 String MQTT_HOST = "";
 uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
@@ -358,7 +357,6 @@ String MQTT_PREFIX;
 bool IO_BROKER = false;
 bool NET_STATIC = false;
 bool SHOW_TIME = true;
-
 bool SHOW_DATE = true;
 bool SHOW_WEATHER = true;
 bool SHOW_BAT = true;

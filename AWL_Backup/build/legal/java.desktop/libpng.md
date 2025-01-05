@@ -20,7 +20,7 @@ derived from libpng-1.0.6, and are distributed according to the same
 disclaimer and license as libpng-1.0.6 with the following individuals
 added to the list of Contributing Authors:
 
-   Simon-Pierre Cadieux
+   AWTRIX-Pierre Cadieux
    Eric S. Raymond
    Mans Rullgard
    Cosmin Truta

@@ -15,7 +15,7 @@ const uint16_t PORT = 1883;
 WiFiClient espClient;
 HADevice device;
 HAMqtt mqtt(espClient, device, 26);
-// HANumber *ScrollSpeed = nullptr;
+
 HALight *Matrix, *Indikator1, *Indikator2, *Indikator3 = nullptr;
 HASelect *BriMode, *transEffect = nullptr;
 HAButton *dismiss, *nextApp, *prevApp, *doUpdate = nullptr;
@@ -30,14 +30,14 @@ char matID[40], ind1ID[40], ind2ID[40], ind3ID[40], briID[40], btnAID[40], btnBI
 long previousMillis_Stats;
 std::map<String, String> mqttValues;
 std::vector<String> topicsToSubscribe;
-// The getter for the instantiated singleton instance
+
 MQTTManager_ &MQTTManager_::getInstance()
 {
     static MQTTManager_ instance;
     return instance;
 }
 
-// Initialize the global shared instance
+
 MQTTManager_ &MQTTManager = MQTTManager.getInstance();
 
 void processMqttMessage(const String &strTopic, const String &payloadCopy)
@@ -429,7 +429,7 @@ void onMqttConnected()
 
     MQTTManager.publish("stats/effects", DisplayManager.getEffectNames().c_str());
     MQTTManager.publish("stats/transitions", DisplayManager.getTransitionNames().c_str());
-    // MQTTManager.publish("stats/device", "online");
+    MQTTManager.publish("stats/device", "online");
 
     connected = true;
 }
@@ -466,9 +466,9 @@ void connect()
     mqtt.onMessage(onMqttMessage);
     mqtt.onConnected(onMqttConnected);
 
-    //char topic[50];
-    //snprintf(topic, sizeof(topic), "%s/stats/device", MQTT_PREFIX.c_str()); // .c_str() hinzugefügt
-    //mqtt.setLastWill(topic, "offline", false);                              // "offline" statt 0
+    static char topic[50];
+    snprintf(topic, sizeof(topic), "%s/stats/device", MQTT_PREFIX.c_str());
+    mqtt.setLastWill(topic, "offline", false);
 
     if (MQTT_USER == "" || MQTT_PASS == "")
     {
@@ -554,7 +554,10 @@ void MQTTManager_::setup()
         device.enableSharedAvailability();
         device.enableLastWill();
 
-        String uniqueIDWithSuffix;
+        IPAddress ip = WiFi.localIP();
+        static char configurationUrl[32]; // static!
+        sprintf(configurationUrl, "http://%u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
+        device.setConfigurationUrl(configurationUrl);
 
         sprintf(matID, HAmatID, macStr);
         Matrix = new HALight(matID, HALight::BrightnessFeature | HALight::RGBFeature);

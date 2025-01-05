@@ -1217,6 +1217,7 @@ void DisplayManager_::tick()
   {
     GameManager.tick();
     matrix->show();
+    memcpy(ledsCopy, leds, sizeof(leds));
   }
   else if (AP_MODE)
   {
@@ -2130,6 +2131,7 @@ void DisplayManager_::setNewSettings(const char *json)
   SHOW_HUM = doc.containsKey("HUM") ? doc["HUM"].as<bool>() : SHOW_HUM;
   SHOW_TEMP = doc.containsKey("TEMP") ? doc["TEMP"].as<bool>() : SHOW_TEMP;
   SHOW_BAT = doc.containsKey("BAT") ? doc["BAT"].as<bool>() : SHOW_BAT;
+  SOUND_ACTIVE = doc.containsKey("SOUND") ? doc["SOUND"].as<bool>() : SOUND_ACTIVE;
 
   if (doc.containsKey("VOL"))
   {

@@ -3,9 +3,9 @@
 
 #include <Arduino.h>
 #include "SlotMachine.h"
-#include "SimonSays.h"
+#include "AwtrixSays.h"
 class SlotMachine;
-class SimonSays;
+class AwtrixSays;
 
 class GameManager_
 {
@@ -13,13 +13,13 @@ class GameManager_
     {
         None,
         Slot_Machine,
-        Simon_Says
+        AWTRIX_Says
     };
 
 private:
     GameState currentState = None;
     SlotMachine_ &slotMachine = SlotMachine_::getInstance();
-    SimonSays_ &simonSays = SimonSays_::getInstance();
+    AwtrixSays_ &AwtrixSays = AwtrixSays_::getInstance();
     GameManager_() = default;
 
 public:

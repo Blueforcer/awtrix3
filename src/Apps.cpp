@@ -109,25 +109,27 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     CURRENT_APP = "Time";
     currentCustomApp = "";
     const char *timeformat = getTimeFormat();
+    static File BIGTIME_BG_GIF;
+    static bool BIGTIME_BG_ISGIF = false;
+    if (BIGTIME_BG_GIF && TIME_MODE != 5)
+    {
+        BIGTIME_BG_GIF.close();
+
+        BIGTIME_BG_ISGIF = false;
+    }
     if (TIME_MODE == 5)
     {
-
         char t[20];
         strftime(t, sizeof(t), timeformat, timer_localtime());
 
-        static bool BIGTIME_BG_CHECKED = false;
-        static bool BIGTIME_BG_ISGIF = false;
-        static File BIGTIME_BG_GIF;
         static uint16_t BIGTIME_BG_CURRENTFRAME = 0;
-        if (!BIGTIME_BG_CHECKED)
+        if (!BIGTIME_BG_ISGIF)
         {
             if (LittleFS.exists("/bigtime.gif"))
             {
                 BIGTIME_BG_GIF = LittleFS.open("/bigtime.gif");
                 BIGTIME_BG_ISGIF = true;
             }
-
-            BIGTIME_BG_CHECKED = true;
         }
 
         if (BIGTIME_BG_ISGIF)
@@ -477,7 +479,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 ca->isGif = isGifFlags[i];
                 ca->icon = LittleFS.open(filePath);
                 ca->currentFrame = 0;
-                break; 
+                break;
             }
         }
     }

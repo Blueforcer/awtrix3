@@ -17,8 +17,8 @@ void GameManager_::setup()
     case Slot_Machine:
         slotMachine.setup();
         break;
-    case Simon_Says:
-        simonSays.setup();
+    case AWTRIX_Says:
+        AwtrixSays.setup();
         break;
     default:
         break;
@@ -36,8 +36,8 @@ void GameManager_::tick()
     case Slot_Machine:
         slotMachine.tick();
         break;
-    case Simon_Says:
-        simonSays.tick();
+    case AWTRIX_Says:
+        AwtrixSays.tick();
         break;
     default:
         break;
@@ -51,8 +51,8 @@ void GameManager_::selectPressed()
     case Slot_Machine:
         slotMachine.selectPressed();
         break;
-    case Simon_Says:
-        simonSays.selectPressed();
+    case AWTRIX_Says:
+        AwtrixSays.selectPressed();
         break;
     default:
         break;
@@ -66,8 +66,8 @@ void GameManager_::ControllerInput(const char *cmd)
     case Slot_Machine:
         slotMachine.ControllerInput(cmd);
         break;
-    case Simon_Says:
-        simonSays.ControllerInput(cmd);
+    case AWTRIX_Says:
+        AwtrixSays.ControllerInput(cmd);
         break;
     default:
         break;
@@ -90,7 +90,7 @@ void GameManager_::ChooseGame(short game)
         setup();
         break;
     case 1:
-        currentState = Simon_Says;
+        currentState = AWTRIX_Says;
         setup();
         break;
     default:

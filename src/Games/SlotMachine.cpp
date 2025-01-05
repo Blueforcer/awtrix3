@@ -2,6 +2,7 @@
 #include "Globals.h"
 #include "DisplayManager.h"
 #include "GameManager.h"
+#include "PeripheryManager.h"
 
 static const uint32_t symbolCherry[64] = {
     0x000000, 0x000000, 0x000000, 0x000000, 0x008709, 0x000000, 0x000000, 0x000000,
@@ -356,6 +357,8 @@ bool SlotMachine_::checkWin()
     {
         winningReels[0] = winningReels[1] = winningReels[2] = true;
 
+        PeripheryManager.playRTTTLString("jackpot:d=8,o=5,b=120:16c,16e,16g,c6,16p,16c6,16e6,4g6");
+
         switch (reelSymbols[0])
         {
         case 3:                          // Seven
@@ -368,7 +371,7 @@ bool SlotMachine_::checkWin()
             GameManager.sendPoints(50);
             break;
         default:
-            GameManager.sendPoints(25); // Andere Symbole
+            GameManager.sendPoints(25);
             break;
         }
         return true;
@@ -378,16 +381,19 @@ bool SlotMachine_::checkWin()
     {
         winningReels[0] = winningReels[1] = true;
         points += 10;
+        PeripheryManager.playRTTTLString("two_match:d=8,o=5,b=140:16c6,16e6,4g6");
     }
     if (reelSymbols[1] == reelSymbols[2])
     {
         winningReels[1] = winningReels[2] = true;
         points += 10;
+        PeripheryManager.playRTTTLString("two_match:d=8,o=5,b=140:16c6,16e6,4g6");
     }
     if (reelSymbols[0] == reelSymbols[2])
     {
         winningReels[0] = winningReels[2] = true;
         points += 10;
+        PeripheryManager.playRTTTLString("two_match:d=8,o=5,b=140:16c6,16e6,4g6");
     }
 
     if (points > 0)

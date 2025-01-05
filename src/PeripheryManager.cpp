@@ -311,7 +311,7 @@ bool PeripheryManager_::parseSound(const char *json)
 
 const char *PeripheryManager_::playRTTTLString(String rtttl)
 {
-    if (!DFPLAYER_ACTIVE)
+    if (!DFPLAYER_ACTIVE && SOUND_ACTIVE)
     {
         static char melodyName[64];
         Melody melody = MelodyFactory.loadRtttlString(rtttl.c_str());
@@ -533,25 +533,19 @@ void PeripheryManager_::tick()
     }
 
     unsigned long currentMillis_LDR = millis();
-   if (currentMillis_LDR - previousMillis_LDR >= interval_LDR)
+    if (currentMillis_LDR - previousMillis_LDR >= interval_LDR)
     {
         previousMillis_LDR = currentMillis_LDR;
-        TotalLDRReadings[sampleIndex] = analogRead(LDR_PIN);
 
-        sampleIndex = (sampleIndex + 1) % LDRReadings;
-        sampleSum = 0.0;
-        for (int i = 0; i < LDRReadings; i++)
-        {
-            sampleSum += TotalLDRReadings[i];
-        }
-        sampleAverage = sampleSum / (float)LDRReadings;
+        uint16_t LDRVALUE = analogRead(LDR_PIN);
         if (LDR_ON_GROUND)
-            sampleAverage = 1023.0 - sampleAverage;
-        LDR_RAW = sampleAverage;
+            LDRVALUE = 1023.0 - LDRVALUE;
+        // Send LDR values through median filter to get rid of the remaining spikes and then calculate the average
+        LDR_RAW = meanFilterLDR.AddValue(medianFilterLDR.AddValue(LDRVALUE));
         CURRENT_LUX = (roundf(photocell.getSmoothedLux() * 1000) / 1000);
         if (AUTO_BRIGHTNESS && !MATRIX_OFF)
         {
-            brightnessPercent = (sampleAverage * LDR_FACTOR) / 1023.0 * 100.0;
+            brightnessPercent = (LDR_RAW * LDR_FACTOR) / 1023.0 * 100.0;
             brightnessPercent = pow(brightnessPercent, LDR_GAMMA) / pow(100.0, LDR_GAMMA - 1);
             BRIGHTNESS = map(brightnessPercent, 0, 100, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
             DisplayManager.setBrightness(BRIGHTNESS);

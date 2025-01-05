@@ -1,9 +1,119 @@
-# Apps
+# Native Apps
+## Time
+The native Time app offers extensive customization options. Almost everything can be configured via the API, and most settings can also be adjusted through the AWTRIX3 app.   
+The time format can be customized to your preferences. By default, it is set to `HH:mm`.   
+If the selected format doesn't fit on the screen, it will automatically revert to this default.   
+You might notice some lines at the bottom of the screen. These lines represent the weekdays, with the current day highlighted brighter.   
+You can also customize the colors for the calendar icon, the weekday bar and also the textcolor with the [SettingsAPI](https://blueforcer.github.io/awtrix3/#/api?id=change-settings) or the mobile App.    
 
-The AWTRIX 3 system comes equipped with several built-in applications, including Time, Date, Temperature, Humidity, and Battery status.  
-As it is designed to integrate seamlessly with your smart home ecosystem, additional applications can be created using MQTT or HTTP requests.
+The `TMODE` setting determines the layout and style of the Time App. 
 
-!> In AWTRIX, the term 'Apps' does not refer to traditional smartphone apps that you download and install. Instead, in AWTRIX, CustomApps function more like dynamic pages that rotate within the Apploop rotation of the display. These pages do not store or execute their own logic; instead, they display content that is sent from an external system, such as a smarthome. This content must be transmitted using MQTT or HTTP protocols via the [CustomApp API](https://blueforcer.github.io/awtrix3/#/api?id=custom-apps-and-notifications).  
+ **TMODE=0**  
+<img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/TMODE0.png" style="max-height:70px;">  
+Displays the time along with a weekday bar at the bottom of the screen.  
+  
+**TMODE=1**  
+<img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/TMODE1.png" style="max-height:70px;">   
+Shows the time with the weekday bar on the bottom and a calendar box that highlights the current day of the month.  
+
+**TMODE=2**  
+<img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/TMODE2.png" style="max-height:70px;">   
+Similar to `TMODE=1`, but places the weekday bar at the top.   
+
+**TMODE=3**  
+<img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/TMODE3.png" style="max-height:70px;">   
+Displays the time with the weekday bar at the bottom and a different calendar icon.  
+
+**TMODE=4**  
+<img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/TMODE4.png" style="max-height:70px;">   
+Similar to `TMODE=2`, but places the weekday bar at the top.    
+
+**TMODE=5**  
+<img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/TMODE5.png" style="max-height:70px;">   
+Introduces a "big time" display, utilizing a large font for the time.  
+If a 32x8 GIF named `bigtime.gif` exists in the root directory, it will be played in the background.  
+Please note: Once the GIF is displayed in BigTime mode, it cannot be directly replaced because the file is in use.  
+To replace the icon, switch the mode to TMODE first, and then you'll be able to update the GIF.    
+If no GIF is found, the global textcolor is used.     
+
+**TMODE=6**  
+<img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/TMODE6.png" style="max-height:70px;">   
+Displays the time in **binary format**:  
+The top row shows the hour, the middle row shows the minutes, and the bottom row shows the seconds.  
+Each row has six dots, where lit dots represent binary "1" and white dots represent binary "0".  
+To read the time, convert the lit dots in each row to a decimal number.     
+
+#### **Available Time Formats:**  
+| Format       | Example    | Description                                |
+|--------------|------------|--------------------------------------------|
+| `%H:%M:%S`   | `13:30:45` | 24-hour time with seconds                 |
+| `%l:%M:%S`   | `1:30:45`  | 12-hour time with seconds                 |
+| `%H:%M`      | `13:30`    | 24-hour time                              |
+| `%H %M`      | `13.30`    | 24-hour time with blinking colon          |
+| `%l:%M`      | `1:30`     | 12-hour time                              |
+| `%l %M`      | `1:30`     | 12-hour time with blinking colon          |
+| `%l:%M %p`   | `1:30 PM`  | 12-hour time with AM/PM indicator         |
+| `%l %M %p`   | `1:30 PM`  | 12-hour time with blinking colon and AM/PM|
+
+---
+## Date
+<img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/DATE.png" style="max-height:100px;">  
+
+The Dateapp shows the current date of course. There are several dateformats 'DFORMAT' you can choose from:  
+
+#### **Available Date Formats:**  
+| Format       | Example    | Description            |
+|--------------|------------|------------------------|
+| `%d.%m.%y`   | `16.04.22` | Day.Month.Year (short) |
+| `%d.%m`      | `16.04`    | Day.Month             |
+| `%y-%m-%d`   | `22-04-16` | Year-Month-Day         |
+| `%m-%d`      | `04-16`    | Month-Day             |
+| `%m/%d/%y`   | `04/16/22` | Month/Day/Year         |
+| `%m/%d`      | `04/16`    | Month/Day             |
+| `%d/%m/%y`   | `16/04/22` | Day/Month/Year         |
+| `%d/%m`      | `16/04`    | Day/Month             |
+| `%m-%d-%y`   | `04-16-22` | Month-Day-Year         |
+
+---
+## Temperature  
+
+<img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/TEMP.png" style="max-height:100px;">  
+
+The Temperature App displays the current reading from the integrated temperature sensor.  
+However, due to the sensor's placement inside the housing, the measurement may not be entirely accurate.   
+Factors such as the power board, LED matrix, brightness, color, and the number of lit pixels can affect the temperature reading.  
+For more precise messurement, you can utilize the [dev.json](https://blueforcer.github.io/awtrix3/#/dev) to calibrate the temperature with the `temp_offset` key. 
+
+---
+## Humidity  
+
+<img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/HUM.png" style="max-height:100px;">  
+
+The humidity App displays the current reading from the integrated humidity sensor.  
+However, due to the sensor's placement inside the housing, the measurement may not be entirely accurate.   
+Factors such as the power board, LED matrix, brightness, color, and the number of lit pixels can affect the humidity reading.  
+For more precise messurement, you can utilize the [dev.json](https://blueforcer.github.io/awtrix3/#/dev) to calibrate the temperature with the `hum_offset` key. 
+
+---
+## Battery  
+
+<img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/BAT.png" style="max-height:100px;">  
+
+The Battery App displays the current charge level of the integrated battery.  
+Due to differences in battery batches and the degradation of the cheap battery over time, you may need to calibrate it manually.
+
+1. Use the [Status API](https://blueforcer.github.io/awtrix3/#/api?id=status-retrieval) to retrieve the `bat_raw` readings.  
+2. Open the [dev.json](https://blueforcer.github.io/awtrix3/#/dev) file to configure the `min_battery` and `max_battery` values:  
+   - **`min_battery`**: Enter the `bat_raw` value when the battery is empty.  
+   - **`max_battery`**: Enter the `bat_raw` value when the battery is fully charged.  
+
+
+---
+# Custom Apps
+
+Besides the native apps, AWTRIX3 is designed to integrate seamlessly with your smart home ecosystem, additional applications can be created using MQTT or HTTP requests.
+
+!> In AWTRIX, the term 'Custom Apps' does not refer to traditional smartphone apps that you download and install. Instead, in AWTRIX, CustomApps function more like dynamic pages that rotate within the Apploop rotation of the display. These pages do not store or execute their own logic; instead, they display content that is sent from an external system, such as a smarthome. This content must be transmitted using MQTT or HTTP protocols via the [CustomApp API](https://blueforcer.github.io/awtrix3/#/api?id=custom-apps-and-notifications).  
 It is important to note that all the logic for managing the content displayed in these CustomApps needs to be handled by your external system. AWTRIX only provides the platform for displaying the information. You have the flexibility to update the content shown on your CustomApps in real-time at any moment, making it a versatile tool for displaying personalized information in your smarthome setup.
 
 There are numerous benefits to this approach:

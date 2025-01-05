@@ -28,6 +28,13 @@ public:
     HADevice(const char *uniqueId);
 
     /**
+     * Sets the "configuration URL" property that's going to be used by the Home Assistant.
+     *
+     * @param url Configuration URL to publish.
+     */
+    void setConfigurationUrl(const char *url);
+
+    /**
      * Constructs HADevice using the given byte array as the unique ID.
      * It works in the same way as HADevice::setUniqueId method.
      *

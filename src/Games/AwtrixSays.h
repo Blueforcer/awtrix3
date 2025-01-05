@@ -1,23 +1,23 @@
-#ifndef SimonSays_h
-#define SimonSays_h
+#ifndef AwtrixSays_h
+#define AwtrixSays_h
 
 #include <Arduino.h>
 
-enum SimonSaysState
+enum AwtrixSaysState
 {
-    SIMON_READY,
-    SIMON_SHOWSEQ,
-    SIMON_USERINPUT,
-    SIMON_PAUSE,
-    SIMON_LOSE,
-    SIMON_WIN
+    AWTRIX_READY,
+    AWTRIX_SHOWSEQ,
+    AWTRIX_USERINPUT,
+    AWTRIX_PAUSE,
+    AWTRIX_LOSE,
+    AWTRIX_WIN
 };
 
-class SimonSays_
+class AwtrixSays_
 {
 private:
-    SimonSays_() = default;
-    SimonSaysState currentState = SIMON_READY;
+    AwtrixSays_() = default;
+    AwtrixSaysState currentState = AWTRIX_READY;
     static const int MAX_SEQ = 32;
     int sequence[MAX_SEQ];
     int sequenceLength = 0;
@@ -38,13 +38,13 @@ private:
     void drawSquares(bool highlight = false, int highlightIndex = -1);
 
 public:
-    static SimonSays_ &getInstance();
+    static AwtrixSays_ &getInstance();
     void setup();
     void tick();
     void selectPressed();
     void ControllerInput(const char *cmd);
 };
 
-extern SimonSays_ &SimonSays;
+extern AwtrixSays_ &AwtrixSays;
 
 #endif

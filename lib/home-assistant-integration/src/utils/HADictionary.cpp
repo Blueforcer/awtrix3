@@ -35,6 +35,7 @@ const char HASerializerUnderscore[] PROGMEM = {"_"};
 const char HADeviceIdentifiersProperty[] PROGMEM = {"ids"};
 const char HADeviceManufacturerProperty[] PROGMEM = {"mf"};
 const char HADeviceModelProperty[] PROGMEM = {"mdl"};
+const char HADeviceConfigurationUrlProperty[] PROGMEM = {"cu"};
 const char HADeviceSoftwareVersionProperty[] PROGMEM = {"sw"};
 const char HANameProperty[] PROGMEM = {"name"};
 const char HAIPProperty[] PROGMEM = {"cu"};

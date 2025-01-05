@@ -18,6 +18,14 @@ HADevice::HADevice() :
 
 }
 
+void HADevice::setConfigurationUrl(const char* url)
+{
+    _serializer->set(
+        AHATOFSTR(HADeviceConfigurationUrlProperty),
+        url
+    );
+}
+
 HADevice::HADevice(const char* uniqueId) :
     _uniqueId(uniqueId),
     HADEVICE_INIT

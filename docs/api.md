@@ -374,7 +374,7 @@ You can adjust each property in the JSON object according to your preferences. I
 | `TEFF`        | number                    | Choose between app transition effects.                                                              | 0-10                                               | 1       |
 | `TSPEED`      | number                    | Time taken for the transition to the next app in milliseconds.                                      | Positive integer                                   | 500     |
 | `TCOL`        | string/array of ints      | Global text color.                                                                                  | RGB array or hex color                             | N/A     |
-| `TMODE`       | integer                   | Changes the time app style.                                                                         | 0-4                                                | 1       |
+| `TMODE`       | integer                   | Changes the time app style.                                                                         | 0-6                                                | 1       |
 | `CHCOL`       | string/array of ints      | Calendar header color of the time app.                                                              | RGB array or hex color                             |`#FF0000`|
 | `CBCOL`       | string/array of ints      | Calendar body color of the time app.                                                                | RGB array or hex color                             |`#FFFFFF`|
 | `CTCOL`       | string/array of ints      | Calendar text color in the time app.                                                                | RGB array or hex color                             |`#000000` |
@@ -418,45 +418,45 @@ You can adjust each property in the JSON object according to your preferences. I
 - "thunder"  
 - "frost"  
   
-**Timeformats:**  
-```bash  
-%H:%M:%S     13:30:45  
-%l:%M:%S     1:30:45  
-%H:%M        13:30  
-%H %M        13.30 with blinking colon  
-%l:%M        1:30  
-%l %M        1:30 with blinking colon  
-%l:%M %p     1:30 PM  
-%l %M %p     1:30 PM with blinking colon  
-```
+#### **Available Time Formats:**  
+| Format       | Example    | Description                                |
+|--------------|------------|--------------------------------------------|
+| `%H:%M:%S`   | `13:30:45` | 24-hour time with seconds                 |
+| `%l:%M:%S`   | `1:30:45`  | 12-hour time with seconds                 |
+| `%H:%M`      | `13:30`    | 24-hour time                              |
+| `%H %M`      | `13.30`    | 24-hour time with blinking colon          |
+| `%l:%M`      | `1:30`     | 12-hour time                              |
+| `%l %M`      | `1:30`     | 12-hour time with blinking colon          |
+| `%l:%M %p`   | `1:30 PM`  | 12-hour time with AM/PM indicator         |
+| `%l %M %p`   | `1:30 PM`  | 12-hour time with blinking colon and AM/PM|
   
-**Dateformats:**  
-```bash  
-%d.%m.%y     16.04.22  
-%d.%m        16.04  
-%y-%m-%d     22-04-16  
-%m-%d        04-16  
-%m/%d/%y     04/16/22  
-%m/%d        04/16  
-%d/%m/%y     16/04/22  
-%d/%m        16/04  
-%m-%d-%y     04-16-22  
-```  
+#### **Available Date Formats:**  
+| Format       | Example    | Description            |
+|--------------|------------|------------------------|
+| `%d.%m.%y`   | `16.04.22` | Day.Month.Year (short) |
+| `%d.%m`      | `16.04`    | Day.Month              |
+| `%y-%m-%d`   | `22-04-16` | Year-Month-Day         |
+| `%m-%d`      | `04-16`    | Month-Day              |
+| `%m/%d/%y`   | `04/16/22` | Month/Day/Year         |
+| `%m/%d`      | `04/16`    | Month/Day              |
+| `%d/%m/%y`   | `16/04/22` | Day/Month/Year         |
+| `%d/%m`      | `16/04`    | Day/Month              |
+| `%m-%d-%y`   | `04-16-22` | Month-Day-Year         |
 
-**Transition effects:**  
-```bash  
-0 - Random
-1 - Slide
-2 - Dim
-3 - Zoom
-4 - Rotate
-5 - Pixelate
-6 - Curtain
-7 - Ripple
-8 - Blink
-9 - Reload
-10 - Fade 
-```
+#### **Available Transition Effects:**  
+| Code | Effect      |
+|------|-------------|
+| `0`  | Random      |
+| `1`  | Slide       |
+| `2`  | Dim         |
+| `3`  | Zoom        |
+| `4`  | Rotate      |
+| `5`  | Pixelate    |
+| `6`  | Curtain     |
+| `7`  | Ripple      |
+| `8`  | Blink       |
+| `9`  | Reload      |
+| `10` | Fade        |
     
 ## Update
 

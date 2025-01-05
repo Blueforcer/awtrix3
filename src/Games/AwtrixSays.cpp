@@ -1,4 +1,4 @@
-#include "SimonSays.h"
+#include "AwtrixSays.h"
 #include "DisplayManager.h"
 #include "PeripheryManager.h"
 #include "GameManager.h"
@@ -10,21 +10,21 @@ static const uint32_t colors[4] = {
     0x0000FF  // Blue
 };
 
-SimonSays_ &SimonSays_::getInstance()
+AwtrixSays_ &AwtrixSays_::getInstance()
 {
-    static SimonSays_ instance;
+    static AwtrixSays_ instance;
     return instance;
 }
 
-SimonSays_ &SimonSays = SimonSays_::getInstance();
+AwtrixSays_ &AwtrixSays = AwtrixSays_::getInstance();
 
-void SimonSays_::setup()
+void AwtrixSays_::setup()
 {
     generateSequence();
-    currentState = SIMON_READY;
+    currentState = AWTRIX_READY;
 }
 
-void SimonSays_::generateSequence()
+void AwtrixSays_::generateSequence()
 {
     for (int i = 0; i < MAX_SEQ; i++)
     {
@@ -34,9 +34,9 @@ void SimonSays_::generateSequence()
     currentStep = 0;
 }
 
-void SimonSays_::tick()
+void AwtrixSays_::tick()
 {
-    if (currentState == SIMON_SHOWSEQ)
+    if (currentState == AWTRIX_SHOWSEQ)
     {
         showSequence();
     }
@@ -56,7 +56,7 @@ void SimonSays_::tick()
     }
     drawSquares(showing, blinkIndex);
 
-    if (currentState == SIMON_LOSE)
+    if (currentState == AWTRIX_LOSE)
     {
         if (millis() - loseStart < 2000)
         {
@@ -67,18 +67,18 @@ void SimonSays_::tick()
         else
         {
             generateSequence();
-            currentState = SIMON_SHOWSEQ;
+            currentState = AWTRIX_SHOWSEQ;
         }
     }
 
-    if (currentState == SIMON_PAUSE && millis() >= nextSequenceTime)
+    if (currentState == AWTRIX_PAUSE && millis() >= nextSequenceTime)
     {
-        currentState = SIMON_SHOWSEQ;
+        currentState = AWTRIX_SHOWSEQ;
         currentStep = 0;
     }
 }
 
-void SimonSays_::showSequence()
+void AwtrixSays_::showSequence()
 {
     unsigned long now = millis();
     if (now >= nextBlink)
@@ -112,13 +112,13 @@ void SimonSays_::showSequence()
             if (currentStep >= sequenceLength)
             {
                 currentStep = 0;
-                currentState = SIMON_USERINPUT;
+                currentState = AWTRIX_USERINPUT;
             }
         }
     }
 }
 
-void SimonSays_::checkUserInput(int button)
+void AwtrixSays_::checkUserInput(int button)
 {
     lastUserButton = button;
     highlightUserInput = true;
@@ -146,7 +146,7 @@ void SimonSays_::checkUserInput(int button)
             sequenceLength++;
             if (sequenceLength > MAX_SEQ)
             {
-                currentState = SIMON_WIN;
+                currentState = AWTRIX_WIN;
                 // Bonus für das Durchspielen
                 GameManager.sendPoints(1000);
             }
@@ -155,39 +155,39 @@ void SimonSays_::checkUserInput(int button)
                 // Punkte für jede erfolgreiche Sequenz
                 GameManager.sendPoints(sequenceLength);
                 nextSequenceTime = millis() + 1000;
-                currentState = SIMON_PAUSE;
+                currentState = AWTRIX_PAUSE;
             }
         }
     }
     else
     {
-        currentState = SIMON_LOSE;
+        currentState = AWTRIX_LOSE;
         loseStart = millis();
         GameManager.sendPoints(0);
         PeripheryManager.playRTTTLString("loose:d=8,o=5,b=120:16c,16b,16a,4g");
     }
 }
 
-void SimonSays_::selectPressed()
+void AwtrixSays_::selectPressed()
 {
-    if (currentState == SIMON_READY || currentState == SIMON_LOSE || currentState == SIMON_WIN)
+    if (currentState == AWTRIX_READY || currentState == AWTRIX_LOSE || currentState == AWTRIX_WIN)
     {
         generateSequence();
-        currentState = SIMON_SHOWSEQ;
+        currentState = AWTRIX_SHOWSEQ;
     }
 }
 
-void SimonSays_::ControllerInput(const char *cmd)
+void AwtrixSays_::ControllerInput(const char *cmd)
 {
     if (strcmp(cmd, "START") == 0 &&
-        (currentState == SIMON_READY || currentState == SIMON_LOSE || currentState == SIMON_WIN))
+        (currentState == AWTRIX_READY || currentState == AWTRIX_LOSE || currentState == AWTRIX_WIN))
     {
         generateSequence();
-        currentState = SIMON_SHOWSEQ;
+        currentState = AWTRIX_SHOWSEQ;
         return;
     }
 
-    if (currentState == SIMON_USERINPUT)
+    if (currentState == AWTRIX_USERINPUT)
     {
         if (strcmp(cmd, "ADOWN") == 0)
         {
@@ -224,7 +224,7 @@ void SimonSays_::ControllerInput(const char *cmd)
     }
 }
 
-void SimonSays_::drawSquares(bool highlight, int highlightIndex)
+void AwtrixSays_::drawSquares(bool highlight, int highlightIndex)
 {
     DisplayManager.drawFilledRect(0, 0, 32, 8, 0);
     DisplayManager.drawFilledRect(0, 0, 16, 4, (highlight && highlightIndex == 0) ? colors[0] : (colors[0] & 0x001500));

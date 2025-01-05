@@ -14,6 +14,8 @@
 
 - Features
   - [Apps](apps.md)
+     - [Native Apps](apps.md#native-apps)
+     - [Custom Apps](apps.md#custom-apps)
   - [Effects](effects.md)
   - [Icons](icons.md)
   - [Sounds](sounds.md)
@@ -21,5 +23,14 @@
 
 - API
   - [MQTT/HTTP](api.md)
-
-
+     - [Status](api.md#status-retrieval)
+     - [Liveview](api.md#liveview)
+     - [Power](api.md#power-control)     -
+     - [Sound](api.md#sound-playback)
+     - [Moodlight](api.md#mood-lighting)
+     - [Indicators](api.md#colored-indicators)
+     - [Customapps & Notification](api.md#custom-apps-and-notifications)   
+     - [Drawing](api.md#drawing-instructions)
+     - [Colored textfragmentss](api.md#display-text-in-colored-fragments)
+     - [App switching](api.md#switch-to-specific-app)
+     - [Settings](api.md#change-settings)
