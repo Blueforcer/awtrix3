@@ -14,6 +14,8 @@
 #include "Games/GameManager.h"
 #include <EEPROM.h>
 #include "htmls.h"
+#include "esp_wifi.h"
+
 
 WiFiUDP udp;
 
@@ -69,11 +71,9 @@ void saveHandler()
 
 void addHandler()
 {
-      server.on("/",  HTTP_GET, [](AsyncWebServerRequest *request)
-      { 
-        request->send(200, "text/html", html);
-      });
-    
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send(200, "text/html", html); });
+
     server.on("/api/power", HTTP_POST, [](AsyncWebServerRequest *request)
               { DisplayManager.powerStateParse(request->arg("plain").c_str()); request->send(200, F("text/plain"), F("OK")); });
 
@@ -248,15 +248,33 @@ void ServerManager_::setup()
     WiFi.setHostname(HOSTNAME.c_str()); // define hostname
 
     WiFi.mode(WIFI_STA);
-    WiFi.begin("Kindergarten", "53825382");
-    if (WiFi.waitForConnectResult() != WL_CONNECTED)
+    wifi_config_t conf;
+    esp_wifi_get_config(WIFI_IF_STA, &conf);
+    const char *_ssid;
+    const char *_pass;
+    _ssid = reinterpret_cast<const char *>(conf.sta.ssid);
+    _pass = reinterpret_cast<const char *>(conf.sta.password);
+
+    char *my_ssid = new char[33];
+    strncpy(my_ssid, _ssid, 32);
+    my_ssid[32] = '\0';
+    _ssid = my_ssid;
+
+    if (strlen(_ssid) && strlen(_pass))
     {
-        Serial.printf("WiFi Failed!\n");
-        return;
+        WiFi.begin(_ssid, _pass, 0, 0, true);
+        Serial.print(F("Connecting to "));
+        Serial.println(_ssid);
+
+        if (WiFi.waitForConnectResult() != WL_CONNECTED)
+        {
+            Serial.printf("WiFi Failed!\n");
+            AP_MODE = true;
+            return;
+        }
+        Serial.print("IP Address: ");
+        myIP = (WiFi.localIP());
     }
-    Serial.print("IP Address: ");
-    myIP = (WiFi.localIP());
-    AP_MODE = false;
     // myIP = mws.startWiFi(AP_TIMEOUT * 1000, HOSTNAME.c_str(), "12345678");
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
     if (DEBUG_MODE)
@@ -284,7 +302,7 @@ void ServerManager_::setup()
         MDNS.addServiceTxt("awtrix", "tcp", "name", HOSTNAME.c_str());
         MDNS.addServiceTxt("awtrix", "tcp", "type", "awtrix3");
     }
-  server.begin();
+    server.begin();
     configTzTime(NTP_TZ.c_str(), NTP_SERVER.c_str());
     tm timeInfo;
     getLocalTime(&timeInfo);
