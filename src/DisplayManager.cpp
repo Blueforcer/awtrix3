@@ -254,10 +254,8 @@ void DisplayManager_::GradientText(int16_t x, int16_t y, const char *text, int c
 
   for (uint16_t i = 0; i < textLength; i++)
   {
-    // Bestimme den Interpolationswert basierend auf der aktuellen Position i im Text
     float t = (float)i / (textLength - 1);
 
-    // Bestimme die Farbe für das aktuelle Zeichen basierend auf dem Farbverlauf
     uint32_t TC = interpolateColor(color1, color2, t);
     setTextColor(TC);
 
@@ -313,15 +311,15 @@ void pushCustomApp(String name, int position)
       return;
     }
 
-    if (position < 0) // Insert at the end of the vector
+    if (position < 0) 
     {
       Apps.push_back(std::make_pair(name, customAppCallbacks[availableCallbackIndex]));
     }
-    else if (position < Apps.size()) // Insert at a specific position
+    else if (position < Apps.size()) 
     {
       Apps.insert(Apps.begin() + position, std::make_pair(name, customAppCallbacks[availableCallbackIndex]));
     }
-    else // Invalid position, Insert at the end of the vector
+    else 
     {
       Apps.push_back(std::make_pair(name, customAppCallbacks[availableCallbackIndex]));
     }
@@ -333,10 +331,9 @@ void pushCustomApp(String name, int position)
 
 bool deleteCustomAppFile(const String &name)
 {
-  // Create the file name based on the app name
+
   String fileName = "/CUSTOMAPPS/" + name + ".json";
 
-  // Check if the file exists
   if (!LittleFS.exists(fileName))
   {
     if (DEBUG_MODE)
@@ -344,7 +341,6 @@ bool deleteCustomAppFile(const String &name)
     return false;
   }
 
-  // Delete the file
   if (LittleFS.remove(fileName))
   {
     if (DEBUG_MODE)
@@ -361,7 +357,7 @@ bool deleteCustomAppFile(const String &name)
 
 void removeCustomAppFromApps(const String &name, bool setApps)
 {
-  // Remove apps from Apps list
+
   auto it = Apps.begin();
   while (it != Apps.end())
   {
@@ -375,7 +371,6 @@ void removeCustomAppFromApps(const String &name, bool setApps)
     }
   }
 
-  // Remove apps from customApps map
   auto mapIt = customApps.begin();
   while (mapIt != customApps.end())
   {

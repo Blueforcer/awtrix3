@@ -58,17 +58,19 @@ void AwtrixSays_::tick()
 
     if (currentState == AWTRIX_LOSE)
     {
-        if (millis() - loseStart < 2000)
-        {
-            Serial.println("LOOSE");
-            DisplayManager.printText(0, 0, "LOOSE", true, 0);
-            return;
-        }
-        else
-        {
-            generateSequence();
-            currentState = AWTRIX_SHOWSEQ;
-        }
+       if (millis() - loseStart < 2000)
+    {
+        // Punkte abrufen und anzeigen
+        char pointsText[16];
+        sprintf(pointsText, "%d Pts", sequenceLength-1);
+        DisplayManager.printText(0, 6, pointsText, true, 0);
+        return;
+    }
+    else
+    {
+        generateSequence();
+        currentState = AWTRIX_SHOWSEQ;
+    }
     }
 
     if (currentState == AWTRIX_PAUSE && millis() >= nextSequenceTime)
@@ -152,8 +154,7 @@ void AwtrixSays_::checkUserInput(int button)
             }
             else
             {
-                // Punkte für jede erfolgreiche Sequenz
-                GameManager.sendPoints(sequenceLength);
+                GameManager.sendPoints(sequenceLength-1);
                 nextSequenceTime = millis() + 1000;
                 currentState = AWTRIX_PAUSE;
             }
