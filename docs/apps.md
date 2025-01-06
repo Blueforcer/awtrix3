@@ -36,7 +36,7 @@ Please note: Once the GIF is displayed in BigTime mode, it cannot be directly re
 To replace the icon, switch the mode to TMODE first, and then you'll be able to update the GIF.    
 If no GIF is found, the global textcolor is used.     
 
-(You can get some bigtime GIFs examples here)[https://github.com/Blueforcer/awtrix3/tree/main/Bigtime_GIFs].   
+[You can get some bigtime GIFs examples here](https://github.com/Blueforcer/awtrix3/tree/main/Bigtime_GIFs).   
 
 **TMODE=6**  
 <img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/TMODE6.png" style="max-height:70px;">   
