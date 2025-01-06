@@ -1,8 +1,6 @@
 #include "ServerManager.h"
 #include "Globals.h"
-#include <WebServer.h>
-#include <esp-fs-webserver.h>
-#include "htmls.h"
+#include <ESPAsyncWebServer.h>
 #include <Update.h>
 #include <ESPmDNS.h>
 #include <LittleFS.h>
@@ -15,6 +13,7 @@
 #include <HTTPClient.h>
 #include "Games/GameManager.h"
 #include <EEPROM.h>
+#include "htmls.h"
 
 WiFiUDP udp;
 
@@ -28,8 +27,7 @@ int bufferIndex = 0;
 
 // Aktueller verbundener Client
 WiFiClient currentClient = WiFiClient();
-WebServer server(80);
-FSWebServer mws(LittleFS, server);
+AsyncWebServer server(80);
 
 // Erstelle eine Server-Instanz
 WiFiServer TCPserver(8080);
@@ -46,8 +44,8 @@ ServerManager_ &ServerManager = ServerManager.getInstance();
 
 void versionHandler()
 {
-    WebServerClass *webRequest = mws.getRequest();
-    webRequest->send(200, F("text/plain"), VERSION);
+    // WebServerClass *webRequest = mws.getRequest();
+    // webRequest->send(200, F("text/plain"), VERSION);
 }
 
 void ServerManager_::erase()
@@ -55,7 +53,7 @@ void ServerManager_::erase()
     DisplayManager.HSVtext(0, 6, "RESET", true, 0);
     wifi_config_t conf;
     memset(&conf, 0, sizeof(conf)); // Set all the bytes in the structure to 0
-    esp_wifi_set_config(WIFI_IF_STA, &conf);
+                                    // esp_wifi_set_config(WIFI_IF_STA, &conf);
     LittleFS.format();
     delay(200);
     formatSettings();
@@ -64,150 +62,183 @@ void ServerManager_::erase()
 
 void saveHandler()
 {
-    WebServerClass *webRequest = mws.getRequest();
-    ServerManager.getInstance().loadSettings();
-    webRequest->send(200);
+    // WebServerClass *webRequest = mws.getRequest();
+    // ServerManager.getInstance().loadSettings();
+    // webRequest->send(200);
 }
 
 void addHandler()
 {
+      server.on("/",  HTTP_GET, [](AsyncWebServerRequest *request)
+      { 
+        request->send(200, "text/html", html);
+      });
+    
+    server.on("/api/power", HTTP_POST, [](AsyncWebServerRequest *request)
+              { DisplayManager.powerStateParse(request->arg("plain").c_str()); request->send(200, F("text/plain"), F("OK")); });
 
-    mws.addHandler("/api/power", HTTP_POST, []()
-                   { DisplayManager.powerStateParse(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
-    mws.addHandler(
-        "/api/sleep", HTTP_POST, []()
-        { 
-            mws.webserver->send(200,F("text/plain"),F("OK"));
-            DisplayManager.setPower(false);
-            PowerManager.sleepParser(mws.webserver->arg("plain").c_str()); });
-    mws.addHandler("/api/loop", HTTP_GET, []()
-                   { mws.webserver->send_P(200, "application/json", DisplayManager.getAppsAsJson().c_str()); });
-    mws.addHandler("/api/effects", HTTP_GET, []()
-                   { mws.webserver->send_P(200, "application/json", DisplayManager.getEffectNames().c_str()); });
-    mws.addHandler("/api/transitions", HTTP_GET, []()
-                   { mws.webserver->send_P(200, "application/json", DisplayManager.getTransitionNames().c_str()); });
-    mws.addHandler("/api/reboot", HTTP_ANY, []()
-                   { mws.webserver->send(200,F("text/plain"),F("OK")); delay(200); ESP.restart(); });
-    mws.addHandler("/api/rtttl", HTTP_POST, []()
-                   { mws.webserver->send(200,F("text/plain"),F("OK")); PeripheryManager.playRTTTLString(mws.webserver->arg("plain").c_str()); });
-    mws.addHandler("/api/sound", HTTP_POST, []()
-                   { if (PeripheryManager.parseSound(mws.webserver->arg("plain").c_str())){
-                    mws.webserver->send(200,F("text/plain"),F("OK")); 
+    server.on("/api/sleep", HTTP_POST, [](AsyncWebServerRequest *request)
+              {
+                  request->send(200, F("text/plain"), F("OK"));
+                  DisplayManager.setPower(false);
+                  PowerManager.sleepParser(request->arg("plain").c_str()); });
+
+    server.on("/api/loop", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send_P(200, "application/json", DisplayManager.getAppsAsJson().c_str()); });
+
+    server.on("/api/effects", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send_P(200, "application/json", DisplayManager.getEffectNames().c_str()); });
+
+    server.on("/api/transitions", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send_P(200, "application/json", DisplayManager.getTransitionNames().c_str()); });
+
+    server.on("/api/reboot", HTTP_ANY, [](AsyncWebServerRequest *request)
+              { request->send(200, F("text/plain"), F("OK")); delay(200); ESP.restart(); });
+
+    server.on("/api/rtttl", HTTP_POST, [](AsyncWebServerRequest *request)
+              { request->send(200, F("text/plain"), F("OK")); PeripheryManager.playRTTTLString(request->arg("plain").c_str()); });
+
+    server.on("/api/sound", HTTP_POST, [](AsyncWebServerRequest *request)
+              { if (PeripheryManager.parseSound(request->arg("plain").c_str())){
+                    request->send(200, F("text/plain"), F("OK")); 
                    }else{
-                    mws.webserver->send(404,F("text/plain"),F("FileNotFound"));  
+                    request->send(404, F("text/plain"), F("FileNotFound"));  
                    }; });
 
-    mws.addHandler("/api/moodlight", HTTP_POST, []()
-                   {
-                    if (DisplayManager.moodlight(mws.webserver->arg("plain").c_str()))
+    server.on("/api/moodlight", HTTP_POST, [](AsyncWebServerRequest *request)
+              {
+                    if (DisplayManager.moodlight(request->arg("plain").c_str()))
                     {
-                        mws.webserver->send(200, F(F("text/plain")), F("OK"));
+                        request->send(200, F("text/plain"), F("OK"));
                     }
                     else
                     {
-                        mws.webserver->send(500, F("text/plain"), F("ErrorParsingJson"));
+                        request->send(500, F("text/plain"), F("ErrorParsingJson"));
                     } });
-    mws.addHandler("/api/notify", HTTP_POST, []()
-                   {
-                       if (DisplayManager.generateNotification(1,mws.webserver->arg("plain").c_str()))
+
+    server.on("/api/notify", HTTP_POST, [](AsyncWebServerRequest *request)
+              {
+                       if (DisplayManager.generateNotification(1, request->arg("plain").c_str()))
                        {
-                        mws.webserver->send(200, F("text/plain"), F("OK"));
+                        request->send(200, F("text/plain"), F("OK"));
                        }else{
-                        mws.webserver->send(500, F("text/plain"), F("ErrorParsingJson"));
+                        request->send(500, F("text/plain"), F("ErrorParsingJson"));
                        } });
-    mws.addHandler("/api/nextapp", HTTP_ANY, []()
-                   { DisplayManager.nextApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
-    mws.addHandler("/fullscreen", HTTP_GET, []()
-                   {
-    String fps = mws.webserver->arg("fps");
+
+    server.on("/api/nextapp", HTTP_ANY, [](AsyncWebServerRequest *request)
+              { DisplayManager.nextApp(); request->send(200, F("text/plain"), F("OK")); });
+
+    server.on("/fullscreen", HTTP_GET, [](AsyncWebServerRequest *request)
+              {
+    String fps = request->arg("fps");
     if (fps == "") {
         fps = "30"; 
     }
     String finalHTML = screenfull_html; 
     finalHTML.replace("%%FPS%%", fps);
 
-    mws.webserver->send(200, "text/html", finalHTML.c_str()); });
-    mws.addHandler("/screen", HTTP_GET, []()
-                   { mws.webserver->send(200, "text/html", screen_html); });
-    mws.addHandler("/backup", HTTP_GET, []()
-                   { mws.webserver->send(200, "text/html", backup_html); });
-    mws.addHandler("/api/previousapp", HTTP_POST, []()
-                   { DisplayManager.previousApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
-    mws.addHandler("/api/notify/dismiss", HTTP_ANY, []()
-                   { DisplayManager.dismissNotify(); mws.webserver->send(200,F("text/plain"),F("OK")); });
-    mws.addHandler("/api/apps", HTTP_POST, []()
-                   { DisplayManager.updateAppVector(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
-    mws.addHandler(
-        "/api/switch", HTTP_POST, []()
+    request->send(200, "text/html", finalHTML.c_str()); });
+
+    server.on("/screen", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send(200, "text/html", screen_html); });
+
+    server.on("/backup", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send(200, "text/html", backup_html); });
+
+    server.on("/api/previousapp", HTTP_POST, [](AsyncWebServerRequest *request)
+              { DisplayManager.previousApp(); request->send(200, F("text/plain"), F("OK")); });
+
+    server.on("/api/notify/dismiss", HTTP_ANY, [](AsyncWebServerRequest *request)
+              { DisplayManager.dismissNotify(); request->send(200, F("text/plain"), F("OK")); });
+
+    server.on("/api/apps", HTTP_POST, [](AsyncWebServerRequest *request)
+              { DisplayManager.updateAppVector(request->arg("plain").c_str()); request->send(200, F("text/plain"), F("OK")); });
+
+    server.on("/api/switch", HTTP_POST, [](AsyncWebServerRequest *request)
+              {
+        if (DisplayManager.switchToApp(request->arg("plain").c_str()))
         {
-        if (DisplayManager.switchToApp(mws.webserver->arg("plain").c_str()))
-        {
-            mws.webserver->send(200, F("text/plain"), F("OK"));
+            request->send(200, F("text/plain"), F("OK"));
         }
         else
         {
-            mws.webserver->send(500, F("text/plain"), F("FAILED"));
+            request->send(500, F("text/plain"), F("FAILED"));
         } });
-    mws.addHandler("/api/apps", HTTP_GET, []()
-                   { mws.webserver->send_P(200, "application/json", DisplayManager.getAppsWithIcon().c_str()); });
-    mws.addHandler("/api/settings", HTTP_POST, []()
-                   { DisplayManager.setNewSettings(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
-    mws.addHandler("/api/erase", HTTP_ANY, []()
-                   { ServerManager.erase();  mws.webserver->send(200,F("text/plain"),F("OK"));delay(200); ESP.restart(); });
-    mws.addHandler("/api/resetSettings", HTTP_ANY, []()
-                   { formatSettings();   mws.webserver->send(200,F("text/plain"),F("OK"));delay(200); ESP.restart(); });
-    mws.addHandler("/api/reorder", HTTP_POST, []()
-                   { DisplayManager.reorderApps(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
-    mws.addHandler("/api/settings", HTTP_GET, []()
-                   { mws.webserver->send_P(200, "application/json", DisplayManager.getSettings().c_str()); });
-    mws.addHandler("/api/custom", HTTP_POST, []()
-                   { 
-                    if (DisplayManager.parseCustomPage(mws.webserver->arg("name"),mws.webserver->arg("plain").c_str(),false)){
-                        mws.webserver->send(200,F("text/plain"),F("OK")); 
+
+    server.on("/api/apps", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send_P(200, "application/json", DisplayManager.getAppsWithIcon().c_str()); });
+
+    server.on("/api/settings", HTTP_POST, [](AsyncWebServerRequest *request)
+              { DisplayManager.setNewSettings(request->arg("plain").c_str()); request->send(200, F("text/plain"), F("OK")); });
+
+    server.on("/api/erase", HTTP_ANY, [](AsyncWebServerRequest *request)
+              { ServerManager.erase();  request->send(200, F("text/plain"), F("OK")); delay(200); ESP.restart(); });
+
+    server.on("/api/resetSettings", HTTP_ANY, [](AsyncWebServerRequest *request)
+              { formatSettings();   request->send(200, F("text/plain"), F("OK")); delay(200); ESP.restart(); });
+
+    server.on("/api/reorder", HTTP_POST, [](AsyncWebServerRequest *request)
+              { DisplayManager.reorderApps(request->arg("plain").c_str()); request->send(200, F("text/plain"), F("OK")); });
+
+    server.on("/api/settings", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send_P(200, "application/json", DisplayManager.getSettings().c_str()); });
+
+    server.on("/api/custom", HTTP_POST, [](AsyncWebServerRequest *request)
+              { 
+                    if (DisplayManager.parseCustomPage(request->arg("name"), request->arg("plain").c_str(), false)){
+                        request->send(200, F("text/plain"), F("OK")); 
                     }else{
-                        mws.webserver->send(500,F("text/plain"),F("ErrorParsingJson")); 
+                        request->send(500, F("text/plain"), F("ErrorParsingJson")); 
                     } });
-    mws.addHandler("/api/stats", HTTP_GET, []()
-                   { mws.webserver->send_P(200, "application/json", DisplayManager.getStats().c_str()); });
-    mws.addHandler("/api/screen", HTTP_GET, []()
-                   { mws.webserver->send_P(200, "application/json", DisplayManager.ledsAsJson().c_str()); });
-    mws.addHandler("/api/indicator1", HTTP_POST, []()
-                   { 
-                    if (DisplayManager.indicatorParser(1,mws.webserver->arg("plain").c_str())){
-                     mws.webserver->send(200,F("text/plain"),F("OK")); 
+
+    server.on("/api/stats", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send_P(200, "application/json", DisplayManager.getStats().c_str()); });
+
+    server.on("/api/screen", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send_P(200, "application/json", DisplayManager.ledsAsJson().c_str()); });
+
+    server.on("/api/indicator1", HTTP_POST, [](AsyncWebServerRequest *request)
+              { 
+                    if (DisplayManager.indicatorParser(1, request->arg("plain").c_str())){
+                     request->send(200, F("text/plain"), F("OK")); 
                     }else{
-                         mws.webserver->send(500,F("text/plain"),F("ErrorParsingJson")); 
+                         request->send(500, F("text/plain"), F("ErrorParsingJson")); 
                     } });
-    mws.addHandler("/api/indicator2", HTTP_POST, []()
-                   { 
-                    if (DisplayManager.indicatorParser(2,mws.webserver->arg("plain").c_str())){
-                     mws.webserver->send(200,F("text/plain"),F("OK")); 
+
+    server.on("/api/indicator2", HTTP_POST, [](AsyncWebServerRequest *request)
+              { 
+                    if (DisplayManager.indicatorParser(2, request->arg("plain").c_str())){
+                     request->send(200, F("text/plain"), F("OK")); 
                     }else{
-                         mws.webserver->send(500,F("text/plain"),F("ErrorParsingJson")); 
+                         request->send(500, F("text/plain"), F("ErrorParsingJson")); 
                     } });
-    mws.addHandler("/api/indicator3", HTTP_POST, []()
-                   { 
-                    if (DisplayManager.indicatorParser(3,mws.webserver->arg("plain").c_str())){
-                     mws.webserver->send(200,F("text/plain"),F("OK")); 
+
+    server.on("/api/indicator3", HTTP_POST, [](AsyncWebServerRequest *request)
+              { 
+                    if (DisplayManager.indicatorParser(3, request->arg("plain").c_str())){
+                     request->send(200, F("text/plain"), F("OK")); 
                     }else{
-                         mws.webserver->send(500,F("text/plain"),F("ErrorParsingJson")); 
+                         request->send(500, F("text/plain"), F("ErrorParsingJson")); 
                     } });
-    mws.addHandler("/api/doupdate", HTTP_POST, []()
-                   { 
+
+    server.on("/api/doupdate", HTTP_POST, [](AsyncWebServerRequest *request)
+              { 
                     if (UpdateManager.checkUpdate(true)){
-                        mws.webserver->send(200,F("text/plain"),F("OK"));
+                        request->send(200, F("text/plain"), F("OK"));
                         UpdateManager.updateFirmware();
                     }else{
-                        mws.webserver->send(404,F("text/plain"),"NoUpdateFound");    
+                        request->send(404, F("text/plain"), "NoUpdateFound");    
                     } });
-    mws.addHandler("/api/r2d2", HTTP_POST, []()
-                   { PeripheryManager.r2d2(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
+
+    server.on("/api/r2d2", HTTP_POST, [](AsyncWebServerRequest *request)
+              { PeripheryManager.r2d2(request->arg("plain").c_str()); request->send(200, F("text/plain"), F("OK")); });
+
+    server.on("/version", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send(200, F("text/plain"), VERSION); });
 }
 
 void ServerManager_::setup()
 {
-    esp_wifi_set_max_tx_power(80); // 82 * 0.25 dBm = 20.5 dBm
-    esp_wifi_set_ps(WIFI_PS_NONE); // Power Saving deaktivieren
     if (!local_IP.fromString(NET_IP) || !gateway.fromString(NET_GW) || !subnet.fromString(NET_SN) || !primaryDNS.fromString(NET_PDNS) || !secondaryDNS.fromString(NET_SDNS))
         NET_STATIC = false;
     if (NET_STATIC)
@@ -215,46 +246,30 @@ void ServerManager_::setup()
         WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS);
     }
     WiFi.setHostname(HOSTNAME.c_str()); // define hostname
-    myIP = mws.startWiFi(AP_TIMEOUT * 1000, HOSTNAME.c_str(), "12345678");
+
+    WiFi.mode(WIFI_STA);
+    WiFi.begin("Kindergarten", "53825382");
+    if (WiFi.waitForConnectResult() != WL_CONNECTED)
+    {
+        Serial.printf("WiFi Failed!\n");
+        return;
+    }
+    Serial.print("IP Address: ");
+    myIP = (WiFi.localIP());
+    AP_MODE = false;
+    // myIP = mws.startWiFi(AP_TIMEOUT * 1000, HOSTNAME.c_str(), "12345678");
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
     if (DEBUG_MODE)
         DEBUG_PRINTF("My IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
-    mws.setAuth(AUTH_USER, AUTH_PASS);
+    // mws.setAuth(AUTH_USER, AUTH_PASS);
     if (isConnected)
     {
-        mws.addOptionBox("Network");
-        mws.addOption("Static IP", NET_STATIC);
-        mws.addOption("Local IP", NET_IP);
-        mws.addOption("Gateway", NET_GW);
-        mws.addOption("Subnet", NET_SN);
-        mws.addOption("Primary DNS", NET_PDNS);
-        mws.addOption("Secondary DNS", NET_SDNS);
-        mws.addOptionBox("MQTT");
-        mws.addOption("Broker", MQTT_HOST);
-        mws.addOption("Port", MQTT_PORT);
-        mws.addOption("Username", MQTT_USER);
-        mws.addOption("Password", MQTT_PASS);
-        mws.addOption("Prefix", MQTT_PREFIX);
-        mws.addOption("Homeassistant Discovery", HA_DISCOVERY);
-        mws.addOptionBox("Time");
-        mws.addOption("NTP Server", NTP_SERVER);
-        mws.addOption("Timezone", NTP_TZ);
-        mws.addHTML("<p>Find your timezone at <a href='https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv' target='_blank' rel='noopener noreferrer'>posix_tz_db</a>.</p>", "tz_link");
-        mws.addOptionBox("Icons");
-        mws.addHTML(custom_html, "icon_html");
-        mws.addCSS(custom_css);
-        mws.addJavascript(custom_script);
-        mws.addOptionBox("Auth");
-        mws.addOption("Auth Username", AUTH_USER);
-        mws.addOption("Auth Password", AUTH_PASS);
-        mws.addHandler("/save", HTTP_POST, saveHandler);
+
         addHandler();
         udp.begin(localUdpPort);
         if (DEBUG_MODE)
             DEBUG_PRINTLN(F("Webserver loaded"));
     }
-    mws.addHandler("/version", HTTP_GET, versionHandler);
-    mws.begin(WEB_PORT);
 
     if (!MDNS.begin(HOSTNAME))
     {
@@ -269,7 +284,7 @@ void ServerManager_::setup()
         MDNS.addServiceTxt("awtrix", "tcp", "name", HOSTNAME.c_str());
         MDNS.addServiceTxt("awtrix", "tcp", "type", "awtrix3");
     }
-
+  server.begin();
     configTzTime(NTP_TZ.c_str(), NTP_SERVER.c_str());
     tm timeInfo;
     getLocalTime(&timeInfo);
@@ -279,7 +294,6 @@ void ServerManager_::setup()
 
 void ServerManager_::tick()
 {
-    mws.run();
 
     if (!AP_MODE)
     {
@@ -310,9 +324,12 @@ void ServerManager_::tick()
         }
     }
 
-    if (!currentClient || !currentClient.connected()) {
-        if (TCPserver.hasClient()) {
-            if (currentClient) {
+    if (!currentClient || !currentClient.connected())
+    {
+        if (TCPserver.hasClient())
+        {
+            if (currentClient)
+            {
                 currentClient.stop();
                 Serial.println("Vorheriger Client getrennt, um neuen Client zu akzeptieren.");
             }
@@ -321,19 +338,25 @@ void ServerManager_::tick()
         }
     }
 
-    if (currentClient && currentClient.connected()) {
-        while (currentClient.available()) {
-            char incomingByte = currentClient.read();            
-            if (incomingByte == '\n') {
-                dataBuffer[bufferIndex] = '\0';               
+    if (currentClient && currentClient.connected())
+    {
+        while (currentClient.available())
+        {
+            char incomingByte = currentClient.read();
+            if (incomingByte == '\n')
+            {
+                dataBuffer[bufferIndex] = '\0';
                 GameManager.ControllerInput(dataBuffer);
                 bufferIndex = 0;
             }
-            else if (incomingByte != '\r') {
-                if (bufferIndex < BUFFER_SIZE - 1) {
+            else if (incomingByte != '\r')
+            {
+                if (bufferIndex < BUFFER_SIZE - 1)
+                {
                     dataBuffer[bufferIndex++] = incomingByte;
                 }
-                else {
+                else
+                {
                     bufferIndex = 0;
                 }
             }
@@ -343,7 +366,8 @@ void ServerManager_::tick()
 
 void ServerManager_::sendTCP(String message)
 {
-    if (currentClient && currentClient.connected()) {
+    if (currentClient && currentClient.connected())
+    {
         currentClient.print(message);
     }
 }
