@@ -15,13 +15,13 @@
 #include <EEPROM.h>
 #include "htmls.h"
 #include "esp_wifi.h"
-
+#include <ESPAsyncHTTPUpdateServer.h>
 
 WiFiUDP udp;
 
 unsigned int localUdpPort = 4210;
 char incomingPacket[255];
-
+ESPAsyncHTTPUpdateServer updateServer;
 // Pufferdefinition
 #define BUFFER_SIZE 64
 char dataBuffer[BUFFER_SIZE];
@@ -235,6 +235,8 @@ void addHandler()
 
     server.on("/version", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send(200, F("text/plain"), VERSION); });
+
+                updateServer.setup(&server, "", "");
 }
 
 void ServerManager_::setup()
@@ -302,7 +304,12 @@ void ServerManager_::setup()
         MDNS.addServiceTxt("awtrix", "tcp", "name", HOSTNAME.c_str());
         MDNS.addServiceTxt("awtrix", "tcp", "type", "awtrix3");
     }
+
+
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     server.begin();
+
+
     configTzTime(NTP_TZ.c_str(), NTP_SERVER.c_str());
     tm timeInfo;
     getLocalTime(&timeInfo);
