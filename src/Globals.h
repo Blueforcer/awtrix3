@@ -114,6 +114,8 @@ extern uint32_t WDC_INACTIVE;
 extern float GAMMA;
 void loadSettings();
 void saveSettings();
+void setSettingsFromJson(const String &json);
+String getSettingsAsJson();
 extern bool BLOCK_NAVIGATION;
 extern bool UPDATE_CHECK;
 extern bool SENSOR_READING;

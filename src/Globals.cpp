@@ -47,195 +47,172 @@ void startLittleFS()
     }
 }
 
-void loadDevSettings()
+String getSettingsAsJson()
 {
-    if (DEBUG_MODE)
-        DEBUG_PRINTLN("Loading Devsettings");
-    if (LittleFS.exists("/dev.json"))
+    DynamicJsonDocument doc(2048);
+
+    doc["bootsound"] = BOOT_SOUND;
+    doc["sensor_reading"] = SENSOR_READING;
+    doc["dfplayer"] = DFPLAYER_ACTIVE;
+    doc["matrix"] = MATRIX_LAYOUT;
+    doc["mirror_screen"] = MIRROR_DISPLAY;
+    doc["temp_offset"] = TEMP_OFFSET;
+    doc["min_battery"] = MIN_BATTERY;
+    doc["max_battery"] = MAX_BATTERY;
+    doc["ap_timeout"] = AP_TIMEOUT;
+    doc["background_effect"] = BACKGROUND_EFFECT;
+    doc["min_brightness"] = MIN_BRIGHTNESS;
+    doc["max_brightness"] = MAX_BRIGHTNESS;
+    doc["ldr_factor"] = LDR_FACTOR;
+    doc["ldr_gamma"] = LDR_GAMMA;
+    doc["hum_offset"] = HUM_OFFSET;
+    doc["ha_prefix"] = HA_PREFIX;
+    doc["stats_interval"] = STATS_INTERVAL;
+    doc["update_check"] = UPDATE_CHECK;
+    doc["hostname"] = HOSTNAME;
+    doc["buzzer_volume"] = BUZ_VOL;
+    doc["web_port"] = WEB_PORT;
+    doc["temp_dec_places"] = TEMP_DECIMAL_PLACES;
+    doc["rotate_screen"] = ROTATE_SCREEN;
+    doc["debug_mode"] = DEBUG_MODE;
+    doc["new_year"] = NEWYEAR;
+    doc["swap_buttons"] = SWAP_BUTTONS;
+    doc["ldr_on_ground"] = LDR_ON_GROUND;
+    doc["button_callback"] = BUTTON_CALLBACK;
+
+    JsonArray colorCorrection = doc.createNestedArray("color_correction");
+    colorCorrection.add(COLOR_CORRECTION.r);
+    colorCorrection.add(COLOR_CORRECTION.g);
+    colorCorrection.add(COLOR_CORRECTION.b);
+
+    JsonArray colorTemperature = doc.createNestedArray("color_temperature");
+    colorTemperature.add(COLOR_TEMPERATURE.r);
+    colorTemperature.add(COLOR_TEMPERATURE.g);
+    colorTemperature.add(COLOR_TEMPERATURE.b);
+
+    String output;
+    serializeJson(doc, output);
+    return output;
+}
+
+void setSettingsFromJson(const String &json)
+{
+    DynamicJsonDocument doc(2048);
+    DeserializationError error = deserializeJson(doc, json);
+
+    if (error)
     {
-        File file = LittleFS.open("/dev.json", "r");
-        DynamicJsonDocument doc(1024);
-        DeserializationError error = deserializeJson(doc, file);
-        if (error)
-        {
-            if (DEBUG_MODE)
-                DEBUG_PRINTLN(F("Failed to read dev settings"));
-            return;
-        }
-
         if (DEBUG_MODE)
-            DEBUG_PRINTF("%i dev settings found", doc.size());
-
-        if (doc.containsKey("bootsound"))
-        {
-            BOOT_SOUND = doc["bootsound"].as<String>();
-        }
-
-        if (doc.containsKey("sensor_reading"))
-        {
-            SENSOR_READING = doc["sensor_reading"].as<bool>();
-        }
-
-        if (doc.containsKey("dfplayer"))
-        {
-            DFPLAYER_ACTIVE = doc["dfplayer"].as<bool>();
-        }
-
-        if (doc.containsKey("matrix"))
-        {
-            MATRIX_LAYOUT = doc["matrix"];
-        }
-
-        if (doc.containsKey("mirror_screen"))
-        {
-            MIRROR_DISPLAY = doc["mirror_screen"].as<bool>();
-        }
-
-        if (doc.containsKey("temp_offset"))
-        {
-            TEMP_OFFSET = doc["temp_offset"];
-        }
-
-        if (doc.containsKey("min_battery"))
-        {
-            MIN_BATTERY = doc["min_battery"];
-        }
-
-        if (doc.containsKey("max_battery"))
-        {
-            MAX_BATTERY = doc["max_battery"];
-        }
-
-        if (doc.containsKey("ap_timeout"))
-        {
-            AP_TIMEOUT = doc["ap_timeout"];
-        }
-
-        if (doc.containsKey("background_effect"))
-        {
-            BACKGROUND_EFFECT = getEffectIndex(doc["background_effect"].as<const char *>());
-        }
-
-        if (doc.containsKey("min_brightness"))
-        {
-            MIN_BRIGHTNESS = doc["min_brightness"];
-        }
-
-        if (doc.containsKey("max_brightness"))
-        {
-            MAX_BRIGHTNESS = doc["max_brightness"];
-        }
-
-        if (doc.containsKey("ldr_factor"))
-        {
-            LDR_FACTOR = doc["ldr_factor"].as<float>();
-        }
-
-        if (doc.containsKey("ldr_gamma"))
-        {
-            LDR_GAMMA = doc["ldr_gamma"].as<float>();
-        }
-
-        if (doc.containsKey("hum_offset"))
-        {
-            HUM_OFFSET = doc["hum_offset"];
-        }
-
-        if (doc.containsKey("ha_prefix"))
-        {
-            HA_PREFIX = doc["ha_prefix"].as<String>();
-        }
-
-        if (doc.containsKey("stats_interval"))
-        {
-            STATS_INTERVAL = doc["stats_interval"].as<long>();
-        }
-
-        if (doc.containsKey("update_check"))
-        {
-            UPDATE_CHECK = doc["update_check"].as<bool>();
-        }
-
-        if (doc.containsKey("hostname"))
-        {
-            HOSTNAME = doc["hostname"].as<String>();
-        }
-
-        if (doc.containsKey("buzzer_volume"))
-        {
-            BUZ_VOL = doc["buzzer_volume"].as<bool>();
-        }
-
-        if (doc.containsKey("web_port"))
-        {
-            WEB_PORT = doc["web_port"];
-        }
-
-        if (doc.containsKey("temp_dec_places"))
-        {
-            TEMP_DECIMAL_PLACES = doc["temp_dec_places"].as<int>();
-        }
-
-        if (doc.containsKey("rotate_screen"))
-        {
-            ROTATE_SCREEN = doc["rotate_screen"].as<bool>();
-        }
-
-        if (doc.containsKey("debug_mode"))
-        {
-            DEBUG_MODE = doc["debug_mode"].as<bool>();
-        }
-
-        if (doc.containsKey("new_year"))
-        {
-            NEWYEAR = doc["new_year"].as<bool>();
-        }
-
-        if (doc.containsKey("swap_buttons"))
-        {
-            SWAP_BUTTONS = doc["swap_buttons"].as<bool>();
-        }
-
-        if (doc.containsKey("ldr_on_ground"))
-        {
-            LDR_ON_GROUND = doc["ldr_on_ground"].as<bool>();
-        }
-
-        if (doc.containsKey("button_callback"))
-        {
-            BUTTON_CALLBACK = doc["button_callback"].as<String>();
-        }
-
-        if (doc.containsKey("color_correction"))
-        {
-            auto correction = doc["color_correction"];
-            if (correction.is<JsonArray>() && correction.size() == 3)
-            {
-                uint8_t r = correction[0];
-                uint8_t g = correction[1];
-                uint8_t b = correction[2];
-                COLOR_CORRECTION.setRGB(r, g, b);
-            }
-        }
-
-        if (doc.containsKey("color_temperature"))
-        {
-            auto temperature = doc["color_temperature"];
-            if (temperature.is<JsonArray>() && temperature.size() == 3)
-            {
-                uint8_t r = temperature[0];
-                uint8_t g = temperature[1];
-                uint8_t b = temperature[2];
-                COLOR_TEMPERATURE.setRGB(r, g, b);
-            }
-        }
-
-        file.close();
+            DEBUG_PRINTLN("Failed to parse settings JSON");
+        return;
     }
-    else
+
+    if (doc.containsKey("bootsound"))
+        BOOT_SOUND = doc["bootsound"].as<String>();
+
+    if (doc.containsKey("sensor_reading"))
+        SENSOR_READING = doc["sensor_reading"].as<bool>();
+
+    if (doc.containsKey("dfplayer"))
+        DFPLAYER_ACTIVE = doc["dfplayer"].as<bool>();
+
+    if (doc.containsKey("matrix"))
+        MATRIX_LAYOUT = doc["matrix"];
+
+    if (doc.containsKey("mirror_screen"))
+        MIRROR_DISPLAY = doc["mirror_screen"].as<bool>();
+
+    if (doc.containsKey("temp_offset"))
+        TEMP_OFFSET = doc["temp_offset"];
+
+    if (doc.containsKey("min_battery"))
+        MIN_BATTERY = doc["min_battery"];
+
+    if (doc.containsKey("max_battery"))
+        MAX_BATTERY = doc["max_battery"];
+
+    if (doc.containsKey("ap_timeout"))
+        AP_TIMEOUT = doc["ap_timeout"];
+
+    if (doc.containsKey("background_effect"))
+        BACKGROUND_EFFECT = getEffectIndex(doc["background_effect"].as<const char *>());
+
+    if (doc.containsKey("min_brightness"))
+        MIN_BRIGHTNESS = doc["min_brightness"];
+
+    if (doc.containsKey("max_brightness"))
+        MAX_BRIGHTNESS = doc["max_brightness"];
+
+    if (doc.containsKey("ldr_factor"))
+        LDR_FACTOR = doc["ldr_factor"].as<float>();
+
+    if (doc.containsKey("ldr_gamma"))
+        LDR_GAMMA = doc["ldr_gamma"].as<float>();
+
+    if (doc.containsKey("hum_offset"))
+        HUM_OFFSET = doc["hum_offset"];
+
+    if (doc.containsKey("ha_prefix"))
+        HA_PREFIX = doc["ha_prefix"].as<String>();
+
+    if (doc.containsKey("stats_interval"))
+        STATS_INTERVAL = doc["stats_interval"].as<long>();
+
+    if (doc.containsKey("update_check"))
+        UPDATE_CHECK = doc["update_check"].as<bool>();
+
+    if (doc.containsKey("hostname"))
+        HOSTNAME = doc["hostname"].as<String>();
+
+    if (doc.containsKey("buzzer_volume"))
+        BUZ_VOL = doc["buzzer_volume"].as<bool>();
+
+    if (doc.containsKey("web_port"))
+        WEB_PORT = doc["web_port"];
+
+    if (doc.containsKey("temp_dec_places"))
+        TEMP_DECIMAL_PLACES = doc["temp_dec_places"].as<int>();
+
+    if (doc.containsKey("rotate_screen"))
+        ROTATE_SCREEN = doc["rotate_screen"].as<bool>();
+
+    if (doc.containsKey("debug_mode"))
+        DEBUG_MODE = doc["debug_mode"].as<bool>();
+
+    if (doc.containsKey("new_year"))
+        NEWYEAR = doc["new_year"].as<bool>();
+
+    if (doc.containsKey("swap_buttons"))
+        SWAP_BUTTONS = doc["swap_buttons"].as<bool>();
+
+    if (doc.containsKey("ldr_on_ground"))
+        LDR_ON_GROUND = doc["ldr_on_ground"].as<bool>();
+
+    if (doc.containsKey("button_callback"))
+        BUTTON_CALLBACK = doc["button_callback"].as<String>();
+
+    if (doc.containsKey("color_correction"))
     {
-        if (DEBUG_MODE)
-            DEBUG_PRINTLN("Devsettings not found");
+        auto correction = doc["color_correction"];
+        if (correction.is<JsonArray>() && correction.size() == 3)
+        {
+            uint8_t r = correction[0];
+            uint8_t g = correction[1];
+            uint8_t b = correction[2];
+            COLOR_CORRECTION.setRGB(r, g, b);
+        }
+    }
+
+    if (doc.containsKey("color_temperature"))
+    {
+        auto temperature = doc["color_temperature"];
+        if (temperature.is<JsonArray>() && temperature.size() == 3)
+        {
+            uint8_t r = temperature[0];
+            uint8_t g = temperature[1];
+            uint8_t b = temperature[2];
+            COLOR_TEMPERATURE.setRGB(r, g, b);
+        }
     }
 }
 
@@ -246,9 +223,186 @@ void formatSettings()
     Settings.end();
 }
 
+void convertSettings()
+{
+    if (LittleFS.exists("/DoNotTouch.json"))
+    {
+        File file = LittleFS.open("/DoNotTouch.json", "r");
+        DynamicJsonDocument doc(file.size() * 1.33);
+        DeserializationError error = deserializeJson(doc, file);
+        if (error)
+            return;
+
+        // Save all settings directly to Settings
+        Settings.begin("awtrix", false);
+
+        if (doc["NTP Server"].is<String>())
+            Settings.putString("NTP_SERVER", doc["NTP Server"].as<String>());
+        if (doc["Timezone"].is<String>())
+            Settings.putString("NTP_TZ", doc["Timezone"].as<String>());
+        if (doc["Broker"].is<String>())
+            Settings.putString("MQTT_HOST", doc["Broker"].as<String>());
+        if (doc["Port"].is<uint16_t>())
+            Settings.putUInt("MQTT_PORT", doc["Port"].as<uint16_t>());
+        if (doc["Username"].is<String>())
+            Settings.putString("MQTT_USER", doc["Username"].as<String>());
+        if (doc["Password"].is<String>())
+            Settings.putString("MQTT_PASS", doc["Password"].as<String>());
+        if (doc["Prefix"].is<String>())
+        {
+            String prefix = doc["Prefix"].as<String>();
+            prefix.trim();
+            Settings.putString("MQTT_PREFIX", prefix);
+        }
+        if (doc["Static IP"].is<bool>())
+            Settings.putBool("NET_STATIC", doc["Static IP"]);
+        if (doc["Homeassistant Discovery"].is<bool>())
+            Settings.putBool("HA_DISCOVERY", doc["Homeassistant Discovery"]);
+        if (doc["Local IP"].is<String>())
+            Settings.putString("NET_IP", doc["Local IP"].as<String>());
+        if (doc["Gateway"].is<String>())
+            Settings.putString("NET_GW", doc["Gateway"].as<String>());
+        if (doc["Subnet"].is<String>())
+            Settings.putString("NET_SN", doc["Subnet"].as<String>());
+        if (doc["Primary DNS"].is<String>())
+            Settings.putString("NET_PDNS", doc["Primary DNS"].as<String>());
+        if (doc["Secondary DNS"].is<String>())
+            Settings.putString("NET_SDNS", doc["Secondary DNS"].as<String>());
+        if (doc["Auth Username"].is<String>())
+            Settings.putString("AUTH_USER", doc["Auth Username"].as<String>());
+        if (doc["Auth Password"].is<String>())
+            Settings.putString("AUTH_PASS", doc["Auth Password"].as<String>());
+
+        file.close();
+        LittleFS.remove("/DoNotTouch.json");
+
+        if (LittleFS.exists("/dev.json"))
+        {
+            File file = LittleFS.open("/dev.json", "r");
+            DynamicJsonDocument doc(1024);
+            DeserializationError error = deserializeJson(doc, file);
+            if (error)
+            {
+                if (DEBUG_MODE)
+                    DEBUG_PRINTLN(F("Failed to read dev settings"));
+                return;
+            }
+
+            if (DEBUG_MODE)
+                DEBUG_PRINTF("%i dev settings found", doc.size());
+
+            Settings.begin("awtrix_dev", false);
+
+            if (doc.containsKey("bootsound"))
+                Settings.putString("BOOT_SOUND", doc["bootsound"].as<String>());
+            if (doc.containsKey("sensor_reading"))
+                Settings.putBool("SENSOR_READING", doc["sensor_reading"].as<bool>());
+            if (doc.containsKey("dfplayer"))
+                Settings.putBool("DFPLAYER_ACTIVE", doc["dfplayer"].as<bool>());
+            if (doc.containsKey("matrix"))
+                Settings.putUInt("MATRIX_LAYOUT", doc["matrix"]);
+            if (doc.containsKey("mirror_screen"))
+                Settings.putBool("MIRROR_DISPLAY", doc["mirror_screen"].as<bool>());
+            if (doc.containsKey("temp_offset"))
+                Settings.putFloat("TEMP_OFFSET", doc["temp_offset"]);
+            if (doc.containsKey("min_battery"))
+                Settings.putFloat("MIN_BATTERY", doc["min_battery"]);
+            if (doc.containsKey("max_battery"))
+                Settings.putFloat("MAX_BATTERY", doc["max_battery"]);
+            if (doc.containsKey("ap_timeout"))
+                Settings.putUInt("AP_TIMEOUT", doc["ap_timeout"]);
+            if (doc.containsKey("background_effect"))
+                Settings.putUInt("BACKGROUND_EFFECT", getEffectIndex(doc["background_effect"].as<const char *>()));
+            if (doc.containsKey("min_brightness"))
+                Settings.putUInt("MIN_BRIGHTNESS", doc["min_brightness"]);
+            if (doc.containsKey("max_brightness"))
+                Settings.putUInt("MAX_BRIGHTNESS", doc["max_brightness"]);
+            if (doc.containsKey("ldr_factor"))
+                Settings.putFloat("LDR_FACTOR", doc["ldr_factor"].as<float>());
+            if (doc.containsKey("ldr_gamma"))
+                Settings.putFloat("LDR_GAMMA", doc["ldr_gamma"].as<float>());
+            if (doc.containsKey("hum_offset"))
+                Settings.putFloat("HUM_OFFSET", doc["hum_offset"]);
+            if (doc.containsKey("ha_prefix"))
+                Settings.putString("HA_PREFIX", doc["ha_prefix"].as<String>());
+            if (doc.containsKey("stats_interval"))
+                Settings.putLong("STATS_INTERVAL", doc["stats_interval"].as<long>());
+            if (doc.containsKey("update_check"))
+                Settings.putBool("UPDATE_CHECK", doc["update_check"].as<bool>());
+            if (doc.containsKey("hostname"))
+                Settings.putString("HOSTNAME", doc["hostname"].as<String>());
+            if (doc.containsKey("buzzer_volume"))
+                Settings.putBool("BUZ_VOL", doc["buzzer_volume"].as<bool>());
+            if (doc.containsKey("web_port"))
+                Settings.putUInt("WEB_PORT", doc["web_port"]);
+            if (doc.containsKey("temp_dec_places"))
+                Settings.putInt("TEMP_DECIMAL_PLACES", doc["temp_dec_places"].as<int>());
+            if (doc.containsKey("rotate_screen"))
+                Settings.putBool("ROTATE_SCREEN", doc["rotate_screen"].as<bool>());
+            if (doc.containsKey("debug_mode"))
+                Settings.putBool("DEBUG_MODE", doc["debug_mode"].as<bool>());
+            if (doc.containsKey("new_year"))
+                Settings.putBool("NEWYEAR", doc["new_year"].as<bool>());
+            if (doc.containsKey("swap_buttons"))
+                Settings.putBool("SWAP_BUTTONS", doc["swap_buttons"].as<bool>());
+            if (doc.containsKey("ldr_on_ground"))
+                Settings.putBool("LDR_ON_GROUND", doc["ldr_on_ground"].as<bool>());
+            if (doc.containsKey("button_callback"))
+                Settings.putString("BUTTON_CALLBACK", doc["button_callback"].as<String>());
+            if (doc.containsKey("color_correction"))
+            {
+                auto correction = doc["color_correction"];
+                if (correction.is<JsonArray>() && correction.size() == 3)
+                {
+                    uint8_t r = correction[0];
+                    uint8_t g = correction[1];
+                    uint8_t b = correction[2];
+                    Settings.putUInt("COLOR_CORRECTION_R", r);
+                    Settings.putUInt("COLOR_CORRECTION_G", g);
+                    Settings.putUInt("COLOR_CORRECTION_B", b);
+                }
+            }
+            if (doc.containsKey("color_temperature"))
+            {
+                auto temperature = doc["color_temperature"];
+                if (temperature.is<JsonArray>() && temperature.size() == 3)
+                {
+                    uint8_t r = temperature[0];
+                    uint8_t g = temperature[1];
+                    uint8_t b = temperature[2];
+                    Settings.putUInt("COLOR_TEMPERATURE_R", r);
+                    Settings.putUInt("COLOR_TEMPERATURE_G", g);
+                    Settings.putUInt("COLOR_TEMPERATURE_B", b);
+                }
+            }
+
+            file.close();
+
+            LittleFS.remove("/dev.json");
+
+            if (DEBUG_MODE)
+                DEBUG_PRINTLN("Devsettings loaded and saved to Settings");
+        }
+
+        Settings.end();
+        DisplayManager.applyAllSettings();
+
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Webserver configuration loaded and saved to Settings"));
+
+        doc.clear();
+        return;
+    }
+    else if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("Webserver configuration file does not exist"));
+
+    return;
+}
+
 void loadSettings()
 {
     startLittleFS();
+    convertSettings();
     if (DEBUG_MODE)
         DEBUG_PRINTLN(F("Loading Usersettings"));
     Settings.begin("awtrix", false);
@@ -294,7 +448,52 @@ void loadSettings()
     uniqueID = getID();
     MQTT_PREFIX = String(uniqueID);
     HOSTNAME = String(uniqueID);
-    loadDevSettings();
+
+    NTP_SERVER = Settings.getString("NTP_SERVER", NTP_SERVER);
+    NTP_TZ = Settings.getString("NTP_TZ", NTP_TZ);
+    MQTT_HOST = Settings.getString("MQTT_HOST", MQTT_HOST);
+    MQTT_PORT = Settings.getUInt("MQTT_PORT", MQTT_PORT);
+    MQTT_USER = Settings.getString("MQTT_USER", MQTT_USER);
+    MQTT_PASS = Settings.getString("MQTT_PASS", MQTT_PASS);
+    MQTT_PREFIX = Settings.getString("MQTT_PREFIX", MQTT_PREFIX);
+    NET_STATIC = Settings.getBool("NET_STATIC", NET_STATIC);
+    HA_DISCOVERY = Settings.getBool("HA_DISCOVERY", HA_DISCOVERY);
+    NET_IP = Settings.getString("NET_IP", NET_IP);
+    NET_GW = Settings.getString("NET_GW", NET_GW);
+    NET_SN = Settings.getString("NET_SN", NET_SN);
+    NET_PDNS = Settings.getString("NET_PDNS", NET_PDNS);
+    NET_SDNS = Settings.getString("NET_SDNS", NET_SDNS);
+    AUTH_USER = Settings.getString("AUTH_USER", AUTH_USER);
+    AUTH_PASS = Settings.getString("AUTH_PASS", AUTH_PASS);
+
+    BOOT_SOUND = Settings.getString("BOOT_SOUND", BOOT_SOUND);
+    SENSOR_READING = Settings.getBool("SENSOR_READING", SENSOR_READING);
+    DFPLAYER_ACTIVE = Settings.getBool("DFPLAYER_ACTIVE", DFPLAYER_ACTIVE);
+    MATRIX_LAYOUT = Settings.getUInt("MATRIX_LAYOUT", MATRIX_LAYOUT);
+    MIRROR_DISPLAY = Settings.getBool("MIRROR_DISPLAY", MIRROR_DISPLAY);
+    TEMP_OFFSET = Settings.getFloat("TEMP_OFFSET", TEMP_OFFSET);
+    MIN_BATTERY = Settings.getFloat("MIN_BATTERY", MIN_BATTERY);
+    MAX_BATTERY = Settings.getFloat("MAX_BATTERY", MAX_BATTERY);
+    AP_TIMEOUT = Settings.getUInt("AP_TIMEOUT", AP_TIMEOUT);
+    BACKGROUND_EFFECT = Settings.getUInt("BACKGROUND_EFFECT", BACKGROUND_EFFECT);
+    MIN_BRIGHTNESS = Settings.getUInt("MIN_BRIGHTNESS", MIN_BRIGHTNESS);
+    MAX_BRIGHTNESS = Settings.getUInt("MAX_BRIGHTNESS", MAX_BRIGHTNESS);
+    LDR_FACTOR = Settings.getFloat("LDR_FACTOR", LDR_FACTOR);
+    LDR_GAMMA = Settings.getFloat("LDR_GAMMA", LDR_GAMMA);
+    HUM_OFFSET = Settings.getFloat("HUM_OFFSET", HUM_OFFSET);
+    HA_PREFIX = Settings.getString("HA_PREFIX", HA_PREFIX);
+    STATS_INTERVAL = Settings.getLong("STATS_INTERVAL", STATS_INTERVAL);
+    UPDATE_CHECK = Settings.getBool("UPDATE_CHECK", UPDATE_CHECK);
+    HOSTNAME = Settings.getString("HOSTNAME", HOSTNAME);
+    BUZ_VOL = Settings.getBool("BUZ_VOL", BUZ_VOL);
+    WEB_PORT = Settings.getUInt("WEB_PORT", WEB_PORT);
+    TEMP_DECIMAL_PLACES = Settings.getInt("TEMP_DECIMAL_PLACES", TEMP_DECIMAL_PLACES);
+    ROTATE_SCREEN = Settings.getBool("ROTATE_SCREEN", ROTATE_SCREEN);
+    DEBUG_MODE = Settings.getBool("DEBUG_MODE", DEBUG_MODE);
+    NEWYEAR = Settings.getBool("NEWYEAR", NEWYEAR);
+    SWAP_BUTTONS = Settings.getBool("SWAP_BUTTONS", SWAP_BUTTONS);
+    LDR_ON_GROUND = Settings.getBool("LDR_ON_GROUND", LDR_ON_GROUND);
+    BUTTON_CALLBACK = Settings.getString("BUTTON_CALLBACK", BUTTON_CALLBACK);
 }
 
 void saveSettings()

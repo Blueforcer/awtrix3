@@ -155,17 +155,97 @@ void addHandler()
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
 
+    server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+                         {
+    String bodyContent = String((char*)data);
+
+  if (request->url() == "/api/system") {
+     String bodyContent = String((char*)data);
+     setSettingsFromJson(bodyContent);
+     request->send(200, "text/plain", "true");
+
+       } else if  (request->url() == "/api/power") {
+            DisplayManager.powerStateParse(bodyContent.c_str());
+            request->send(200, "text/plain", "OK");
+        } else if (request->url() == "/api/sleep") {
+            DisplayManager.setPower(false);
+            PowerManager.sleepParser(bodyContent.c_str());
+            request->send(200, "text/plain", "OK");
+        } else if (request->url() == "/api/rtttl") {
+            PeripheryManager.playRTTTLString(bodyContent.c_str());
+            request->send(200, "text/plain", "OK");
+        } else if (request->url() == "/api/sound") {
+            if (PeripheryManager.parseSound(bodyContent.c_str())) {
+                request->send(200, "text/plain", "OK");
+            } else {
+                request->send(404, "text/plain", "FileNotFound");
+            }
+        } else if (request->url() == "/api/moodlight") {
+            if (DisplayManager.moodlight(bodyContent.c_str())) {
+                request->send(200, "text/plain", "OK");
+            } else {
+                request->send(500, "text/plain", "ErrorParsingJson");
+            }
+        } else if (request->url() == "/api/notify") {
+            if (DisplayManager.generateNotification(1, bodyContent.c_str())) {
+                request->send(200, "text/plain", "OK");
+            } else {
+                request->send(500, "text/plain", "ErrorParsingJson");
+            }
+        } else if (request->url() == "/api/apps") {
+            DisplayManager.updateAppVector(bodyContent.c_str());
+            request->send(200, "text/plain", "OK");
+        } else if (request->url() == "/api/switch") {
+            if (DisplayManager.switchToApp(bodyContent.c_str())) {
+                request->send(200, "text/plain", "OK");
+            } else {
+                request->send(500, "text/plain", "FAILED");
+            }
+        } else if (request->url() == "/api/settings") {
+            DisplayManager.setNewSettings(bodyContent.c_str());
+            request->send(200, "text/plain", "OK");
+        } else if (request->url() == "/api/reorder") {
+            DisplayManager.reorderApps(bodyContent.c_str());
+            request->send(200, "text/plain", "OK");
+        } else if (request->url() == "/api/custom") {
+            if (DisplayManager.parseCustomPage(request->arg("name"), bodyContent.c_str(), false)) {
+                request->send(200, "text/plain", "OK");
+            } else {
+                request->send(500, "text/plain", "ErrorParsingJson");
+            }
+        } else if (request->url() == "/api/indicator1") {
+            if (DisplayManager.indicatorParser(1, bodyContent.c_str())) {
+                request->send(200, "text/plain", "OK");
+            } else {
+                request->send(500, "text/plain", "ErrorParsingJson");
+            }
+        } else if (request->url() == "/api/indicator2") {
+            if (DisplayManager.indicatorParser(2, bodyContent.c_str())) {
+                request->send(200, "text/plain", "OK");
+            } else {
+                request->send(500, "text/plain", "ErrorParsingJson");
+            }
+        } else if (request->url() == "/api/indicator3") {
+            if (DisplayManager.indicatorParser(3, bodyContent.c_str())) {
+                request->send(200, "text/plain", "OK");
+            } else {
+                request->send(500, "text/plain", "ErrorParsingJson");
+            }
+        } else if (request->url() == "/api/r2d2") {
+            PeripheryManager.r2d2(bodyContent.c_str());
+            request->send(200, "text/plain", "OK");
+        } });
+
+    server.on("/api/system", HTTP_GET, [](AsyncWebServerRequest *request)
+              {
+    String settingsJson = getSettingsAsJson();
+    request->send(200, "application/json", settingsJson); });
+
+    server.on("/api/system", HTTP_OPTIONS, [](AsyncWebServerRequest *request)
+              { request->send(204); });
+
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send(200, "text/html", html); });
-
-    server.on("/api/power", HTTP_POST, [](AsyncWebServerRequest *request)
-              { DisplayManager.powerStateParse(request->arg("plain").c_str()); request->send(200, F("text/plain"), F("OK")); });
-
-    server.on("/api/sleep", HTTP_POST, [](AsyncWebServerRequest *request)
-              {
-                  request->send(200, F("text/plain"), F("OK"));
-                  DisplayManager.setPower(false);
-                  PowerManager.sleepParser(request->arg("plain").c_str()); });
 
     server.on("/api/loop", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send_P(200, "application/json", DisplayManager.getAppsAsJson().c_str()); });
@@ -178,36 +258,6 @@ void addHandler()
 
     server.on("/api/reboot", HTTP_ANY, [](AsyncWebServerRequest *request)
               { request->send(200, F("text/plain"), F("OK")); delay(200); ESP.restart(); });
-
-    server.on("/api/rtttl", HTTP_POST, [](AsyncWebServerRequest *request)
-              { request->send(200, F("text/plain"), F("OK")); PeripheryManager.playRTTTLString(request->arg("plain").c_str()); });
-
-    server.on("/api/sound", HTTP_POST, [](AsyncWebServerRequest *request)
-              { if (PeripheryManager.parseSound(request->arg("plain").c_str())){
-                    request->send(200, F("text/plain"), F("OK")); 
-                   }else{
-                    request->send(404, F("text/plain"), F("FileNotFound"));  
-                   }; });
-
-    server.on("/api/moodlight", HTTP_POST, [](AsyncWebServerRequest *request)
-              {
-                    if (DisplayManager.moodlight(request->arg("plain").c_str()))
-                    {
-                        request->send(200, F("text/plain"), F("OK"));
-                    }
-                    else
-                    {
-                        request->send(500, F("text/plain"), F("ErrorParsingJson"));
-                    } });
-
-    server.on("/api/notify", HTTP_POST, [](AsyncWebServerRequest *request)
-              {
-                       if (DisplayManager.generateNotification(1, request->arg("plain").c_str()))
-                       {
-                        request->send(200, F("text/plain"), F("OK"));
-                       }else{
-                        request->send(500, F("text/plain"), F("ErrorParsingJson"));
-                       } });
 
     server.on("/api/nextapp", HTTP_ANY, [](AsyncWebServerRequest *request)
               { DisplayManager.nextApp(); request->send(200, F("text/plain"), F("OK")); });
@@ -235,25 +285,8 @@ void addHandler()
     server.on("/api/notify/dismiss", HTTP_ANY, [](AsyncWebServerRequest *request)
               { DisplayManager.dismissNotify(); request->send(200, F("text/plain"), F("OK")); });
 
-    server.on("/api/apps", HTTP_POST, [](AsyncWebServerRequest *request)
-              { DisplayManager.updateAppVector(request->arg("plain").c_str()); request->send(200, F("text/plain"), F("OK")); });
-
-    server.on("/api/switch", HTTP_POST, [](AsyncWebServerRequest *request)
-              {
-        if (DisplayManager.switchToApp(request->arg("plain").c_str()))
-        {
-            request->send(200, F("text/plain"), F("OK"));
-        }
-        else
-        {
-            request->send(500, F("text/plain"), F("FAILED"));
-        } });
-
     server.on("/api/apps", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send_P(200, "application/json", DisplayManager.getAppsWithIcon().c_str()); });
-
-    server.on("/api/settings", HTTP_POST, [](AsyncWebServerRequest *request)
-              { DisplayManager.setNewSettings(request->arg("plain").c_str()); request->send(200, F("text/plain"), F("OK")); });
 
     server.on("/api/erase", HTTP_ANY, [](AsyncWebServerRequest *request)
               { ServerManager.erase();  request->send(200, F("text/plain"), F("OK")); delay(200); ESP.restart(); });
@@ -267,43 +300,11 @@ void addHandler()
     server.on("/api/settings", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send_P(200, "application/json", DisplayManager.getSettings().c_str()); });
 
-    server.on("/api/custom", HTTP_POST, [](AsyncWebServerRequest *request)
-              { 
-                    if (DisplayManager.parseCustomPage(request->arg("name"), request->arg("plain").c_str(), false)){
-                        request->send(200, F("text/plain"), F("OK")); 
-                    }else{
-                        request->send(500, F("text/plain"), F("ErrorParsingJson")); 
-                    } });
-
     server.on("/api/stats", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send_P(200, "application/json", DisplayManager.getStats().c_str()); });
 
     server.on("/api/screen", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send_P(200, "application/json", DisplayManager.ledsAsJson().c_str()); });
-
-    server.on("/api/indicator1", HTTP_POST, [](AsyncWebServerRequest *request)
-              { 
-                    if (DisplayManager.indicatorParser(1, request->arg("plain").c_str())){
-                     request->send(200, F("text/plain"), F("OK")); 
-                    }else{
-                         request->send(500, F("text/plain"), F("ErrorParsingJson")); 
-                    } });
-
-    server.on("/api/indicator2", HTTP_POST, [](AsyncWebServerRequest *request)
-              { 
-                    if (DisplayManager.indicatorParser(2, request->arg("plain").c_str())){
-                     request->send(200, F("text/plain"), F("OK")); 
-                    }else{
-                         request->send(500, F("text/plain"), F("ErrorParsingJson")); 
-                    } });
-
-    server.on("/api/indicator3", HTTP_POST, [](AsyncWebServerRequest *request)
-              { 
-                    if (DisplayManager.indicatorParser(3, request->arg("plain").c_str())){
-                     request->send(200, F("text/plain"), F("OK")); 
-                    }else{
-                         request->send(500, F("text/plain"), F("ErrorParsingJson")); 
-                    } });
 
     server.on("/api/doupdate", HTTP_POST, [](AsyncWebServerRequest *request)
               { 
@@ -313,9 +314,6 @@ void addHandler()
                     }else{
                         request->send(404, F("text/plain"), "NoUpdateFound");    
                     } });
-
-    server.on("/api/r2d2", HTTP_POST, [](AsyncWebServerRequest *request)
-              { PeripheryManager.r2d2(request->arg("plain").c_str()); request->send(200, F("text/plain"), F("OK")); });
 
     server.on("/version", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send(200, F("text/plain"), VERSION); });
@@ -408,19 +406,16 @@ void addHandler()
 
     request->send(LittleFS, path, "text/plain"); });
 
-    // Edit endpoint - PUT - entspricht handleFileCreate
-
     server.on("/edit", HTTP_OPTIONS, [](AsyncWebServerRequest *request)
               {
     AsyncWebServerResponse *response = request->beginResponse(204);
     request->send(response); });
 
-    // CORS Headers für /list
+    
     server.on("/list", HTTP_OPTIONS, [](AsyncWebServerRequest *request)
               {
     AsyncWebServerResponse *response = request->beginResponse(204);
     request->send(response); });
-
 
     server.on("/edit", HTTP_PUT, [](AsyncWebServerRequest *request)
               {
@@ -715,47 +710,7 @@ void ServerManager_::sendTCP(String message)
     }
 }
 
-void ServerManager_::loadSettings()
-{
-    if (LittleFS.exists("/DoNotTouch.json"))
-    {
-        File file = LittleFS.open("/DoNotTouch.json", "r");
-        DynamicJsonDocument doc(file.size() * 1.33);
-        DeserializationError error = deserializeJson(doc, file);
-        if (error)
-            return;
 
-        NTP_SERVER = doc["NTP Server"].as<String>();
-        NTP_TZ = doc["Timezone"].as<String>();
-        MQTT_HOST = doc["Broker"].as<String>();
-        MQTT_PORT = doc["Port"].as<uint16_t>();
-        MQTT_USER = doc["Username"].as<String>();
-        MQTT_PASS = doc["Password"].as<String>();
-        MQTT_PREFIX = doc["Prefix"].as<String>();
-        MQTT_PREFIX.trim();
-        NET_STATIC = doc["Static IP"];
-        HA_DISCOVERY = doc["Homeassistant Discovery"];
-        NET_IP = doc["Local IP"].as<String>();
-        NET_GW = doc["Gateway"].as<String>();
-        NET_SN = doc["Subnet"].as<String>();
-        NET_PDNS = doc["Primary DNS"].as<String>();
-        NET_SDNS = doc["Secondary DNS"].as<String>();
-        if (doc["Auth Username"].is<String>())
-            AUTH_USER = doc["Auth Username"].as<String>();
-        if (doc["Auth Password"].is<String>())
-            AUTH_PASS = doc["Auth Password"].as<String>();
-
-        file.close();
-        DisplayManager.applyAllSettings();
-        if (DEBUG_MODE)
-            DEBUG_PRINTLN(F("Webserver configuration loaded"));
-        doc.clear();
-        return;
-    }
-    else if (DEBUG_MODE)
-        DEBUG_PRINTLN(F("Webserver configuration file not exist"));
-    return;
-}
 
 void ServerManager_::sendButton(byte btn, bool state)
 {

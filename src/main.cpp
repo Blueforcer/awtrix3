@@ -67,7 +67,6 @@ void setup()
   Serial.begin(115200);
   loadSettings();
   PeripheryManager.setup();
-  ServerManager.loadSettings();
   DisplayManager.setup();
   DisplayManager.HSVtext(9, 6, VERSION, true, 0);
   delay(500);
