@@ -68,7 +68,6 @@ String getSettingsAsJson()
     doc["hum_offset"] = HUM_OFFSET;
     doc["ha_prefix"] = HA_PREFIX;
     doc["stats_interval"] = STATS_INTERVAL;
-    doc["update_check"] = UPDATE_CHECK;
     doc["hostname"] = HOSTNAME;
     doc["buzzer_volume"] = BUZ_VOL;
     doc["web_port"] = WEB_PORT;
@@ -158,9 +157,6 @@ void setSettingsFromJson(const String &json)
     if (doc.containsKey("stats_interval"))
         STATS_INTERVAL = doc["stats_interval"].as<long>();
 
-    if (doc.containsKey("update_check"))
-        UPDATE_CHECK = doc["update_check"].as<bool>();
-
     if (doc.containsKey("hostname"))
         HOSTNAME = doc["hostname"].as<String>();
 
@@ -214,6 +210,7 @@ void setSettingsFromJson(const String &json)
             COLOR_TEMPERATURE.setRGB(r, g, b);
         }
     }
+    saveSettings();
 }
 
 void formatSettings()
@@ -327,8 +324,6 @@ void convertSettings()
                 Settings.putString("HA_PREFIX", doc["ha_prefix"].as<String>());
             if (doc.containsKey("stats_interval"))
                 Settings.putLong("STATS_INTERVAL", doc["stats_interval"].as<long>());
-            if (doc.containsKey("update_check"))
-                Settings.putBool("UPDATE_CHECK", doc["update_check"].as<bool>());
             if (doc.containsKey("hostname"))
                 Settings.putString("HOSTNAME", doc["hostname"].as<String>());
             if (doc.containsKey("buzzer_volume"))
@@ -446,8 +441,6 @@ void loadSettings()
     SOUND_VOLUME = Settings.getUInt("VOL", 25);
     Settings.end();
     uniqueID = getID();
-    MQTT_PREFIX = String(uniqueID);
-    HOSTNAME = String(uniqueID);
 
     NTP_SERVER = Settings.getString("NTP_SERVER", NTP_SERVER);
     NTP_TZ = Settings.getString("NTP_TZ", NTP_TZ);
@@ -455,7 +448,7 @@ void loadSettings()
     MQTT_PORT = Settings.getUInt("MQTT_PORT", MQTT_PORT);
     MQTT_USER = Settings.getString("MQTT_USER", MQTT_USER);
     MQTT_PASS = Settings.getString("MQTT_PASS", MQTT_PASS);
-    MQTT_PREFIX = Settings.getString("MQTT_PREFIX", MQTT_PREFIX);
+    MQTT_PREFIX = Settings.getString("MQTT_PREFIX", String(uniqueID));
     NET_STATIC = Settings.getBool("NET_STATIC", NET_STATIC);
     HA_DISCOVERY = Settings.getBool("HA_DISCOVERY", HA_DISCOVERY);
     NET_IP = Settings.getString("NET_IP", NET_IP);
@@ -483,8 +476,7 @@ void loadSettings()
     HUM_OFFSET = Settings.getFloat("HUM_OFFSET", HUM_OFFSET);
     HA_PREFIX = Settings.getString("HA_PREFIX", HA_PREFIX);
     STATS_INTERVAL = Settings.getLong("STATS_INTERVAL", STATS_INTERVAL);
-    UPDATE_CHECK = Settings.getBool("UPDATE_CHECK", UPDATE_CHECK);
-    HOSTNAME = Settings.getString("HOSTNAME", HOSTNAME);
+    HOSTNAME = Settings.getString("HOSTNAME", String(uniqueID));
     BUZ_VOL = Settings.getBool("BUZ_VOL", BUZ_VOL);
     WEB_PORT = Settings.getUInt("WEB_PORT", WEB_PORT);
     TEMP_DECIMAL_PLACES = Settings.getInt("TEMP_DECIMAL_PLACES", TEMP_DECIMAL_PLACES);
@@ -538,6 +530,49 @@ void saveSettings()
 #endif
     Settings.putBool("SOUND", SOUND_ACTIVE);
     Settings.putUInt("VOL", SOUND_VOLUME);
+    Settings.putString("NTP_SERVER", NTP_SERVER);
+    Settings.putString("NTP_TZ", NTP_TZ);
+    Settings.putString("MQTT_HOST", MQTT_HOST);
+    Settings.putUInt("MQTT_PORT", MQTT_PORT);
+    Settings.putString("MQTT_USER", MQTT_USER);
+    Settings.putString("MQTT_PASS", MQTT_PASS);
+    Settings.putString("MQTT_PREFIX", MQTT_PREFIX);
+    Settings.putBool("NET_STATIC", NET_STATIC);
+    Settings.putBool("HA_DISCOVERY", HA_DISCOVERY);
+    Settings.putString("NET_IP", NET_IP);
+    Settings.putString("NET_GW", NET_GW);
+    Settings.putString("NET_SN", NET_SN);
+    Settings.putString("NET_PDNS", NET_PDNS);
+    Settings.putString("NET_SDNS", NET_SDNS);
+    Settings.putString("AUTH_USER", AUTH_USER);
+    Settings.putString("AUTH_PASS", AUTH_PASS);
+    Settings.putString("BOOT_SOUND", BOOT_SOUND);
+    Settings.putBool("SENSOR_READING", SENSOR_READING);
+    Settings.putBool("DFPLAYER_ACTIVE", DFPLAYER_ACTIVE);
+    Settings.putUInt("MATRIX_LAYOUT", MATRIX_LAYOUT);
+    Settings.putBool("MIRROR_DISPLAY", MIRROR_DISPLAY);
+    Settings.putFloat("TEMP_OFFSET", TEMP_OFFSET);
+    Settings.putFloat("MIN_BATTERY", MIN_BATTERY);
+    Settings.putFloat("MAX_BATTERY", MAX_BATTERY);
+    Settings.putUInt("AP_TIMEOUT", AP_TIMEOUT);
+    Settings.putUInt("BACKGROUND_EFFECT", BACKGROUND_EFFECT);
+    Settings.putUInt("MIN_BRIGHTNESS", MIN_BRIGHTNESS);
+    Settings.putUInt("MAX_BRIGHTNESS", MAX_BRIGHTNESS);
+    Settings.putFloat("LDR_FACTOR", LDR_FACTOR);
+    Settings.putFloat("LDR_GAMMA", LDR_GAMMA);
+    Settings.putFloat("HUM_OFFSET", HUM_OFFSET);
+    Settings.putString("HA_PREFIX", HA_PREFIX);
+    Settings.putLong("STATS_INTERVAL", STATS_INTERVAL);
+    Settings.putString("HOSTNAME", HOSTNAME);
+    Settings.putBool("BUZ_VOL", BUZ_VOL);
+    Settings.putUInt("WEB_PORT", WEB_PORT);
+    Settings.putInt("TEMP_DECIMAL_PLACES", TEMP_DECIMAL_PLACES);
+    Settings.putBool("ROTATE_SCREEN", ROTATE_SCREEN);
+    Settings.putBool("DEBUG_MODE", DEBUG_MODE);
+    Settings.putBool("NEWYEAR", NEWYEAR);
+    Settings.putBool("SWAP_BUTTONS", SWAP_BUTTONS);
+    Settings.putBool("LDR_ON_GROUND", LDR_ON_GROUND);
+    Settings.putString("BUTTON_CALLBACK", BUTTON_CALLBACK);
     Settings.end();
 }
 
@@ -624,7 +659,7 @@ CRGB COLOR_TEMPERATURE;
 uint32_t WDC_ACTIVE;
 uint32_t WDC_INACTIVE;
 bool BLOCK_NAVIGATION = false;
-bool UPDATE_CHECK = false;
+
 float GAMMA = 0;
 bool SENSOR_READING = true;
 bool SENSORS_STABLE = false;
