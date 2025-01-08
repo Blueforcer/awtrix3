@@ -16,6 +16,7 @@
 #include "htmls.h"
 #include "esp_wifi.h"
 #include <ESPAsyncHTTPUpdateServer.h>
+#include <uri/UriRegex.h>
 
 WiFiUDP udp;
 
@@ -69,8 +70,91 @@ void saveHandler()
     // webRequest->send(200);
 }
 
+bool deleteRecursive(String path)
+{
+    File file = LittleFS.open(path.c_str(), "r");
+    if (!file.isDirectory())
+    {
+        file.close();
+        return LittleFS.remove(path.c_str());
+    }
+
+    File child = file.openNextFile();
+    while (child)
+    {
+        String childPath = path + "/" + child.name();
+        if (child.isDirectory())
+        {
+            child.close();
+            deleteRecursive(childPath);
+        }
+        else
+        {
+            child.close();
+            LittleFS.remove(childPath.c_str());
+        }
+        child = file.openNextFile();
+    }
+
+    file.close();
+    return LittleFS.rmdir(path.c_str());
+}
+
+bool createDirFromPath(const String &path)
+{
+    String dir;
+    int p1 = 0;
+    int p2 = 0;
+    while (p2 != -1)
+    {
+        p2 = path.indexOf("/", p1 + 1);
+        dir += path.substring(p1, p2);
+
+        // Prüfen ob es ein gültiges Verzeichnis ist
+        if (dir.indexOf(".") == -1)
+        {
+            if (!LittleFS.exists(dir))
+            {
+                if (LittleFS.mkdir(dir))
+                {
+                    Serial.printf("Folder %s created\n", dir.c_str());
+                }
+                else
+                {
+                    Serial.printf("Error. Folder %s not created\n", dir.c_str());
+                    return false;
+                }
+            }
+        }
+        p1 = p2;
+    }
+    return true;
+}
+
+void checkForUnsupportedPath(String &filename, String &error)
+{
+    if (!filename.startsWith("/"))
+    {
+        error += F(" !! NO_LEADING_SLASH !! ");
+    }
+    if (filename.indexOf("//") != -1)
+    {
+        error += F(" !! DOUBLE_SLASH !! ");
+    }
+    if (filename.endsWith("/"))
+    {
+        error += F(" ! TRAILING_SLASH ! ");
+    }
+    Serial.printf("Check path: %s: %s\n", filename.c_str(), error.c_str());
+}
+
 void addHandler()
 {
+
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type");
+
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send(200, "text/html", html); });
 
@@ -236,7 +320,244 @@ void addHandler()
     server.on("/version", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send(200, F("text/plain"), VERSION); });
 
-                updateServer.setup(&server, "", "");
+    updateServer.setup(&server, "", "");
+    // Route, die die Icon-Daten bereitstellt
+    server.serveStatic("/ICONS", LittleFS, "/ICONS");
+
+    server.on("/status", HTTP_GET, [](AsyncWebServerRequest *request)
+              {
+    String status = "{\"type\":\"";
+    status += "LittleFS";
+    status += "\",\"isOk\":";
+    status += LittleFS.begin() ? "true" : "false";
+    status += ",\"totalBytes\":";
+    status += LittleFS.totalBytes();
+    status += ",\"usedBytes\":";
+    status += LittleFS.usedBytes();
+    status += "}";
+    request->send(200, "application/json", status); });
+
+    // List endpoint - entspricht handleFileList
+    server.on("/list", HTTP_GET, [](AsyncWebServerRequest *request)
+              {
+    if (!request->hasParam("dir")) {
+        request->send(400, F("text/plain"), F("DIR ARG MISSING"));
+        return;
+    }
+
+    String path = request->arg("dir");
+    if (path != "/" && !LittleFS.exists(path)) {
+        request->send(400, F("text/plain"), F("BAD PATH"));
+        return;
+    }
+
+    File root = LittleFS.open(path, "r");
+    String output = "[";
+    if (root && root.isDirectory()) {
+        File file = root.openNextFile();
+        bool firstFile = true;
+        while (file) {
+            if (!firstFile) {
+                output += ",";
+            }
+            firstFile = false;
+            
+            String filename = file.name();
+            if (filename.lastIndexOf("/") > -1) {
+                filename.remove(0, filename.lastIndexOf("/") + 1);
+            }
+            
+            output += "{\"type\":\"";
+            output += (file.isDirectory()) ? "dir" : "file";
+            output += "\",\"size\":\"";
+            output += file.size();
+            output += "\",\"name\":\"";
+            output += filename;
+            output += "\"}";
+            
+            file = root.openNextFile();
+        }
+    }
+    output += "]";
+    request->send(200, "application/json", output); });
+
+    // Edit endpoint - GET - entspricht handleGetEdit
+    server.on("/edit", HTTP_GET, [](AsyncWebServerRequest *request)
+              {
+    if (!request->hasParam("path")) {
+        request->send(400, F("text/plain"), F("PATH ARG MISSING"));
+        return;
+    }
+
+    String path = request->arg("path");
+    if (path.isEmpty() || path == "/") {
+        request->send(400, F("text/plain"), F("BAD PATH"));
+        return;
+    }
+
+    if (!LittleFS.exists(path)) {
+        request->send(404, F("text/plain"), F("FILE NOT FOUND"));
+        return;
+    }
+
+    File file = LittleFS.open(path, "r");
+    if (!file || file.isDirectory()) {
+        request->send(500, F("text/plain"), F("FILE OPEN FAILED"));
+        return;
+    }
+
+    request->send(LittleFS, path, "text/plain"); });
+
+    // Edit endpoint - PUT - entspricht handleFileCreate
+
+    server.on("/edit", HTTP_OPTIONS, [](AsyncWebServerRequest *request)
+              {
+    AsyncWebServerResponse *response = request->beginResponse(204);
+    request->send(response); });
+
+    // CORS Headers für /list
+    server.on("/list", HTTP_OPTIONS, [](AsyncWebServerRequest *request)
+              {
+    AsyncWebServerResponse *response = request->beginResponse(204);
+    request->send(response); });
+
+
+    server.on("/edit", HTTP_PUT, [](AsyncWebServerRequest *request)
+              {
+    String path = request->arg("path");
+    if (path.isEmpty()) {
+        request->send(400, F("text/plain"), F("PATH ARG MISSING"));
+        return;
+    }
+    if (path == "/") {
+        request->send(400, F("text/plain"), F("BAD PATH"));
+        return;
+    }
+
+    String src = request->arg("src");
+    if (src.isEmpty()) {
+        // Keine Quelle angegeben: Neue Datei/Verzeichnis erstellen
+        if (path.endsWith("/")) {
+            // Verzeichnis erstellen
+            path.remove(path.length() - 1);
+            if (!LittleFS.mkdir(path)) {
+                request->send(500, F("text/plain"), F("MKDIR FAILED"));
+                return;
+            }
+        } else {
+            // Datei erstellen
+            File file = LittleFS.open(path, "w");
+            if (!file) {
+                request->send(500, F("text/plain"), F("CREATE FAILED"));
+                return;
+            }
+            file.close();
+        }
+        request->send(200, F("text/plain"), path);
+    } else {
+        // Quelle angegeben: Umbenennen/Verschieben
+        if (src == "/") {
+            request->send(400, F("text/plain"), F("BAD SRC"));
+            return;
+        }
+        if (!LittleFS.exists(src)) {
+            request->send(400, F("text/plain"), F("SRC FILE NOT FOUND"));
+            return;
+        }
+
+        if (path.endsWith("/")) {
+            path.remove(path.length() - 1);
+        }
+        if (src.endsWith("/")) {
+            src.remove(src.length() - 1);
+        }
+
+        if (!LittleFS.rename(src, path)) {
+            request->send(500, F("text/plain"), F("RENAME FAILED"));
+            return;
+        }
+        request->send(200, F("text/plain"), F("OK"));
+    } });
+
+    // Edit endpoint - DELETE - entspricht handleFileDelete
+    server.on("/edit", HTTP_DELETE, [](AsyncWebServerRequest *request)
+              {
+    String path = request->arg("path");
+    if (path.isEmpty() || path == "/") {
+        request->send(400, F("text/plain"), F("BAD PATH"));
+        return;
+    }
+
+    if (!LittleFS.exists(path)) {
+        request->send(404, F("text/plain"), F("FILE NOT FOUND"));
+        return;
+    }
+
+    // Rekursives Löschen implementieren
+    bool success = deleteRecursive(path);
+    if (success) {
+        request->send(200, F("text/plain"), F("OK"));
+    } else {
+        request->send(500, F("text/plain"), F("DELETE FAILED"));
+    } });
+
+    server.on("/edit", HTTP_POST, [](AsyncWebServerRequest *request)
+              {
+        // Handler für die Abschluss-Antwort
+        request->send(200, F("text/plain"), F("OK")); }, [](AsyncWebServerRequest *request, const String &filename, size_t index, uint8_t *data, size_t len, bool final)
+              {
+        static File uploadFile;
+        static String uploadFilename;
+        
+        if (!index) {
+            // Upload startet
+            uploadFilename = filename;
+            
+            // Stelle sicher, dass Pfade immer mit "/" beginnen
+            if (!uploadFilename.startsWith("/")) {
+                uploadFilename = "/" + uploadFilename;
+            }
+
+            // Pfad überprüfen
+            String pathError;
+            checkForUnsupportedPath(uploadFilename, pathError);
+            
+            if (pathError.length() > 0) {
+                request->send(500, F("text/plain"), F("INVALID FILENAME"));
+                return;
+            }
+
+            // Verzeichnisstruktur erstellen
+            if (!createDirFromPath(uploadFilename)) {
+                request->send(500, F("text/plain"), F("FAILED TO CREATE DIRECTORY"));
+                return;
+            }
+
+            Serial.printf("Upload Start: %s\n", uploadFilename.c_str());
+            uploadFile = LittleFS.open(uploadFilename, "w");
+            
+            if (!uploadFile) {
+                request->send(500, F("text/plain"), F("CREATE FAILED"));
+                return;
+            }
+        }
+
+        // Schreibe Daten
+        if (uploadFile && len) {
+            if (uploadFile.write(data, len) != len) {
+                Serial.println(F("Write Failed"));
+                request->send(500, F("text/plain"), F("WRITE FAILED"));
+                return;
+            }
+        }
+
+        if (final) {
+            // Upload beendet
+            if (uploadFile) {
+                uploadFile.close();
+            }
+            Serial.printf("Upload Complete: %s, Size: %u\n", uploadFilename.c_str(), index + len);
+        } });
 }
 
 void ServerManager_::setup()
@@ -305,10 +626,7 @@ void ServerManager_::setup()
         MDNS.addServiceTxt("awtrix", "tcp", "type", "awtrix3");
     }
 
-
-    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     server.begin();
-
 
     configTzTime(NTP_TZ.c_str(), NTP_SERVER.c_str());
     tm timeInfo;

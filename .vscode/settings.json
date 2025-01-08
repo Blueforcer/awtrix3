@@ -55,7 +55,10 @@
         "ratio": "cpp",
         "mutex": "cpp",
         "thread": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "bitset": "cpp",
+        "regex": "cpp",
+        "iostream": "cpp"
     },
     "cmake.configureOnOpen": true,
     "DevChat.DevChatPath": "C:\\Users\\Micro\\.chat\\mamba\\envs\\devchat\\Scripts\\devchat"
