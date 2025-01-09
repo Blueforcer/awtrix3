@@ -37,7 +37,6 @@ MQTTManager_ &MQTTManager_::getInstance()
     return instance;
 }
 
-
 MQTTManager_ &MQTTManager = MQTTManager.getInstance();
 
 void processMqttMessage(const String &strTopic, const String &payloadCopy)
@@ -460,28 +459,55 @@ bool MQTTManager_::isConnected()
     }
 }
 
-void connect()
+void MQTTManager_::connect(bool shouldConnect)
 {
+    // Disconnect if explicitly instructed
+    if (!shouldConnect)
+    {
+        if (mqtt.isConnected())
+        {
+            mqtt.disconnect();
+            if (DEBUG_MODE)
+                DEBUG_PRINTLN(F("MQTT disconnected"));
+        }
+        return;
+    }
 
+    // Avoid redundant connections
+    if (mqtt.isConnected())
+    {
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("MQTT already connected"));
+        return;
+    }
+
+    // Configure callbacks
     mqtt.onMessage(onMqttMessage);
     mqtt.onConnected(onMqttConnected);
 
+    // Set Last Will and Testament (LWT)
     static char topic[50];
     snprintf(topic, sizeof(topic), "%s/stats/device", MQTT_PREFIX.c_str());
     mqtt.setLastWill(topic, "offline", false);
 
-    if (MQTT_USER == "" || MQTT_PASS == "")
+    // Establish connection based on authentication presence
+    if (MQTT_USER.isEmpty() || MQTT_PASS.isEmpty())
     {
         if (DEBUG_MODE)
-            DEBUG_PRINTLN(F("Connecting to MQTT w/o login"));
+            DEBUG_PRINTLN(F("Connecting to MQTT without login"));
+
         mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, nullptr, nullptr, HOSTNAME.c_str());
     }
     else
     {
         if (DEBUG_MODE)
             DEBUG_PRINTLN(F("Connecting to MQTT with login"));
+
         mqtt.begin(MQTT_HOST.c_str(), MQTT_PORT, MQTT_USER.c_str(), MQTT_PASS.c_str(), HOSTNAME.c_str());
     }
+
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN(F("MQTT connection initiated"));
 }
 
 void MQTTManager_::sendStats()
@@ -732,20 +758,20 @@ void MQTTManager_::setup()
         mqtt.disableHA();
     }
 
-    connect();
+    connect(MQTT_ACTIVE);
 }
 
 void MQTTManager_::tick()
 {
-    if (MQTT_HOST != "")
+    if (MQTT_ACTIVE)
     {
         mqtt.loop();
-    }
-    unsigned long currentMillis_Stats = millis();
-    if ((currentMillis_Stats - previousMillis_Stats >= STATS_INTERVAL) && (SENSORS_STABLE))
-    {
-        previousMillis_Stats = currentMillis_Stats;
-        sendStats();
+        unsigned long currentMillis_Stats = millis();
+        if ((currentMillis_Stats - previousMillis_Stats >= STATS_INTERVAL) && (SENSORS_STABLE))
+        {
+            previousMillis_Stats = currentMillis_Stats;
+            sendStats();
+        }
     }
 }
 

@@ -17,9 +17,11 @@
 #include "esp_wifi.h"
 #include <ESPAsyncHTTPUpdateServer.h>
 #include <uri/UriRegex.h>
+#include <DNSServer.h>
 
 WiFiUDP udp;
 
+DNSServer dnsServer;
 unsigned int localUdpPort = 4210;
 char incomingPacket[255];
 ESPAsyncHTTPUpdateServer updateServer;
@@ -61,13 +63,6 @@ void ServerManager_::erase()
     delay(200);
     formatSettings();
     delay(200);
-}
-
-void saveHandler()
-{
-    // WebServerClass *webRequest = mws.getRequest();
-    // ServerManager.getInstance().loadSettings();
-    // webRequest->send(200);
 }
 
 bool deleteRecursive(String path)
@@ -306,6 +301,42 @@ void addHandler()
     server.on("/api/screen", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send_P(200, "application/json", DisplayManager.ledsAsJson().c_str()); });
 
+    server.on("/api/wifi", HTTP_POST, [](AsyncWebServerRequest *request)
+              {
+    if (request->hasParam("ssid", true) && request->hasParam("password", true)) {
+        String newSSID = request->getParam("ssid", true)->value();
+        String newPass = request->getParam("password", true)->value();
+
+        // Alte Zugangsdaten sichern
+        String currentSSID = WiFi.SSID();
+        String currentPass = WiFi.psk();
+
+        // Verbindung mit neuen Daten testen
+        WiFi.begin(newSSID.c_str(), newPass.c_str());
+        Serial.print(F("Testing connection with new credentials: "));
+        Serial.println(newSSID);
+
+        if (WiFi.waitForConnectResult(10000) == WL_CONNECTED) { // 10 Sekunden warten
+            Serial.println(F("New credentials are valid, saving..."));
+
+            // Neue Daten speichern (z.B. in NVS oder Preferences)
+            saveWiFiCredentials(newSSID, newPass);
+
+            // Antwort senden
+            request->send(200, "application/json", "{\"status\":\"success\",\"message\":\"WiFi credentials updated.\"}");
+        } else {
+            Serial.println(F("New credentials are invalid, reverting to old credentials."));
+            
+            // Verbindung mit alten Zugangsdaten wiederherstellen
+            WiFi.begin(currentSSID.c_str(), currentPass.c_str());
+
+            // Antwort senden
+            request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Invalid WiFi credentials.\"}");
+        }
+    } else {
+        request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing ssid or password.\"}");
+    } });
+
     server.on("/api/doupdate", HTTP_POST, [](AsyncWebServerRequest *request)
               { 
                     if (UpdateManager.checkUpdate(true)){
@@ -411,7 +442,6 @@ void addHandler()
     AsyncWebServerResponse *response = request->beginResponse(204);
     request->send(response); });
 
-    
     server.on("/list", HTTP_OPTIONS, [](AsyncWebServerRequest *request)
               {
     AsyncWebServerResponse *response = request->beginResponse(204);
@@ -555,49 +585,119 @@ void addHandler()
         } });
 }
 
+void connectToWiFi(String ssid, String password, AsyncWebServerRequest *request)
+{
+    WiFi.begin(ssid.c_str(), password.c_str());
+    Serial.print(F("Connecting to: "));
+    Serial.println(ssid);
+
+    unsigned long startAttemptTime = millis();
+    const unsigned long connectionTimeout = 5000; // 5 Sekunden
+
+    while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < connectionTimeout)
+    {
+        Serial.print(F("."));
+        delay(100); // Kurze Pause, um den Watchdog zu entlasten
+        yield();    // Andere Tasks ausführen lassen
+    }
+
+    if (WiFi.status() == WL_CONNECTED)
+    {
+        Serial.println(F("Connected successfully!"));
+        request->send(200, "text/html", "Connected successfully! Restarting...");
+        delay(1000);
+        ESP.restart(); // Neustart für Client-Modus
+    }
+    else
+    {
+        Serial.println(F("Connection failed."));
+        request->send(200, "text/html", "Failed to connect. Please try again.");
+        WiFi.disconnect(); // Verbindung zurücksetzen
+    }
+}
+
+void startAccessPoint()
+{
+    Serial.println(F("Starting Access Point..."));
+    WiFi.softAP(uniqueID, "12345678");
+
+    IPAddress LIP(192, 168, 4, 1);
+    IPAddress GW(192, 168, 4, 1);
+    IPAddress SN(255, 255, 255, 0);
+    if (!WiFi.softAPConfig(LIP, GW, SN))
+    {
+        Serial.println(F("AP Config failed!"));
+        return;
+    }
+
+    Serial.print(F("Access Point started. IP Address: "));
+    Serial.println(WiFi.softAPIP());
+
+    // DNS-Anfragen auf die AP-IP umleiten
+    dnsServer.start(53, "*", LIP);
+
+    // Webseite bereitstellen
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send(200, "text/html", wifipage); });
+
+    // Verbindung mit neuem WLAN einrichten
+    server.on("/connect", HTTP_POST, [](AsyncWebServerRequest *request)
+              {
+        if (request->hasParam("ssid", true) && request->hasParam("password", true)) {
+            String ssid = request->getParam("ssid", true)->value();
+            String password = request->getParam("password", true)->value();
+            saveWiFiCredentials(ssid, password);
+            request->send(200, "text/html", "alert('Saved credentials. Restarting...');");
+            delay(1000);
+            esp_restart();
+        } else {
+            request->send(400, "text/html", "Missing SSID or Password.");
+        } });
+
+    server.begin();
+}
+
 void ServerManager_::setup()
 {
-    if (!local_IP.fromString(NET_IP) || !gateway.fromString(NET_GW) || !subnet.fromString(NET_SN) || !primaryDNS.fromString(NET_PDNS) || !secondaryDNS.fromString(NET_SDNS))
+    if (!local_IP.fromString(NET_IP) || !gateway.fromString(NET_GW) || !subnet.fromString(NET_SN) || !primaryDNS.fromString(NET_PDNS))
         NET_STATIC = false;
     if (NET_STATIC)
     {
         WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS);
     }
     WiFi.setHostname(HOSTNAME.c_str()); // define hostname
-
     WiFi.mode(WIFI_STA);
-    wifi_config_t conf;
-    esp_wifi_get_config(WIFI_IF_STA, &conf);
-    const char *_ssid;
-    const char *_pass;
-    _ssid = reinterpret_cast<const char *>(conf.sta.ssid);
-    _pass = reinterpret_cast<const char *>(conf.sta.password);
+    String ssid, password;
+    loadWiFiCredentials(ssid, password);
 
-    char *my_ssid = new char[33];
-    strncpy(my_ssid, _ssid, 32);
-    my_ssid[32] = '\0';
-    _ssid = my_ssid;
-
-    if (strlen(_ssid) && strlen(_pass))
+    if (ssid.length() > 0)
     {
-        WiFi.begin(_ssid, _pass, 0, 0, true);
+        WiFi.begin(ssid.c_str(), password.c_str());
         Serial.print(F("Connecting to "));
-        Serial.println(_ssid);
+        Serial.println(ssid);
 
-        if (WiFi.waitForConnectResult() != WL_CONNECTED)
+        if (WiFi.waitForConnectResult(10000) != WL_CONNECTED)
         {
-            Serial.printf("WiFi Failed!\n");
+            Serial.println(F("WiFi Failed!"));
+            startAccessPoint();
             AP_MODE = true;
             return;
         }
-        Serial.print("IP Address: ");
+
+        Serial.print(F("IP Address: "));
         myIP = (WiFi.localIP());
     }
-    // myIP = mws.startWiFi(AP_TIMEOUT * 1000, HOSTNAME.c_str(), "12345678");
+    else
+    {
+        Serial.println(F("No WiFi credentials found"));
+        AP_MODE = true;
+        startAccessPoint();
+        return;
+    }
+
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
     if (DEBUG_MODE)
         DEBUG_PRINTF("My IP: %d.%d.%d.%d", myIP[0], myIP[1], myIP[2], myIP[3]);
-    // mws.setAuth(AUTH_USER, AUTH_PASS);
     if (isConnected)
     {
 
@@ -660,6 +760,8 @@ void ServerManager_::tick()
                 udp.endPacket();
             }
         }
+    }else{
+        dnsServer.processNextRequest();
     }
 
     if (!currentClient || !currentClient.connected())
@@ -709,8 +811,6 @@ void ServerManager_::sendTCP(String message)
         currentClient.print(message);
     }
 }
-
-
 
 void ServerManager_::sendButton(byte btn, bool state)
 {

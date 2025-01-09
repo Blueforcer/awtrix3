@@ -41,6 +41,7 @@ extern uint16_t MQTT_PORT;
 extern String MQTT_USER;
 extern String MQTT_PASS;
 extern String MQTT_PREFIX;
+extern bool MQTT_ACTIVE;
 extern bool IO_BROKER;
 extern bool NET_STATIC;
 extern bool SHOW_TIME;
@@ -115,6 +116,8 @@ extern float GAMMA;
 void loadSettings();
 void saveSettings();
 void setSettingsFromJson(const String &json);
+void saveWiFiCredentials(const String& ssid, const String& password);
+void loadWiFiCredentials(String &ssid, String &password);
 String getSettingsAsJson();
 extern bool BLOCK_NAVIGATION;
 

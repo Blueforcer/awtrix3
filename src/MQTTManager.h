@@ -23,10 +23,10 @@ public:
     void beginPublish(const char *topic, unsigned int plength, boolean retained);
     void writePayload(const char *data, const uint16_t length);
     void endPublish();
-    bool subscribe(const char* topic);
+    bool subscribe(const char *topic);
     bool isConnected();
+    void connect(bool shouldConnect);
     String getValueForTopic(const String &topic);
-
 };
 extern MQTTManager_ &MQTTManager;
 

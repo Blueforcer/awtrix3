@@ -5,8 +5,22 @@
 #include <LittleFS.h>
 #include "effects.h"
 #include "Functions.h"
-
+#include "MQTTManager.h"
 Preferences Settings;
+
+void saveWiFiCredentials(const String& ssid, const String& password) {
+    Settings.begin("wifi", false);
+    Settings.putString("ssid", ssid);
+    Settings.putString("password", password);
+    Settings.end();
+}
+
+void loadWiFiCredentials(String &ssid, String &password) {
+    Settings.begin("wifi", true);
+    ssid = Settings.getString("ssid", "");
+    password = Settings.getString("password", "");
+    Settings.end();
+}
 
 void convertSettings()
 {
@@ -366,7 +380,7 @@ String getSettingsAsJson()
     doc["C_TEMPERATURE"] = COLOR_TEMPERATURE.as_uint32_t();
     // ID des Geräts (String)
     doc["UNIQUE_ID"] = uniqueID;
-    // Serialisieren und zurückgeben
+
     String output;
     serializeJson(doc, output);
     return output;
@@ -817,6 +831,13 @@ void setSettingsFromJson(const String &json)
         Settings.putUInt("C_TEMPERATURE", color);
     }
 
+    if (doc.containsKey("MQTT_ACTIVE"))
+    {
+        MQTT_ACTIVE = doc["MQTT_ACTIVE"].as<bool>();
+        Settings.putBool("MQTT_ACTIVE", MQTT_ACTIVE);
+        MQTTManager.connect(MQTT_ACTIVE);
+    }
+
     Settings.end();
     DisplayManager.applyAllSettings();
 
@@ -921,7 +942,7 @@ void loadSettings()
     Serial.println(Settings.getUInt("C_CORRECTION", 0));
     Serial.println(COLOR_CORRECTION.as_uint32_t());
     COLOR_TEMPERATURE = CRGB(Settings.getUInt("C_TEMPERATURE", COLOR_TEMPERATURE.as_uint32_t()));
-
+    MQTT_ACTIVE = Settings.getBool("MQTT_ACTIVE", MQTT_ACTIVE);
     Settings.end();
 }
 
@@ -1008,7 +1029,7 @@ void saveSettings()
     Settings.putString("BUTTON_CALLBACK", BUTTON_CALLBACK);
     Settings.putUInt("C_CORRECTION", COLOR_CORRECTION.as_uint32_t());
     Settings.putUInt("C_TEMPERATURE", COLOR_TEMPERATURE.as_uint32_t());
-
+    Settings.putBool("MQTT_ACTIVE", MQTT_ACTIVE);
     Settings.end();
     DisplayManager.applyAllSettings();
 }
@@ -1025,6 +1046,7 @@ uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
 String MQTT_PASS;
 String MQTT_PREFIX;
+bool MQTT_ACTIVE = true;
 bool IO_BROKER = false;
 bool NET_STATIC = false;
 bool SHOW_TIME = true;
@@ -1035,7 +1057,7 @@ bool SHOW_TEMP = true;
 bool SHOW_HUM = true;
 bool SHOW_SECONDS = true;
 bool SHOW_WEEKDAY = true;
-String NET_IP = "192.168.178.10";
+String NET_IP = "192.168.178.100";
 String NET_GW = "192.168.178.1";
 String NET_SN = "255.255.255.0";
 String NET_PDNS = "8.8.8.8";
