@@ -122,7 +122,7 @@ void DisplayManager_::applyAllSettings()
   ui->setTargetFPS(MATRIX_FPS);
   ui->setTimePerApp(TIME_PER_APP);
   ui->setTimePerTransition(TIME_PER_TRANSITION);
-
+  matrix->setRotation(ROTATE_SCREEN ? 90 : 0);
   if (!AUTO_BRIGHTNESS)
     setBrightness(BRIGHTNESS);
   setTextColor(TEXTCOLOR_888);
@@ -311,15 +311,15 @@ void pushCustomApp(String name, int position)
       return;
     }
 
-    if (position < 0) 
+    if (position < 0)
     {
       Apps.push_back(std::make_pair(name, customAppCallbacks[availableCallbackIndex]));
     }
-    else if (position < Apps.size()) 
+    else if (position < Apps.size())
     {
       Apps.insert(Apps.begin() + position, std::make_pair(name, customAppCallbacks[availableCallbackIndex]));
     }
-    else 
+    else
     {
       Apps.push_back(std::make_pair(name, customAppCallbacks[availableCallbackIndex]));
     }
