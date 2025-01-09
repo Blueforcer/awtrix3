@@ -4,9 +4,9 @@
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 #include "effects.h"
+#include "Functions.h"
 
 Preferences Settings;
-
 
 void convertSettings()
 {
@@ -84,7 +84,7 @@ void convertSettings()
             if (doc.containsKey("matrix"))
                 Settings.putUInt("MATRIX_LAYOUT", doc["matrix"]);
             if (doc.containsKey("mirror_screen"))
-                Settings.putBool("MIRROR_DISPLAY", doc["mirror_screen"].as<bool>());
+                Settings.putBool("MIRROR_SCREEN", doc["mirror_screen"].as<bool>());
             if (doc.containsKey("temp_offset"))
                 Settings.putFloat("TEMP_OFFSET", doc["temp_offset"]);
             if (doc.containsKey("min_battery"))
@@ -94,11 +94,11 @@ void convertSettings()
             if (doc.containsKey("ap_timeout"))
                 Settings.putUInt("AP_TIMEOUT", doc["ap_timeout"]);
             if (doc.containsKey("background_effect"))
-                Settings.putUInt("BACKGROUND_EFFECT", getEffectIndex(doc["background_effect"].as<const char *>()));
-            if (doc.containsKey("min_brightness"))
-                Settings.putUInt("MIN_BRIGHTNESS", doc["min_brightness"]);
-            if (doc.containsKey("max_brightness"))
-                Settings.putUInt("MAX_BRIGHTNESS", doc["max_brightness"]);
+                Settings.putUInt("B_EFFECT", getEffectIndex(doc["background_effect"].as<const char *>()));
+            if (doc.containsKey("MIN_BRI"))
+                Settings.putUInt("MIN_BRI", doc["MIN_BRI"]);
+            if (doc.containsKey("MAX_BRI"))
+                Settings.putUInt("MAX_BRI", doc["MAX_BRI"]);
             if (doc.containsKey("ldr_factor"))
                 Settings.putFloat("LDR_FACTOR", doc["ldr_factor"].as<float>());
             if (doc.containsKey("ldr_gamma"))
@@ -116,7 +116,7 @@ void convertSettings()
             if (doc.containsKey("web_port"))
                 Settings.putUInt("WEB_PORT", doc["web_port"]);
             if (doc.containsKey("temp_dec_places"))
-                Settings.putInt("TEMP_DECIMAL_PLACES", doc["temp_dec_places"].as<int>());
+                Settings.putInt("TEMP_DECIMAL", doc["temp_dec_places"].as<int>());
             if (doc.containsKey("rotate_screen"))
                 Settings.putBool("ROTATE_SCREEN", doc["rotate_screen"].as<bool>());
             if (doc.containsKey("debug_mode"))
@@ -129,30 +129,20 @@ void convertSettings()
                 Settings.putBool("LDR_ON_GROUND", doc["ldr_on_ground"].as<bool>());
             if (doc.containsKey("button_callback"))
                 Settings.putString("BUTTON_CALLBACK", doc["button_callback"].as<String>());
-            if (doc.containsKey("color_correction"))
+            if (doc.containsKey("C_CORRECTION"))
             {
-                auto correction = doc["color_correction"];
+                auto correction = doc["C_CORRECTION"];
                 if (correction.is<JsonArray>() && correction.size() == 3)
                 {
-                    uint8_t r = correction[0];
-                    uint8_t g = correction[1];
-                    uint8_t b = correction[2];
-                    Settings.putUInt("COLOR_CORRECTION_R", r);
-                    Settings.putUInt("COLOR_CORRECTION_G", g);
-                    Settings.putUInt("COLOR_CORRECTION_B", b);
+                    Settings.putUInt("C_CORRECTION", getColorFromJsonVariant(correction, 0));
                 }
             }
-            if (doc.containsKey("color_temperature"))
+            if (doc.containsKey("C_TEMPERATURE"))
             {
-                auto temperature = doc["color_temperature"];
+                auto temperature = doc["C_TEMPERATURE"];
                 if (temperature.is<JsonArray>() && temperature.size() == 3)
                 {
-                    uint8_t r = temperature[0];
-                    uint8_t g = temperature[1];
-                    uint8_t b = temperature[2];
-                    Settings.putUInt("COLOR_TEMPERATURE_R", r);
-                    Settings.putUInt("COLOR_TEMPERATURE_G", g);
-                    Settings.putUInt("COLOR_TEMPERATURE_B", b);
+                    Settings.putUInt("C_TEMPERATURE", getColorFromJsonVariant(temperature, 0));
                 }
             }
             doc.clear();
@@ -216,46 +206,167 @@ void startLittleFS()
 
 String getSettingsAsJson()
 {
-    DynamicJsonDocument doc(2048);
+    DynamicJsonDocument doc(4096);
 
-    doc["bootsound"] = BOOT_SOUND;
-    doc["sensor_reading"] = SENSOR_READING;
-    doc["dfplayer"] = DFPLAYER_ACTIVE;
-    doc["matrix"] = MATRIX_LAYOUT;
-    doc["mirror_screen"] = MIRROR_DISPLAY;
-    doc["temp_offset"] = TEMP_OFFSET;
-    doc["min_battery"] = MIN_BATTERY;
-    doc["max_battery"] = MAX_BATTERY;
-    doc["ap_timeout"] = AP_TIMEOUT;
-    doc["background_effect"] = BACKGROUND_EFFECT;
-    doc["min_brightness"] = MIN_BRIGHTNESS;
-    doc["max_brightness"] = MAX_BRIGHTNESS;
-    doc["ldr_factor"] = LDR_FACTOR;
-    doc["ldr_gamma"] = LDR_GAMMA;
-    doc["hum_offset"] = HUM_OFFSET;
-    doc["ha_prefix"] = HA_PREFIX;
-    doc["stats_interval"] = STATS_INTERVAL;
-    doc["hostname"] = HOSTNAME;
-    doc["buzzer_volume"] = BUZ_VOL;
-    doc["web_port"] = WEB_PORT;
-    doc["temp_dec_places"] = TEMP_DECIMAL_PLACES;
-    doc["rotate_screen"] = ROTATE_SCREEN;
-    doc["debug_mode"] = DEBUG_MODE;
-    doc["new_year"] = NEWYEAR;
-    doc["swap_buttons"] = SWAP_BUTTONS;
-    doc["ldr_on_ground"] = LDR_ON_GROUND;
-    doc["button_callback"] = BUTTON_CALLBACK;
-
-    JsonArray colorCorrection = doc.createNestedArray("color_correction");
-    colorCorrection.add(COLOR_CORRECTION.r);
-    colorCorrection.add(COLOR_CORRECTION.g);
-    colorCorrection.add(COLOR_CORRECTION.b);
-
-    JsonArray colorTemperature = doc.createNestedArray("color_temperature");
-    colorTemperature.add(COLOR_TEMPERATURE.r);
-    colorTemperature.add(COLOR_TEMPERATURE.g);
-    colorTemperature.add(COLOR_TEMPERATURE.b);
-
+    // Helligkeit (int)
+    doc["BRI"] = BRIGHTNESS;
+    // Automatische Helligkeit (bool)
+    doc["ABRI"] = AUTO_BRIGHTNESS;
+    // Großbuchstaben (bool)
+    doc["UPPER"] = UPPERCASE_LETTERS;
+    // Globale Textfarbe (uint32_t)
+    doc["TCOL"] = TEXTCOLOR_888;
+    // Kalenderfarbe Header (uint32_t)
+    doc["CHCOL"] = CALENDAR_HEADER_COLOR;
+    // Kalenderfarbe Text (uint32_t)
+    doc["CTCOL"] = CALENDAR_TEXT_COLOR;
+    // Kalenderfarbe Body (uint32_t)
+    doc["CBCOL"] = CALENDAR_BODY_COLOR;
+    // Übergangseffekt (uint8_t)
+    doc["TEFF"] = TRANS_EFFECT;
+    // Zeitmodus (uint8_t)
+    doc["TMODE"] = TIME_MODE;
+    // Farbe für Time App (uint32_t)
+    doc["TIME_COL"] = TIME_COLOR;
+    // Farbe für Date App (uint32_t)
+    doc["DATE_COL"] = DATE_COLOR;
+    // Farbe für Temperature App (uint32_t)
+    doc["TEMP_COL"] = TEMP_COLOR;
+    // Farbe für Huminity App (uint32_t)
+    doc["HUM_COL"] = HUM_COLOR;
+    // Farbe für Battery App (uint32_t)
+    doc["BAT_COL"] = BAT_COLOR;
+    // Farbe für Aktuellen Wochentag (uint32_t)
+    doc["WDCA"] = WDC_ACTIVE;
+    // Farbe für Inaktiven Wochentag (uint32_t)
+    doc["WDCI"] = WDC_INACTIVE;
+    // Automatischer Übergang (bool)
+    doc["ATRANS"] = AUTO_TRANSITION;
+    // Zeige Wochentag (bool)
+    doc["WD"] = SHOW_WEEKDAY;
+    // Transisitionszeit (int)
+    doc["TSPEED"] = TIME_PER_TRANSITION;
+    // Zeit pro App (int)
+    doc["ATIME"] = TIME_PER_APP;
+    // Zeitformat (String)
+    doc["TFORMAT"] = TIME_FORMAT;
+    // Datumsformat (String)
+    doc["DFORMAT"] = DATE_FORMAT;
+    // Woche startet am Montag (bool)
+    doc["SOM"] = START_ON_MONDAY;
+    // Tastensperre (bool)
+    doc["BLOCKN"] = BLOCK_NAVIGATION;
+    // Temperatur in Celsius (bool)
+    doc["CEL"] = IS_CELSIUS;
+    // Zeige Zeitapp (bool)
+    doc["TIM"] = SHOW_TIME;
+    // Zeige Datumapp (bool)
+    doc["DAT"] = SHOW_DATE;
+    // Zeige Temperaturapp (bool)
+    doc["TEMP"] = SHOW_TEMP;
+    // Zeige Luftfeuchtigkeitapp (bool)
+    doc["HUM"] = SHOW_HUM;
+    // Zeige Batterieapp (bool)
+    doc["BAT"] = SHOW_BAT;
+    // Matrixlayout (int)
+    doc["MAT"] = MATRIX_LAYOUT;
+    // Scrollgeschwindigkeit (int)
+    doc["SSPEED"] = SCROLL_SPEED;
+    // Sound aktiv (bool)
+    doc["SOUND"] = SOUND_ACTIVE;
+    // Soundlautstärke (uint8_t)
+    doc["VOL"] = SOUND_VOLUME;
+    // NTP Server (String)
+    doc["NTP_SERVER"] = NTP_SERVER;
+    // NTP Timezone (String)
+    doc["NTP_TZ"] = NTP_TZ;
+    // MQTT Broker (String)
+    doc["MQTT_HOST"] = MQTT_HOST;
+    // MQTT Port (uint16_t)
+    doc["MQTT_PORT"] = MQTT_PORT;
+    // MQTT User (String)
+    doc["MQTT_USER"] = MQTT_USER;
+    // MQTT Passwort (String)
+    doc["MQTT_PASS"] = MQTT_PASS;
+    // MQTT Prefix (String)
+    doc["MQTT_PREFIX"] = MQTT_PREFIX;
+    // Static IP (bool)
+    doc["NET_STATIC"] = NET_STATIC;
+    // Homeassistant Discovery (bool)
+    doc["HA_DISCOVERY"] = HA_DISCOVERY;
+    // Lokale IP (String)
+    doc["NET_IP"] = NET_IP;
+    // Gateway (String)
+    doc["NET_GW"] = NET_GW;
+    // Subnet (String)
+    doc["NET_SN"] = NET_SN;
+    // Primary DNS (String)
+    doc["NET_PDNS"] = NET_PDNS;
+    // Secondary DNS (String)
+    doc["NET_SDNS"] = NET_SDNS;
+    // Auth Username (String)
+    doc["AUTH_USER"] = AUTH_USER;
+    // Auth Passwort (String)
+    doc["AUTH_PASS"] = AUTH_PASS;
+    // Bootsound (String)
+    doc["BOOT_SOUND"] = BOOT_SOUND;
+    // Sensoren aktiv (bool)
+    doc["SENSOR_READING"] = SENSOR_READING;
+    // DFPlayer aktiv (bool)
+    doc["DFPLAYER_ACTIVE"] = DFPLAYER_ACTIVE;
+    // Matrix spiegeln (bool)
+    doc["MIRROR_SCREEN"] = MIRROR_SCREEN;
+    // Temperatur Offset (float)
+    doc["TEMP_OFFSET"] = TEMP_OFFSET;
+    // Minimale Batteriespannung (uint16_t)
+    doc["MIN_BATTERY"] = MIN_BATTERY;
+    // Maximale Batteriespannung (uint16_t)
+    doc["MAX_BATTERY"] = MAX_BATTERY;
+    // AP Timeout (uint32_t)
+    doc["AP_TIMEOUT"] = AP_TIMEOUT;
+    // Hintergrundeffekt (int)
+    doc["B_EFFECT"] = BACKGROUND_EFFECT;
+    // Minimale Helligkeit (uint8_t)
+    doc["MIN_BRI"] = MIN_BRIGHTNESS;
+    // Maximale Helligkeit (uint8_t)
+    doc["MAX_BRI"] = MAX_BRIGHTNESS;
+    // LDR Faktor (float)
+    doc["LDR_FACTOR"] = LDR_FACTOR;
+    // LDR Gamma (float)
+    doc["LDR_GAMMA"] = LDR_GAMMA;
+    // Luftfeuchtigkeit Offset (float)
+    doc["HUM_OFFSET"] = HUM_OFFSET;
+    // Homeassistant Prefix (String)
+    doc["HA_PREFIX"] = HA_PREFIX;
+    // Statistikintervall (long)
+    doc["STATS_INTERVAL"] = STATS_INTERVAL;
+    // Hostname (String)
+    doc["HOSTNAME"] = HOSTNAME;
+    // Buzzerlautstärke (bool)
+    doc["BUZ_VOL"] = BUZ_VOL;
+    // Webserver Port (int)
+    doc["WEB_PORT"] = WEB_PORT;
+    // Temperatur Dezimalstellen (int)
+    doc["TEMP_DECIMAL"] = TEMP_DECIMAL_PLACES;
+    // Bildschirm drehen (bool)
+    doc["ROTATE_SCREEN"] = ROTATE_SCREEN;
+    // Debugmodus (bool)
+    doc["DEBUG_MODE"] = DEBUG_MODE;
+    // Neujahrseffekt (bool)
+    doc["NEWYEAR"] = NEWYEAR;
+    // Tasten tauschen (bool)
+    doc["SWAP_BUTTONS"] = SWAP_BUTTONS;
+    // LDR auf Masse (bool)
+    doc["LDR_ON_GROUND"] = LDR_ON_GROUND;
+    // Button Callback (String)
+    doc["BUTTON_CALLBACK"] = BUTTON_CALLBACK;
+    // Farbkorrektur (uint32_t)
+    doc["C_CORRECTION"] = COLOR_CORRECTION.as_uint32_t();
+    // Farbtemperatur (uint32_t)
+    doc["C_TEMPERATURE"] = COLOR_TEMPERATURE.as_uint32_t();
+    // ID des Geräts (String)
+    doc["UNIQUE_ID"] = uniqueID;
+    // Serialisieren und zurückgeben
     String output;
     serializeJson(doc, output);
     return output;
@@ -263,124 +374,454 @@ String getSettingsAsJson()
 
 void setSettingsFromJson(const String &json)
 {
-    DynamicJsonDocument doc(2048);
+    DynamicJsonDocument doc(4096); // Speicher ggf. anpassen
     DeserializationError error = deserializeJson(doc, json);
-    Serial.println(json);
     if (error)
     {
         if (DEBUG_MODE)
             DEBUG_PRINTLN("Failed to parse settings JSON");
         return;
     }
+    Serial.println(json);
+    Settings.begin("awtrix", false);
+    // ==============================
+    // 1) Display-Einstellungen
+    // ==============================
 
-    if (doc.containsKey("bootsound"))
-        BOOT_SOUND = doc["bootsound"].as<String>();
-
-    if (doc.containsKey("sensor_reading"))
-        SENSOR_READING = doc["sensor_reading"].as<bool>();
-
-    if (doc.containsKey("dfplayer"))
-        DFPLAYER_ACTIVE = doc["dfplayer"].as<bool>();
-
-    if (doc.containsKey("matrix"))
-        MATRIX_LAYOUT = doc["matrix"];
-
-    if (doc.containsKey("mirror_screen"))
-        MIRROR_DISPLAY = doc["mirror_screen"].as<bool>();
-
-    if (doc.containsKey("temp_offset"))
+    if (doc.containsKey("BRI"))
     {
-        TEMP_OFFSET = doc["temp_offset"];
-        Serial.println(TEMP_OFFSET);
+        BRIGHTNESS = doc["BRI"].as<unsigned int>();
+        Settings.putUInt("BRI", BRIGHTNESS);
+    }
+    if (doc.containsKey("ABRI"))
+    {
+        AUTO_BRIGHTNESS = doc["ABRI"].as<bool>();
+        Settings.putBool("ABRI", AUTO_BRIGHTNESS);
+    }
+    if (doc.containsKey("UPPER"))
+    {
+        UPPERCASE_LETTERS = doc["UPPER"].as<bool>();
+        Settings.putBool("UPPER", UPPERCASE_LETTERS);
+    }
+    if (doc.containsKey("TCOL"))
+    {
+        auto TCOL = doc["TCOL"];
+        TEXTCOLOR_888 = getColorFromJsonVariant(TCOL, 0xFFFFFF);
+        Settings.putUInt("TCOL", TEXTCOLOR_888);
+    }
+    if (doc.containsKey("CHCOL"))
+    {
+        auto CHCOL = doc["CHCOL"];
+        CALENDAR_HEADER_COLOR = getColorFromJsonVariant(CHCOL, 0xFFFFFF);
+
+        Settings.putUInt("CHCOL", CALENDAR_HEADER_COLOR);
+    }
+    if (doc.containsKey("CTCOL"))
+    {
+        auto CTCOL = doc["CTCOL"];
+        CALENDAR_TEXT_COLOR = getColorFromJsonVariant(CTCOL, 0xFFFFFF);
+        Settings.putUInt("CTCOL", CALENDAR_TEXT_COLOR);
+    }
+    if (doc.containsKey("CBCOL"))
+    {
+        auto CBCOL = doc["CBCOL"];
+        CALENDAR_BODY_COLOR = getColorFromJsonVariant(CBCOL, 0xFFFFFF);
+        Settings.putUInt("CBCOL", CALENDAR_BODY_COLOR);
+    }
+    if (doc.containsKey("TEFF"))
+    {
+
+        TRANS_EFFECT = doc["TEFF"].as<unsigned int>();
+        Settings.putUInt("TEFF", TRANS_EFFECT);
+    }
+    if (doc.containsKey("TMODE"))
+    {
+        TIME_MODE = doc["TMODE"].as<unsigned int>();
+        Settings.putUInt("TMODE", TIME_MODE);
+    }
+    if (doc.containsKey("TIME_COL"))
+    {
+        auto TIME_COL = doc["TIME_COL"];
+        TIME_COLOR = getColorFromJsonVariant(TIME_COL, TEXTCOLOR_888);
+        Settings.putUInt("TIME_COL", TIME_COLOR);
+    }
+    if (doc.containsKey("DATE_COL"))
+    {
+        auto DATE_COL = doc["DATE_COL"];
+        DATE_COLOR = getColorFromJsonVariant(DATE_COL, TEXTCOLOR_888);
+        Settings.putUInt("DATE_COL", DATE_COLOR);
+    }
+    if (doc.containsKey("TEMP_COL"))
+    {
+        auto TEMP_COL = doc["TEMP_COL"];
+        TEMP_COLOR = getColorFromJsonVariant(TEMP_COL, TEXTCOLOR_888);
+        Settings.putUInt("TEMP_COL", TEMP_COLOR);
+    }
+    if (doc.containsKey("HUM_COL"))
+    {
+        auto HUM_COL = doc["HUM_COL"];
+        HUM_COLOR = getColorFromJsonVariant(HUM_COL, TEXTCOLOR_888);
+        Settings.putUInt("HUM_COL", HUM_COLOR);
     }
 
-    if (doc.containsKey("min_battery"))
-        MIN_BATTERY = doc["min_battery"];
-
-    if (doc.containsKey("max_battery"))
-        MAX_BATTERY = doc["max_battery"];
-
-    if (doc.containsKey("ap_timeout"))
-        AP_TIMEOUT = doc["ap_timeout"];
-
-    if (doc.containsKey("background_effect"))
-        BACKGROUND_EFFECT = getEffectIndex(doc["background_effect"].as<const char *>());
-
-    if (doc.containsKey("min_brightness"))
-        MIN_BRIGHTNESS = doc["min_brightness"];
-
-    if (doc.containsKey("max_brightness"))
-        MAX_BRIGHTNESS = doc["max_brightness"];
-
-    if (doc.containsKey("ldr_factor"))
-        LDR_FACTOR = doc["ldr_factor"].as<float>();
-
-    if (doc.containsKey("ldr_gamma"))
-        LDR_GAMMA = doc["ldr_gamma"].as<float>();
-
-    if (doc.containsKey("hum_offset"))
-        HUM_OFFSET = doc["hum_offset"];
-
-    if (doc.containsKey("ha_prefix"))
-        HA_PREFIX = doc["ha_prefix"].as<String>();
-
-    if (doc.containsKey("stats_interval"))
-        STATS_INTERVAL = doc["stats_interval"].as<long>();
-
-    if (doc.containsKey("hostname"))
-        HOSTNAME = doc["hostname"].as<String>();
-
-    if (doc.containsKey("buzzer_volume"))
-        BUZ_VOL = doc["buzzer_volume"].as<bool>();
-
-    if (doc.containsKey("web_port"))
-        WEB_PORT = doc["web_port"];
-
-    if (doc.containsKey("temp_dec_places"))
-        TEMP_DECIMAL_PLACES = doc["temp_dec_places"].as<int>();
-
-    if (doc.containsKey("rotate_screen"))
-        ROTATE_SCREEN = doc["rotate_screen"].as<bool>();
-
-    if (doc.containsKey("debug_mode"))
-        DEBUG_MODE = doc["debug_mode"].as<bool>();
-
-    if (doc.containsKey("new_year"))
-        NEWYEAR = doc["new_year"].as<bool>();
-
-    if (doc.containsKey("swap_buttons"))
-        SWAP_BUTTONS = doc["swap_buttons"].as<bool>();
-
-    if (doc.containsKey("ldr_on_ground"))
-        LDR_ON_GROUND = doc["ldr_on_ground"].as<bool>();
-
-    if (doc.containsKey("button_callback"))
-        BUTTON_CALLBACK = doc["button_callback"].as<String>();
-
-    if (doc.containsKey("color_correction"))
+    if (doc.containsKey("BAT_COL"))
     {
-        auto correction = doc["color_correction"];
-        if (correction.is<JsonArray>() && correction.size() == 3)
-        {
-            uint8_t r = correction[0];
-            uint8_t g = correction[1];
-            uint8_t b = correction[2];
-            COLOR_CORRECTION.setRGB(r, g, b);
-        }
+        auto B_COL = doc["BAT_COL"];
+        BAT_COLOR = getColorFromJsonVariant(B_COL, 0xFFFFFF);
+        Settings.putUInt("BAT_COL", BAT_COLOR);
     }
 
-    if (doc.containsKey("color_temperature"))
+    if (doc.containsKey("WDCA"))
     {
-        auto temperature = doc["color_temperature"];
-        if (temperature.is<JsonArray>() && temperature.size() == 3)
-        {
-            uint8_t r = temperature[0];
-            uint8_t g = temperature[1];
-            uint8_t b = temperature[2];
-            COLOR_TEMPERATURE.setRGB(r, g, b);
-        }
+        auto WDCA = doc["WDCA"];
+        WDC_ACTIVE = getColorFromJsonVariant(WDCA, 0xFFFFFF);
+        Settings.putUInt("WDCA", WDC_ACTIVE);
     }
-    saveSettings();
+    if (doc.containsKey("WDCI"))
+    {
+        auto WDCI = doc["WDCI"];
+        WDC_INACTIVE = getColorFromJsonVariant(WDCI, 0x666666);
+        Settings.putUInt("WDCI", WDC_INACTIVE);
+    }
+    if (doc.containsKey("ATRANS"))
+    {
+        AUTO_TRANSITION = doc["ATRANS"].as<bool>();
+        Settings.putBool("ATRANS", AUTO_TRANSITION);
+    }
+    if (doc.containsKey("WD"))
+    {
+        SHOW_WEEKDAY = doc["WD"].as<bool>();
+        Settings.putBool("WD", SHOW_WEEKDAY);
+    }
+    if (doc.containsKey("TSPEED"))
+    {
+        TIME_PER_TRANSITION = doc["TSPEED"].as<unsigned int>();
+        Settings.putUInt("TSPEED", TIME_PER_TRANSITION);
+    }
+    if (doc.containsKey("ATIME"))
+    {
+        TIME_PER_APP = doc["ATIME"].as<unsigned int>();
+        Settings.putUInt("ATIME", TIME_PER_APP);
+    }
+    if (doc.containsKey("TFORMAT"))
+    {
+        TIME_FORMAT = doc["TFORMAT"].as<String>();
+        Settings.putString("TFORMAT", TIME_FORMAT);
+    }
+    if (doc.containsKey("DFORMAT"))
+    {
+        DATE_FORMAT = doc["DFORMAT"].as<String>();
+        Settings.putString("DFORMAT", DATE_FORMAT);
+    }
+    if (doc.containsKey("SOM"))
+    {
+        START_ON_MONDAY = doc["SOM"].as<bool>();
+        Settings.putBool("SOM", START_ON_MONDAY);
+    }
+    if (doc.containsKey("BLOCKN"))
+    {
+        BLOCK_NAVIGATION = doc["BLOCKN"].as<bool>();
+        Settings.putBool("BLOCKN", BLOCK_NAVIGATION);
+    }
+    if (doc.containsKey("CEL"))
+    {
+        IS_CELSIUS = doc["CEL"].as<bool>();
+        Settings.putBool("CEL", IS_CELSIUS);
+    }
+    if (doc.containsKey("TIM"))
+    {
+        SHOW_TIME = doc["TIM"].as<bool>();
+        Settings.putBool("TIM", SHOW_TIME);
+    }
+    if (doc.containsKey("DAT"))
+    {
+        SHOW_DATE = doc["DAT"].as<bool>();
+        Settings.putBool("DAT", SHOW_DATE);
+    }
+    if (doc.containsKey("TEMP"))
+    {
+        SHOW_TEMP = doc["TEMP"].as<bool>();
+        Settings.putBool("TEMP", SHOW_TEMP);
+    }
+    if (doc.containsKey("HUM"))
+    {
+        SHOW_HUM = doc["HUM"].as<bool>();
+        Settings.putBool("HUM", SHOW_HUM);
+    }
+    if (doc.containsKey("MAT"))
+    {
+        MATRIX_LAYOUT = doc["MAT"].as<unsigned int>();
+        Settings.putUInt("MAT", MATRIX_LAYOUT);
+    }
+    if (doc.containsKey("SSPEED"))
+    {
+        SCROLL_SPEED = doc["SSPEED"].as<unsigned int>();
+        Settings.putUInt("SSPEED", SCROLL_SPEED);
+    }
+    if (doc.containsKey("BAT"))
+    {
+        SHOW_BAT = doc["BAT"].as<bool>();
+        Settings.putBool("BAT", SHOW_BAT);
+    }
+
+    if (doc.containsKey("SOUND"))
+    {
+        SOUND_ACTIVE = doc["SOUND"].as<bool>();
+        Settings.putBool("SOUND", SOUND_ACTIVE);
+    }
+    if (doc.containsKey("VOL"))
+    {
+        SOUND_VOLUME = doc["VOL"].as<unsigned int>();
+        Settings.putUInt("VOL", SOUND_VOLUME);
+    }
+
+    // ==============================
+    // 2) Netzwerk / MQTT / NTP
+    // ==============================
+    if (doc.containsKey("NTP_SERVER"))
+    {
+        NTP_SERVER = doc["NTP_SERVER"].as<String>();
+        Settings.putString("NTP_SERVER", NTP_SERVER);
+    }
+    if (doc.containsKey("NTP_TZ"))
+    {
+        NTP_TZ = doc["NTP_TZ"].as<String>();
+        Settings.putString("NTP_TZ", NTP_TZ);
+    }
+    if (doc.containsKey("MQTT_HOST"))
+    {
+        MQTT_HOST = doc["MQTT_HOST"].as<String>();
+        Settings.putString("MQTT_HOST", MQTT_HOST);
+    }
+    if (doc.containsKey("MQTT_PORT"))
+    {
+        MQTT_PORT = doc["MQTT_PORT"].as<unsigned int>();
+        Settings.putUInt("MQTT_PORT", MQTT_PORT);
+    }
+    if (doc.containsKey("MQTT_USER"))
+    {
+        MQTT_USER = doc["MQTT_USER"].as<String>();
+        Settings.putString("MQTT_USER", MQTT_USER);
+    }
+    if (doc.containsKey("MQTT_PASS"))
+    {
+        MQTT_PASS = doc["MQTT_PASS"].as<String>();
+        Settings.putString("MQTT_PASS", MQTT_PASS);
+    }
+    if (doc.containsKey("MQTT_PREFIX"))
+    {
+        MQTT_PREFIX = doc["MQTT_PREFIX"].as<String>();
+        Settings.putString("MQTT_PREFIX", MQTT_PREFIX);
+    }
+    if (doc.containsKey("NET_STATIC"))
+    {
+        NET_STATIC = doc["NET_STATIC"].as<bool>();
+        Settings.putBool("NET_STATIC", NET_STATIC);
+    }
+    if (doc.containsKey("HA_DISCOVERY"))
+    {
+        HA_DISCOVERY = doc["HA_DISCOVERY"].as<bool>();
+        Settings.putBool("HA_DISCOVERY", HA_DISCOVERY);
+    }
+    if (doc.containsKey("NET_IP"))
+    {
+        NET_IP = doc["NET_IP"].as<String>();
+        Settings.putString("NET_IP", NET_IP);
+    }
+    if (doc.containsKey("NET_GW"))
+    {
+        NET_GW = doc["NET_GW"].as<String>();
+        Settings.putString("NET_GW", NET_GW);
+    }
+    if (doc.containsKey("NET_SN"))
+    {
+        NET_SN = doc["NET_SN"].as<String>();
+        Settings.putString("NET_SN", NET_SN);
+    }
+    if (doc.containsKey("NET_PDNS"))
+    {
+        NET_PDNS = doc["NET_PDNS"].as<String>();
+        Settings.putString("NET_PDNS", NET_PDNS);
+    }
+    if (doc.containsKey("NET_SDNS"))
+    {
+        NET_SDNS = doc["NET_SDNS"].as<String>();
+        Settings.putString("NET_SDNS", NET_SDNS);
+    }
+    if (doc.containsKey("AUTH_USER"))
+    {
+        AUTH_USER = doc["AUTH_USER"].as<String>();
+        Settings.putString("AUTH_USER", AUTH_USER);
+    }
+    if (doc.containsKey("AUTH_PASS"))
+    {
+        AUTH_PASS = doc["AUTH_PASS"].as<String>();
+        Settings.putString("AUTH_PASS", AUTH_PASS);
+    }
+
+    // ==============================
+    // 3) Sonstige Einstellungen
+    // ==============================
+    if (doc.containsKey("BOOT_SOUND"))
+    {
+        BOOT_SOUND = doc["BOOT_SOUND"].as<String>();
+        Settings.putString("BOOT_SOUND", BOOT_SOUND);
+    }
+    if (doc.containsKey("SENSOR_READING"))
+    {
+        SENSOR_READING = doc["SENSOR_READING"].as<bool>();
+        Settings.putBool("SENSOR_READING", SENSOR_READING);
+    }
+    if (doc.containsKey("DFPLAYER_ACTIVE"))
+    {
+        DFPLAYER_ACTIVE = doc["DFPLAYER_ACTIVE"].as<bool>();
+        Settings.putBool("DFPLAYER_ACTIVE", DFPLAYER_ACTIVE);
+    }
+    // MATRIX_LAYOUT haben wir oben schon mit MAT
+    if (doc.containsKey("MATRIX_LAYOUT"))
+    {
+        MATRIX_LAYOUT = doc["MATRIX_LAYOUT"].as<unsigned int>();
+        Settings.putUInt("MATRIX_LAYOUT", MATRIX_LAYOUT);
+    }
+    if (doc.containsKey("MIRROR_SCREEN"))
+    {
+        MIRROR_SCREEN = doc["MIRROR_SCREEN"].as<bool>();
+        Settings.putBool("MIRROR_SCREEN", MIRROR_SCREEN);
+    }
+    if (doc.containsKey("TEMP_OFFSET"))
+    {
+        TEMP_OFFSET = doc["TEMP_OFFSET"].as<float>();
+        Settings.putFloat("TEMP_OFFSET", TEMP_OFFSET);
+    }
+    if (doc.containsKey("MIN_BATTERY"))
+    {
+        MIN_BATTERY = doc["MIN_BATTERY"].as<float>();
+        Settings.putFloat("MIN_BATTERY", MIN_BATTERY);
+    }
+    if (doc.containsKey("MAX_BATTERY"))
+    {
+        MAX_BATTERY = doc["MAX_BATTERY"].as<float>();
+        Settings.putFloat("MAX_BATTERY", MAX_BATTERY);
+    }
+    if (doc.containsKey("AP_TIMEOUT"))
+    {
+        AP_TIMEOUT = doc["AP_TIMEOUT"].as<unsigned int>();
+        Settings.putUInt("AP_TIMEOUT", AP_TIMEOUT);
+    }
+    if (doc.containsKey("B_EFFECT"))
+    {
+        BACKGROUND_EFFECT = doc["B_EFFECT"].as<unsigned int>();
+        // Falls du eine Umwandlung brauchst (String -> Index),
+        // dann z.B. BACKGROUND_EFFECT = getEffectIndex(...);
+        Settings.putUInt("B_EFFECT", BACKGROUND_EFFECT);
+    }
+    if (doc.containsKey("MIN_BRI"))
+    {
+        MIN_BRIGHTNESS = doc["MIN_BRI"].as<unsigned int>();
+        Settings.putUInt("MIN_BRI", MIN_BRIGHTNESS);
+    }
+    if (doc.containsKey("MAX_BRI"))
+    {
+        MAX_BRIGHTNESS = doc["MAX_BRI"].as<unsigned int>();
+        Settings.putUInt("MAX_BRI", MAX_BRIGHTNESS);
+    }
+    if (doc.containsKey("LDR_FACTOR"))
+    {
+        LDR_FACTOR = doc["LDR_FACTOR"].as<float>();
+        Settings.putFloat("LDR_FACTOR", LDR_FACTOR);
+    }
+    if (doc.containsKey("LDR_GAMMA"))
+    {
+        LDR_GAMMA = doc["LDR_GAMMA"].as<float>();
+        Settings.putFloat("LDR_GAMMA", LDR_GAMMA);
+    }
+    if (doc.containsKey("HUM_OFFSET"))
+    {
+        HUM_OFFSET = doc["HUM_OFFSET"].as<unsigned int>();
+        Settings.putUInt("HUM_OFFSET", HUM_OFFSET);
+    }
+    if (doc.containsKey("HA_PREFIX"))
+    {
+        HA_PREFIX = doc["HA_PREFIX"].as<String>();
+        Settings.putString("HA_PREFIX", HA_PREFIX);
+    }
+    if (doc.containsKey("STATS_INTERVAL"))
+    {
+        STATS_INTERVAL = doc["STATS_INTERVAL"].as<long>();
+        Settings.putLong("STATS_INTERVAL", STATS_INTERVAL);
+    }
+    if (doc.containsKey("HOSTNAME"))
+    {
+        HOSTNAME = doc["HOSTNAME"].as<String>();
+        Settings.putString("HOSTNAME", HOSTNAME);
+    }
+    if (doc.containsKey("BUZ_VOL"))
+    {
+        BUZ_VOL = doc["BUZ_VOL"].as<bool>();
+        Settings.putBool("BUZ_VOL", BUZ_VOL);
+    }
+    if (doc.containsKey("WEB_PORT"))
+    {
+        WEB_PORT = doc["WEB_PORT"].as<unsigned int>();
+        Settings.putUInt("WEB_PORT", WEB_PORT);
+    }
+    if (doc.containsKey("TEMP_DECIMAL"))
+    {
+        TEMP_DECIMAL_PLACES = doc["TEMP_DECIMAL"].as<int>();
+        Settings.putInt("TEMP_DECIMAL", TEMP_DECIMAL_PLACES);
+    }
+    if (doc.containsKey("ROTATE_SCREEN"))
+    {
+        ROTATE_SCREEN = doc["ROTATE_SCREEN"].as<bool>();
+        Settings.putBool("ROTATE_SCREEN", ROTATE_SCREEN);
+    }
+    if (doc.containsKey("DEBUG_MODE"))
+    {
+        DEBUG_MODE = doc["DEBUG_MODE"].as<bool>();
+        Settings.putBool("DEBUG_MODE", DEBUG_MODE);
+    }
+    if (doc.containsKey("NEWYEAR"))
+    {
+        NEWYEAR = doc["NEWYEAR"].as<bool>();
+        Settings.putBool("NEWYEAR", NEWYEAR);
+    }
+    if (doc.containsKey("SWAP_BUTTONS"))
+    {
+        SWAP_BUTTONS = doc["SWAP_BUTTONS"].as<bool>();
+        Settings.putBool("SWAP_BUTTONS", SWAP_BUTTONS);
+    }
+    if (doc.containsKey("LDR_ON_GROUND"))
+    {
+        LDR_ON_GROUND = doc["LDR_ON_GROUND"].as<bool>();
+        Settings.putBool("LDR_ON_GROUND", LDR_ON_GROUND);
+    }
+    if (doc.containsKey("BUTTON_CALLBACK"))
+    {
+        BUTTON_CALLBACK = doc["BUTTON_CALLBACK"].as<String>();
+        Settings.putString("BUTTON_CALLBACK", BUTTON_CALLBACK);
+    }
+
+    if (doc.containsKey("C_CORRECTION"))
+    {
+        auto correction = doc["C_CORRECTION"];
+        uint32_t color = getColorFromJsonVariant(correction, 0);
+        COLOR_CORRECTION = CRGB(color);
+        Settings.putUInt("C_CORRECTION", color);
+    }
+
+    if (doc.containsKey("C_TEMPERATURE"))
+    {
+        auto correction = doc["C_TEMPERATURE"];
+        uint32_t color = getColorFromJsonVariant(correction, 0);
+        COLOR_TEMPERATURE = CRGB(color);
+        Settings.putUInt("C_TEMPERATURE", color);
+    }
+
+    Settings.end();
+    DisplayManager.applyAllSettings();
+
+    if (DEBUG_MODE)
+        DEBUG_PRINTLN("Settings updated from JSON and stored immediately in Preferences.");
 }
 
 void formatSettings()
@@ -390,7 +831,6 @@ void formatSettings()
     Settings.end();
 }
 
-
 void loadSettings()
 {
     startLittleFS();
@@ -398,6 +838,7 @@ void loadSettings()
     if (DEBUG_MODE)
         DEBUG_PRINTLN(F("Loading Usersettings"));
     Settings.begin("awtrix", false);
+
     BRIGHTNESS = Settings.getUInt("BRI", 120);
     AUTO_BRIGHTNESS = Settings.getBool("ABRI", false);
     UPPERCASE_LETTERS = Settings.getBool("UPPER", true);
@@ -411,9 +852,7 @@ void loadSettings()
     DATE_COLOR = Settings.getUInt("DATE_COL", 0);
     TEMP_COLOR = Settings.getUInt("TEMP_COL", 0);
     HUM_COLOR = Settings.getUInt("HUM_COL", 0);
-#ifdef ULANZI
     BAT_COLOR = Settings.getUInt("BAT_COL", 0);
-#endif
     WDC_ACTIVE = Settings.getUInt("WDCA", 0xFFFFFF);
     WDC_INACTIVE = Settings.getUInt("WDCI", 0x666666);
     AUTO_TRANSITION = Settings.getBool("ATRANS", true);
@@ -431,14 +870,10 @@ void loadSettings()
     SHOW_HUM = Settings.getBool("HUM", true);
     MATRIX_LAYOUT = Settings.getUInt("MAT", 0);
     SCROLL_SPEED = Settings.getUInt("SSPEED", 100);
-#ifdef ULANZI
     SHOW_BAT = Settings.getBool("BAT", true);
-#endif
     SOUND_ACTIVE = Settings.getBool("SOUND", true);
     SOUND_VOLUME = Settings.getUInt("VOL", 25);
-  
     uniqueID = getID();
-
     NTP_SERVER = Settings.getString("NTP_SERVER", NTP_SERVER);
     NTP_TZ = Settings.getString("NTP_TZ", NTP_TZ);
     MQTT_HOST = Settings.getString("MQTT_HOST", MQTT_HOST);
@@ -455,20 +890,18 @@ void loadSettings()
     NET_SDNS = Settings.getString("NET_SDNS", NET_SDNS);
     AUTH_USER = Settings.getString("AUTH_USER", AUTH_USER);
     AUTH_PASS = Settings.getString("AUTH_PASS", AUTH_PASS);
-
     BOOT_SOUND = Settings.getString("BOOT_SOUND", BOOT_SOUND);
     SENSOR_READING = Settings.getBool("SENSOR_READING", SENSOR_READING);
     DFPLAYER_ACTIVE = Settings.getBool("DFPLAYER_ACTIVE", DFPLAYER_ACTIVE);
     MATRIX_LAYOUT = Settings.getUInt("MATRIX_LAYOUT", MATRIX_LAYOUT);
-    MIRROR_DISPLAY = Settings.getBool("MIRROR_DISPLAY", MIRROR_DISPLAY);
+    MIRROR_SCREEN = Settings.getBool("MIRROR_SCREEN", MIRROR_SCREEN);
     TEMP_OFFSET = Settings.getFloat("TEMP_OFFSET", TEMP_OFFSET);
-
     MIN_BATTERY = Settings.getFloat("MIN_BATTERY", MIN_BATTERY);
     MAX_BATTERY = Settings.getFloat("MAX_BATTERY", MAX_BATTERY);
     AP_TIMEOUT = Settings.getUInt("AP_TIMEOUT", AP_TIMEOUT);
-    BACKGROUND_EFFECT = Settings.getUInt("BACKGROUND_EFFECT", BACKGROUND_EFFECT);
-    MIN_BRIGHTNESS = Settings.getUInt("MIN_BRIGHTNESS", MIN_BRIGHTNESS);
-    MAX_BRIGHTNESS = Settings.getUInt("MAX_BRIGHTNESS", MAX_BRIGHTNESS);
+    BACKGROUND_EFFECT = Settings.getUInt("B_EFFECT", BACKGROUND_EFFECT);
+    MIN_BRIGHTNESS = Settings.getUInt("MIN_BRI", MIN_BRIGHTNESS);
+    MAX_BRIGHTNESS = Settings.getUInt("MAX_BRI", MAX_BRIGHTNESS);
     LDR_FACTOR = Settings.getFloat("LDR_FACTOR", LDR_FACTOR);
     LDR_GAMMA = Settings.getFloat("LDR_GAMMA", LDR_GAMMA);
     HUM_OFFSET = Settings.getUInt("HUM_OFFSET", HUM_OFFSET);
@@ -477,15 +910,19 @@ void loadSettings()
     HOSTNAME = Settings.getString("HOSTNAME", String(uniqueID));
     BUZ_VOL = Settings.getBool("BUZ_VOL", BUZ_VOL);
     WEB_PORT = Settings.getUInt("WEB_PORT", WEB_PORT);
-    TEMP_DECIMAL_PLACES = Settings.getInt("TEMP_DECIMAL_PLACES", TEMP_DECIMAL_PLACES);
+    TEMP_DECIMAL_PLACES = Settings.getInt("TEMP_DECIMAL", TEMP_DECIMAL_PLACES);
     ROTATE_SCREEN = Settings.getBool("ROTATE_SCREEN", ROTATE_SCREEN);
     DEBUG_MODE = Settings.getBool("DEBUG_MODE", DEBUG_MODE);
     NEWYEAR = Settings.getBool("NEWYEAR", NEWYEAR);
     SWAP_BUTTONS = Settings.getBool("SWAP_BUTTONS", SWAP_BUTTONS);
     LDR_ON_GROUND = Settings.getBool("LDR_ON_GROUND", LDR_ON_GROUND);
     BUTTON_CALLBACK = Settings.getString("BUTTON_CALLBACK", BUTTON_CALLBACK);
+    COLOR_CORRECTION = CRGB(Settings.getUInt("C_CORRECTION", COLOR_CORRECTION.as_uint32_t()));
+    Serial.println(Settings.getUInt("C_CORRECTION", 0));
+    Serial.println(COLOR_CORRECTION.as_uint32_t());
+    COLOR_TEMPERATURE = CRGB(Settings.getUInt("C_TEMPERATURE", COLOR_TEMPERATURE.as_uint32_t()));
+
     Settings.end();
-   
 }
 
 void saveSettings()
@@ -509,9 +946,7 @@ void saveSettings()
     Settings.putUInt("DATE_COL", DATE_COLOR);
     Settings.putUInt("TEMP_COL", TEMP_COLOR);
     Settings.putUInt("HUM_COL", HUM_COLOR);
-#ifdef ULANZI
     Settings.putUInt("BAT_COL", BAT_COLOR);
-#endif
     Settings.putUInt("WDCA", WDC_ACTIVE);
     Settings.putUInt("WDCI", WDC_INACTIVE);
     Settings.putUInt("TSPEED", TIME_PER_TRANSITION);
@@ -525,9 +960,7 @@ void saveSettings()
     Settings.putBool("TEMP", SHOW_TEMP);
     Settings.putBool("HUM", SHOW_HUM);
     Settings.putUInt("SSPEED", SCROLL_SPEED);
-#ifdef ULANZI
     Settings.putBool("BAT", SHOW_BAT);
-#endif
     Settings.putBool("SOUND", SOUND_ACTIVE);
     Settings.putUInt("VOL", SOUND_VOLUME);
     Settings.putString("NTP_SERVER", NTP_SERVER);
@@ -550,14 +983,14 @@ void saveSettings()
     Settings.putBool("SENSOR_READING", SENSOR_READING);
     Settings.putBool("DFPLAYER_ACTIVE", DFPLAYER_ACTIVE);
     Settings.putUInt("MATRIX_LAYOUT", MATRIX_LAYOUT);
-    Settings.putBool("MIRROR_DISPLAY", MIRROR_DISPLAY);
+    Settings.putBool("MIRROR_SCREEN", MIRROR_SCREEN);
     Settings.putFloat("TEMP_OFFSET", TEMP_OFFSET);
     Settings.putFloat("MIN_BATTERY", MIN_BATTERY);
     Settings.putFloat("MAX_BATTERY", MAX_BATTERY);
     Settings.putUInt("AP_TIMEOUT", AP_TIMEOUT);
-    Settings.putUInt("BACKGROUND_EFFECT", BACKGROUND_EFFECT);
-    Settings.putUInt("MIN_BRIGHTNESS", MIN_BRIGHTNESS);
-    Settings.putUInt("MAX_BRIGHTNESS", MAX_BRIGHTNESS);
+    Settings.putUInt("B_EFFECT", BACKGROUND_EFFECT);
+    Settings.putUInt("MIN_BRI", MIN_BRIGHTNESS);
+    Settings.putUInt("MAX_BRI", MAX_BRIGHTNESS);
     Settings.putFloat("LDR_FACTOR", LDR_FACTOR);
     Settings.putFloat("LDR_GAMMA", LDR_GAMMA);
     Settings.putInt("HUM_OFFSET", HUM_OFFSET);
@@ -566,19 +999,19 @@ void saveSettings()
     Settings.putString("HOSTNAME", HOSTNAME);
     Settings.putBool("BUZ_VOL", BUZ_VOL);
     Settings.putUInt("WEB_PORT", WEB_PORT);
-    Settings.putInt("TEMP_DECIMAL_PLACES", TEMP_DECIMAL_PLACES);
+    Settings.putInt("TEMP_DECIMAL", TEMP_DECIMAL_PLACES);
     Settings.putBool("ROTATE_SCREEN", ROTATE_SCREEN);
     Settings.putBool("DEBUG_MODE", DEBUG_MODE);
     Settings.putBool("NEWYEAR", NEWYEAR);
     Settings.putBool("SWAP_BUTTONS", SWAP_BUTTONS);
     Settings.putBool("LDR_ON_GROUND", LDR_ON_GROUND);
     Settings.putString("BUTTON_CALLBACK", BUTTON_CALLBACK);
+    Settings.putUInt("C_CORRECTION", COLOR_CORRECTION.as_uint32_t());
+    Settings.putUInt("C_TEMPERATURE", COLOR_TEMPERATURE.as_uint32_t());
+
     Settings.end();
     DisplayManager.applyAllSettings();
 }
-
-
-
 
 const char *uniqueID;
 IPAddress local_IP;
@@ -649,7 +1082,7 @@ bool AUTO_BRIGHTNESS = true;
 bool UPPERCASE_LETTERS = true;
 bool AP_MODE;
 bool MATRIX_OFF;
-bool MIRROR_DISPLAY = false;
+bool MIRROR_SCREEN = false;
 uint32_t TEXTCOLOR_888 = 0xFFFFFF;
 bool SOUND_ACTIVE;
 String BOOT_SOUND = "";
@@ -658,8 +1091,8 @@ uint8_t SOUND_VOLUME = 30;
 int MATRIX_LAYOUT = 0;
 bool UPDATE_AVAILABLE = false;
 long RECEIVED_MESSAGES;
-CRGB COLOR_CORRECTION;
-CRGB COLOR_TEMPERATURE;
+CRGB COLOR_CORRECTION = CRGB(125, 125, 125);
+CRGB COLOR_TEMPERATURE = CRGB(255, 255, 255);
 uint32_t WDC_ACTIVE;
 uint32_t WDC_INACTIVE;
 bool BLOCK_NAVIGATION = false;

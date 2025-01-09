@@ -127,6 +127,9 @@ void DisplayManager_::applyAllSettings()
     setBrightness(BRIGHTNESS);
   setTextColor(TEXTCOLOR_888);
   setAutoTransition(AUTO_TRANSITION);
+
+  FastLED.setCorrection(COLOR_CORRECTION);
+  FastLED.setTemperature(COLOR_TEMPERATURE);
 }
 
 void DisplayManager_::setAppTime(long duration)
@@ -1961,7 +1964,7 @@ void DisplayManager_::gammaCorrection()
     leds[i] = applyGamma_video(leds[i], gamma);
   }
 
-  if (MIRROR_DISPLAY)
+  if (MIRROR_SCREEN)
   {
     for (int y = 0; y < MATRIX_HEIGHT; y++)
     {

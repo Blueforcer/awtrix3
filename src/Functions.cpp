@@ -86,6 +86,10 @@ uint32_t getColorFromJsonVariant(JsonVariant colorVariant, uint32_t defaultColor
             return (r << 16) | (g << 8) | b; // Ignoring alpha channel
         }
     }
+    else if (colorVariant.is<uint32_t>())
+    {
+        return colorVariant.as<uint32_t>();
+    }
 
     return defaultColor;
 }
@@ -164,33 +168,51 @@ byte utf8ascii(byte ascii)
 
     case 0xC3:
         // polish
-        if (ascii == 0xB3) return 0x6F;
-        if (ascii == 0x93) return 0x4F;
+        if (ascii == 0xB3)
+            return 0x6F;
+        if (ascii == 0x93)
+            return 0x4F;
 
         return (ascii | 0xC0); // - 34;
         break;
 
     case 0xC4:
         // polish
-        if (ascii == 0x85) return 0x61;
-        if (ascii == 0x84) return 0x41;
-        if (ascii == 0x87) return 0x63;
-        if (ascii == 0x86) return 0x43;
-        if (ascii == 0x99) return 0x65;
-        if (ascii == 0x98) return 0x45;
-    
+        if (ascii == 0x85)
+            return 0x61;
+        if (ascii == 0x84)
+            return 0x41;
+        if (ascii == 0x87)
+            return 0x63;
+        if (ascii == 0x86)
+            return 0x43;
+        if (ascii == 0x99)
+            return 0x65;
+        if (ascii == 0x98)
+            return 0x45;
+
     case 0xC5:
         // polish
-        if (ascii == 0x82) return 0x6C;
-        if (ascii == 0x81) return 0x4C;
-        if (ascii == 0x84) return 0x6E;
-        if (ascii == 0x83) return 0x4E;
-        if (ascii == 0x9A) return 0x53;
-        if (ascii == 0xBC) return 0x7A;
-        if (ascii == 0xBB) return 0x5A;
-        if (ascii == 0xBA) return 0x7A;
-        if (ascii == 0xB9) return 0x5A;
-        if (ascii == 0x9B) return 0x73;
+        if (ascii == 0x82)
+            return 0x6C;
+        if (ascii == 0x81)
+            return 0x4C;
+        if (ascii == 0x84)
+            return 0x6E;
+        if (ascii == 0x83)
+            return 0x4E;
+        if (ascii == 0x9A)
+            return 0x53;
+        if (ascii == 0xBC)
+            return 0x7A;
+        if (ascii == 0xBB)
+            return 0x5A;
+        if (ascii == 0xBA)
+            return 0x7A;
+        if (ascii == 0xB9)
+            return 0x5A;
+        if (ascii == 0x9B)
+            return 0x73;
 
     case 0x82:
         if (ascii == 0xAC)
