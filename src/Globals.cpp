@@ -8,14 +8,16 @@
 #include "MQTTManager.h"
 Preferences Settings;
 
-void saveWiFiCredentials(const String& ssid, const String& password) {
+void saveWiFiCredentials(const String &ssid, const String &password)
+{
     Settings.begin("wifi", false);
     Settings.putString("ssid", ssid);
     Settings.putString("password", password);
     Settings.end();
 }
 
-void loadWiFiCredentials(String &ssid, String &password) {
+void loadWiFiCredentials(String &ssid, String &password)
+{
     Settings.begin("wifi", true);
     ssid = Settings.getString("ssid", "");
     password = Settings.getString("password", "");
@@ -380,6 +382,8 @@ String getSettingsAsJson()
     doc["C_TEMPERATURE"] = COLOR_TEMPERATURE.as_uint32_t();
     // ID des Geräts (String)
     doc["UNIQUE_ID"] = uniqueID;
+    // MQTT aktiv (bool)
+    doc["MQTT_ACTIVE"] = MQTT_ACTIVE;
 
     String output;
     serializeJson(doc, output);
@@ -546,21 +550,31 @@ void setSettingsFromJson(const String &json)
     {
         SHOW_TIME = doc["TIM"].as<bool>();
         Settings.putBool("TIM", SHOW_TIME);
+        DisplayManager.toggleNativeApp("Time", SHOW_TIME);
     }
     if (doc.containsKey("DAT"))
     {
         SHOW_DATE = doc["DAT"].as<bool>();
         Settings.putBool("DAT", SHOW_DATE);
+        DisplayManager.toggleNativeApp("Date", SHOW_DATE);
     }
     if (doc.containsKey("TEMP"))
     {
         SHOW_TEMP = doc["TEMP"].as<bool>();
         Settings.putBool("TEMP", SHOW_TEMP);
+        DisplayManager.toggleNativeApp("Temperature", SHOW_TEMP);
     }
     if (doc.containsKey("HUM"))
     {
         SHOW_HUM = doc["HUM"].as<bool>();
         Settings.putBool("HUM", SHOW_HUM);
+        DisplayManager.toggleNativeApp("Humidity", SHOW_HUM);
+    }
+    if (doc.containsKey("BAT"))
+    {
+        SHOW_BAT = doc["BAT"].as<bool>();
+        Settings.putBool("BAT", SHOW_BAT);
+        DisplayManager.toggleNativeApp("Battery", SHOW_BAT);
     }
     if (doc.containsKey("MAT"))
     {
@@ -571,11 +585,6 @@ void setSettingsFromJson(const String &json)
     {
         SCROLL_SPEED = doc["SSPEED"].as<unsigned int>();
         Settings.putUInt("SSPEED", SCROLL_SPEED);
-    }
-    if (doc.containsKey("BAT"))
-    {
-        SHOW_BAT = doc["BAT"].as<bool>();
-        Settings.putBool("BAT", SHOW_BAT);
     }
 
     if (doc.containsKey("SOUND"))
@@ -602,6 +611,14 @@ void setSettingsFromJson(const String &json)
         NTP_TZ = doc["NTP_TZ"].as<String>();
         Settings.putString("NTP_TZ", NTP_TZ);
     }
+
+    if (doc.containsKey("MQTT_ACTIVE"))
+    {
+        MQTT_ACTIVE = doc["MQTT_ACTIVE"].as<bool>();
+        Settings.putBool("MQTT_ACTIVE", MQTT_ACTIVE);
+        MQTTManager.connect(MQTT_ACTIVE);
+    }
+
     if (doc.containsKey("MQTT_HOST"))
     {
         MQTT_HOST = doc["MQTT_HOST"].as<String>();
@@ -829,13 +846,6 @@ void setSettingsFromJson(const String &json)
         uint32_t color = getColorFromJsonVariant(correction, 0);
         COLOR_TEMPERATURE = CRGB(color);
         Settings.putUInt("C_TEMPERATURE", color);
-    }
-
-    if (doc.containsKey("MQTT_ACTIVE"))
-    {
-        MQTT_ACTIVE = doc["MQTT_ACTIVE"].as<bool>();
-        Settings.putBool("MQTT_ACTIVE", MQTT_ACTIVE);
-        MQTTManager.connect(MQTT_ACTIVE);
     }
 
     Settings.end();

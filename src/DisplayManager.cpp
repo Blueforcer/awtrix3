@@ -1068,50 +1068,72 @@ void DisplayManager_::loadCustomApps()
   }
 }
 
+static std::map<String, std::pair<AppCallback, size_t>> nativeAppMap = {
+    {"Time",        {TimeApp, 0}},
+    {"Date",        {DateApp, 1}},
+    {"Temperature", {TempApp, 2}},
+    {"Humidity",    {HumApp, 3}},
+#ifdef ULANZI
+    {"Battery",     {BatApp, 4}},
+#endif
+};
+
+void DisplayManager_::toggleNativeApp(const String &name, bool add)
+{
+
+    auto nativeIt = nativeAppMap.find(name);
+    if (nativeIt == nativeAppMap.end()) {
+        return;
+    }
+
+    auto it = std::find_if(Apps.begin(), Apps.end(),
+                           [&](const std::pair<String, AppCallback> &appPair){
+                               return appPair.first == name;
+                           });
+
+    if (add) {
+        if (it == Apps.end()) {
+            const auto &callback = nativeIt->second.first;
+            const size_t position = nativeIt->second.second;
+            if (position >= Apps.size()) {
+                Apps.push_back(std::make_pair(name, callback));
+            } else {
+                Apps.insert(Apps.begin() + position,
+                            std::make_pair(name, callback));
+            }
+             ui->setApps(Apps);
+        }
+    }
+
+    else {
+        if (it != Apps.end()) {
+            Apps.erase(it);
+             ui->setApps(Apps);
+        }
+    }
+   
+}
+
+
 void DisplayManager_::loadNativeApps()
 {
-  // Define a helper function to check and update an app
-  auto updateApp = [&](const String &name, AppCallback callback, bool show, size_t position)
-  {
-    auto it = std::find_if(Apps.begin(), Apps.end(), [&](const std::pair<String, AppCallback> &app)
-                           { return app.first == name; });
-    if (it != Apps.end())
-    {
-      if (!show)
-      {
-        Apps.erase(it);
-      }
-    }
-    else
-    {
-      if (show)
-      {
-        if (position >= Apps.size())
-        {
-          Apps.push_back(std::make_pair(name, callback));
-        }
-        else
-        {
-          Apps.insert(Apps.begin() + position, std::make_pair(name, callback));
-        }
-      }
-    }
-  };
+    Apps.clear(); // ggf. vorher leeren, oder auch nicht - je nach gewünschtem Verhalten
 
-  updateApp("Time", TimeApp, SHOW_TIME, 0);
-  updateApp("Date", DateApp, SHOW_DATE, 1);
-
-  if (SENSOR_READING)
-  {
-    updateApp("Temperature", TempApp, SHOW_TEMP, 2);
-    updateApp("Humidity", HumApp, SHOW_HUM, 3);
-  }
+    // Einfach hier direkt adden (toggleNativeApp mit true)
+    toggleNativeApp("Time", SHOW_TIME);
+    toggleNativeApp("Date", SHOW_DATE);
+    
+    if (SENSOR_READING) {
+        toggleNativeApp("Temperature", SHOW_TEMP);
+        toggleNativeApp("Humidity", SHOW_HUM);
+    }
 #ifdef ULANZI
-  updateApp("Battery", BatApp, SHOW_BAT, 4);
+    toggleNativeApp("Battery", SHOW_BAT);
 #endif
 
-  ui->setApps(Apps);
-  setAutoTransition(true);
+    // Liste ans UI übergeben
+    ui->setApps(Apps);
+    setAutoTransition(true);
 }
 
 void DisplayManager_::setup()
@@ -1645,8 +1667,11 @@ String DisplayManager_::getStats()
 #endif
   doc[LuxKey] = static_cast<int>(CURRENT_LUX);
   doc[LDRRawKey] = LDR_RAW;
-  doc[RamKey] = ESP.getFreeHeap() + ESP.getFreePsram();
-  doc[BrightnessKey] = BRIGHTNESS;
+  doc[F("usedRam")] = ESP.getFreeHeap() + ESP.getFreePsram();
+  doc[F("totalRam")] = ESP.getHeapSize() + ESP.getPsramSize();
+  doc[F("usedFlash")] = LittleFS.usedBytes();
+  doc[F("totalFlash")] = LittleFS.totalBytes();
+    doc[BrightnessKey] = BRIGHTNESS;
   if (SENSOR_READING)
   {
     double formattedTemp = roundToDecimalPlaces(CURRENT_TEMP, TEMP_DECIMAL_PLACES);

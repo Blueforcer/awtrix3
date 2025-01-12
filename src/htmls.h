@@ -4,9 +4,101 @@
  * The parent element will hhve the HTML id properties equal to 'raw-html-<id>'
  * where the id value will be equal to the id parameter passed to the function addHTML(html_code, id).
  */
-static const char html[] PROGMEM = R"EOF(
-<!doctypehtml><html lang="de"><meta charset="UTF-8"><meta content="width=device-width"name="viewport"><title>AWTRIX 3</title><style>*{margin:0;padding:0}body{background:linear-gradient(135deg,#1a1a1a,#2d2d2d);min-height:100vh;display:grid;place-items:center;font-family:system-ui;color:#fff}.c{text-align:center}.t{font-size:2.5rem;font-weight:700;margin-bottom:1rem;background:linear-gradient(45deg,#0f8,#0fc);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 20px #0f83}p{color:#b3b3b3;margin-bottom:1rem}.b{width:200px;height:3px;background:#ffffff1a;border-radius:2px;overflow:hidden;position:relative}.b:after{content:'';position:absolute;width:40%;height:100%;background:linear-gradient(90deg,#0f8,#0fc);border-radius:2px;animation:l 1.5s ease-in-out infinite}@keyframes l{0%{left:-40%}100%{left:100%}}</style><div class="c"><h1 class="t">AWTRIX 3</h1><p>Interface wird geladen...<div class="b"></div></div><script>fetch('https://cdn.jsdelivr.net/gh/Blueforcer/awtrix3_web_test/index.html') .then(r => r.text()) .then(h => { document.body.style.opacity = 0; setTimeout(() => { document.body.innerHTML = h; const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/gh/Blueforcer/awtrix3_web_test/js/script.js'; document.head.appendChild(s); const c = document.createElement('link'); c.rel = 'stylesheet'; c.href = 'https://cdn.jsdelivr.net/gh/Blueforcer/awtrix3_web_test/css/style.css'; document.head.appendChild(c); document.body.style.opacity = 1; }, 300); });</script>
-)EOF";
+static const char html[] PROGMEM = R"rawliteral(
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AWTRIX 3</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; 
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<iframe id="mainFrame" src="https://blueforcer.github.io/awtrix3_web_test/"></iframe>
+
+<script>
+        window.addEventListener('message', async function(event) {
+            if (event.origin !== "https://blueforcer.github.io") return;
+            try {
+                const localUrl = event.data.url.replace(/^http:\/\/[^/]+/, '');
+                const fetchOptions = {
+                    method: event.data.method || 'GET',
+                    headers: event.data.headers || {}
+                };
+                if (event.data.body) {
+                    if (event.data.body.isFile) {
+                        // File Upload Handling
+                        const formData = new FormData();
+                        const fetchResponse = await fetch(event.data.body.data);
+                        const blob = await fetchResponse.blob();
+                        formData.append('file', blob, event.data.body.path || event.data.body.name);
+                        fetchOptions.body = formData;
+                    } else if (event.data.method === 'PUT' || event.data.method === 'DELETE') {
+                        // PUT/DELETE mit URL-encoded Daten
+                        fetchOptions.body = event.data.body;
+                    } else if (typeof event.data.body === 'string') {
+                        // String body (z.B. für URL-encoded)
+                        fetchOptions.body = event.data.body;
+                    } else {
+                        // JSON body für andere Fälle
+                        fetchOptions.body = JSON.stringify(event.data.body);
+                    }
+                }
+                
+                const response = await fetch(localUrl, fetchOptions);
+                let data;
+
+                if (event.data.isImage || localUrl.match(/\.(gif|jpe?g|png)$/i)) {
+                    // Bild zu base64
+                    const blob = await response.blob();
+                    data = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.readAsDataURL(blob);
+                    });
+                } else if (event.data.method === 'POST' || event.data.method === 'PUT' || event.data.method === 'DELETE') {
+                    data = { success: response.ok };
+                } else {
+                    try {
+                        data = await response.json();
+                    } catch (e) {
+                        console.log('Response is not JSON:', e);
+                        data = await response.text();
+                    }
+                }
+            
+                event.source.postMessage({
+                    id: event.data.id,
+                    success: response.ok,
+                    data
+                }, event.origin);
+                
+            } catch (error) {
+                console.error('Error processing request:', error);
+                event.source.postMessage({
+                    id: event.data.id,
+                    success: false,
+                    error: error.message
+                }, event.origin);
+            }
+        });
+</script>
+</body>
+</html>
+)rawliteral";
 
 static const char wifipage[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
