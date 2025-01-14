@@ -37,7 +37,6 @@ MQTTManager_ &MQTTManager_::getInstance()
     return instance;
 }
 
-
 MQTTManager_ &MQTTManager = MQTTManager.getInstance();
 
 void processMqttMessage(const String &strTopic, const String &payloadCopy)
@@ -429,8 +428,10 @@ void onMqttConnected()
 
     MQTTManager.publish("stats/effects", DisplayManager.getEffectNames().c_str());
     MQTTManager.publish("stats/transitions", DisplayManager.getTransitionNames().c_str());
-    MQTTManager.publish("stats/device", "online");
-
+    if (!HA_DISCOVERY)
+    {
+        MQTTManager.publish("stats/device", "online");
+    }
     connected = true;
 }
 
@@ -466,9 +467,12 @@ void connect()
     mqtt.onMessage(onMqttMessage);
     mqtt.onConnected(onMqttConnected);
 
-    static char topic[50];
-    snprintf(topic, sizeof(topic), "%s/stats/device", MQTT_PREFIX.c_str());
-    mqtt.setLastWill(topic, "offline", false);
+    if (!HA_DISCOVERY)
+    {
+        static char topic[50];
+        snprintf(topic, sizeof(topic), "%s/stats/device", MQTT_PREFIX.c_str());
+        mqtt.setLastWill(topic, "offline", false);
+    }
 
     if (MQTT_USER == "" || MQTT_PASS == "")
     {
