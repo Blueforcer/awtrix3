@@ -208,7 +208,7 @@ void ServerManager_::setup()
 {
     esp_wifi_set_max_tx_power(80); // 82 * 0.25 dBm = 20.5 dBm
     esp_wifi_set_ps(WIFI_PS_NONE); // Power Saving deaktivieren
-    if (!local_IP.fromString(NET_IP) || !gateway.fromString(NET_GW) || !subnet.fromString(NET_SN) || !primaryDNS.fromString(NET_PDNS) || !secondaryDNS.fromString(NET_SDNS))
+    if (!local_IP.fromString(NET_IP) || !gateway.fromString(NET_GW) || !subnet.fromString(NET_SN) || !(primaryDNS.fromString(NET_PDNS) || secondaryDNS.fromString(NET_SDNS)))
         NET_STATIC = false;
     if (NET_STATIC)
     {
