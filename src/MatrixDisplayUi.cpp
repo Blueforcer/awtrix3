@@ -102,11 +102,120 @@ void MatrixDisplayUi::setAppAnimation(AnimationDirection dir)
 void MatrixDisplayUi::setApps(const std::vector<std::pair<String, AppCallback>> &appPairs)
 {
   delete[] AppFunctions;
-  AppCount = appPairs.size();
+
+  std::vector<std::pair<String, AppCallback>> originalApps = appPairs;
+
+  if (!PRIORITY_APPS.empty())
+  {
+    /*
+     * Priority apps appear after every regular app and preserve their defined order.
+     *
+     * Example:
+     * - Priority apps: ["Time", "KitchenTimer"]
+     * - Regular apps: A, B, C
+     *
+     * Results in:
+     * Time → KitchenTimer → A → Time → KitchenTimer → B → Time → KitchenTimer → C
+     *
+     *
+     * Note: If the same app is specified multiple times in the priority_apps list
+     * (e.g., ["KitchenTimer", "Time", "KitchenTimer"]), those duplicates are preserved as-is.
+     * This is intended behavior, as it will result in
+     * A -> KitchenTimer -> Time -> KitchenTimer -> B -> KitchenTimer -> ...
+     *
+     */
+
+    std::vector<std::pair<String, AppCallback>> priorityApps;
+    std::vector<std::pair<String, AppCallback>> regularApps;
+
+    // Find all priority apps in the order they appear in PRIORITY_APPS
+    for (const String &priorityAppName : PRIORITY_APPS)
+    {
+      for (const auto &app : originalApps)
+      {
+        if (app.first == priorityAppName)
+        {
+          priorityApps.push_back(app);
+          break;
+        }
+      }
+    }
+
+    // All non-priority apps go to regularApps
+    for (const auto &app : originalApps)
+    {
+      if (std::find(PRIORITY_APPS.begin(), PRIORITY_APPS.end(), app.first) == PRIORITY_APPS.end())
+      {
+        regularApps.push_back(app);
+      }
+    }
+    
+    // Remember the current app before reordering
+    String currentAppName = "";
+    if (AppCount > 0 && this->state.currentApp < AppCount)
+    {
+      for (size_t i = 0; i < appPairs.size(); ++i)
+      {
+        if (appPairs[i].second == AppFunctions[this->state.currentApp])
+        {
+          currentAppName = appPairs[i].first;
+          break;
+        }
+      }
+    }
+
+    if (!priorityApps.empty() && !regularApps.empty())
+    {
+      std::vector<std::pair<String, AppCallback>> newAppOrder;
+
+      // We start with priority apps
+      for (const auto &priorityApp : priorityApps)
+      {
+        newAppOrder.push_back(priorityApp);
+      }
+
+      // Then add regular apps one by one
+      for (size_t i = 0; i < regularApps.size(); i++)
+      {
+        newAppOrder.push_back(regularApps[i]);
+
+        // Making sure to add the priority apps after each normal one
+        // And aborting at the end to not duplicate priority apps when the idx wraps around
+        if (i < regularApps.size() - 1)
+        {
+          for (const auto &priorityApp : priorityApps)
+          {
+            newAppOrder.push_back(priorityApp);
+          }
+        }
+      }
+
+      originalApps = newAppOrder;
+
+      if (!currentAppName.isEmpty())
+      {
+        // If required, update current app index to continue pointing at the app the user is currently seeing
+        if (this->state.currentApp >= originalApps.size() || 
+            originalApps[this->state.currentApp].first != currentAppName)
+        {
+          for (size_t i = 0; i < originalApps.size(); ++i)
+          {
+            if (originalApps[i].first == currentAppName)
+            {
+              this->state.currentApp = i;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  AppCount = originalApps.size();
   AppFunctions = new AppCallback[AppCount];
   for (size_t i = 0; i < AppCount; ++i)
   {
-    AppFunctions[i] = appPairs[i].second;
+    AppFunctions[i] = originalApps[i].second;
   }
   this->resetState();
   DisplayManager.sendAppLoop();
