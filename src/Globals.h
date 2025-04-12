@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <FastLED.h>
 #include "effects.h"
- 
+
 #define DEBUG
 
 #ifdef DEBUG
@@ -90,7 +90,8 @@ extern String TIME_FORMAT;
 extern String DATE_FORMAT;
 extern bool START_ON_MONDAY;
 extern bool IS_CELSIUS;
-  
+extern std::vector<String> PRIORITY_APPS;
+
 #define TEMP_SENSOR_TYPE_NONE 0
 #define TEMP_SENSOR_TYPE_BME280 1
 #define TEMP_SENSOR_TYPE_HTU21DF 2
@@ -135,7 +136,7 @@ extern bool MOODLIGHT_MODE;
 extern double movementFactor;
 extern uint8_t MIN_BRIGHTNESS;
 extern uint8_t MAX_BRIGHTNESS;
-extern float LDR_GAMMA; 
+extern float LDR_GAMMA;
 extern float LDR_FACTOR;
 extern bool DEBUG_MODE;
 extern String AUTH_USER;

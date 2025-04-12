@@ -230,6 +230,15 @@ void loadDevSettings()
             }
         }
 
+        if (doc.containsKey("priority_apps") && doc["priority_apps"].is<JsonArray>())
+        {
+            PRIORITY_APPS.clear();
+            JsonArray priorityApps = doc["priority_apps"].as<JsonArray>();
+            for (JsonVariant app : priorityApps) {
+                PRIORITY_APPS.push_back(app.as<String>());
+            }
+        }
+
         file.close();
     }
     else
@@ -380,6 +389,7 @@ String HA_PREFIX = "homeassistant";
 String CURRENT_APP;
 float CURRENT_TEMP;
 bool IS_CELSIUS;
+std::vector<String> PRIORITY_APPS;
 
 uint8_t TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_NONE;
 
