@@ -459,6 +459,7 @@ You can adjust each property in the JSON object according to your preferences. I
 | `8`  | Blink       |
 | `9`  | Reload      |
 | `10` | Fade        |
+| `11` | Instant     |
 
 ## Update
 
