@@ -235,7 +235,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
 
     int16_t wdPosY;
     int16_t timePosY;
-    if (TIME_MODE == 2 || TIME_MODE == 4)
+    if (TIME_MODE == 2 || TIME_MODE == 4 || TIME_MODE == 8)
     {
         // week days on top line
         wdPosY = 0;
@@ -252,7 +252,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     DisplayManager.printText(12 + x, timePosY + y, t, TIME_MODE == 0, 2);
 
     // day of month in calendar box
-    if (TIME_MODE > 0)
+    if (TIME_MODE > 0 && TIME_MODE < 7)
     {
         int offset;
         char day_str[3];
@@ -278,6 +278,33 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         DisplayManager.setCursor(offset + x, 7 + y);
         DisplayManager.setTextColor(CALENDAR_TEXT_COLOR);
         DisplayManager.matrixPrint(day_str);
+    }
+
+    // draw clock icon
+    if (TIME_MODE == 7 || TIME_MODE == 8)
+    {
+        // use time.gif if available, otherwise use default clock icon
+        static File TIME_ICON_GIF;
+        static bool TIME_ICON_ISGIF = false;
+        static uint16_t TIME_ICON_CURRENTFRAME = 0;
+        if (!TIME_ICON_ISGIF)
+        {
+            if (LittleFS.exists("/time.gif"))
+            {
+                TIME_ICON_GIF = LittleFS.open("/time.gif");
+                TIME_ICON_ISGIF = true;
+                TIME_ICON_CURRENTFRAME = 0;
+            }
+        }
+        if (TIME_ICON_ISGIF)
+        {
+            gifPlayer->playGif(x, y, &TIME_ICON_GIF, TIME_ICON_CURRENTFRAME);
+            TIME_ICON_CURRENTFRAME = gifPlayer->getFrame();
+        }
+        else
+        {
+            matrix->drawRGBBitmap(x, y, icon_13, 8, 8); // default clock icon
+        }
     }
 
     if (!SHOW_WEEKDAY)
