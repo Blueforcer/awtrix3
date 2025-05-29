@@ -45,6 +45,18 @@ The top row shows the hour, the middle row shows the minutes, and the bottom row
 Each row has six dots, where lit dots represent binary "1" and white dots represent binary "0".  
 To read the time, convert the lit dots in each row to a decimal number.     
 
+**TMODE=7**  
+<img src="assets/TMODE7.png" style="max-height:70px;">   
+Adds an icon to the left side of the time display.  
+If a GIF named `time.gif` exists in the root directory, it will be used instead of the default clock icon.  
+Both 8X8 and 32X8 GIFs are supported.   
+If the weekday bar is enabled, it will be displayed at the bottom of the screen.   
+
+**TMODE=8**  
+<img src="assets/TMODE8.png" style="max-height:70px;">   
+Same as `TMODE=7`, but moves the weekday bar to the top of the screen.
+
+
 #### **Available Time Formats:**  
 | Format       | Example    | Description                                |
 |--------------|------------|--------------------------------------------|
