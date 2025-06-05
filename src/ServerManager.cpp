@@ -143,6 +143,13 @@ void checkForUnsupportedPath(String &filename, String &error)
     Serial.printf("Check path: %s: %s\n", filename.c_str(), error.c_str());
 }
 
+void handleRoot(AsyncWebServerRequest *request)
+{
+    String page((__FlashStringHelper *)html);   // HTML aus PROGMEM laden
+    page.replace("{{IFRAME_URL}}", IFRAME_URL); // Platzhalter ersetzen
+    request->send(200, "text/html", page);      // Seite senden
+}
+
 void addHandler()
 {
 
@@ -152,84 +159,167 @@ void addHandler()
 
     server.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
                          {
-    String bodyContent = String((char*)data);
+        String bodyContent = String((char *)data);
 
-  if (request->url() == "/api/system") {
-     String bodyContent = String((char*)data);
-     setSettingsFromJson(bodyContent);
-     request->send(200, "text/plain", "true");
-
-       } else if  (request->url() == "/api/power") {
+        if (request->url() == "/api/system")
+        {
+            setSettingsFromJson(bodyContent.c_str());
+            request->send(200, "application/json", R"({"status":"success","message":"System settings updated"})");
+        }
+        else if (request->url() == "/api/power")
+        {
             DisplayManager.powerStateParse(bodyContent.c_str());
-            request->send(200, "text/plain", "OK");
-        } else if (request->url() == "/api/sleep") {
+            request->send(200, "application/json", R"({"status":"success","message":"Power state updated"})");
+        }
+        else if (request->url() == "/api/sleep")
+        {
             DisplayManager.setPower(false);
             PowerManager.sleepParser(bodyContent.c_str());
-            request->send(200, "text/plain", "OK");
-        } else if (request->url() == "/api/rtttl") {
+            request->send(200, "application/json", R"({"status":"success","message":"Device set to sleep"})");
+        }
+        else if (request->url() == "/api/rtttl")
+        {
             PeripheryManager.playRTTTLString(bodyContent.c_str());
-            request->send(200, "text/plain", "OK");
-        } else if (request->url() == "/api/sound") {
-            if (PeripheryManager.parseSound(bodyContent.c_str())) {
-                request->send(200, "text/plain", "OK");
-            } else {
-                request->send(404, "text/plain", "FileNotFound");
+            request->send(200, "application/json", R"({"status":"success","message":"Melody played"})");
+        }
+        else if (request->url() == "/api/sound")
+        {
+            if (PeripheryManager.parseSound(bodyContent.c_str()))
+            {
+                request->send(200, "application/json", R"({"status":"success","message":"Sound triggered"})");
             }
-        } else if (request->url() == "/api/moodlight") {
-            if (DisplayManager.moodlight(bodyContent.c_str())) {
-                request->send(200, "text/plain", "OK");
-            } else {
-                request->send(500, "text/plain", "ErrorParsingJson");
+            else
+            {
+                request->send(404, "application/json", R"({"status":"error","message":"Sound file not found"})");
             }
-        } else if (request->url() == "/api/notify") {
-            if (DisplayManager.generateNotification(1, bodyContent.c_str())) {
-                request->send(200, "text/plain", "OK");
-            } else {
-                request->send(500, "text/plain", "ErrorParsingJson");
+        }
+        else if (request->url() == "/api/moodlight")
+        {
+            if (DisplayManager.moodlight(bodyContent.c_str()))
+            {
+                request->send(200, "application/json", R"({"status":"success","message":"Moodlight updated"})");
             }
-        } else if (request->url() == "/api/apps") {
+            else
+            {
+                request->send(500, "application/json", R"({"status":"error","message":"Failed to parse moodlight JSON"})");
+            }
+        }
+        else if (request->url() == "/api/notify")
+        {
+            if (DisplayManager.generateNotification(1, bodyContent.c_str()))
+            {
+                request->send(200, "application/json", R"({"status":"success","message":"Notification displayed"})");
+            }
+            else
+            {
+                request->send(500, "application/json", R"({"status":"error","message":"Failed to parse notification JSON"})");
+            }
+        }
+        else if (request->url() == "/api/apps")
+        {
             DisplayManager.updateAppVector(bodyContent.c_str());
-            request->send(200, "text/plain", "OK");
-        } else if (request->url() == "/api/switch") {
-            if (DisplayManager.switchToApp(bodyContent.c_str())) {
-                request->send(200, "text/plain", "OK");
-            } else {
-                request->send(500, "text/plain", "FAILED");
+            request->send(200, "application/json", R"({"status":"success","message":"App vector updated"})");
+        }
+        else if (request->url() == "/api/switch")
+        {
+            if (DisplayManager.switchToApp(bodyContent.c_str()))
+            {
+                request->send(200, "application/json", R"({"status":"success","message":"App switched"})");
             }
-        } else if (request->url() == "/api/settings") {
+            else
+            {
+                request->send(500, "application/json", R"({"status":"error","message":"App switch failed"})");
+            }
+        }
+        else if (request->url() == "/api/settings")
+        {
             DisplayManager.setNewSettings(bodyContent.c_str());
-            request->send(200, "text/plain", "OK");
-        } else if (request->url() == "/api/reorder") {
+            request->send(200, "application/json", R"({"status":"success","message":"Display settings updated"})");
+        }
+        else if (request->url() == "/api/reorder")
+        {
             DisplayManager.reorderApps(bodyContent.c_str());
-            request->send(200, "text/plain", "OK");
-        } else if (request->url() == "/api/custom") {
-            if (DisplayManager.parseCustomPage(request->arg("name"), bodyContent.c_str(), false)) {
-                request->send(200, "text/plain", "OK");
-            } else {
-                request->send(500, "text/plain", "ErrorParsingJson");
+            request->send(200, "application/json", R"({"status":"success","message":"App order updated"})");
+        }
+        else if (request->url() == "/api/custom")
+        {
+            if (DisplayManager.parseCustomPage(request->arg("name"), bodyContent.c_str(), false))
+            {
+                request->send(200, "application/json", R"({"status":"success","message":"Custom page updated"})");
             }
-        } else if (request->url() == "/api/indicator1") {
-            if (DisplayManager.indicatorParser(1, bodyContent.c_str())) {
-                request->send(200, "text/plain", "OK");
-            } else {
-                request->send(500, "text/plain", "ErrorParsingJson");
+            else
+            {
+                request->send(500, "application/json", R"({"status":"error","message":"Failed to parse custom page JSON"})");
             }
-        } else if (request->url() == "/api/indicator2") {
-            if (DisplayManager.indicatorParser(2, bodyContent.c_str())) {
-                request->send(200, "text/plain", "OK");
-            } else {
-                request->send(500, "text/plain", "ErrorParsingJson");
+        }
+        else if (request->url() == "/api/indicator1")
+        {
+            if (DisplayManager.indicatorParser(1, bodyContent.c_str()))
+            {
+                request->send(200, "application/json", R"({"status":"success","message":"Indicator 1 updated"})");
             }
-        } else if (request->url() == "/api/indicator3") {
-            if (DisplayManager.indicatorParser(3, bodyContent.c_str())) {
-                request->send(200, "text/plain", "OK");
-            } else {
-                request->send(500, "text/plain", "ErrorParsingJson");
+            else
+            {
+                request->send(500, "application/json", R"({"status":"error","message":"Failed to parse indicator JSON"})");
             }
-        } else if (request->url() == "/api/r2d2") {
+        }
+        else if (request->url() == "/api/indicator2")
+        {
+            if (DisplayManager.indicatorParser(2, bodyContent.c_str()))
+            {
+                request->send(200, "application/json", R"({"status":"success","message":"Indicator 2 updated"})");
+            }
+            else
+            {
+                request->send(500, "application/json", R"({"status":"error","message":"Failed to parse indicator JSON"})");
+            }
+        }
+        else if (request->url() == "/api/indicator3")
+        {
+            if (DisplayManager.indicatorParser(3, bodyContent.c_str()))
+            {
+                request->send(200, "application/json", R"({"status":"success","message":"Indicator 3 updated"})");
+            }
+            else
+            {
+                request->send(500, "application/json", R"({"status":"error","message":"Failed to parse indicator JSON"})");
+            }
+        }
+        else if (request->url() == "/api/r2d2")
+        {
             PeripheryManager.r2d2(bodyContent.c_str());
-            request->send(200, "text/plain", "OK");
+            request->send(200, "application/json", R"({"status":"success","message":"R2D2 activated"})");
+        }
+        else
+        {
+            request->send(404, "application/json", R"({"status":"error","message":"Unknown API endpoint"})");
         } });
+
+    server.onNotFound([](AsyncWebServerRequest *request)
+                      {
+            String url = request->url();
+          
+            if (url == "/api/system" ||
+                url == "/api/power" ||
+                url == "/api/sleep" ||
+                url == "/api/rtttl" ||
+                url == "/api/sound" ||
+                url == "/api/moodlight" ||
+                url == "/api/notify" ||
+                url == "/api/apps" ||
+                url == "/api/switch" ||
+                url == "/api/settings" ||
+                url == "/api/reorder" ||
+                url == "/api/custom" ||
+                url == "/api/indicator1" ||
+                url == "/api/indicator2" ||
+                url == "/api/indicator3" ||
+                url == "/api/r2d2") {
+              return; // Wird im onRequestBody behandelt
+            }
+          
+            // Fallback für alle anderen Anfragen
+            request->send(404, "text/plain", "Not found"); });
 
     server.on("/api/system", HTTP_GET, [](AsyncWebServerRequest *request)
               {
@@ -239,17 +329,16 @@ void addHandler()
     server.on("/api/system", HTTP_OPTIONS, [](AsyncWebServerRequest *request)
               { request->send(204); });
 
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send(200, "text/html", html); });
+    server.on("/", HTTP_GET, handleRoot);
 
     server.on("/api/loop", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send_P(200, "application/json", DisplayManager.getAppsAsJson().c_str()); });
+              { request->send(200, "application/json", DisplayManager.getAppsAsJson().c_str()); });
 
     server.on("/api/effects", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send_P(200, "application/json", DisplayManager.getEffectNames().c_str()); });
+              { request->send(200, "application/json", DisplayManager.getEffectNames().c_str()); });
 
     server.on("/api/transitions", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send_P(200, "application/json", DisplayManager.getTransitionNames().c_str()); });
+              { request->send(200, "application/json", DisplayManager.getTransitionNames().c_str()); });
 
     server.on("/api/reboot", HTTP_ANY, [](AsyncWebServerRequest *request)
               { request->send(200, F("text/plain"), F("OK")); delay(200); ESP.restart(); });
@@ -281,7 +370,7 @@ void addHandler()
               { DisplayManager.dismissNotify(); request->send(200, F("text/plain"), F("OK")); });
 
     server.on("/api/apps", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send_P(200, "application/json", DisplayManager.getAppsWithIcon().c_str()); });
+              { request->send(200, "application/json", DisplayManager.getAppsWithIcon().c_str()); });
 
     server.on("/api/erase", HTTP_ANY, [](AsyncWebServerRequest *request)
               { ServerManager.erase();  request->send(200, F("text/plain"), F("OK")); delay(200); ESP.restart(); });
@@ -293,13 +382,13 @@ void addHandler()
               { DisplayManager.reorderApps(request->arg("plain").c_str()); request->send(200, F("text/plain"), F("OK")); });
 
     server.on("/api/settings", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send_P(200, "application/json", DisplayManager.getSettings().c_str()); });
+              { request->send(200, "application/json", DisplayManager.getSettings().c_str()); });
 
     server.on("/api/stats", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send_P(200, "application/json", DisplayManager.getStats().c_str()); });
+              { request->send(200, "application/json", DisplayManager.getStats().c_str()); });
 
     server.on("/api/screen", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send_P(200, "application/json", DisplayManager.ledsAsJson().c_str()); });
+              { request->send(200, "application/json", DisplayManager.ledsAsJson()); });
 
     server.on("/api/wifi", HTTP_POST, [](AsyncWebServerRequest *request)
               {
@@ -732,7 +821,6 @@ void ServerManager_::setup()
 
 void ServerManager_::tick()
 {
-
     if (!AP_MODE)
     {
         int packetSize = udp.parsePacket();
@@ -760,48 +848,43 @@ void ServerManager_::tick()
                 udp.endPacket();
             }
         }
-    }else{
+    }
+    else
+    {
         dnsServer.processNextRequest();
     }
 
-    if (!currentClient || !currentClient.connected())
-    {
-        if (TCPserver.hasClient())
-        {
-            if (currentClient)
-            {
-                currentClient.stop();
-                Serial.println("Vorheriger Client getrennt, um neuen Client zu akzeptieren.");
-            }
+    if (!GAME_ACTIVE) return;
+
+    // Neue Verbindung übernehmen, falls keine existiert oder getrennt wurde
+    if (!currentClient || !currentClient.connected()) {
+        if (currentClient) currentClient.stop();
+    
+        if (TCPserver.hasClient()) {
             currentClient = TCPserver.available();
-            Serial.println("Neuer Client verbunden.");
         }
     }
-
-    if (currentClient && currentClient.connected())
-    {
-        while (currentClient.available())
-        {
+    
+    // Daten empfangen, falls Client verbunden ist
+    if (currentClient && currentClient.connected()) {
+        while (currentClient.available()) {
             char incomingByte = currentClient.read();
-            if (incomingByte == '\n')
-            {
+    
+            if (incomingByte == '\n') {
                 dataBuffer[bufferIndex] = '\0';
                 GameManager.ControllerInput(dataBuffer);
                 bufferIndex = 0;
-            }
-            else if (incomingByte != '\r')
-            {
-                if (bufferIndex < BUFFER_SIZE - 1)
-                {
+            } else if (incomingByte != '\r') {
+                if (bufferIndex < BUFFER_SIZE - 1) {
                     dataBuffer[bufferIndex++] = incomingByte;
-                }
-                else
-                {
+                } else {
+                    // Buffer voll – optional loggen oder resetten
                     bufferIndex = 0;
                 }
             }
         }
     }
+    
 }
 
 void ServerManager_::sendTCP(String message)

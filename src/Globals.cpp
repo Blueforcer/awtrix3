@@ -385,12 +385,14 @@ String getSettingsAsJson()
     // MQTT aktiv (bool)
     doc["MQTT_ACTIVE"] = MQTT_ACTIVE;
 
+    doc["IFRAME_URL"] = IFRAME_URL;
+
     String output;
     serializeJson(doc, output);
     return output;
 }
 
-void setSettingsFromJson(const String &json)
+void setSettingsFromJson(const char *json)
 {
     DynamicJsonDocument doc(4096); // Speicher ggf. anpassen
     DeserializationError error = deserializeJson(doc, json);
@@ -848,6 +850,13 @@ void setSettingsFromJson(const String &json)
         Settings.putUInt("C_TEMPERATURE", color);
     }
 
+    if (doc.containsKey("IFRAME_URL"))
+    {
+        IFRAME_URL = doc["IFRAME_URL"].as<String>();
+        Settings.putString("IFRAME_URL", IFRAME_URL);
+    }
+    
+
     Settings.end();
     DisplayManager.applyAllSettings();
 
@@ -953,6 +962,7 @@ void loadSettings()
     Serial.println(COLOR_CORRECTION.as_uint32_t());
     COLOR_TEMPERATURE = CRGB(Settings.getUInt("C_TEMPERATURE", COLOR_TEMPERATURE.as_uint32_t()));
     MQTT_ACTIVE = Settings.getBool("MQTT_ACTIVE", MQTT_ACTIVE);
+    IFRAME_URL = Settings.getString("IFRAME_URL", IFRAME_URL);
     Settings.end();
 }
 
@@ -1037,6 +1047,7 @@ void saveSettings()
     Settings.putBool("SWAP_BUTTONS", SWAP_BUTTONS);
     Settings.putBool("LDR_ON_GROUND", LDR_ON_GROUND);
     Settings.putString("BUTTON_CALLBACK", BUTTON_CALLBACK);
+    Settings.putString("IFRAME_URL", IFRAME_URL);
     Settings.putUInt("C_CORRECTION", COLOR_CORRECTION.as_uint32_t());
     Settings.putUInt("C_TEMPERATURE", COLOR_TEMPERATURE.as_uint32_t());
     Settings.putBool("MQTT_ACTIVE", MQTT_ACTIVE);
@@ -1105,6 +1116,7 @@ float HUM_OFFSET;
 uint16_t LDR_RAW;
 String TIME_FORMAT = "%H:%M:%S";
 String DATE_FORMAT = "%d.%m.%y";
+String IFRAME_URL = "https://blueforcer.github.io/awtrix3_web_test/";
 int BACKGROUND_EFFECT = -1;
 bool START_ON_MONDAY;
 

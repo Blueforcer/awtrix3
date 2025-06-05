@@ -27,11 +27,10 @@ static const char html[] PROGMEM = R"rawliteral(
 </head>
 <body>
 
-<iframe id="mainFrame" src="https://blueforcer.github.io/awtrix3_web_test/"></iframe>
+<iframe id="mainFrame" src="{{IFRAME_URL}}"></iframe>
 
 <script>
         window.addEventListener('message', async function(event) {
-            if (event.origin !== "https://blueforcer.github.io") return;
             try {
                 const localUrl = event.data.url.replace(/^http:\/\/[^/]+/, '');
                 const fetchOptions = {

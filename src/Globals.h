@@ -115,7 +115,7 @@ extern uint32_t WDC_INACTIVE;
 extern float GAMMA;
 void loadSettings();
 void saveSettings();
-void setSettingsFromJson(const String &json);
+void setSettingsFromJson(const char *json);
 void saveWiFiCredentials(const String& ssid, const String& password);
 void loadWiFiCredentials(String &ssid, String &password);
 String getSettingsAsJson();
@@ -155,4 +155,5 @@ extern OverlayEffect GLOBAL_OVERLAY;
 extern String HOSTNAME;
 extern int WEB_PORT;
 extern bool BUZ_VOL;
+extern String IFRAME_URL;
 #endif // Globals_H

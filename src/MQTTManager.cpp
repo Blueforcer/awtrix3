@@ -98,6 +98,11 @@ void processMqttMessage(const String &strTopic, const String &payloadCopy)
         return;
     }
 
+    if (strTopic.equals(MQTT_PREFIX + "/system"))
+    {
+        setSettingsFromJson(payloadCopy.c_str());
+    }
+
     if (strTopic.equals(MQTT_PREFIX + "/r2d2"))
     {
         PeripheryManager.r2d2(payloadCopy.c_str());
@@ -402,6 +407,7 @@ void onMqttConnected()
         "/moodlight",
         "/sound",
         "/rtttl",
+        "/system",
         "/sendscreen",
         "/r2d2"};
     for (const char *topic : topics)

@@ -2290,14 +2290,12 @@ void DisplayManager_::setCustomAppColors(uint32_t color)
   }
 }
 
-String DisplayManager_::ledsAsJson()
-{
-  StaticJsonDocument<JSON_ARRAY_SIZE(MATRIX_WIDTH * MATRIX_HEIGHT)> jsonDoc;
+String DisplayManager_::ledsAsJson() {
+  size_t capacity = JSON_ARRAY_SIZE(MATRIX_WIDTH * MATRIX_HEIGHT);
+  DynamicJsonDocument jsonDoc(capacity);
   JsonArray jsonColors = jsonDoc.to<JsonArray>();
-  for (int y = 0; y < MATRIX_HEIGHT; y++)
-  {
-    for (int x = 0; x < MATRIX_WIDTH; x++)
-    {
+  for (int y = 0; y < MATRIX_HEIGHT; y++) {
+    for (int x = 0; x < MATRIX_WIDTH; x++) {
       int index = matrix->XY(x, y);
       int color = (ledsCopy[index].r << 16) | (ledsCopy[index].g << 8) | ledsCopy[index].b;
       jsonColors.add(color);
@@ -2307,6 +2305,7 @@ String DisplayManager_::ledsAsJson()
   serializeJson(jsonColors, jsonString);
   return jsonString;
 }
+
 
 String DisplayManager_::getAppsWithIcon()
 {
