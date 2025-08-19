@@ -117,7 +117,9 @@ void saveSettings();
 extern bool BLOCK_NAVIGATION;
 extern bool UPDATE_CHECK;
 extern bool SENSOR_READING;
-extern bool SENSORS_STABLE;
+// This boolean is used to indicate that the battery sensor readings via the ADC are stable. 
+// If your device dosn't have a battery, make sure that BATTERY_PIN in PeripheryManager.cpp is undefined
+extern bool BATTERY_READING_STABLE;
 extern bool ROTATE_SCREEN;
 extern long STATS_INTERVAL;
 extern uint8_t TIME_MODE;
