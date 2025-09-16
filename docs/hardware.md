@@ -9,7 +9,7 @@ if you want to build your own AWTRIX 3, here are the pinout of the Ulanzi clock
 |7  | ADC7 / GPIO35   | LDR (light) sensor (GL5516) (optional)          |
 |8  | GPIO32    | Matrix                                      |
 |11 | GPIO26    | Left button (optional)                               |
-|12 | GPIO27    | Middle button (optional)                             |
+|12 | GPIO27    | Middle button (optional) NC/Inverted                  |
 |13 | GPIO14    | Right button  (optional)                              |
 |23 | GPIO15    | Buzzer  (optional)                                    |
 |33/36| 21 (SDA) /22(SCL)  | Temperature and Humidity Sensors (optional)     |
@@ -33,3 +33,4 @@ Create a dev.json in your filemanager with the following content:
 ```
 
 Change the matrix layout to 0,1 or 2
+
