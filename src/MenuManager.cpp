@@ -73,7 +73,7 @@ int8_t dateFormatIndex;
 uint8_t dateFormatCount = 9;
 
 int8_t appsIndex;
-uint8_t appsCount = 5;
+uint8_t defaultAppsCount = 5;
 
 MenuState currentState = MainMenu;
 
@@ -125,6 +125,15 @@ int convertBRIPercentTo8Bit(int brightness_percent)
     return brightness;
 }
 
+uint8_t getAppsCount()
+{
+    uint8_t appsCount = defaultAppsCount;
+    if (!HAS_BATTERY){
+            appsCount -= 1;
+    }
+    return appsCount;
+}
+
 String MenuManager_::menutext()
 {
     char t[20];
@@ -173,7 +182,7 @@ String MenuManager_::menutext()
     case TempMenu:
         return IS_CELSIUS ? "°C" : "°F";
     case Appmenu:
-        DisplayManager.drawMenuIndicator(appsIndex, appsCount, 0xFBC000);
+        DisplayManager.drawMenuIndicator(appsIndex, getAppsCount(), 0xFBC000);
         switch (appsIndex)
         {
         case 0:
@@ -189,7 +198,8 @@ String MenuManager_::menutext()
             DisplayManager.drawBMP(0, 0, icon_2075, 8, 8);
             return SHOW_HUM ? "ON" : "OFF";
 #ifndef awtrix2_upgrade
-        case 4:
+        case 4: 
+            // TODO: Very Hacky! Its better to init the apps with help of an array so we dont need to use index here. With this approach we could also do better conditional app rendering.
             DisplayManager.drawBMP(0, 0, icon_1486, 8, 8);
             return SHOW_BAT ? "ON" : "OFF";
 #endif
@@ -248,7 +258,7 @@ void MenuManager_::rightButton()
         dateFormatIndex = (dateFormatIndex + 1) % dateFormatCount;
         break;
     case Appmenu:
-        appsIndex = (appsIndex + 1) % appsCount;
+        appsIndex = (appsIndex + 1) % getAppsCount();
         break;
     case WeekdayMenu:
         START_ON_MONDAY = !START_ON_MONDAY;
@@ -310,7 +320,7 @@ void MenuManager_::leftButton()
         dateFormatIndex = (dateFormatIndex == 0) ? dateFormatCount - 1 : dateFormatIndex - 1;
         break;
     case Appmenu:
-        appsIndex = (appsIndex == 0) ? appsCount - 1 : appsIndex - 1;
+        appsIndex = (appsIndex == 0) ? getAppsCount() - 1 : appsIndex - 1;
         break;
     case WeekdayMenu:
         START_ON_MONDAY = !START_ON_MONDAY;
