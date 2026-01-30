@@ -169,6 +169,23 @@ void right_button_pressed()
 
 void select_button_pressed()
 {
+    // Exit AP mode on button press
+    if (AP_MODE)
+    {
+        if (DFPLAYER_ACTIVE)
+            PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
+
+        AP_MODE = false;
+
+        // Show brief transition message
+        DisplayManager.HSVtext(4, 6, "EXIT AP", true, 0);
+        delay(500);
+
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Exiting AP mode via button press"));
+        return;
+    }
+
     if (!BLOCK_NAVIGATION)
     {
         if (DFPLAYER_ACTIVE)

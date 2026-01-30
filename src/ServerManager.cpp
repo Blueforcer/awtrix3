@@ -222,6 +222,7 @@ void ServerManager_::setup()
     mws.setAuth(AUTH_USER, AUTH_PASS);
     if (isConnected)
     {
+        mws.clearOptions(); // Clear any existing options to prevent duplicates
         mws.addOptionBox("Network");
         mws.addOption("Static IP", NET_STATIC);
         mws.addOption("Local IP", NET_IP);

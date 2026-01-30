@@ -166,6 +166,11 @@ void loadDevSettings()
             BUZ_VOL = doc["buzzer_volume"].as<bool>();
         }
 
+        if (doc.containsKey("show_wifi_indicator"))
+        {
+            SHOW_WIFI_INDICATOR = doc["show_wifi_indicator"].as<bool>();
+        }
+
         if (doc.containsKey("web_port"))
         {
             WEB_PORT = doc["web_port"];
@@ -463,3 +468,4 @@ int WEB_PORT = 80;
 OverlayEffect GLOBAL_OVERLAY = NONE;
 String HOSTNAME = "";
 bool BUZ_VOL = false;
+bool SHOW_WIFI_INDICATOR = true;

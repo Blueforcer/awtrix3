@@ -73,11 +73,14 @@ void setup()
   delay(500);
   xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 0);
   ServerManager.setup();
+
+  // Load apps regardless of WiFi status
+  DisplayManager.loadNativeApps();
+  DisplayManager.loadCustomApps();
+
   if (ServerManager.isConnected)
   {
-    // timer_init();
-    DisplayManager.loadNativeApps();
-    DisplayManager.loadCustomApps();
+    // WiFi-dependent services only
     UpdateManager.setup();
     DisplayManager.startArtnet();
     StopTask = true;
@@ -96,14 +99,14 @@ void setup()
       x -= 0.18;
     }
 
-    
+
       if (MQTT_HOST != "")
       {
         DisplayManager.HSVtext(4, 6, "MQTT...", true, 0);
         MQTTManager.setup();
         MQTTManager.tick();
       }
-    
+
   }
   else
   {
