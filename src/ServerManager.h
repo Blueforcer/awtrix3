@@ -8,10 +8,15 @@ class ServerManager_
 private:
     ServerManager_() = default;
 
+    void registerHttpHandlers();
+    void handleUdpDiscovery();
+    void handleTcpClient();
+    static void httpWorkerTask(void *param);
+
 public:
     static ServerManager_ &getInstance();
     void setup();
-    void tick(); 
+    void tick();
     void loadSettings();
     void sendButton(byte btn, bool state);
     void erase();
@@ -21,5 +26,5 @@ public:
 };
 
 extern ServerManager_ &ServerManager;
- 
+
 #endif
