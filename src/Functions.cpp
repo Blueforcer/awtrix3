@@ -249,6 +249,111 @@ String utf8ascii(String s)
     return r;
 }
 
+// Reads a color value from a JSON object by key.
+// Supports hex strings ("#RRGGBB") and RGB arrays ([r, g, b]).
+// Returns defaultColor if the key is missing.
+uint32_t getColorField(JsonObject doc, const char *key, uint32_t defaultColor)
+{
+    if (doc.containsKey(key))
+    {
+        return getColorFromJsonVariant(doc[key], defaultColor);
+    }
+    return defaultColor;
+}
+
+// Parses a two-color gradient from the "gradient" JSON field.
+// Each color can be a hex string or RGB array.
+// Sets both elements to -1 if the field is missing or malformed.
+void parseGradient(JsonObject doc, int gradient[2])
+{
+    gradient[0] = -1;
+    gradient[1] = -1;
+    if (doc.containsKey("gradient"))
+    {
+        JsonArray arr = doc["gradient"].as<JsonArray>();
+        if (arr.size() == 2)
+        {
+            gradient[0] = getColorFromJsonVariant(arr[0], TEXTCOLOR_888);
+            gradient[1] = getColorFromJsonVariant(arr[1], TEXTCOLOR_888);
+        }
+    }
+}
+
+// Parses "bar" and "line" chart data arrays (max 16 elements each) from a JSON object.
+// Reads the optional "barBC" field for bar background color.
+// When autoscale is true, values are mapped to the 0-8 range relative to the maximum.
+void parseBarLineData(JsonObject doc, int barData[16], int &barSize, int lineData[16], int &lineSize, uint32_t &barBG, bool autoscale)
+{
+    const char *dataKeys[] = {"bar", "line"};
+    int *dataArrays[] = {barData, lineData};
+    int *dataSizeArrays[] = {&barSize, &lineSize};
+
+    for (int i = 0; i < 2; i++)
+    {
+        const char *key = dataKeys[i];
+        int *dataArray = dataArrays[i];
+        int *dataSize = dataSizeArrays[i];
+
+        if (doc.containsKey(key))
+        {
+            barBG = getColorField(doc, "barBC", 0);
+            JsonArray data = doc[key];
+            int index = 0;
+            int maximum = 0;
+            for (JsonVariant v : data)
+            {
+                if (index >= 16)
+                {
+                    break;
+                }
+                int d = v.as<int>();
+                if (d > maximum)
+                {
+                    maximum = d;
+                }
+                dataArray[index] = d;
+                index++;
+            }
+            *dataSize = index;
+
+            if (autoscale)
+            {
+                for (int j = 0; j < *dataSize; j++)
+                {
+                    dataArray[j] = map(dataArray[j], 0, maximum, 0, 8);
+                }
+            }
+        }
+        else
+        {
+            *dataSize = 0;
+        }
+    }
+}
+
+// Parses a CRGB color from a JSON object by key.
+// Accepts a hex string ("RRGGBB") or an RGB array ([r, g, b]).
+// Returns true and sets `out` if the key exists and has a valid format, false otherwise.
+bool parseCRGB(JsonObject doc, const char *key, CRGB &out)
+{
+    if (!doc.containsKey(key))
+        return false;
+    auto colorValue = doc[key];
+    if (colorValue.is<String>())
+    {
+        String hexColor = colorValue.as<String>();
+        uint32_t rgbColor = strtoul(hexColor.c_str(), NULL, 16);
+        out.setRGB((rgbColor >> 16) & 0xFF, (rgbColor >> 8) & 0xFF, rgbColor & 0xFF);
+        return true;
+    }
+    else if (colorValue.is<JsonArray>() && colorValue.size() == 3)
+    {
+        out.setRGB((uint8_t)colorValue[0], (uint8_t)colorValue[1], (uint8_t)colorValue[2]);
+        return true;
+    }
+    return false;
+}
+
 uint32_t fadeColor(uint32_t color, uint32_t interval)
 {
     float phase = (sin(2 * PI * millis() / float(interval)) + 1) * 0.5;

@@ -489,15 +489,7 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
   customApp.progress = doc.containsKey("progress") ? doc["progress"].as<int>() : -1;
 
-  if (doc.containsKey("background"))
-  {
-    auto background = doc["background"];
-    customApp.background = getColorFromJsonVariant(background, 0);
-  }
-  else
-  {
-    customApp.background = 0;
-  }
+  customApp.background = getColorField(doc, "background", 0);
 
   if (doc.containsKey("save") && preventSave == false)
   {
@@ -524,86 +516,11 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     }
   }
 
-  if (doc.containsKey("progressC"))
-  {
-    auto progressC = doc["progressC"];
-    customApp.pColor = getColorFromJsonVariant(progressC, 0x00FF00);
-  }
-  else
-  {
-    customApp.pColor = 0x00FF00;
-  }
+  customApp.pColor = getColorField(doc, "progressC", 0x00FF00);
+  customApp.pbColor = getColorField(doc, "progressBC", 0xFFFFFF);
 
-  if (doc.containsKey("progressBC"))
-  {
-    auto progressBC = doc["progressBC"];
-    customApp.pbColor = getColorFromJsonVariant(progressBC, 0xFFFFFF);
-  }
-  else
-  {
-    customApp.pbColor = 0xFFFFFF;
-  }
-
-  bool autoscale = true;
-  if (doc.containsKey("autoscale"))
-  {
-    autoscale = doc["autoscale"].as<bool>();
-  }
-
-  // Handling for "bar" and "line" as they have similar structures
-  const char *dataKeys[] = {"bar", "line"};
-  int *dataArrays[] = {customApp.barData, customApp.lineData};
-  int *dataSizeArrays[] = {&customApp.barSize, &customApp.lineSize};
-
-  for (int i = 0; i < 2; i++)
-  {
-    const char *key = dataKeys[i];
-    int *dataArray = dataArrays[i];
-    int *dataSize = dataSizeArrays[i];
-
-    if (doc.containsKey(key))
-    {
-      if (doc.containsKey("barBC"))
-      {
-        auto color = doc["barBC"];
-        customApp.barBG = getColorFromJsonVariant(color, 0);
-      }
-      else
-      {
-        customApp.barBG = 0;
-      }
-      JsonArray data = doc[key];
-      int index = 0;
-      int maximum = 0;
-      for (JsonVariant v : data)
-      {
-        if (index >= 16)
-        {
-          break;
-        }
-        int d = v.as<int>();
-        if (d > maximum)
-        {
-          maximum = d;
-        }
-        dataArray[index] = d;
-        index++;
-      }
-      *dataSize = index;
-
-      if (autoscale)
-      {
-        for (int j = 0; j < *dataSize; j++)
-        {
-          dataArray[j] = map(dataArray[j], 0, maximum, 0, 8);
-        }
-      }
-    }
-    else
-    {
-      *dataSize = 0;
-    }
-  }
+  bool autoscale = doc.containsKey("autoscale") ? doc["autoscale"].as<bool>() : true;
+  parseBarLineData(doc, customApp.barData, customApp.barSize, customApp.lineData, customApp.lineSize, customApp.barBG, autoscale);
 
   if (doc.containsKey("draw"))
   {
@@ -683,21 +600,7 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
     customApp.currentFrame = 0;
   }
 
-  customApp.gradient[0] = -1;
-  customApp.gradient[1] = -1;
-
-  if (doc.containsKey("gradient"))
-  {
-    JsonArray arr = doc["gradient"].as<JsonArray>();
-    if (arr.size() == 2)
-    {
-      auto color1 = arr[0];
-      auto color2 = arr[1];
-
-      customApp.gradient[0] = getColorFromJsonVariant(color1, TEXTCOLOR_888);
-      customApp.gradient[1] = getColorFromJsonVariant(color2, TEXTCOLOR_888);
-    }
-  }
+  parseGradient(doc, customApp.gradient);
 
   if (doc.containsKey("color"))
   {
@@ -766,35 +669,9 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
 
   newNotification.progress = doc.containsKey("progress") ? doc["progress"].as<int>() : -1;
 
-  if (doc.containsKey("progressC"))
-  {
-    auto progressC = doc["progressC"];
-    newNotification.pColor = getColorFromJsonVariant(progressC, 0x00FF00);
-  }
-  else
-  {
-    newNotification.pColor = 0x00FF00;
-  }
-
-  if (doc.containsKey("progressBC"))
-  {
-    auto progressBC = doc["progressBC"];
-    newNotification.pbColor = getColorFromJsonVariant(progressBC, 0xFFFFFF);
-  }
-  else
-  {
-    newNotification.pbColor = 0xFFFFFF;
-  }
-
-  if (doc.containsKey("background"))
-  {
-    auto background = doc["background"];
-    newNotification.background = getColorFromJsonVariant(background, 0);
-  }
-  else
-  {
-    newNotification.background = 0x000000;
-  }
+  newNotification.pColor = getColorField(doc.as<JsonObject>(), "progressC", 0x00FF00);
+  newNotification.pbColor = getColorField(doc.as<JsonObject>(), "progressBC", 0xFFFFFF);
+  newNotification.background = getColorField(doc.as<JsonObject>(), "background", 0);
 
   if (doc.containsKey("draw"))
   {
@@ -844,88 +721,12 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
   newNotification.iconPosition = 0;
   newNotification.scrollDelay = 0;
 
-  newNotification.gradient[0] = -1;
-  newNotification.gradient[1] = -1;
-  if (doc.containsKey("gradient"))
-  {
-    JsonArray arr = doc["gradient"].as<JsonArray>();
-    if (arr.size() == 2)
-    {
-      auto color1 = arr[0];
-      auto color2 = arr[1];
+  parseGradient(doc.as<JsonObject>(), newNotification.gradient);
 
-      newNotification.gradient[0] = getColorFromJsonVariant(color1, TEXTCOLOR_888);
-      newNotification.gradient[1] = getColorFromJsonVariant(color2, TEXTCOLOR_888);
-    }
-  }
+  bool autoscale = doc.containsKey("autoscale") ? doc["autoscale"].as<bool>() : true;
+  parseBarLineData(doc.as<JsonObject>(), newNotification.barData, newNotification.barSize, newNotification.lineData, newNotification.lineSize, newNotification.barBG, autoscale);
 
-  bool autoscale = true;
-  if (doc.containsKey("autoscale"))
-  {
-    autoscale = doc["autoscale"].as<bool>();
-  }
-
-  // Handling for "bar" and "line" as they have similar structures
-  const char *dataKeys[] = {"bar", "line"};
-  int *dataArrays[] = {newNotification.barData, newNotification.lineData};
-  int *dataSizeArrays[] = {&newNotification.barSize, &newNotification.lineSize};
-
-  for (int i = 0; i < 2; i++)
-  {
-    const char *key = dataKeys[i];
-    int *dataArray = dataArrays[i];
-    int *dataSize = dataSizeArrays[i];
-
-    if (doc.containsKey(key))
-    {
-
-      if (doc.containsKey("barBC"))
-      {
-        auto color = doc["barBC"];
-        newNotification.barBG = getColorFromJsonVariant(color, 0);
-      }
-      JsonArray data = doc[key];
-      int index = 0;
-      int maximum = 0;
-      for (JsonVariant v : data)
-      {
-        if (index >= 16)
-        {
-          break;
-        }
-        int d = v.as<int>();
-        if (d > maximum)
-        {
-          maximum = d;
-        }
-        dataArray[index] = d;
-        index++;
-      }
-      *dataSize = index;
-
-      if (autoscale)
-      {
-        for (int j = 0; j < *dataSize; j++)
-        {
-          dataArray[j] = map(dataArray[j], 0, maximum, 0, 8);
-        }
-      }
-    }
-    else
-    {
-      *dataSize = 0;
-    }
-  }
-
-  if (doc.containsKey("color"))
-  {
-    auto color = doc["color"];
-    newNotification.color = getColorFromJsonVariant(color, TEXTCOLOR_888);
-  }
-  else
-  {
-    newNotification.color = TEXTCOLOR_888;
-  }
+  newNotification.color = getColorField(doc.as<JsonObject>(), "color", TEXTCOLOR_888);
 
   if (doc.containsKey("text") && doc["text"].is<JsonArray>())
   {
@@ -2139,55 +1940,15 @@ void DisplayManager_::setNewSettings(const char *json)
     PeripheryManager.setVolume(SOUND_VOLUME);
   }
 
-  if (doc.containsKey("CCORRECTION"))
+  if (parseCRGB(doc.as<JsonObject>(), "CCORRECTION", COLOR_CORRECTION))
   {
-    auto colorValue = doc["CCORRECTION"];
-    if (colorValue.is<String>())
-    {
-      String hexColor = colorValue.as<String>();
-      uint32_t rgbColor = strtoul(hexColor.c_str(), NULL, 16);
-      uint8_t r = (rgbColor >> 16) & 0xFF;
-      uint8_t g = (rgbColor >> 8) & 0xFF;
-      uint8_t b = rgbColor & 0xFF;
-      COLOR_CORRECTION.setRGB(r, g, b);
-    }
-    else if (colorValue.is<JsonArray>() && colorValue.size() == 3)
-    {
-      uint8_t r = colorValue[0];
-      uint8_t g = colorValue[1];
-      uint8_t b = colorValue[2];
-      COLOR_CORRECTION.setRGB(r, g, b);
-    }
-
     if (COLOR_CORRECTION)
-    {
       FastLED.setCorrection(COLOR_CORRECTION);
-    }
   }
-  if (doc.containsKey("CTEMP"))
+  if (parseCRGB(doc.as<JsonObject>(), "CTEMP", COLOR_TEMPERATURE))
   {
-    auto colorValue = doc["CTEMP"];
-    if (colorValue.is<String>())
-    {
-      String hexColor = colorValue.as<String>();
-      uint32_t rgbColor = strtoul(hexColor.c_str(), NULL, 16);
-      uint8_t r = (rgbColor >> 16) & 0xFF;
-      uint8_t g = (rgbColor >> 8) & 0xFF;
-      uint8_t b = rgbColor & 0xFF;
-      COLOR_TEMPERATURE.setRGB(r, g, b);
-    }
-    else if (colorValue.is<JsonArray>() && colorValue.size() == 3)
-    {
-      uint8_t r = colorValue[0];
-      uint8_t g = colorValue[1];
-      uint8_t b = colorValue[2];
-      COLOR_TEMPERATURE.setRGB(r, g, b);
-    }
-
     if (COLOR_TEMPERATURE)
-    {
       FastLED.setTemperature(COLOR_TEMPERATURE);
-    }
   }
   if (doc.containsKey("WDCA"))
   {

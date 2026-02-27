@@ -27,4 +27,12 @@ uint32_t TextEffect(uint32_t color, uint32_t fade, uint32_t blink);
 
 uint32_t fadeColor(uint32_t color, uint32_t interval);
 
+uint32_t getColorField(JsonObject doc, const char *key, uint32_t defaultColor);
+
+void parseGradient(JsonObject doc, int gradient[2]);
+
+void parseBarLineData(JsonObject doc, int barData[16], int &barSize, int lineData[16], int &lineSize, uint32_t &barBG, bool autoscale);
+
+bool parseCRGB(JsonObject doc, const char *key, CRGB &out);
+
 #endif
