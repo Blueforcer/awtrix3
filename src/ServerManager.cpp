@@ -69,6 +69,11 @@ void saveHandler()
     webRequest->send(200);
 }
 
+static bool isBodyOversized()
+{
+    return mws.webserver->arg("plain").length() > 8192;
+}
+
 void addHandler()
 {
 
@@ -99,6 +104,7 @@ void addHandler()
 
     mws.addHandler("/api/moodlight", HTTP_POST, []()
                    {
+                    if (isBodyOversized()) { mws.webserver->send(400,F("text/plain"),F("BadRequest")); return; }
                     if (DisplayManager.moodlight(mws.webserver->arg("plain").c_str()))
                     {
                         mws.webserver->send(200, F(F("text/plain")), F("OK"));
@@ -109,6 +115,7 @@ void addHandler()
                     } });
     mws.addHandler("/api/notify", HTTP_POST, []()
                    {
+                       if (isBodyOversized()) { mws.webserver->send(400,F("text/plain"),F("BadRequest")); return; }
                        if (DisplayManager.generateNotification(1,mws.webserver->arg("plain").c_str()))
                        {
                         mws.webserver->send(200, F("text/plain"), F("OK"));
@@ -136,7 +143,8 @@ void addHandler()
     mws.addHandler("/api/notify/dismiss", HTTP_ANY, []()
                    { DisplayManager.dismissNotify(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/apps", HTTP_POST, []()
-                   { DisplayManager.updateAppVector(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
+                   { if (isBodyOversized()) { mws.webserver->send(400,F("text/plain"),F("BadRequest")); return; }
+                     DisplayManager.updateAppVector(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler(
         "/api/switch", HTTP_POST, []()
         {
@@ -151,17 +159,20 @@ void addHandler()
     mws.addHandler("/api/apps", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getAppsWithIcon().c_str()); });
     mws.addHandler("/api/settings", HTTP_POST, []()
-                   { DisplayManager.setNewSettings(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
+                   { if (isBodyOversized()) { mws.webserver->send(400,F("text/plain"),F("BadRequest")); return; }
+                     DisplayManager.setNewSettings(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/erase", HTTP_ANY, []()
                    { ServerManager.erase();  mws.webserver->send(200,F("text/plain"),F("OK"));delay(200); ESP.restart(); });
     mws.addHandler("/api/resetSettings", HTTP_ANY, []()
                    { formatSettings();   mws.webserver->send(200,F("text/plain"),F("OK"));delay(200); ESP.restart(); });
     mws.addHandler("/api/reorder", HTTP_POST, []()
-                   { DisplayManager.reorderApps(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
+                   { if (isBodyOversized()) { mws.webserver->send(400,F("text/plain"),F("BadRequest")); return; }
+                     DisplayManager.reorderApps(mws.webserver->arg("plain").c_str()); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/settings", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getSettings().c_str()); });
     mws.addHandler("/api/custom", HTTP_POST, []()
-                   { 
+                   {
+                    if (isBodyOversized()) { mws.webserver->send(400,F("text/plain"),F("BadRequest")); return; }
                     if (DisplayManager.parseCustomPage(mws.webserver->arg("name"),mws.webserver->arg("plain").c_str(),false)){
                         mws.webserver->send(200,F("text/plain"),F("OK")); 
                     }else{
@@ -172,21 +183,24 @@ void addHandler()
     mws.addHandler("/api/screen", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.ledsAsJson().c_str()); });
     mws.addHandler("/api/indicator1", HTTP_POST, []()
-                   { 
+                   {
+                    if (isBodyOversized()) { mws.webserver->send(400,F("text/plain"),F("BadRequest")); return; }
                     if (DisplayManager.indicatorParser(1,mws.webserver->arg("plain").c_str())){
                      mws.webserver->send(200,F("text/plain"),F("OK")); 
                     }else{
                          mws.webserver->send(500,F("text/plain"),F("ErrorParsingJson")); 
                     } });
     mws.addHandler("/api/indicator2", HTTP_POST, []()
-                   { 
+                   {
+                    if (isBodyOversized()) { mws.webserver->send(400,F("text/plain"),F("BadRequest")); return; }
                     if (DisplayManager.indicatorParser(2,mws.webserver->arg("plain").c_str())){
                      mws.webserver->send(200,F("text/plain"),F("OK")); 
                     }else{
                          mws.webserver->send(500,F("text/plain"),F("ErrorParsingJson")); 
                     } });
     mws.addHandler("/api/indicator3", HTTP_POST, []()
-                   { 
+                   {
+                    if (isBodyOversized()) { mws.webserver->send(400,F("text/plain"),F("BadRequest")); return; }
                     if (DisplayManager.indicatorParser(3,mws.webserver->arg("plain").c_str())){
                      mws.webserver->send(200,F("text/plain"),F("OK")); 
                     }else{
