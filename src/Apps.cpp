@@ -68,7 +68,7 @@ static std::map<char, std::array<const char *, 4>> FONT4 = {
     {'9', {"111", "101", "111", "001"}}, {' ', {"000", "000", "000", "000"}},
 };
 
-static int16_t BT_tickerX = MATRIX_WIDTH;
+static int16_t BT_tickerX = 32;
 static String BT_tickerText = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG   ";
 
 static void drawGlyph3x3(FastLED_NeoMatrix *matrix, char c, int16_t x, int16_t y, uint32_t color)
@@ -283,7 +283,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         }
         BT_tickerX -= 1;
         if (BT_tickerX < -tickerWidth)
-            BT_tickerX = MATRIX_WIDTH;
+            BT_tickerX = 32;
 
         // Bottom binary clock (rows 4..7)
         struct tm *currentTime = timer_localtime();
