@@ -69,6 +69,7 @@ static std::map<char, std::array<const char *, 4>> FONT4 = {
 };
 
 static int16_t BT_tickerX = 32;
+static uint32_t BT_lastStepMs = 0;
 
 static void drawGlyph3x3(FastLED_NeoMatrix *matrix, char c, int16_t x, int16_t y, uint32_t color)
 {
@@ -283,9 +284,17 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
             drawGlyph3x3(matrix, tickerText[i], tx + x, y, 0xFFFFFF);
             tx += 4;
         }
-        BT_tickerX -= 1;
-        if (BT_tickerX < -tickerWidth)
-            BT_tickerX = 32;
+        // Use SSPEED (0..1000) as ticker timing for TMODE 7.
+        // Higher SSPEED => slower movement.
+        uint32_t nowMs = millis();
+        uint32_t stepInterval = constrain((uint32_t)SCROLL_SPEED * 2, 20u, 2000u);
+        if (nowMs - BT_lastStepMs >= stepInterval)
+        {
+            BT_tickerX -= 1;
+            BT_lastStepMs = nowMs;
+            if (BT_tickerX < -tickerWidth)
+                BT_tickerX = 32;
+        }
 
         // Bottom binary clock (rows 4..7)
         struct tm *currentTime = timer_localtime();
