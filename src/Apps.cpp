@@ -1,6 +1,7 @@
 #include "Apps.h"
 
 #include <map>
+#include <array>
 #include "icons.h"
 #include "MatrixDisplayUi.h"
 #include "Functions.h"
@@ -31,6 +32,74 @@ uint32_t COLOR_HOUR_ON = 0xFF0000;   // Rot
 uint32_t COLOR_MINUTE_ON = 0x00FF00; // Grün
 uint32_t COLOR_SECOND_ON = 0x0000FF; // Blau
 uint32_t COLOR_OFF = 0xFFFFFF;       // Weiß
+
+// Native BinaryTicker mode (TIME_MODE == 7)
+// User-defined 3x3 font (ticker)
+static std::map<char, std::array<const char *, 3>> FONT3 = {
+    {'A', {"010", "111", "101"}}, {'B', {"110", "111", "111"}}, {'C', {"111", "100", "111"}},
+    {'D', {"110", "101", "110"}}, {'E', {"111", "110", "111"}}, {'F', {"111", "110", "100"}},
+    {'G', {"110", "101", "111"}}, {'H', {"101", "111", "101"}}, {'I', {"111", "010", "111"}},
+    {'J', {"011", "001", "111"}}, {'K', {"101", "110", "101"}}, {'L', {"100", "100", "111"}},
+    {'M', {"111", "111", "101"}}, {'N', {"111", "101", "101"}}, {'O', {"111", "101", "111"}},
+    {'P', {"111", "111", "100"}}, {'Q', {"111", "101", "011"}}, {'R', {"111", "110", "101"}},
+    {'S', {"011", "010", "110"}}, {'T', {"111", "010", "010"}}, {'U', {"101", "101", "111"}},
+    {'V', {"101", "101", "010"}}, {'W', {"101", "111", "111"}}, {'X', {"101", "010", "101"}},
+    {'Y', {"101", "010", "010"}}, {'Z', {"110", "010", "011"}},
+    {'0', {"111", "101", "111"}}, {'1', {"010", "010", "010"}}, {'2', {"110", "010", "011"}},
+    {'3', {"111", "011", "111"}}, {'4', {"101", "111", "001"}}, {'5', {"011", "010", "110"}},
+    {'6', {"100", "111", "111"}}, {'7', {"111", "001", "001"}}, {'8', {"111", "111", "111"}},
+    {'9', {"111", "111", "001"}}, {' ', {"000", "000", "000"}},
+};
+
+// User-defined 3x4 font (temperature)
+static std::map<char, std::array<const char *, 4>> FONT4 = {
+    {'A', {"010", "101", "111", "101"}}, {'B', {"110", "111", "101", "111"}}, {'C', {"111", "100", "100", "111"}},
+    {'D', {"110", "101", "101", "110"}}, {'E', {"111", "110", "100", "111"}}, {'F', {"111", "110", "100", "100"}},
+    {'G', {"111", "100", "101", "111"}}, {'H', {"101", "111", "101", "101"}}, {'I', {"111", "010", "010", "111"}},
+    {'J', {"001", "001", "101", "111"}}, {'K', {"101", "110", "110", "101"}}, {'L', {"100", "100", "100", "111"}},
+    {'M', {"111", "111", "101", "101"}}, {'N', {"110", "111", "101", "101"}}, {'O', {"111", "101", "101", "111"}},
+    {'P', {"111", "101", "111", "100"}}, {'Q', {"111", "101", "111", "011"}}, {'R', {"110", "101", "110", "101"}},
+    {'S', {"110", "111", "001", "111"}}, {'T', {"111", "010", "010", "010"}}, {'U', {"101", "101", "101", "111"}},
+    {'V', {"101", "101", "101", "010"}}, {'W', {"101", "101", "111", "101"}}, {'X', {"101", "010", "010", "101"}},
+    {'Y', {"101", "010", "010", "010"}}, {'Z', {"111", "011", "110", "111"}},
+    {'0', {"111", "101", "101", "111"}}, {'1', {"010", "110", "010", "111"}}, {'2', {"011", "111", "100", "111"}},
+    {'3', {"111", "011", "001", "111"}}, {'4', {"101", "101", "111", "001"}}, {'5', {"110", "111", "001", "111"}},
+    {'6', {"111", "110", "101", "111"}}, {'7', {"111", "001", "001", "001"}}, {'8', {"111", "111", "101", "111"}},
+    {'9', {"111", "101", "111", "001"}}, {' ', {"000", "000", "000", "000"}},
+};
+
+static int16_t BT_tickerX = MATRIX_WIDTH;
+static String BT_tickerText = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG   ";
+
+static void drawGlyph3x3(FastLED_NeoMatrix *matrix, char c, int16_t x, int16_t y, uint32_t color)
+{
+    auto it = FONT3.find(toupper(c));
+    if (c == ' ') it = FONT3.find(' ');
+    if (it == FONT3.end()) return;
+    const auto &rows = it->second;
+    for (uint8_t gy = 0; gy < 3; gy++)
+    {
+        for (uint8_t gx = 0; gx < 3; gx++)
+        {
+            if (rows[gy][gx] == '1') matrix->drawPixel(x + gx, y + gy, color);
+        }
+    }
+}
+
+static void drawGlyph3x4(FastLED_NeoMatrix *matrix, char c, int16_t x, int16_t y, uint32_t color)
+{
+    auto it = FONT4.find(toupper(c));
+    if (c == ' ') it = FONT4.find(' ');
+    if (it == FONT4.end()) return;
+    const auto &rows = it->second;
+    for (uint8_t gy = 0; gy < 4; gy++)
+    {
+        for (uint8_t gx = 0; gx < 3; gx++)
+        {
+            if (rows[gy][gx] == '1') matrix->drawPixel(x + gx, y + gy, color);
+        }
+    }
+}
 
 uint16_t nativeAppsCount;
 
@@ -198,6 +267,58 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
             int x1 = 5 + i * 4;
             int y1 = 6;
             drawBit(bitValue, x1 + x, y1 + y, COLOR_SECOND_ON, COLOR_OFF);
+        }
+
+        return;
+    }
+    else if (TIME_MODE == 7)
+    {
+        // Top ticker (3x3)
+        int16_t tickerWidth = BT_tickerText.length() * 4;
+        int16_t tx = BT_tickerX;
+        for (size_t i = 0; i < BT_tickerText.length(); i++)
+        {
+            drawGlyph3x3(matrix, BT_tickerText[i], tx + x, y, 0xFFFFFF);
+            tx += 4;
+        }
+        BT_tickerX -= 1;
+        if (BT_tickerX < -tickerWidth)
+            BT_tickerX = MATRIX_WIDTH;
+
+        // Bottom binary clock (rows 4..7)
+        struct tm *currentTime = timer_localtime();
+        int hh = currentTime->tm_hour;
+        int mm = currentTime->tm_min;
+        int ss = currentTime->tm_sec;
+
+        int d[6] = {hh / 10, hh % 10, mm / 10, mm % 10, ss / 10, ss % 10};
+        int bits[6] = {2, 4, 3, 4, 3, 4};
+        uint32_t colors[6] = {0x33CCFF, 0x33CCFF, 0x00FF66, 0x00FF66, 0xFFCC33, 0xFFCC33};
+        uint32_t off = 0x32003A;
+
+        int cx = 1;
+        for (int i = 0; i < 6; i++)
+        {
+            for (int b = 0; b < bits[i]; b++)
+            {
+                bool on = (d[i] >> b) & 1;
+                int py = 7 - b;
+                matrix->drawPixel(cx + x, py + y, on ? colors[i] : off);
+            }
+            if (i == 0 || i == 2 || i == 4)
+                cx += 1;
+            else if (i == 1 || i == 3)
+                cx += 2;
+        }
+
+        // Temp in F using 3x4 font
+        int tempF = int(round((CURRENT_TEMP * 9 / 5) + 32));
+        String tStr = String(tempF);
+        int tx2 = 10;
+        for (size_t i = 0; i < tStr.length(); i++)
+        {
+            drawGlyph3x4(matrix, tStr[i], tx2 + x, 4 + y, 0xFFFFFF);
+            tx2 += 4;
         }
 
         return;

@@ -1,0 +1,26 @@
+name: Build AWTRIX (ulanzi)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/binary-ticker-app
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install PlatformIO
+        run: pip install platformio
+      - name: Build firmware (ulanzi)
+        run: pio run -e ulanzi
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-ulanzi
+          path: .pio/build/ulanzi/firmware.bin
