@@ -265,6 +265,7 @@ void loadSettings()
     BINARY_TEMP_X = Settings.getUInt("BTEMPX", 10);
     BINARY_TEMP_Y = Settings.getUInt("BTEMPY", 4);
     BINARY_TEMP_DIGITS = Settings.getUInt("BTDIG", 3);
+    BINARY_OUT_TEMP_F = Settings.getInt("BTOUTF", -1000);
     TIME_COLOR = Settings.getUInt("TIME_COL", 0);
     DATE_COLOR = Settings.getUInt("DATE_COL", 0);
     TEMP_COLOR = Settings.getUInt("TEMP_COL", 0);
@@ -322,6 +323,7 @@ void saveSettings()
     Settings.putUInt("BTEMPX", BINARY_TEMP_X);
     Settings.putUInt("BTEMPY", BINARY_TEMP_Y);
     Settings.putUInt("BTDIG", BINARY_TEMP_DIGITS);
+    Settings.putInt("BTOUTF", BINARY_OUT_TEMP_F);
     Settings.putUInt("TIME_COL", TIME_COLOR);
     Settings.putUInt("DATE_COL", DATE_COLOR);
     Settings.putUInt("TEMP_COL", TEMP_COLOR);
@@ -444,6 +446,7 @@ String BINARY_TICKER_TEXT = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG   ";
 uint8_t BINARY_TEMP_X = 10;
 uint8_t BINARY_TEMP_Y = 4;
 uint8_t BINARY_TEMP_DIGITS = 3;
+int16_t BINARY_OUT_TEMP_F = -1000; // sentinel => use internal sensor
 uint8_t SCROLL_SPEED = 100;
 uint32_t TIME_COLOR = 0;
 uint32_t CALENDAR_HEADER_COLOR = 0xFF0000;

@@ -323,7 +323,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         }
 
         // Temp in F using 3x4 font
-        int tempF = int(round((CURRENT_TEMP * 9 / 5) + 32));
+        int tempF = (BINARY_OUT_TEMP_F > -500) ? BINARY_OUT_TEMP_F : int(round((CURRENT_TEMP * 9 / 5) + 32));
         String tStr = String(tempF);
         uint8_t maxDigits = constrain(BINARY_TEMP_DIGITS, (uint8_t)1, (uint8_t)3);
         if (tStr.length() > maxDigits)

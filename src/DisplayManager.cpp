@@ -2032,6 +2032,7 @@ String DisplayManager_::getSettings()
   doc["BTEMPX"] = BINARY_TEMP_X;
   doc["BTEMPY"] = BINARY_TEMP_Y;
   doc["BTDIG"] = BINARY_TEMP_DIGITS;
+  doc["BTOUTF"] = BINARY_OUT_TEMP_F;
   doc["CHCOL"] = CALENDAR_HEADER_COLOR;
   doc["CTCOL"] = CALENDAR_TEXT_COLOR;
   doc["CBCOL"] = CALENDAR_BODY_COLOR;
@@ -2119,6 +2120,7 @@ void DisplayManager_::setNewSettings(const char *json)
   BINARY_TEMP_X = doc.containsKey("BTEMPX") ? doc["BTEMPX"].as<int>() : BINARY_TEMP_X;
   BINARY_TEMP_Y = doc.containsKey("BTEMPY") ? doc["BTEMPY"].as<int>() : BINARY_TEMP_Y;
   BINARY_TEMP_DIGITS = doc.containsKey("BTDIG") ? doc["BTDIG"].as<int>() : BINARY_TEMP_DIGITS;
+  BINARY_OUT_TEMP_F = doc.containsKey("BTOUTF") ? doc["BTOUTF"].as<int>() : BINARY_OUT_TEMP_F;
   TRANS_EFFECT = doc.containsKey("TEFF") ? doc["TEFF"] : TRANS_EFFECT;
   TIME_PER_TRANSITION = doc.containsKey("TSPEED") ? doc["TSPEED"] : TIME_PER_TRANSITION;
   BRIGHTNESS = doc.containsKey("BRI") ? doc["BRI"] : BRIGHTNESS;
