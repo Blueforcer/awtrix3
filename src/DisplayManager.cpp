@@ -2033,6 +2033,11 @@ String DisplayManager_::getSettings()
   doc["BTEMPY"] = BINARY_TEMP_Y;
   doc["BTDIG"] = BINARY_TEMP_DIGITS;
   doc["BTOUTF"] = BINARY_OUT_TEMP_F;
+  doc["BROWMODE"] = BINARY_ROW_MODE;
+  doc["BROWPROG"] = BINARY_ROW_PROGRESS;
+  doc["BROWSPD"] = BINARY_ROW_SPEED;
+  doc["BROWINT"] = BINARY_ROW_INTERVAL;
+  doc["BROWSCN"] = BINARY_ROW_SCENES;
   doc["CHCOL"] = CALENDAR_HEADER_COLOR;
   doc["CTCOL"] = CALENDAR_TEXT_COLOR;
   doc["CBCOL"] = CALENDAR_BODY_COLOR;
@@ -2121,6 +2126,11 @@ void DisplayManager_::setNewSettings(const char *json)
   BINARY_TEMP_Y = doc.containsKey("BTEMPY") ? doc["BTEMPY"].as<int>() : BINARY_TEMP_Y;
   BINARY_TEMP_DIGITS = doc.containsKey("BTDIG") ? doc["BTDIG"].as<int>() : BINARY_TEMP_DIGITS;
   BINARY_OUT_TEMP_F = doc.containsKey("BTOUTF") ? doc["BTOUTF"].as<int>() : BINARY_OUT_TEMP_F;
+  BINARY_ROW_MODE = doc.containsKey("BROWMODE") ? doc["BROWMODE"].as<int>() : BINARY_ROW_MODE;
+  BINARY_ROW_PROGRESS = doc.containsKey("BROWPROG") ? doc["BROWPROG"].as<int>() : BINARY_ROW_PROGRESS;
+  BINARY_ROW_SPEED = doc.containsKey("BROWSPD") ? doc["BROWSPD"].as<int>() : BINARY_ROW_SPEED;
+  BINARY_ROW_INTERVAL = doc.containsKey("BROWINT") ? doc["BROWINT"].as<int>() : BINARY_ROW_INTERVAL;
+  BINARY_ROW_SCENES = doc.containsKey("BROWSCN") ? doc["BROWSCN"].as<int>() : BINARY_ROW_SCENES;
   TRANS_EFFECT = doc.containsKey("TEFF") ? doc["TEFF"] : TRANS_EFFECT;
   TIME_PER_TRANSITION = doc.containsKey("TSPEED") ? doc["TSPEED"] : TIME_PER_TRANSITION;
   BRIGHTNESS = doc.containsKey("BRI") ? doc["BRI"] : BRIGHTNESS;

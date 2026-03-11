@@ -70,6 +70,26 @@ static std::map<char, std::array<const char *, 4>> FONT4 = {
 
 static int16_t BT_tickerX = 32;
 static uint32_t BT_lastStepMs = 0;
+static uint8_t BT_sceneIndex = 0;
+static uint32_t BT_sceneLastSwitchMs = 0;
+
+static uint32_t rgb(uint8_t r, uint8_t g, uint8_t b)
+{
+    return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
+}
+
+static uint32_t wheelColor(uint8_t p)
+{
+    p = 255 - p;
+    if (p < 85) return rgb(255 - p * 3, 0, p * 3);
+    if (p < 170)
+    {
+        p -= 85;
+        return rgb(0, p * 3, 255 - p * 3);
+    }
+    p -= 170;
+    return rgb(p * 3, 255 - p * 3, 0);
+}
 
 static void drawGlyph3x3(FastLED_NeoMatrix *matrix, char c, int16_t x, int16_t y, uint32_t color)
 {
@@ -98,6 +118,90 @@ static void drawGlyph3x4(FastLED_NeoMatrix *matrix, char c, int16_t x, int16_t y
         {
             if (rows[gy][gx] == '1') matrix->drawPixel(x + gx, y + gy, color);
         }
+    }
+}
+
+static uint8_t pickNextScene()
+{
+    uint8_t scenes[8];
+    uint8_t n = 0;
+    for (uint8_t i = 0; i < 8; i++)
+    {
+        if ((BINARY_ROW_SCENES >> i) & 1) scenes[n++] = i;
+    }
+    if (n == 0) return 0;
+    return scenes[random(0, n)];
+}
+
+static void drawMidlineOverlay(FastLED_NeoMatrix *matrix, int16_t x, int16_t y)
+{
+    int rowY = 3 + y;
+    bool progressActive = (BINARY_ROW_PROGRESS >= 0 && BINARY_ROW_PROGRESS <= 100);
+
+    uint8_t mode = BINARY_ROW_MODE; // 0=scene,1=progress,2=auto
+    bool useProgress = (mode == 1) || (mode == 2 && progressActive);
+
+    if (useProgress)
+    {
+        int p = constrain(BINARY_ROW_PROGRESS, 0, 100);
+        int lit = map(p, 0, 100, 0, 32);
+        for (int i = 0; i < 32; i++)
+        {
+            uint32_t c = (i < lit) ? rgb(0, 180, 255) : rgb(20, 10, 30);
+            matrix->drawPixel(i + x, rowY, c);
+        }
+        return;
+    }
+
+    uint32_t nowMs = millis();
+    uint32_t switchMs = max((uint32_t)1000, (uint32_t)BINARY_ROW_INTERVAL * 1000);
+    if (nowMs - BT_sceneLastSwitchMs >= switchMs)
+    {
+        BT_sceneIndex = pickNextScene();
+        BT_sceneLastSwitchMs = nowMs;
+    }
+
+    uint8_t sp = constrain(BINARY_ROW_SPEED, (uint8_t)1, (uint8_t)100);
+    uint32_t t = nowMs / (110 - sp); // higher speed => faster motion
+
+    switch (BT_sceneIndex)
+    {
+    case 0: // police lights
+    {
+        bool phase = ((t / 6) % 2) == 0;
+        for (int i = 0; i < 32; i++)
+        {
+            if (i < 16) matrix->drawPixel(i + x, rowY, phase ? rgb(255, 0, 0) : rgb(20, 0, 0));
+            else matrix->drawPixel(i + x, rowY, phase ? rgb(0, 0, 30) : rgb(0, 0, 255));
+        }
+        break;
+    }
+    case 1: // rainbow chase
+    {
+        for (int i = 0; i < 32; i++)
+        {
+            uint8_t hue = (uint8_t)((i * 8 + t) & 0xFF);
+            matrix->drawPixel(i + x, rowY, wheelColor(hue));
+        }
+        break;
+    }
+    case 2: // pulse
+    {
+        uint8_t v = (sin8((uint8_t)t) / 2) + 40;
+        uint32_t c = rgb(v, v, v);
+        for (int i = 0; i < 32; i++) matrix->drawPixel(i + x, rowY, c);
+        break;
+    }
+    default: // sparkle
+    {
+        for (int i = 0; i < 32; i++) matrix->drawPixel(i + x, rowY, rgb(10, 0, 15));
+        for (int k = 0; k < 5; k++)
+        {
+            int px = random(0, 32);
+            matrix->drawPixel(px + x, rowY, wheelColor((uint8_t)random(0, 255)));
+        }
+        break;
+    }
     }
 }
 
@@ -295,6 +399,9 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
             if (BT_tickerX < -tickerWidth)
                 BT_tickerX = 32;
         }
+
+        // Middle row overlay engine (row 3)
+        drawMidlineOverlay(matrix, x, y);
 
         // Bottom binary clock (rows 4..7)
         struct tm *currentTime = timer_localtime();

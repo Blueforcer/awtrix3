@@ -266,6 +266,11 @@ void loadSettings()
     BINARY_TEMP_Y = Settings.getUInt("BTEMPY", 4);
     BINARY_TEMP_DIGITS = Settings.getUInt("BTDIG", 3);
     BINARY_OUT_TEMP_F = Settings.getInt("BTOUTF", -1000);
+    BINARY_ROW_MODE = Settings.getUInt("BROWMODE", 2);
+    BINARY_ROW_PROGRESS = Settings.getInt("BROWPROG", -1);
+    BINARY_ROW_SPEED = Settings.getUInt("BROWSPD", 60);
+    BINARY_ROW_INTERVAL = Settings.getUInt("BROWINT", 8);
+    BINARY_ROW_SCENES = Settings.getUInt("BROWSCN", 0x0F);
     TIME_COLOR = Settings.getUInt("TIME_COL", 0);
     DATE_COLOR = Settings.getUInt("DATE_COL", 0);
     TEMP_COLOR = Settings.getUInt("TEMP_COL", 0);
@@ -324,6 +329,11 @@ void saveSettings()
     Settings.putUInt("BTEMPY", BINARY_TEMP_Y);
     Settings.putUInt("BTDIG", BINARY_TEMP_DIGITS);
     Settings.putInt("BTOUTF", BINARY_OUT_TEMP_F);
+    Settings.putUInt("BROWMODE", BINARY_ROW_MODE);
+    Settings.putInt("BROWPROG", BINARY_ROW_PROGRESS);
+    Settings.putUInt("BROWSPD", BINARY_ROW_SPEED);
+    Settings.putUInt("BROWINT", BINARY_ROW_INTERVAL);
+    Settings.putUInt("BROWSCN", BINARY_ROW_SCENES);
     Settings.putUInt("TIME_COL", TIME_COLOR);
     Settings.putUInt("DATE_COL", DATE_COLOR);
     Settings.putUInt("TEMP_COL", TEMP_COLOR);
@@ -447,6 +457,11 @@ uint8_t BINARY_TEMP_X = 10;
 uint8_t BINARY_TEMP_Y = 4;
 uint8_t BINARY_TEMP_DIGITS = 3;
 int16_t BINARY_OUT_TEMP_F = -1000; // sentinel => use internal sensor
+uint8_t BINARY_ROW_MODE = 2;
+int16_t BINARY_ROW_PROGRESS = -1;
+uint8_t BINARY_ROW_SPEED = 60;
+uint16_t BINARY_ROW_INTERVAL = 8;
+uint16_t BINARY_ROW_SCENES = 0x0F;
 uint8_t SCROLL_SPEED = 100;
 uint32_t TIME_COLOR = 0;
 uint32_t CALENDAR_HEADER_COLOR = 0xFF0000;

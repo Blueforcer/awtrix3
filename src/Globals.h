@@ -126,6 +126,11 @@ extern uint8_t BINARY_TEMP_X;
 extern uint8_t BINARY_TEMP_Y;
 extern uint8_t BINARY_TEMP_DIGITS;
 extern int16_t BINARY_OUT_TEMP_F;
+extern uint8_t BINARY_ROW_MODE;      // 0=scene,1=progress,2=auto
+extern int16_t BINARY_ROW_PROGRESS;  // 0..100, <0 disabled
+extern uint8_t BINARY_ROW_SPEED;     // scene animation speed
+extern uint16_t BINARY_ROW_INTERVAL; // seconds per scene before rotate
+extern uint16_t BINARY_ROW_SCENES;   // bitmask of enabled scenes
 extern uint8_t SCROLL_SPEED;
 extern uint32_t CALENDAR_HEADER_COLOR;
 extern uint32_t CALENDAR_TEXT_COLOR;
