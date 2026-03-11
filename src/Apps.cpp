@@ -69,7 +69,6 @@ static std::map<char, std::array<const char *, 4>> FONT4 = {
 };
 
 static int16_t BT_tickerX = 32;
-static String BT_tickerText = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG   ";
 
 static void drawGlyph3x3(FastLED_NeoMatrix *matrix, char c, int16_t x, int16_t y, uint32_t color)
 {
@@ -274,11 +273,14 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
     else if (TIME_MODE == 7)
     {
         // Top ticker (3x3)
-        int16_t tickerWidth = BT_tickerText.length() * 4;
+        String tickerText = BINARY_TICKER_TEXT;
+        if (tickerText.length() == 0)
+            tickerText = " ";
+        int16_t tickerWidth = tickerText.length() * 4;
         int16_t tx = BT_tickerX;
-        for (size_t i = 0; i < BT_tickerText.length(); i++)
+        for (size_t i = 0; i < tickerText.length(); i++)
         {
-            drawGlyph3x3(matrix, BT_tickerText[i], tx + x, y, 0xFFFFFF);
+            drawGlyph3x3(matrix, tickerText[i], tx + x, y, 0xFFFFFF);
             tx += 4;
         }
         BT_tickerX -= 1;

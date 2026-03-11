@@ -121,6 +121,7 @@ extern bool SENSORS_STABLE;
 extern bool ROTATE_SCREEN;
 extern long STATS_INTERVAL;
 extern uint8_t TIME_MODE;
+extern String BINARY_TICKER_TEXT;
 extern uint8_t SCROLL_SPEED;
 extern uint32_t CALENDAR_HEADER_COLOR;
 extern uint32_t CALENDAR_TEXT_COLOR;

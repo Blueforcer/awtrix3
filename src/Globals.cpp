@@ -261,6 +261,7 @@ void loadSettings()
     CALENDAR_BODY_COLOR = Settings.getUInt("CBCOL", 0xFFFFFF);
     TRANS_EFFECT = Settings.getUInt("TEFF", 1);
     TIME_MODE = Settings.getUInt("TMODE", 1);
+    BINARY_TICKER_TEXT = Settings.getString("BTEXT", "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG   ");
     TIME_COLOR = Settings.getUInt("TIME_COL", 0);
     DATE_COLOR = Settings.getUInt("DATE_COL", 0);
     TEMP_COLOR = Settings.getUInt("TEMP_COL", 0);
@@ -314,6 +315,7 @@ void saveSettings()
     Settings.putBool("UPPER", UPPERCASE_LETTERS);
     Settings.putUInt("TCOL", TEXTCOLOR_888);
     Settings.putUInt("TMODE", TIME_MODE);
+    Settings.putString("BTEXT", BINARY_TICKER_TEXT);
     Settings.putUInt("TIME_COL", TIME_COLOR);
     Settings.putUInt("DATE_COL", DATE_COLOR);
     Settings.putUInt("TEMP_COL", TEMP_COLOR);
@@ -432,6 +434,7 @@ bool SENSORS_STABLE = false;
 bool DFPLAYER_ACTIVE = false;
 bool ROTATE_SCREEN = false;
 uint8_t TIME_MODE = 1;
+String BINARY_TICKER_TEXT = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG   ";
 uint8_t SCROLL_SPEED = 100;
 uint32_t TIME_COLOR = 0;
 uint32_t CALENDAR_HEADER_COLOR = 0xFF0000;
