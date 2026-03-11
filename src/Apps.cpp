@@ -325,10 +325,16 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         // Temp in F using 3x4 font
         int tempF = int(round((CURRENT_TEMP * 9 / 5) + 32));
         String tStr = String(tempF);
-        int tx2 = 10;
+        uint8_t maxDigits = constrain(BINARY_TEMP_DIGITS, (uint8_t)1, (uint8_t)3);
+        if (tStr.length() > maxDigits)
+        {
+            tStr = tStr.substring(tStr.length() - maxDigits);
+        }
+        int tx2 = BINARY_TEMP_X;
+        int ty2 = BINARY_TEMP_Y;
         for (size_t i = 0; i < tStr.length(); i++)
         {
-            drawGlyph3x4(matrix, tStr[i], tx2 + x, 4 + y, 0xFFFFFF);
+            drawGlyph3x4(matrix, tStr[i], tx2 + x, ty2 + y, 0xFFFFFF);
             tx2 += 4;
         }
 
