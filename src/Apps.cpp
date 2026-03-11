@@ -405,9 +405,18 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
 
         // Bottom binary clock (rows 4..7)
         struct tm *currentTime = timer_localtime();
-        int hh = currentTime->tm_hour;
+        int hh24 = currentTime->tm_hour;
         int mm = currentTime->tm_min;
         int ss = currentTime->tm_sec;
+
+        bool use12h = TIME_FORMAT.indexOf("%I") >= 0;
+        bool isPM = hh24 >= 12;
+        int hh = hh24;
+        if (use12h)
+        {
+            hh = hh24 % 12;
+            if (hh == 0) hh = 12;
+        }
 
         int d[6] = {hh / 10, hh % 10, mm / 10, mm % 10, ss / 10, ss % 10};
         int bits[6] = {2, 4, 3, 4, 3, 4};
@@ -415,6 +424,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         uint32_t off = 0x32003A;
 
         int cx = 1;
+        int hhLeftX = cx;
         for (int i = 0; i < 6; i++)
         {
             for (int b = 0; b < bits[i]; b++)
@@ -427,6 +437,14 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
                 cx += 1;
             else if (i == 1 || i == 3)
                 cx += 2;
+        }
+
+        // AM/PM marker: single pixel above-left of HH columns.
+        // Red pixel with low brightness (same perceived level as dim-purple OFF bits).
+        if (use12h)
+        {
+            uint32_t ampm = isPM ? rgb(50, 0, 0) : rgb(20, 0, 20);
+            matrix->drawPixel(hhLeftX + x, 4 + y, ampm);
         }
 
         // Temp in F using 3x4 font
