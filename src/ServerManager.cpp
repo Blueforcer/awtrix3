@@ -235,7 +235,7 @@ void ServerManager_::setup()
         mws.addOption("Username", MQTT_USER);
         mws.addOption("Password", MQTT_PASS);
         mws.addOption("Prefix", MQTT_PREFIX);
-        mws.addOption("Homeassistant Discovery", HA_DISCOVERY);
+        mws.addOption("Home Assistant Discovery", HA_DISCOVERY);
         mws.addOptionBox("Time");
         mws.addOption("NTP Server", NTP_SERVER);
         mws.addOption("Timezone", NTP_TZ);
@@ -367,7 +367,7 @@ void ServerManager_::loadSettings()
         MQTT_PREFIX = doc["Prefix"].as<String>();
         MQTT_PREFIX.trim();
         NET_STATIC = doc["Static IP"];
-        HA_DISCOVERY = doc["Homeassistant Discovery"];
+        HA_DISCOVERY = doc["Home Assistant Discovery"];
         NET_IP = doc["Local IP"].as<String>();
         NET_GW = doc["Gateway"].as<String>();
         NET_SN = doc["Subnet"].as<String>();
