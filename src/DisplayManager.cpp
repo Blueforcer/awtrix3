@@ -2126,6 +2126,7 @@ void DisplayManager_::setNewSettings(const char *json)
   UPPERCASE_LETTERS = doc.containsKey("UPPERCASE") ? doc["UPPERCASE"].as<bool>() : UPPERCASE_LETTERS;
   SHOW_WEEKDAY = doc.containsKey("WD") ? doc["WD"].as<bool>() : SHOW_WEEKDAY;
   BLOCK_NAVIGATION = doc.containsKey("BLOCKN") ? doc["BLOCKN"].as<bool>() : BLOCK_NAVIGATION;
+  bool nativeAppsChanged = doc.containsKey("TIM") || doc.containsKey("DAT") || doc.containsKey("HUM") || doc.containsKey("TEMP") || doc.containsKey("BAT");
   SHOW_TIME = doc.containsKey("TIM") ? doc["TIM"].as<bool>() : SHOW_TIME;
   SHOW_DATE = doc.containsKey("DAT") ? doc["DAT"].as<bool>() : SHOW_DATE;
   SHOW_HUM = doc.containsKey("HUM") ? doc["HUM"].as<bool>() : SHOW_HUM;
@@ -2249,6 +2250,8 @@ void DisplayManager_::setNewSettings(const char *json)
   }
   doc.clear();
   applyAllSettings();
+  if (nativeAppsChanged)
+    loadNativeApps();
   saveSettings();
   if (DEBUG_MODE)
     DEBUG_PRINTLN("Settings loaded");
