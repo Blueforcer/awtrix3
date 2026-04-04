@@ -30,6 +30,7 @@
 #include "effects.h"
 #include "Globals.h"
 #include "effects.h"
+#include "Indicators.h"
 
 GifPlayer gif1;
 GifPlayer gif2;
@@ -257,84 +258,37 @@ void MatrixDisplayUi::drawIndicators()
 {
   uint32_t drawColor;
 
-  // Indicator 1
-  if (indicator1State)
+  for (int indicator=1; indicator <= INDICATOR_COUNT; indicator++) 
   {
-    if (indicator1Blink)
-    {
-      if (millis() % (2 * indicator1Blink) < indicator1Blink)
-      {
-        drawColor = indicator1Color;
-      }
-      else
-      {
-        drawColor = 0; // Schwarz
-      }
-    }
-    else if (indicator1Fade)
-    {
-      drawColor = fadeColor(indicator1Color, indicator1Fade);
-    }
-    else
-    {
-      drawColor = indicator1Color;
-    }
-    matrix->drawPixel(31, 0, drawColor);
-    matrix->drawPixel(30, 0, drawColor);
-    matrix->drawPixel(31, 1, drawColor);
-  }
+    Indicator* ind = getIndicatorPtr(indicator);
 
-  // Indicator 2
-  if (indicator2State)
-  {
-    if (indicator2Blink)
+    for (int pixel=0; pixel < ind->pixelCount; pixel++)
     {
-      if (millis() % (2 * indicator2Blink) < indicator2Blink)
+      IndicatorPixelData pixelData = ind->data[pixel];
+      if (pixelData.state)
       {
-        drawColor = indicator2Color;
-      }
-      else
-      {
-        drawColor = 0; // Schwarz
-      }
-    }
-    else if (indicator2Fade)
-    {
-      drawColor = fadeColor(indicator2Color, indicator2Fade);
-    }
-    else
-    {
-      drawColor = indicator2Color;
-    }
-    matrix->drawPixel(31, 3, drawColor);
-    matrix->drawPixel(31, 4, drawColor);
-  }
-
-  // Indicator 3
-  if (indicator3State)
-  {
-    if (indicator3Blink)
-    {
-      if (millis() % (2 * indicator3Blink) < indicator3Blink)
-      {
-        drawColor = indicator3Color;
-      }
-      else
-      {
-        drawColor = 0; // Schwarz
+        if (pixelData.blink != 0)
+        {
+          if (millis() % (2 * pixelData.blink) < pixelData.blink)
+          {
+            drawColor = pixelData.color;
+          }
+          else
+          {
+            drawColor = 0; // Schwarz
+          }
+        }
+        else if (pixelData.fade)
+        {
+          drawColor = fadeColor(pixelData.color, pixelData.fade);
+        }
+        else
+        {
+          drawColor = pixelData.color;
+        }
+        matrix->drawPixel(pixelData.coord.x, pixelData.coord.y, drawColor);
       }
     }
-    else if (indicator3Fade)
-    {
-      drawColor = fadeColor(indicator3Color, indicator3Fade);
-    }
-    else
-    {
-      drawColor = indicator3Color;
-    }
-    matrix->drawPixel(31, 7, drawColor);
-    matrix->drawPixel(31, 6, drawColor);
-    matrix->drawPixel(30, 7, drawColor);
   }
 }
 
@@ -476,66 +430,6 @@ uint8_t MatrixDisplayUi::getnextAppNumber()
   if (this->nextAppNumber != -1)
     return this->nextAppNumber;
   return (this->state.currentApp + this->AppCount + this->state.appTransitionDirection) % this->AppCount;
-}
-
-void MatrixDisplayUi::setIndicator1Color(uint32_t color)
-{
-  this->indicator1Color = color;
-}
-
-void MatrixDisplayUi::setIndicator1State(bool state)
-{
-  this->indicator1State = state;
-}
-
-void MatrixDisplayUi::setIndicator1Blink(int blink)
-{
-  this->indicator1Blink = blink;
-}
-
-void MatrixDisplayUi::setIndicator1Fade(int fade)
-{
-  this->indicator1Fade = fade;
-}
-
-void MatrixDisplayUi::setIndicator2Color(uint32_t color)
-{
-  this->indicator2Color = color;
-}
-
-void MatrixDisplayUi::setIndicator2State(bool state)
-{
-  this->indicator2State = state;
-}
-
-void MatrixDisplayUi::setIndicator2Blink(int blink)
-{
-  this->indicator2Blink = blink;
-}
-
-void MatrixDisplayUi::setIndicator2Fade(int fade)
-{
-  this->indicator2Fade = fade;
-}
-
-void MatrixDisplayUi::setIndicator3Color(uint32_t color)
-{
-  this->indicator3Color = color;
-}
-
-void MatrixDisplayUi::setIndicator3State(bool state)
-{
-  this->indicator3State = state;
-}
-
-void MatrixDisplayUi::setIndicator3Blink(int blink)
-{
-  this->indicator3Blink = blink;
-}
-
-void MatrixDisplayUi::setIndicator3Fade(int fade)
-{
-  this->indicator3Fade = fade;
 }
 
 // ------------------ TRANSITIONS -------------------
