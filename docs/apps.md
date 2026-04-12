@@ -3,7 +3,7 @@
 The native Time app offers extensive customization options. Almost everything can be configured via the API, and most settings can also be adjusted through the AWTRIX3 app.   
 The time format can be customized to your preferences. By default, it is set to `HH:mm`.   
 If the selected format doesn't fit on the screen, it will automatically revert to this default.   
-You might notice some lines at the bottom of the screen. These lines represent the weekdays, with the current day highlighted brighter.   
+You might notice some lines at the bottom of the screen. These lines represent the weekdays, with the current day highlighted brighter. It is also possible to deactive this weekday bar.  
 You can also customize the colors for the calendar icon, the weekday bar and also the textcolor with the [SettingsAPI](https://blueforcer.github.io/awtrix3/#/api?id=change-settings) or the mobile App.    
 
 The `TMODE` setting determines the layout and style of the Time App. 
@@ -26,7 +26,7 @@ Displays the time with the weekday bar at the bottom and a different calendar ic
 
 **TMODE=4**  
 <img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/TMODE4.png" style="max-height:70px;">   
-Similar to `TMODE=2`, but places the weekday bar at the top.    
+Similar to `TMODE=3`, but places the weekday bar at the top.    
 
 **TMODE=5**  
 <img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/TMODE5.png" style="max-height:70px;">   
@@ -35,6 +35,8 @@ If a 32x8 GIF named `bigtime.gif` exists in the root directory, it will be playe
 Please note: Once the GIF is displayed in BigTime mode, it cannot be directly replaced because the file is in use.  
 To replace the icon, switch the mode to TMODE first, and then you'll be able to update the GIF.    
 If no GIF is found, the global textcolor is used.     
+
+[You can get some bigtime GIFs examples here](https://github.com/Blueforcer/awtrix3/tree/main/Bigtime_GIFs).   
 
 **TMODE=6**  
 <img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/TMODE6.png" style="max-height:70px;">   

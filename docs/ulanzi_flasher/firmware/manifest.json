@@ -1,6 +1,6 @@
 {
   "name": "AWTRIX 3",
-  "version": "0.97",
+  "version": "0.98",
   "home_assistant_domain": "AwtrixLight",
   "funding_url": "https://blueforcer.de",
   "new_install_prompt_erase": true,

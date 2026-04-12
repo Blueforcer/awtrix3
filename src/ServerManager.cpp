@@ -402,21 +402,21 @@ void ServerManager_::sendButton(byte btn, bool state)
         if (btn0State != state)
         {
             btn0State = state;
-            payload = "button=left&state=" + String(state);
+            payload = "button=left&state=" + String(state) + "&uid=" + uniqueID;
         }
         break;
     case 1:
         if (btn1State != state)
         {
             btn1State = state;
-            payload = "button=middle&state=" + String(state);
+            payload = "button=middle&state=" + String(state) + "&uid=" + uniqueID;
         }
         break;
     case 2:
         if (btn2State != state)
         {
             btn2State = state;
-            payload = "button=right&state=" + String(state);
+            payload = "button=right&state=" + String(state) + "&uid=" + uniqueID;
         }
         break;
     default:
