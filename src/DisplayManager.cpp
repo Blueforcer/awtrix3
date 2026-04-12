@@ -1134,7 +1134,7 @@ void DisplayManager_::setup()
     FastLED.setTemperature(COLOR_TEMPERATURE);
   }
   gif.setMatrix(matrix);
-  ui->setAppAnimation(SLIDE_DOWN);
+  ui->setAppAnimation(SLIDE_UP);
 
   ui->setTargetFPS(MATRIX_FPS);
   ui->setTimePerApp(TIME_PER_APP);
