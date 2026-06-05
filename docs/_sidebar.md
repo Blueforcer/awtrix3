@@ -16,6 +16,7 @@
   - [Apps](apps.md)
      - [Native Apps](apps.md#native-apps)
      - [Custom Apps](apps.md#custom-apps)
+  - [Countdown](countdown.md)
   - [Effects](effects.md)
   - [Icons](icons.md)
   - [Sounds](sounds.md)
