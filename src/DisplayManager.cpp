@@ -1104,14 +1104,15 @@ void DisplayManager_::loadNativeApps()
 
   updateApp("Time", TimeApp, SHOW_TIME, 0);
   updateApp("Date", DateApp, SHOW_DATE, 1);
+  updateApp("Countdown", CountdownApp, SHOW_COUNTDOWN, 2);
 
   if (SENSOR_READING)
   {
-    updateApp("Temperature", TempApp, SHOW_TEMP, 2);
-    updateApp("Humidity", HumApp, SHOW_HUM, 3);
+    updateApp("Temperature", TempApp, SHOW_TEMP, 3);
+    updateApp("Humidity", HumApp, SHOW_HUM, 4);
   }
 #ifdef ULANZI
-  updateApp("Battery", BatApp, SHOW_BAT, 4);
+  updateApp("Battery", BatApp, SHOW_BAT, 5);
 #endif
 
   ui->setApps(Apps);
@@ -1538,6 +1539,10 @@ std::pair<String, AppCallback> getNativeAppByName(const String &appName)
   {
     return std::make_pair("Date", DateApp);
   }
+  else if (appName == "Countdown")
+  {
+    return std::make_pair("Countdown", CountdownApp);
+  }
   else if (appName == "Temperature")
   {
     return std::make_pair("Temperature", TempApp);
@@ -1637,7 +1642,7 @@ void DisplayManager_::updateAppVector(const char *json)
 
 String DisplayManager_::getStats()
 {
-  StaticJsonDocument<1024> doc;
+  StaticJsonDocument<1536> doc;
   char buffer[20];
 
 #ifdef awtrix2_upgrade
@@ -2020,7 +2025,7 @@ String getOverlayName()
 
 String DisplayManager_::getSettings()
 {
-  StaticJsonDocument<1024> doc;
+  StaticJsonDocument<1536> doc;
   doc["MATP"] = !MATRIX_OFF;
   doc["ABRI"] = AUTO_BRIGHTNESS;
   doc["BRI"] = BRIGHTNESS;
@@ -2035,6 +2040,8 @@ String DisplayManager_::getSettings()
   doc["CBCOL"] = CALENDAR_BODY_COLOR;
   doc["TFORMAT"] = TIME_FORMAT;
   doc["DFORMAT"] = DATE_FORMAT;
+  doc["CDATE"] = COUNTDOWN_TARGET;
+  doc["CICON"] = COUNTDOWN_ICON;
   doc["SOM"] = START_ON_MONDAY;
   doc["CEL"] = IS_CELSIUS;
   doc["BLOCKN"] = BLOCK_NAVIGATION;
@@ -2050,12 +2057,14 @@ String DisplayManager_::getSettings()
   doc["WDCI"] = WDC_INACTIVE;
   doc["TIME_COL"] = TIME_COLOR;
   doc["DATE_COL"] = DATE_COLOR;
+  doc["COUNT_COL"] = COUNTDOWN_COLOR;
   doc["HUM_COL"] = HUM_COLOR;
   doc["TEMP_COL"] = TEMP_COLOR;
   doc["BAT_COL"] = BAT_COLOR;
   doc["SSPEED"] = SCROLL_SPEED;
   doc["TIM"] = SHOW_TIME;
   doc["DAT"] = SHOW_DATE;
+  doc["COUNT"] = SHOW_COUNTDOWN;
   doc["HUM"] = SHOW_HUM;
   doc["TEMP"] = SHOW_TEMP;
   doc["BAT"] = SHOW_BAT;
@@ -2112,6 +2121,13 @@ void DisplayManager_::setNewSettings(const char *json)
     return;
   }
 
+  bool oldShowTime = SHOW_TIME;
+  bool oldShowDate = SHOW_DATE;
+  bool oldShowCountdown = SHOW_COUNTDOWN;
+  bool oldShowHum = SHOW_HUM;
+  bool oldShowTemp = SHOW_TEMP;
+  bool oldShowBat = SHOW_BAT;
+
   TIME_MODE = doc.containsKey("TMODE") ? doc["TMODE"].as<int>() : TIME_MODE;
   TRANS_EFFECT = doc.containsKey("TEFF") ? doc["TEFF"] : TRANS_EFFECT;
   TIME_PER_TRANSITION = doc.containsKey("TSPEED") ? doc["TSPEED"] : TIME_PER_TRANSITION;
@@ -2123,6 +2139,8 @@ void DisplayManager_::setNewSettings(const char *json)
   TIME_FORMAT = doc.containsKey("TFORMAT") ? doc["TFORMAT"].as<String>() : TIME_FORMAT;
   GAMMA = doc.containsKey("GAMMA") ? doc["GAMMA"].as<float>() : GAMMA;
   DATE_FORMAT = doc.containsKey("DFORMAT") ? doc["DFORMAT"].as<String>() : DATE_FORMAT;
+  COUNTDOWN_TARGET = doc.containsKey("CDATE") ? doc["CDATE"].as<String>() : COUNTDOWN_TARGET;
+  COUNTDOWN_ICON = doc.containsKey("CICON") ? doc["CICON"].as<String>() : COUNTDOWN_ICON;
   AUTO_BRIGHTNESS = doc.containsKey("ABRI") ? doc["ABRI"].as<bool>() : AUTO_BRIGHTNESS;
   AUTO_TRANSITION = doc.containsKey("ATRANS") ? doc["ATRANS"].as<bool>() : AUTO_TRANSITION;
   UPPERCASE_LETTERS = doc.containsKey("UPPERCASE") ? doc["UPPERCASE"].as<bool>() : UPPERCASE_LETTERS;
@@ -2130,6 +2148,7 @@ void DisplayManager_::setNewSettings(const char *json)
   BLOCK_NAVIGATION = doc.containsKey("BLOCKN") ? doc["BLOCKN"].as<bool>() : BLOCK_NAVIGATION;
   SHOW_TIME = doc.containsKey("TIM") ? doc["TIM"].as<bool>() : SHOW_TIME;
   SHOW_DATE = doc.containsKey("DAT") ? doc["DAT"].as<bool>() : SHOW_DATE;
+  SHOW_COUNTDOWN = doc.containsKey("COUNT") ? doc["COUNT"].as<bool>() : SHOW_COUNTDOWN;
   SHOW_HUM = doc.containsKey("HUM") ? doc["HUM"].as<bool>() : SHOW_HUM;
   SHOW_TEMP = doc.containsKey("TEMP") ? doc["TEMP"].as<bool>() : SHOW_TEMP;
   SHOW_BAT = doc.containsKey("BAT") ? doc["BAT"].as<bool>() : SHOW_BAT;
@@ -2234,6 +2253,11 @@ void DisplayManager_::setNewSettings(const char *json)
     auto DATE_COL = doc["DATE_COL"];
     DATE_COLOR = getColorFromJsonVariant(DATE_COL, TEXTCOLOR_888);
   }
+  if (doc.containsKey("COUNT_COL"))
+  {
+    auto COUNT_COL = doc["COUNT_COL"];
+    COUNTDOWN_COLOR = getColorFromJsonVariant(COUNT_COL, TEXTCOLOR_888);
+  }
   if (doc.containsKey("TEMP_COL"))
   {
     auto TEMP_COL = doc["TEMP_COL"];
@@ -2251,6 +2275,15 @@ void DisplayManager_::setNewSettings(const char *json)
   }
   doc.clear();
   applyAllSettings();
+  if (oldShowTime != SHOW_TIME ||
+      oldShowDate != SHOW_DATE ||
+      oldShowCountdown != SHOW_COUNTDOWN ||
+      oldShowHum != SHOW_HUM ||
+      oldShowTemp != SHOW_TEMP ||
+      oldShowBat != SHOW_BAT)
+  {
+    loadNativeApps();
+  }
   saveSettings();
   if (DEBUG_MODE)
     DEBUG_PRINTLN("Settings loaded");
@@ -2299,6 +2332,10 @@ String DisplayManager_::getAppsWithIcon()
     if (customApp != nullptr)
     {
       appObject["icon"] = customApp->iconName;
+    }
+    else if (app.first == "Countdown")
+    {
+      appObject["icon"] = COUNTDOWN_ICON;
     }
   }
   String jsonString;
