@@ -123,7 +123,9 @@ void DisplayManager_::applyAllSettings()
   ui->setTimePerApp(TIME_PER_APP);
   ui->setTimePerTransition(TIME_PER_TRANSITION);
 
-  if (!AUTO_BRIGHTNESS)
+  if (MATRIX_OFF)
+    setBrightness(0);
+  else if (!AUTO_BRIGHTNESS)
     setBrightness(BRIGHTNESS);
   setTextColor(TEXTCOLOR_888);
   setAutoTransition(AUTO_TRANSITION);
