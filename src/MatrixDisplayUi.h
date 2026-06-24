@@ -174,20 +174,6 @@ public:
    */
   void setTimePerTransition(uint16_t time);
 
-  void setIndicator1Color(uint32_t color);
-  void setIndicator1State(bool state);
-  void setIndicator1Blink(int Blink);
-  void setIndicator1Fade(int fade);
-
-  void setIndicator2Color(uint32_t color);
-  void setIndicator2State(bool state);
-  void setIndicator2Blink(int Blink);
-  void setIndicator2Fade(int fade);
-
-  void setIndicator3Color(uint32_t color);
-  void setIndicator3State(bool state);
-  void setIndicator3Blink(int Blink);
-  void setIndicator3Fade(int fade);
   void drawIndicators();
   // Customize indicator position and style
 
@@ -229,21 +215,5 @@ public:
   MatrixDisplayUiState *getUiState();
 
   int8_t update();
-
-  uint32_t indicator1Color = 0xFF0000;
-  uint32_t indicator2Color = 0x00FF00;
-  uint32_t indicator3Color = 0x0000FF;
-
-  bool indicator1State = false;
-  bool indicator2State = false;
-  bool indicator3State = false;
-
-  int indicator1Blink = 0;
-  int indicator2Blink = 0;
-  int indicator3Blink = 0;
-
-  int indicator1Fade = 0;
-  int indicator2Fade = 0;
-  int indicator3Fade = 0;
 };
 #endif
