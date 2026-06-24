@@ -29,7 +29,6 @@
 #include "MatrixDisplayUi.h"
 #include "effects.h"
 #include "Globals.h"
-#include "effects.h"
 
 GifPlayer gif1;
 GifPlayer gif2;
