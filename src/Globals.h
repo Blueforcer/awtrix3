@@ -52,6 +52,7 @@ extern bool SHOW_TEMP;
 extern bool SHOW_HUM;
 extern bool SHOW_SECONDS;
 extern bool SHOW_WEEKDAY;
+extern bool SHOW_MINUTEPROGRESS;
 extern int8_t TRANS_EFFECT;
 extern String NET_IP;
 extern String NET_GW;

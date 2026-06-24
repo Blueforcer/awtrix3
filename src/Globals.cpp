@@ -272,6 +272,7 @@ void loadSettings()
     WDC_INACTIVE = Settings.getUInt("WDCI", 0x666666);
     AUTO_TRANSITION = Settings.getBool("ATRANS", true);
     SHOW_WEEKDAY = Settings.getBool("WD", true);
+    SHOW_MINUTEPROGRESS = Settings.getBool("MP", false);
     TIME_PER_TRANSITION = Settings.getUInt("TSPEED", 400);
     TIME_PER_APP = Settings.getUInt("ATIME", 7000);
     TIME_FORMAT = Settings.getString("TFORMAT", "%H %M");
@@ -308,6 +309,7 @@ void saveSettings()
     Settings.putUInt("TEFF", TRANS_EFFECT);
     Settings.putUInt("BRI", BRIGHTNESS);
     Settings.putBool("WD", SHOW_WEEKDAY);
+    Settings.putBool("MP", SHOW_MINUTEPROGRESS);
     Settings.putBool("ABRI", AUTO_BRIGHTNESS);
     Settings.putBool("BLOCKN", BLOCK_NAVIGATION);
     Settings.putBool("ATRANS", AUTO_TRANSITION);
@@ -364,6 +366,7 @@ bool SHOW_TEMP = true;
 bool SHOW_HUM = true;
 bool SHOW_SECONDS = true;
 bool SHOW_WEEKDAY = true;
+bool SHOW_MINUTEPROGRESS = true;
 String NET_IP = "192.168.178.10";
 String NET_GW = "192.168.178.1";
 String NET_SN = "255.255.255.0";
