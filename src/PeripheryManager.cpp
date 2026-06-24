@@ -484,7 +484,8 @@ void PeripheryManager_::tick()
     if (currentMillis_BatTempHum - previousMillis_BatTempHum >= interval_BatTempHum)
     {
         previousMillis_BatTempHum = currentMillis_BatTempHum;
-#ifndef awtrix2_upgrade
+// Only try to read the battery when BATTERY_PIN is defined
+#ifdef BATTERY_PIN
         uint16_t ADCVALUE = analogRead(BATTERY_PIN);
         // Discard values that are totally out of range, especially the first value read after a reboot.
         // Meaningful values for an Ulanzi clock are in the range 400..700
@@ -493,10 +494,10 @@ void PeripheryManager_::tick()
             // Send ADC values through median filter to get rid of the remaining spikes and then calculate the average
             BATTERY_RAW = meanFilterBatt.AddValue(medianFilterBatt.AddValue(ADCVALUE));
             BATTERY_PERCENT = max(min((int)map(BATTERY_RAW, MIN_BATTERY, MAX_BATTERY, 0, 100), 100), 0);
-            SENSORS_STABLE = true;
+            BATTERY_READING_STABLE = true;
         }
 #else
-        SENSORS_STABLE = true;
+        BATTERY_READING_STABLE = true; // Always set this to true, when there is no battery
 #endif
         if (SENSOR_READING)
         {
@@ -525,10 +526,6 @@ void PeripheryManager_::tick()
 
             CURRENT_TEMP += TEMP_OFFSET;
             CURRENT_HUM += HUM_OFFSET;
-        }
-        else
-        {
-            SENSORS_STABLE = true;
         }
     }
 
