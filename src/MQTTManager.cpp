@@ -541,7 +541,7 @@ void MQTTManager_::setup()
     if (HA_DISCOVERY)
     {
         if (DEBUG_MODE)
-            DEBUG_PRINTLN(F("Starting Homeassistant discovery"));
+            DEBUG_PRINTLN(F("Starting Home Assistant discovery"));
         mqtt.setDiscoveryPrefix(HA_PREFIX.c_str());
         mqtt.setDataPrefix(MQTT_PREFIX.c_str());
         uint8_t mac[6];
@@ -732,7 +732,7 @@ void MQTTManager_::setup()
     }
     else
     {
-        Serial.println(F("Homeassistant discovery disabled"));
+        Serial.println(F("Home Assistant discovery disabled"));
         mqtt.disableHA();
     }
 
