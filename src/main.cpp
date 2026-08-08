@@ -42,7 +42,6 @@
 
 TaskHandle_t taskHandle;
 volatile bool StopTask = false;
-bool stopBoot;
 
 void BootAnimation(void *parameter)
 {
@@ -75,7 +74,6 @@ void setup()
   ServerManager.setup();
   if (ServerManager.isConnected)
   {
-    // timer_init();
     DisplayManager.loadNativeApps();
     DisplayManager.loadCustomApps();
     UpdateManager.setup();
