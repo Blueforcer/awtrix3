@@ -398,10 +398,12 @@ void removeCustomAppFromApps(const String &name, bool setApps)
   DisplayManager.setAppTime(TIME_PER_APP);
 }
 
-bool parseFragmentsText(const JsonArray &fragmentArray, std::vector<uint32_t> &colors, std::vector<String> &fragments, uint32_t standardColor)
+bool parseFragmentsText(const JsonArray &fragmentArray, std::vector<uint32_t> &colors, std::vector<String> &fragments, uint32_t standardColor, std::vector<int> *blinks = nullptr)
 {
   colors.clear();
   fragments.clear();
+  if (blinks)
+    blinks->clear();
 
   for (JsonObject fragmentObj : fragmentArray)
   {
@@ -419,6 +421,8 @@ bool parseFragmentsText(const JsonArray &fragmentArray, std::vector<uint32_t> &c
 
     fragments.push_back(utf8ascii(textFragment));
     colors.push_back(color);
+    if (blinks)
+      blinks->push_back(fragmentObj.containsKey("b") ? fragmentObj["b"].as<int>() : 0);
   }
   return true;
 }
@@ -715,11 +719,12 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
   customApp.colors.clear();
   customApp.fragments.clear();
+  customApp.blinks.clear();
 
   if (doc.containsKey("text") && doc["text"].is<JsonArray>())
   {
     JsonArray textArray = doc["text"].as<JsonArray>();
-    parseFragmentsText(textArray, customApp.colors, customApp.fragments, customApp.color);
+    parseFragmentsText(textArray, customApp.colors, customApp.fragments, customApp.color, &customApp.blinks);
   }
   else if (doc.containsKey("text"))
   {

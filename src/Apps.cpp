@@ -675,7 +675,8 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             for (size_t i = 0; i < ca->fragments.size(); ++i)
             {
                 String text = replacePlaceholders(ca->fragments[i]);
-                DisplayManager.setTextColor(TextEffect(ca->colors[i], ca->fade, ca->blink));
+                int fragBlink = (i < ca->blinks.size() && ca->blinks[i] > 0) ? ca->blinks[i] : ca->blink;
+                DisplayManager.setTextColor(TextEffect(ca->colors[i], ca->fade, fragBlink));
                 DisplayManager.printText(x + fragmentX, y + 6, text.c_str(), false, ca->textCase);
                 fragmentX += getTextWidth(text.c_str(), ca->textCase);
             }
@@ -706,7 +707,8 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             for (size_t i = 0; i < ca->fragments.size(); ++i)
             {
                 String text = replacePlaceholders(ca->fragments[i]);
-                DisplayManager.setTextColor(TextEffect(ca->colors[i], ca->fade, ca->blink));
+                int fragBlink = (i < ca->blinks.size() && ca->blinks[i] > 0) ? ca->blinks[i] : ca->blink;
+                DisplayManager.setTextColor(TextEffect(ca->colors[i], ca->fade, fragBlink));
                 DisplayManager.printText(x + fragmentX, y + 6, text.c_str(), false, ca->textCase);
                 fragmentX += getTextWidth(text.c_str(), ca->textCase);
             }
