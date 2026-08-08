@@ -111,6 +111,79 @@ Due to differences in battery batches and the degradation of the cheap battery o
 
 
 ---
+## Timer
+
+The Timer app counts down a configurable duration with on-device and remote control. It is auto-hidden from the app rotation while idle by default, so it only takes a slot in the rotation when actively counting down, paused, or finished.
+
+#### Display
+
+- 8×8 icon on the left (the built-in colour `icon_timer` hourglass, the same glyph shown in the on-device menu; override by placing an 8×8 `/ICONS/timer.jpg` in the file manager).
+- Time text in the middle: `MM:SS` for durations under one hour, `H:MM` between 1h and 10h, `HH:MM` for 10h+.
+- A 1-pixel depleting progress bar across the bottom row (x=9..31) reflects `remaining / duration`.
+- In the `Hold` and `Re-alert` finished modes the time text blinks at ~1 Hz to signal that user action is required.
+
+#### States
+
+| State | Visible behaviour |
+| --- | --- |
+| `idle` | App shows the configured duration with no progress bar |
+| `running` | Time counts down; progress bar drains from the left (right edge anchored at column 31) |
+| `paused` | Time and bar frozen at the current value |
+| `finished` | Timer app pulls itself to the foreground, wakes the display if it was asleep, and blinks `0:00` at 500 ms with no progress bar. Depending on finished mode it auto-clears, holds, or re-alerts |
+
+#### Physical controls
+
+While the Timer app is the current app:
+- **SELECT short** — start (idle), pause (running), resume (paused), restart (finished).
+- **SELECT long** — reset to idle at the configured duration. Clears the finished screen if shown.
+
+While **any** app is current AND the timer is in the `finished` state, SELECT short and long both work as above (so you can react to the end alert without navigating back to the Timer app).
+
+#### Buzzer modes
+
+| Mode | Behaviour |
+| --- | --- |
+| `Off` | Silent in all phases |
+| `End` | Single end tone at `00:00` |
+| `Countdown` | Tick tone fires once a second for the final `timer_countdown_seconds` (dev.json, default 3), then the end tone at `00:00` |
+
+The end tone is loaded from `/MELODIES/timer_end.txt` if present, otherwise a built-in RTTTL fallback is used. The countdown tick tone uses `/MELODIES/timer_tick.txt` with the same fallback pattern.
+
+#### Finished modes
+
+| Mode | Behaviour |
+| --- | --- |
+| `Auto-clear` | Finished screen disappears after `timer_finished_hold` seconds (dev.json, default 10), then state returns to `idle` |
+| `Hold` | Finished screen stays with a blinking `00:00` until cleared (SELECT button, or a Start/Reset command — from HA, the Start/Reset buttons) |
+| `Re-alert` | Like `Hold`, but additionally re-plays the buzzer end tone every `timer_realert_interval` seconds (dev.json, default 15) |
+
+#### Setting the duration on the device
+
+While the Timer app is the current app and the timer is `idle`, **long-press SELECT** to open the **TIMER menu** (see [onscreen menu](onscreen.md)). Duration is its first item: select the `DURATION` leaf to get the `HH:MM:SS` wheel with a 1-pixel underline beneath the field you are currently editing.
+
+| Gesture | Effect |
+| --- | --- |
+| SELECT short | Cycles the active field: HH → MM → SS → HH |
+| LEFT short | Decreases the active field by 1 (wraps within the field) |
+| RIGHT short | Increases the active field by 1 (wraps within the field) |
+| LEFT / RIGHT hold | After ~500 ms triggers auto-repeat at ~4 ticks per second until released |
+| SELECT long | Saves the duration and returns to the menu list |
+
+The menu has **no idle timeout** — it never auto-exits while you are editing. The dialed value is silently clamped to `[1, timer_max_duration]` on save. Each field has independent bounds (HH 0–99, MM 0–59, SS 0–59) — incrementing seconds past 59 does **not** carry over into minutes. Use SELECT short to switch to the minutes field instead. While the timer is running or paused the `DURATION` leaf is read-only.
+
+You can also set the duration via Home Assistant or the [native API](https://blueforcer.github.io/awtrix3/#/api?id=timer-control).
+
+#### Customisation
+
+- Sounds: drop `timer_tick.txt` and `timer_end.txt` (RTTTL strings) into `/MELODIES/` via the web file manager.
+- Icon: drop an 8×8 `timer.jpg` into `/ICONS/`.
+- Behaviour knobs: see the [Timer-related dev.json keys](https://blueforcer.github.io/awtrix3/#/dev).
+
+#### Remote control
+
+The timer is fully controllable from Home Assistant (when `HA_DISCOVERY` is enabled — it exposes eight entities under the device card) and from the native MQTT/HTTP API. See [Timer Control](https://blueforcer.github.io/awtrix3/#/api?id=timer-control) for the API surface.
+
+---
 # Custom Apps
 
 Besides the native apps, AWTRIX3 is designed to integrate seamlessly with your smart home ecosystem, additional applications can be created using MQTT or HTTP requests.

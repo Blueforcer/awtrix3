@@ -31,9 +31,18 @@ public:
      * For example: `setOptions("Option A;Option B;Option C");
      *
      * @param options The list of options that are separated by semicolons.
-     * @note The options list can be set only once.
+     * @note The options list can be set only once. Call resetOptions() first to
+     *       replace an already-set list (e.g. a dynamic, discovery-driven select).
      */
     void setOptions(const char* options);
+
+    /**
+     * Releases the current option list so setOptions() can be called again, and
+     * resets the current state to "no option selected" (-1). Useful for a select
+     * whose options change at runtime: call resetOptions(), setOptions(newList),
+     * then re-publish the discovery config so Home Assistant sees the new options.
+     */
+    void resetOptions();
 
     /**
      * Changes state of the select and publishes MQTT message.
@@ -104,6 +113,29 @@ public:
     inline void onCommand(HASELECT_CALLBACK(callback))
         { _commandCallback = callback; }
 
+    /**
+     * Enables or disables publishing of JSON attributes for this select.
+     * When enabled, the discovery config advertises a `json_attributes_topic`
+     * (`json_attr_t`) so Home Assistant reads extra attributes from that topic,
+     * and publishJsonAttributes() publishes a retained JSON object onto it.
+     * Disabled by default; while disabled the discovery payload is unchanged.
+     *
+     * @param enabled `true` to advertise the JSON attributes topic.
+     */
+    inline void setJsonAttributes(const bool enabled)
+        { _jsonAttributes = enabled; }
+
+    /**
+     * Publishes the given JSON object as this select's attributes.
+     * The message is retained and rides the same data-topic machinery as the
+     * select's state, so Home Assistant repopulates the attributes after an
+     * HA or broker restart with no extra code.
+     *
+     * @param json A valid JSON object (e.g. `{"key":1}`).
+     * @returns Returns `true` if the MQTT message has been published successfully.
+     */
+    bool publishJsonAttributes(const char* json);
+
 #ifdef ARDUINOHA_TEST
     inline HASerializerArray* getOptions() const
         { return _options; }
@@ -146,6 +178,9 @@ private:
 
     /// The optimistic mode of the select (`true` - enabled, `false` - disabled).
     bool _optimistic;
+
+    /// Whether the JSON attributes topic is advertised in the discovery config.
+    bool _jsonAttributes;
 
     /// The command callback that will be called when option is changed via the HA panel.
     HASELECT_CALLBACK(_commandCallback);

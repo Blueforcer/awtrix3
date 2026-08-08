@@ -14,12 +14,24 @@
 #include <WiFiUdp.h>
 #include <HTTPClient.h>
 #include "Games/GameManager.h"
+#ifndef AWTRIX_DISABLE_TIMER
+#include "TimerManager.h"
+#endif
 #include <EEPROM.h>
 
 WiFiUDP udp;
 
 unsigned int localUdpPort = 4210;
 char incomingPacket[255];
+
+// Propagation surface: dedicated UDP socket for device-to-device timer sync. A
+// separate port (and buffer) from discovery so a full config snapshot fits and the
+// FIND_AWTRIX traffic is never parsed as JSON.
+#ifndef AWTRIX_DISABLE_TIMER
+WiFiUDP syncUdp;
+const uint16_t kTimerSyncPort = 4212;
+char syncBuffer[1024];
+#endif
 
 // Pufferdefinition
 #define BUFFER_SIZE 64
@@ -57,6 +69,7 @@ void ServerManager_::erase()
     memset(&conf, 0, sizeof(conf)); // Set all the bytes in the structure to 0
     esp_wifi_set_config(WIFI_IF_STA, &conf);
     LittleFS.format();
+    g_littlefsMountEpoch++;
     delay(200);
     formatSettings();
     delay(200);
@@ -115,6 +128,21 @@ void addHandler()
                        }else{
                         mws.webserver->send(500, F("text/plain"), F("ErrorParsingJson"));
                        } });
+#ifndef AWTRIX_DISABLE_TIMER
+    mws.addHandler("/api/timer", HTTP_POST, []()
+                   {
+                       switch (TimerManager.parseCommand(mws.webserver->arg("plain").c_str()))
+                       {
+                           case TimerCmdResult::Ok:       mws.webserver->send(200, F("text/plain"), F("OK")); break;
+                           case TimerCmdResult::Disabled: mws.webserver->send(409, F("text/plain"), F("TimerDisabled")); break;
+                           case TimerCmdResult::BadJson:  mws.webserver->send(400, F("text/plain"), F("ErrorParsingJson")); break;
+                           case TimerCmdResult::BadField: mws.webserver->send(400, F("text/plain"), F("InvalidValue")); break;
+                       }
+                   });
+    // Observation surface (read-only): always 200; `enabled` carries SHOW_TIMER.
+    mws.addHandler("/api/timer", HTTP_GET, []()
+                   { mws.webserver->send(200, F("application/json"), TimerManager.getStateJson().c_str()); });
+#endif
     mws.addHandler("/api/nextapp", HTTP_ANY, []()
                    { DisplayManager.nextApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/fullscreen", HTTP_GET, []()
@@ -250,6 +278,9 @@ void ServerManager_::setup()
         mws.addHandler("/save", HTTP_POST, saveHandler);
         addHandler();
         udp.begin(localUdpPort);
+#ifndef AWTRIX_DISABLE_TIMER
+        syncUdp.begin(kTimerSyncPort);
+#endif
         if (DEBUG_MODE)
             DEBUG_PRINTLN(F("Webserver loaded"));
     }
@@ -308,6 +339,21 @@ void ServerManager_::tick()
                 udp.endPacket();
             }
         }
+
+#ifndef AWTRIX_DISABLE_TIMER
+        // Propagation surface: inbound timer-sync packets (echo/follow/target/dedup
+        // gating happens inside applySyncCommand).
+        int syncSize = syncUdp.parsePacket();
+        if (syncSize > 0)
+        {
+            int len = syncUdp.read(syncBuffer, sizeof(syncBuffer) - 1);
+            if (len > 0)
+            {
+                syncBuffer[len] = 0;
+                TimerManager.applySyncCommand(syncBuffer);
+            }
+        }
+#endif
     }
 
     if (!currentClient || !currentClient.connected()) {
@@ -347,6 +393,24 @@ void ServerManager_::sendTCP(String message)
         currentClient.print(message);
     }
 }
+
+#ifndef AWTRIX_DISABLE_TIMER
+void ServerManager_::sendTimerSync(const String &payload)
+{
+    if (AP_MODE) return;
+    IPAddress bcast = WiFi.broadcastIP();
+    if ((uint32_t)bcast == 0) bcast = IPAddress(255, 255, 255, 255);
+    // Redundant best-effort send; receivers dedup by (src,seq). Spacing rides out
+    // transient congestion without acks/per-target state.
+    for (uint8_t i = 0; i < 3; ++i)
+    {
+        syncUdp.beginPacket(bcast, kTimerSyncPort);
+        syncUdp.write((const uint8_t *)payload.c_str(), payload.length());
+        syncUdp.endPacket();
+        if (i < 2) delay(15);
+    }
+}
+#endif
 
 void ServerManager_::loadSettings()
 {

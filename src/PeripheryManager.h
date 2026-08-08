@@ -37,6 +37,7 @@ public:
     void tick();
     void playBootSound();
     const char *playFromFile(String file);
+    String resolveRtttl(const String &name, const char *fallback = nullptr);
     const char *playRTTTLString(String rtttl);
     bool parseSound(const char *json);
     bool isPlaying();

@@ -18,6 +18,7 @@ extern const char HAComponentScene[];
 extern const char HAComponentFan[];
 extern const char HAComponentLight[];
 extern const char HAComponentClimate[];
+extern const char HAComponentText[];
 
 // decorators
 extern const char HASerializerSlash[];
@@ -102,6 +103,7 @@ extern const char HATemperatureCommandTopic[];
 extern const char HATemperatureStateTopic[];
 extern const char HARGBCommandTopic[];
 extern const char HARGBStateTopic[];
+extern const char HAJsonAttributesTopic[];
 
 // misc
 extern const char HAOnline[];

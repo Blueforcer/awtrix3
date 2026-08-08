@@ -18,6 +18,10 @@
 #include <MedianFilterLib.h>
 #include <MeanFilterLib.h>
 #include <Games/GameManager.h>
+#ifndef AWTRIX_DISABLE_TIMER
+#include "TimerManager.h"
+#include "TimerCommand.h"        // TimerCommand::Action for the runStateAction seam
+#endif
 const int buzzerPin = 2;       // Buzzer an GPIO2
 const int baudRate = 50;       // Nachrichtenübertragungsrate
 const char *message = "HELLO"; // Die Nachricht, die gesendet werden soll
@@ -174,6 +178,24 @@ void select_button_pressed()
         if (DFPLAYER_ACTIVE)
             PeripheryManager.playFromFile(DFMINI_MP3_CLICK);
 
+#ifndef AWTRIX_DISABLE_TIMER
+        if (!MenuManager.inMenu)
+        {
+            TimerState ts = TimerManager.getState();
+            if (ts == TimerState::Finished)
+            {
+                TimerManager.runStateAction(TimerCommand::Action::Reset);
+                return;
+            }
+            if (CURRENT_APP == "Timer")
+            {
+                if (ts == TimerState::Running) { TimerManager.runStateAction(TimerCommand::Action::Pause); }
+                else                           { TimerManager.runStateAction(TimerCommand::Action::Start); }
+                return;
+            }
+        }
+#endif
+
         DisplayManager.selectButton();
         MenuManager.selectButton();
         if (DEBUG_MODE)
@@ -206,6 +228,29 @@ void select_button_pressed_long()
     }
     else if (!BLOCK_NAVIGATION)
     {
+#ifndef AWTRIX_DISABLE_TIMER
+        if (!MenuManager.inMenu)
+        {
+            TimerState ts = TimerManager.getState();
+            if (ts == TimerState::Finished)
+            {
+                TimerManager.runStateAction(TimerCommand::Action::Start);
+                return;
+            }
+            if (CURRENT_APP == "Timer" && ts == TimerState::Idle)
+            {
+                // Open the TIMER menu (origin = App) instead of the bare duration
+                // wheel; the wheel is now reachable only as the DURATION leaf.
+                MenuManager.openTimerMenuFromApp();
+                return;
+            }
+            if (CURRENT_APP == "Timer")
+            {
+                TimerManager.runStateAction(TimerCommand::Action::Reset);
+                return;
+            }
+        }
+#endif
         MenuManager.selectButtonLong();
         DisplayManager.selectButtonLong();
         if (DEBUG_MODE)
@@ -323,6 +368,38 @@ const char *PeripheryManager_::playRTTTLString(String rtttl)
     return nullptr; // RTTTL not supported with DFPlayer
 }
 
+String PeripheryManager_::resolveRtttl(const String &name, const char *fallback)
+{
+    File root = LittleFS.open("/MELODIES");
+    if (root && root.isDirectory())
+    {
+        File file = root.openNextFile();
+        while (file)
+        {
+            if (!file.isDirectory())
+            {
+                String fn = file.name();
+                int slash = fn.lastIndexOf('/');
+                int dot = fn.lastIndexOf('.');
+                int end = dot > slash ? dot : fn.length();
+                String base = fn.substring(slash + 1, end);
+                if (base == name)
+                {
+                    String s;
+                    s.reserve(file.size());
+                    while (file.available()) s += (char)file.read();
+                    file.close();
+                    s.trim();
+                    if (s.length() > 0) return s;
+                    break; // matched but empty -> fall through to fallback
+                }
+            }
+            file = root.openNextFile();
+        }
+    }
+    return fallback ? String(fallback) : String();
+}
+
 const char *PeripheryManager_::playFromFile(String file)
 {
     if (!SOUND_ACTIVE)
@@ -344,19 +421,10 @@ const char *PeripheryManager_::playFromFile(String file)
     {
         if (DEBUG_MODE)
             DEBUG_PRINTLN(F("Playing RTTTL sound file"));
-        if (LittleFS.exists("/MELODIES/" + String(file) + ".txt"))
-        {
-            static char melodyName[64];
-            Melody melody = MelodyFactory.loadRtttlFile("/MELODIES/" + String(file) + ".txt");
-            player.playAsync(melody);
-            strncpy(melodyName, melody.getTitle().c_str(), sizeof(melodyName));
-            melodyName[sizeof(melodyName) - 1] = '\0';
-            return melodyName;
-        }
-        else
-        {
+        String rtttl = resolveRtttl(file);
+        if (rtttl.length() == 0)
             return NULL;
-        }
+        return playRTTTLString(rtttl);
     }
 }
 

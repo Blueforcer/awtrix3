@@ -5,6 +5,9 @@
 #include "Globals.h"
 #include "PeripheryManager.h"
 #include "MQTTManager.h"
+#ifndef AWTRIX_DISABLE_TIMER
+#include "TimerHaHost.h"
+#endif
 #include "GifPlayer.h"
 #include <Ticker.h>
 #include "timer.h"
@@ -22,6 +25,9 @@
 #include <HTTPClient.h>
 #include "base64.hpp"
 #include "Games/GameManager.h"
+#ifndef AWTRIX_DISABLE_TIMER
+#include "TimerManager.h"
+#endif
 
 unsigned long lastArtnetStatusTime = 0;
 const int numberOfChannels = 256 * 3;
@@ -1113,6 +1119,9 @@ void DisplayManager_::loadNativeApps()
 #ifdef ULANZI
   updateApp("Battery", BatApp, SHOW_BAT, 4);
 #endif
+#ifndef AWTRIX_DISABLE_TIMER
+  updateApp("Timer", TimerApp, SHOW_TIMER, Apps.size());
+#endif
 
   ui->setApps(Apps);
   setAutoTransition(true);
@@ -2059,6 +2068,7 @@ String DisplayManager_::getSettings()
   doc["HUM"] = SHOW_HUM;
   doc["TEMP"] = SHOW_TEMP;
   doc["BAT"] = SHOW_BAT;
+  doc["TIMER"] = SHOW_TIMER;
   doc["VOL"] = SOUND_VOLUME;
   doc["OVERLAY"] = getOverlayName();
   String jsonString;
@@ -2128,11 +2138,15 @@ void DisplayManager_::setNewSettings(const char *json)
   UPPERCASE_LETTERS = doc.containsKey("UPPERCASE") ? doc["UPPERCASE"].as<bool>() : UPPERCASE_LETTERS;
   SHOW_WEEKDAY = doc.containsKey("WD") ? doc["WD"].as<bool>() : SHOW_WEEKDAY;
   BLOCK_NAVIGATION = doc.containsKey("BLOCKN") ? doc["BLOCKN"].as<bool>() : BLOCK_NAVIGATION;
+#ifndef AWTRIX_DISABLE_TIMER
+  bool prevShowTimer = SHOW_TIMER;
+#endif
   SHOW_TIME = doc.containsKey("TIM") ? doc["TIM"].as<bool>() : SHOW_TIME;
   SHOW_DATE = doc.containsKey("DAT") ? doc["DAT"].as<bool>() : SHOW_DATE;
   SHOW_HUM = doc.containsKey("HUM") ? doc["HUM"].as<bool>() : SHOW_HUM;
   SHOW_TEMP = doc.containsKey("TEMP") ? doc["TEMP"].as<bool>() : SHOW_TEMP;
   SHOW_BAT = doc.containsKey("BAT") ? doc["BAT"].as<bool>() : SHOW_BAT;
+  SHOW_TIMER = doc.containsKey("TIMER") ? doc["TIMER"].as<bool>() : SHOW_TIMER;
   SOUND_ACTIVE = doc.containsKey("SOUND") ? doc["SOUND"].as<bool>() : SOUND_ACTIVE;
 
   if (doc.containsKey("VOL"))
@@ -2251,6 +2265,22 @@ void DisplayManager_::setNewSettings(const char *json)
   }
   doc.clear();
   applyAllSettings();
+#ifndef AWTRIX_DISABLE_TIMER
+  TimerManager.onShowTimerChange(prevShowTimer, SHOW_TIMER);
+  if (prevShowTimer && !SHOW_TIMER)
+  {
+    TimerHaHost.remove();
+  }
+  else if (!prevShowTimer && SHOW_TIMER)
+  {
+    TimerHaHost.enable();
+  }
+  if (prevShowTimer != SHOW_TIMER)
+  {
+    SHOW_TIMER_HA_PREV = SHOW_TIMER;
+  }
+#endif
+  loadNativeApps();
   saveSettings();
   if (DEBUG_MODE)
     DEBUG_PRINTLN("Settings loaded");
