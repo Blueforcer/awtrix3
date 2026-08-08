@@ -230,6 +230,11 @@ void loadDevSettings()
             }
         }
 
+        if (doc.containsKey("has_battery"))
+        {
+            HAS_BATTERY = doc["has_battery"].as<bool>();
+        }
+
         file.close();
     }
     else
@@ -463,3 +468,4 @@ int WEB_PORT = 80;
 OverlayEffect GLOBAL_OVERLAY = NONE;
 String HOSTNAME = "";
 bool BUZ_VOL = false;
+bool HAS_BATTERY = true;

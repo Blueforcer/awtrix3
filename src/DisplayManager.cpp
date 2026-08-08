@@ -1111,7 +1111,10 @@ void DisplayManager_::loadNativeApps()
     updateApp("Humidity", HumApp, SHOW_HUM, 3);
   }
 #ifdef ULANZI
-  updateApp("Battery", BatApp, SHOW_BAT, 4);
+  if (HAS_BATTERY)
+  {
+    updateApp("Battery", BatApp, SHOW_BAT, 4);
+  }
 #endif
 
   ui->setApps(Apps);
@@ -1547,7 +1550,7 @@ std::pair<String, AppCallback> getNativeAppByName(const String &appName)
     return std::make_pair("Humidity", HumApp);
   }
 #ifdef ULANZI
-  else if (appName == "Battery")
+  else if (appName == "Battery" && HAS_BATTERY)
   {
     return std::make_pair("Battery", BatApp);
   }
@@ -1643,8 +1646,10 @@ String DisplayManager_::getStats()
 #ifdef awtrix2_upgrade
   doc[F("type")] = 1;
 #else
-  doc[BatKey] = BATTERY_PERCENT;
-  doc[BatRawKey] = BATTERY_RAW;
+  if (HAS_BATTERY){
+    doc[BatKey] = BATTERY_PERCENT;
+    doc[BatRawKey] = BATTERY_RAW;
+  }
   doc[F("type")] = 0;
 #endif
   doc[LuxKey] = static_cast<int>(CURRENT_LUX);

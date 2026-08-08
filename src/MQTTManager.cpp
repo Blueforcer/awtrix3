@@ -374,6 +374,15 @@ String MQTTManager_::getValueForTopic(const String &topic)
     }
 }
 
+char* getMacString()
+{
+    uint8_t mac[6];
+    WiFi.macAddress(mac);
+    static char macStr[7];
+    snprintf(macStr, 7, "%02x%02x%02x", mac[3], mac[4], mac[5]);
+    return macStr;
+}
+
 void onMqttConnected()
 {
 
@@ -432,6 +441,31 @@ void onMqttConnected()
     {
         MQTTManager.publish("stats/device", "online");
     }
+
+    #ifdef ULANZI
+    if (HA_DISCOVERY && !HAS_BATTERY)
+    {   
+        sprintf(batID, HAbatID, getMacString());
+        if (DEBUG_MODE)
+            DEBUG_PRINTLN(F("Removing old battery sensor from HA"));
+        char topic[100];
+        strcpy(topic, "homeassistant/sensor/");
+        strcat(topic, device.getUniqueId());
+        strcat(topic, "/");
+        strcat(topic, batID);
+        strcat(topic, "/config");
+        mqtt.publish(topic, "", true); // remove battery sensor from HA
+
+        strcpy(topic, MQTT_PREFIX.c_str());
+        strcat(topic, "/");
+        strcat(topic, device.getUniqueId());
+        strcat(topic, "/");
+        strcat(topic, batID);
+        strcat(topic, "/stat_t");
+        mqtt.publish(topic, "", true); // remove battery sensor from mqtt
+    }
+    #endif
+
     connected = true;
 }
 
@@ -495,8 +529,11 @@ void MQTTManager_::sendStats()
     {
         char buffer[8];
 #ifndef awtrix2_upgrade
-        snprintf(buffer, 5, "%d", BATTERY_PERCENT);
-        battery->setValue(buffer);
+        if (HAS_BATTERY)
+        {
+            snprintf(buffer, 5, "%d", BATTERY_PERCENT);
+            battery->setValue(buffer);
+        }
 #endif
         if (SENSOR_READING)
         {
@@ -546,8 +583,7 @@ void MQTTManager_::setup()
         mqtt.setDataPrefix(MQTT_PREFIX.c_str());
         uint8_t mac[6];
         WiFi.macAddress(mac);
-        char macStr[7];
-        snprintf(macStr, 7, "%02x%02x%02x", mac[3], mac[4], mac[5]);
+        char* macStr = getMacString();
         device.setUniqueId(mac, sizeof(mac));
         device.setName(HOSTNAME.c_str());
         device.setSoftwareVersion(VERSION);
@@ -675,13 +711,15 @@ void MQTTManager_::setup()
         humidity->setUnitOfMeasurement(HAhumUnit);
 
 #ifdef ULANZI
-        sprintf(batID, HAbatID, macStr);
-        battery = new HASensor(batID);
-        battery->setIcon(HAbatIcon);
-        battery->setName(HAbatName);
-        battery->setDeviceClass(HAbatClass);
-        battery->setUnitOfMeasurement(HAbatUnit);
-
+        if (HAS_BATTERY)
+        {
+            sprintf(batID, HAbatID, macStr);
+            battery = new HASensor(batID);
+            battery->setIcon(HAbatIcon);
+            battery->setName(HAbatName);
+            battery->setDeviceClass(HAbatClass);
+            battery->setUnitOfMeasurement(HAbatUnit);
+        }
 #endif
         sprintf(luxID, HAluxID, macStr);
         illuminance = new HASensor(luxID);

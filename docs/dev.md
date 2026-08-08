@@ -40,6 +40,7 @@ The JSON object has the following properties:
 | `new_year` | boolean | Displays fireworks and plays a jingle at newyear. | false |
 | `swap_buttons` | boolean | Swaps the left and right hardware button. | false |
 | `ldr_on_ground` | boolean | Sets the LDR configuration to LDR-on-ground. | false |
+| `has_battery` | boolean | Disables all battery related sensors and mqtt-stats if set to false | true |
 
 
 #### Example:
