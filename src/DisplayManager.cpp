@@ -282,6 +282,27 @@ void DisplayManager_::GradientText(int16_t x, int16_t y, const char *text, int c
     matrix->show();
 }
 
+// Renders text with rainbow, gradient, or solid color effect.
+// Caller computes final x/y position; this method only handles the rendering mode.
+void DisplayManager_::renderColoredText(int16_t x, int16_t y, const char *text,
+    bool rainbow, int gradient0, int gradient1,
+    uint32_t color, uint32_t fade, uint32_t blink, byte textCase)
+{
+    if (rainbow)
+    {
+        HSVtext(x, y, text, false, textCase);
+    }
+    else if (gradient0 > -1 && gradient1 > -1)
+    {
+        GradientText(x, y, text, gradient0, gradient1, false, textCase);
+    }
+    else
+    {
+        setTextColor(TextEffect(color, fade, blink));
+        printText(x, y, text, false, textCase);
+    }
+}
+
 void pushCustomApp(String name, int position)
 {
   if (customApps.count(name) == 0)
