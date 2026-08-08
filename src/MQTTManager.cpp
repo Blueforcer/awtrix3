@@ -4,6 +4,7 @@
 #include "ServerManager.h"
 #include <ArduinoHA.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <ArduinoJson.h>
 #include "Dictionary.h"
 #include "PeripheryManager.h"
@@ -12,9 +13,12 @@
 
 const uint16_t PORT = 1883;
 
-WiFiClient espClient;
+WiFiClientSecure secureClient;
+WiFiClient plainClient;
 HADevice device;
-HAMqtt mqtt(espClient, device, 26);
+HAMqtt *mqttPtr = nullptr;
+
+#define mqtt (*mqttPtr)
 
 HALight *Matrix, *Indikator1, *Indikator2, *Indikator3 = nullptr;
 HASelect *BriMode, *transEffect = nullptr;
@@ -463,7 +467,6 @@ bool MQTTManager_::isConnected()
 
 void connect()
 {
-
     mqtt.onMessage(onMqttMessage);
     mqtt.onConnected(onMqttConnected);
 
@@ -537,6 +540,15 @@ void MQTTManager_::sendStats()
 
 void MQTTManager_::setup()
 {
+    if (MQTT_TLS)
+    {
+        secureClient.setInsecure();
+        mqttPtr = new HAMqtt(secureClient, device, 26);
+    }
+    else
+    {
+        mqttPtr = new HAMqtt(plainClient, device, 26);
+    }
 
     if (HA_DISCOVERY)
     {
@@ -741,7 +753,7 @@ void MQTTManager_::setup()
 
 void MQTTManager_::tick()
 {
-    if (MQTT_HOST != "")
+    if (mqttPtr != nullptr && MQTT_HOST != "")
     {
         mqtt.loop();
     }
@@ -755,6 +767,9 @@ void MQTTManager_::tick()
 
 void MQTTManager_::publish(const char *topic, const char *payload)
 {
+    if (mqttPtr == nullptr)
+        return;
+
     char result[100];
     strcpy(result, MQTT_PREFIX.c_str());
     strcat(result, "/");
@@ -768,7 +783,7 @@ void MQTTManager_::publish(const char *topic, const char *payload)
 
 void MQTTManager_::rawPublish(const char *prefix, const char *topic, const char *payload)
 {
-    if (!mqtt.isConnected())
+    if (mqttPtr == nullptr || !mqtt.isConnected())
         return;
     char result[100];
     strcpy(result, prefix);
@@ -864,15 +879,21 @@ void MQTTManager_::setIndicatorState(uint8_t indicator, bool state, uint32_t col
 
 void MQTTManager_::beginPublish(const char *topic, unsigned int plength, boolean retained)
 {
+    if (mqttPtr == nullptr)
+        return;
     mqtt.beginPublish(topic, plength, retained);
 }
 
 void MQTTManager_::writePayload(const char *data, const uint16_t length)
 {
+    if (mqttPtr == nullptr)
+        return;
     mqtt.writePayload(data, length);
 }
 
 void MQTTManager_::endPublish()
 {
+    if (mqttPtr == nullptr)
+        return;
     mqtt.endPublish();
 }

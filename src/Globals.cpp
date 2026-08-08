@@ -354,6 +354,7 @@ uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
 String MQTT_PASS;
 String MQTT_PREFIX;
+bool MQTT_TLS = false;
 bool IO_BROKER = false;
 bool NET_STATIC = false;
 bool SHOW_TIME = true;
