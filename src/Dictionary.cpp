@@ -42,7 +42,7 @@ const char HAbriOptions[] PROGMEM = {"Manual;Auto"};
 const char HAeffectID[] PROGMEM = {"%s_eff"};
 const char HAeffectIcon[] PROGMEM = {"mdi:auto-fix"};
 const char HAeffectName[] PROGMEM = {"Transition effect"};
-const char HAeffectOptions[] PROGMEM = {"Random;Slide;Dim;Zoom;Rotate;Pixelate;Curtain;Ripple;Blink;Reload;Fade"};
+const char HAeffectOptions[] PROGMEM = {"Random;Slide;Dim;Zoom;Rotate;Pixelate;Curtain;Ripple;Blink;Reload;Fade;Instant"};
 
 const char HAbtnaID[] PROGMEM = {"%s_btna"};
 const char HAbtnaIcon[] PROGMEM = {"mdi:bell-off"};
