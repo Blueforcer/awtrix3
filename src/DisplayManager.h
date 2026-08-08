@@ -60,12 +60,6 @@ public:
     String getSettings();
     void setPower(bool state);
     void powerStateParse(const char *json);
-    void setIndicator1Color(uint32_t color);
-    void setIndicator1State(bool state);
-    void setIndicator2Color(uint32_t color);
-    void setIndicator2State(bool state);
-    void setIndicator3Color(uint32_t color);
-    void setIndicator3State(bool state);
     void reorderApps(const String &jsonString);
     void gammaCorrection();
     bool indicatorParser(uint8_t indicator, const char *json);
