@@ -376,7 +376,7 @@ You can adjust each property in the JSON object according to your preferences. I
 | `TEFF`        | number                    | Choose between app transition effects.                                                              | 0–10                                               | 1       |
 | `TSPEED`      | number                    | Time taken for the transition to the next app in milliseconds.                                      | Positive integer                                   | 500     |
 | `TCOL`        | string/array of ints      | Global text color.                                                                                  | RGB array or hex color                             | N/A     |
-| `TMODE`       | integer                   | Changes the time app style.                                                                         | 0–6                                                | 1       |
+| `TMODE`       | integer                   | Changes the time app style.                                                                         | 0–8                                                | 1       |
 | `CHCOL`       | string/array of ints      | Calendar header color of the time app.                                                              | RGB array or hex color                             |`#FF0000`|
 | `CBCOL`       | string/array of ints      | Calendar body color of the time app.                                                                | RGB array or hex color                             |`#FFFFFF`|
 | `CTCOL`       | string/array of ints      | Calendar text color in the time app.                                                                | RGB array or hex color                             |`#000000` |
