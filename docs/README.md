@@ -1,5 +1,29 @@
 # AWTRIX 3
 
+!> **AWTRIX 3 is no longer maintained. The successor is [AWTRIX NG](https://github.com/Blueforcer/awtrix-ng).**
+
+Development of AWTRIX 3 has ended — no new releases, no new features, no fixes.
+This documentation stays online as a reference for devices still running AWTRIX 3.
+
+**[AWTRIX NG](https://github.com/Blueforcer/awtrix-ng)** is a complete rewrite from scratch,
+runs on the same hardware, and does everything AWTRIX 3 did — plus:
+
+- ⚡ **Apps that run on the device** — Berry scripts edited in the browser, with HTTP, MQTT and Modbus TCP
+- 🎨 19 effects, 22 transitions, charts, draw primitives, custom palettes, weather overlays
+- 🔊 MP3, DFPlayer tracks and internet radio (ESP32-S3) on top of RTTTL
+- 🖥️ A full web UI on the device — live preview, script/icon/palette editors, backup, every setting
+- ⚙️ One image for ESP32 and ESP32-S3; pins, panel width (32–128 px) and color order are settings
+- 🌐 Ready-made automations, scripts and thousands of icons on the [AWTRIX Hub](https://awtrix.de)
+
+📖 [NG Documentation](https://blueforcer.github.io/awtrix-ng/) &nbsp;·&nbsp;
+⬇️ [Get AWTRIX NG](https://github.com/Blueforcer/awtrix-ng) &nbsp;·&nbsp;
+🚀 [Discord](https://discord.gg/5pbmeCrs3a)
+
+?> **Coming from AWTRIX 3?** NG is a from-scratch rewrite with its own API v1.
+Nothing carries over and v3 integrations must be reworked — set the device up fresh.
+
+---
+
 ?> This open-source software is not affiliated with or endorsed by the company Ulanzi in any way. Use of the software is at your own risk and discretion, and i assume no liability for any potential damages or issues that may arise from using the software. It is important to be aware that using this open-source software comes without direct support or guarantees from the company Ulanzi.
   
 AWTRIX 3 is a custom firmware for the [Ulanzi Smart Pixel clock](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882?ref=28e02dxl) (Ref link). 

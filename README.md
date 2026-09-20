@@ -21,6 +21,13 @@
 > AWTRIX NG is a complete rewrite from scratch and is where all development happens now.
 > It does everything AWTRIX 3 did, and a lot it never could:
 >
+> - ⚡ **Apps that run on the device** — Berry scripts edited in the browser, with HTTP, MQTT and Modbus TCP
+> - 🎨 19 effects, 22 transitions, charts, draw primitives, custom palettes, weather overlays
+> - 🔊 MP3, DFPlayer tracks and internet radio (ESP32-S3) on top of RTTTL
+> - 🖥️ A full web UI on the device — live preview, script/icon/palette editors, backup, every setting
+> - ⚙️ One image for ESP32 and ESP32-S3; pins, panel width (32–128 px) and color order are settings
+> - 🌐 Ready-made automations, scripts and thousands of icons on the [AWTRIX Hub](https://awtrix.de)
+>
 > 📖 [Documentation](https://blueforcer.github.io/awtrix-ng/) &nbsp;·&nbsp;
 > 🚀 [Discord](https://discord.gg/5pbmeCrs3a) &nbsp;·&nbsp;
 > ⬇️ [Get AWTRIX NG](https://github.com/Blueforcer/awtrix-ng)
