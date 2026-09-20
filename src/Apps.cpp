@@ -11,6 +11,7 @@
 #include "MQTTManager.h"
 #include "Overlays.h"
 #include "timer.h"
+#include "CountdownUtils.h"
 
 const uint8_t bigdigits_mask[12][7] = {
     {132, 48, 48, 48, 48, 48, 132},      // 0
@@ -333,6 +334,115 @@ void DateApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         {
             DisplayManager.drawLine((2 + i * 4) + x, y + 7, (i * 4 + 4) + x, y + 7, WDC_INACTIVE);
         }
+    }
+}
+
+void CountdownApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+{
+    if (notifyFlag)
+        return;
+    CURRENT_APP = "Countdown";
+    currentCustomApp = "";
+
+    CountdownDate target;
+    if (!parseCountdownDate(COUNTDOWN_TARGET.c_str(), target))
+    {
+        return;
+    }
+
+    struct tm *currentTime = timer_localtime();
+    if (currentTime == nullptr)
+    {
+        return;
+    }
+
+    long days = countdownDaysBetweenDates(
+        currentTime->tm_year + 1900,
+        currentTime->tm_mon + 1,
+        currentTime->tm_mday,
+        target.year,
+        target.month,
+        target.day);
+    CountdownDisplayState displayState = countdownDisplayState(days);
+
+    if (displayState == CountdownDisplayState::Expired)
+    {
+        SHOW_COUNTDOWN = false;
+        DisplayManager.loadNativeApps();
+        saveSettings();
+        return;
+    }
+
+    if (COUNTDOWN_COLOR > 0)
+    {
+        DisplayManager.setTextColor(COUNTDOWN_COLOR);
+    }
+    else
+    {
+        DisplayManager.getInstance().resetTextColor();
+    }
+
+    bool iconOnly = displayState == CountdownDisplayState::DueToday;
+    if (!iconOnly)
+    {
+        char targetDay[3];
+        snprintf(targetDay, sizeof(targetDay), "%d", target.day);
+
+        DisplayManager.drawFilledRect(x, y, 9, 8, CALENDAR_BODY_COLOR);
+        DisplayManager.drawFilledRect(x, y, 9, 2, CALENDAR_HEADER_COLOR);
+        DisplayManager.setTextColor(CALENDAR_TEXT_COLOR);
+        DisplayManager.setCursor((target.day < 10 ? 3 : 1) + x, 7 + y);
+        DisplayManager.matrixPrint(targetDay);
+    }
+
+    static File countdownIcon;
+    static String openedIconName;
+    static bool isGif = false;
+    static uint8_t currentFrame = 0;
+
+    if (COUNTDOWN_ICON != openedIconName)
+    {
+        countdownIcon.close();
+        openedIconName = COUNTDOWN_ICON;
+        currentFrame = 0;
+        isGif = false;
+
+        if (COUNTDOWN_ICON.length() > 0)
+        {
+            String jpgPath = "/ICONS/" + COUNTDOWN_ICON + ".jpg";
+            String gifPath = "/ICONS/" + COUNTDOWN_ICON + ".gif";
+            if (LittleFS.exists(jpgPath))
+            {
+                countdownIcon = LittleFS.open(jpgPath);
+            }
+            else if (LittleFS.exists(gifPath))
+            {
+                countdownIcon = LittleFS.open(gifPath);
+                isGif = true;
+            }
+        }
+    }
+
+    if (countdownIcon)
+    {
+        int16_t iconX = (iconOnly ? 12 : 10) + x;
+        if (isGif)
+        {
+            gifPlayer->playGif(iconX, y, &countdownIcon, currentFrame);
+            currentFrame = gifPlayer->getFrame();
+        }
+        else
+        {
+            DisplayManager.drawJPG(iconX, y, countdownIcon);
+        }
+    }
+
+    if (!iconOnly)
+    {
+        char remainingDays[8];
+        snprintf(remainingDays, sizeof(remainingDays), "%ld", days);
+        DisplayManager.setTextColor(COUNTDOWN_COLOR > 0 ? COUNTDOWN_COLOR : TEXTCOLOR_888);
+        DisplayManager.printText(20 + x, 6 + y, remainingDays, false, 2);
     }
 }
 

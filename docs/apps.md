@@ -77,6 +77,25 @@ The Dateapp shows the current date of course. There are several dateformats 'DFO
 | `%m-%d-%y`   | `04-16-22` | Month-Day-Year         |
 
 ---
+## Countdown
+
+The Countdown app shows how many calendar days remain until a configured target date. Before the target date, the left side displays the target day of month together with a custom icon from the existing icon manager, and the right side displays the remaining day count. On the target date, only the configured icon is shown. After the target date has passed, Countdown automatically turns itself off.
+
+Configure it through the Settings API:
+
+```json
+{
+  "COUNT": true,
+  "CDATE": "2026-06-01",
+  "CICON": "1234"
+}
+```
+
+`CDATE` must use `YYYY-MM-DD`. `CICON` is the icon ID or filename without extension from the `/ICONS` folder. `COUNT_COL` can be used to set the countdown text color, or `0` to use the global text color.
+
+See [Countdown](countdown.md) for HTTP and MQTT setup examples.
+
+---
 ## Temperature  
 
 <img src="https://raw.githubusercontent.com/Blueforcer/awtrix3/main/docs/assets/TEMP.png" style="max-height:100px;">  
@@ -330,5 +349,3 @@ This Node-RED flow retrieves and displays the subscriber count of a specified Yo
 To use this flow, replace the "XXX" in the "Data" node with your YouTube API key and ensure that the MQTT broker settings in the "MQTT out" node are correct.
 The flow will then retrieve the subscriber count of the specified YouTube channel and display it on your AWTRIX device along with the icon.
 This Flow uses icon 5029 from LM (Just download it from the awtrix webinterface). You can change the icon in the flow to your favorite one.
-
-

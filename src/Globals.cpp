@@ -263,6 +263,7 @@ void loadSettings()
     TIME_MODE = Settings.getUInt("TMODE", 1);
     TIME_COLOR = Settings.getUInt("TIME_COL", 0);
     DATE_COLOR = Settings.getUInt("DATE_COL", 0);
+    COUNTDOWN_COLOR = Settings.getUInt("COUNT_COL", 0);
     TEMP_COLOR = Settings.getUInt("TEMP_COL", 0);
     HUM_COLOR = Settings.getUInt("HUM_COL", 0);
 #ifdef ULANZI
@@ -276,11 +277,14 @@ void loadSettings()
     TIME_PER_APP = Settings.getUInt("ATIME", 7000);
     TIME_FORMAT = Settings.getString("TFORMAT", "%H %M");
     DATE_FORMAT = Settings.getString("DFORMAT", "%d.%m.%y");
+    COUNTDOWN_TARGET = Settings.getString("CDATE", "");
+    COUNTDOWN_ICON = Settings.getString("CICON", "");
     START_ON_MONDAY = Settings.getBool("SOM", true);
     BLOCK_NAVIGATION = Settings.getBool("BLOCKN", false);
     IS_CELSIUS = Settings.getBool("CEL", true);
     SHOW_TIME = Settings.getBool("TIM", true);
     SHOW_DATE = Settings.getBool("DAT", false);
+    SHOW_COUNTDOWN = Settings.getBool("COUNT", false);
     SHOW_TEMP = Settings.getBool("TEMP", true);
     SHOW_HUM = Settings.getBool("HUM", true);
     MATRIX_LAYOUT = Settings.getUInt("MAT", 0);
@@ -316,6 +320,7 @@ void saveSettings()
     Settings.putUInt("TMODE", TIME_MODE);
     Settings.putUInt("TIME_COL", TIME_COLOR);
     Settings.putUInt("DATE_COL", DATE_COLOR);
+    Settings.putUInt("COUNT_COL", COUNTDOWN_COLOR);
     Settings.putUInt("TEMP_COL", TEMP_COLOR);
     Settings.putUInt("HUM_COL", HUM_COLOR);
 #ifdef ULANZI
@@ -327,10 +332,13 @@ void saveSettings()
     Settings.putUInt("ATIME", TIME_PER_APP);
     Settings.putString("TFORMAT", TIME_FORMAT);
     Settings.putString("DFORMAT", DATE_FORMAT);
+    Settings.putString("CDATE", COUNTDOWN_TARGET);
+    Settings.putString("CICON", COUNTDOWN_ICON);
     Settings.putBool("SOM", START_ON_MONDAY);
     Settings.putBool("CEL", IS_CELSIUS);
     Settings.putBool("TIM", SHOW_TIME);
     Settings.putBool("DAT", SHOW_DATE);
+    Settings.putBool("COUNT", SHOW_COUNTDOWN);
     Settings.putBool("TEMP", SHOW_TEMP);
     Settings.putBool("HUM", SHOW_HUM);
     Settings.putUInt("SSPEED", SCROLL_SPEED);
@@ -358,6 +366,7 @@ bool IO_BROKER = false;
 bool NET_STATIC = false;
 bool SHOW_TIME = true;
 bool SHOW_DATE = true;
+bool SHOW_COUNTDOWN = false;
 bool SHOW_WEATHER = true;
 bool SHOW_BAT = true;
 bool SHOW_TEMP = true;
@@ -402,6 +411,8 @@ float HUM_OFFSET;
 uint16_t LDR_RAW;
 String TIME_FORMAT = "%H:%M:%S";
 String DATE_FORMAT = "%d.%m.%y";
+String COUNTDOWN_TARGET = "";
+String COUNTDOWN_ICON = "";
 int BACKGROUND_EFFECT = -1;
 bool START_ON_MONDAY;
 
@@ -438,6 +449,7 @@ uint32_t CALENDAR_HEADER_COLOR = 0xFF0000;
 uint32_t CALENDAR_TEXT_COLOR = 0x000000;
 uint32_t CALENDAR_BODY_COLOR = 0xFFFFFF;
 uint32_t DATE_COLOR = 0;
+uint32_t COUNTDOWN_COLOR = 0;
 uint32_t BAT_COLOR = 0;
 uint32_t TEMP_COLOR = 0;
 uint32_t HUM_COLOR = 0;

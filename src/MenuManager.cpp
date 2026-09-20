@@ -73,7 +73,11 @@ int8_t dateFormatIndex;
 uint8_t dateFormatCount = 9;
 
 int8_t appsIndex;
+#ifdef awtrix2_upgrade
 uint8_t appsCount = 5;
+#else
+uint8_t appsCount = 6;
+#endif
 
 MenuState currentState = MainMenu;
 
@@ -183,13 +187,16 @@ String MenuManager_::menutext()
             DisplayManager.drawBMP(0, 0, icon_1158, 8, 8);
             return SHOW_DATE ? "ON" : "OFF";
         case 2:
+            DisplayManager.drawBMP(0, 0, icon_1158, 8, 8);
+            return SHOW_COUNTDOWN ? "ON" : "OFF";
+        case 3:
             DisplayManager.drawBMP(0, 0, icon_234, 8, 8);
             return SHOW_TEMP ? "ON" : "OFF";
-        case 3:
+        case 4:
             DisplayManager.drawBMP(0, 0, icon_2075, 8, 8);
             return SHOW_HUM ? "ON" : "OFF";
 #ifndef awtrix2_upgrade
-        case 4:
+        case 5:
             DisplayManager.drawBMP(0, 0, icon_1486, 8, 8);
             return SHOW_BAT ? "ON" : "OFF";
 #endif
@@ -382,13 +389,16 @@ void MenuManager_::selectButton()
             SHOW_DATE = !SHOW_DATE;
             break;
         case 2:
-            SHOW_TEMP = !SHOW_TEMP;
+            SHOW_COUNTDOWN = !SHOW_COUNTDOWN;
             break;
         case 3:
+            SHOW_TEMP = !SHOW_TEMP;
+            break;
+        case 4:
             SHOW_HUM = !SHOW_HUM;
             break;
 #ifndef awtrix2_upgrade
-        case 4:
+        case 5:
             SHOW_BAT = !SHOW_BAT;
             break;
 #endif
