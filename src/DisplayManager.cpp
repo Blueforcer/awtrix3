@@ -2045,6 +2045,7 @@ String DisplayManager_::getSettings()
   doc["CCORRECTION"] = CRGBtoHex(COLOR_CORRECTION);
   doc["CTEMP"] = CRGBtoHex(COLOR_TEMPERATURE);
   doc["WD"] = SHOW_WEEKDAY;
+  doc["MP"] = SHOW_MINUTEPROGRESS;
   doc["TEFF"] = TRANS_EFFECT;
   doc["WDCA"] = WDC_ACTIVE;
   doc["WDCI"] = WDC_INACTIVE;
@@ -2127,6 +2128,7 @@ void DisplayManager_::setNewSettings(const char *json)
   AUTO_TRANSITION = doc.containsKey("ATRANS") ? doc["ATRANS"].as<bool>() : AUTO_TRANSITION;
   UPPERCASE_LETTERS = doc.containsKey("UPPERCASE") ? doc["UPPERCASE"].as<bool>() : UPPERCASE_LETTERS;
   SHOW_WEEKDAY = doc.containsKey("WD") ? doc["WD"].as<bool>() : SHOW_WEEKDAY;
+  SHOW_MINUTEPROGRESS = doc.containsKey("MP") ? doc["MP"].as<bool>() : SHOW_MINUTEPROGRESS;
   BLOCK_NAVIGATION = doc.containsKey("BLOCKN") ? doc["BLOCKN"].as<bool>() : BLOCK_NAVIGATION;
   SHOW_TIME = doc.containsKey("TIM") ? doc["TIM"].as<bool>() : SHOW_TIME;
   SHOW_DATE = doc.containsKey("DAT") ? doc["DAT"].as<bool>() : SHOW_DATE;

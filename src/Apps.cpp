@@ -280,26 +280,50 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         DisplayManager.matrixPrint(day_str);
     }
 
-    if (!SHOW_WEEKDAY)
-        return;
+    if (SHOW_WEEKDAY) {
+        // line of week days
+        uint8_t LINE_WIDTH = TIME_MODE > 0 ? 2 : 3;
+        uint8_t LINE_SPACING = 1;
+        uint8_t LINE_START = TIME_MODE > 0 ? 10 : 2;
+        uint8_t dayOffset = START_ON_MONDAY ? 0 : 1;
+        for (int i = 0; i <= 6; i++)
+        {
+            int lineStart = LINE_START + i * (LINE_WIDTH + LINE_SPACING);
+            int lineEnd = lineStart + LINE_WIDTH - 1;
 
-    // line of week days
-    uint8_t LINE_WIDTH = TIME_MODE > 0 ? 2 : 3;
-    uint8_t LINE_SPACING = 1;
-    uint8_t LINE_START = TIME_MODE > 0 ? 10 : 2;
-    uint8_t dayOffset = START_ON_MONDAY ? 0 : 1;
-    for (int i = 0; i <= 6; i++)
-    {
-        int lineStart = LINE_START + i * (LINE_WIDTH + LINE_SPACING);
-        int lineEnd = lineStart + LINE_WIDTH - 1;
+            uint32_t color;
+            if (i == (timer_localtime()->tm_wday + 6 + dayOffset) % 7)
+                color = WDC_ACTIVE; // current day
+            else
+                color = WDC_INACTIVE; // other days
 
-        uint32_t color;
-        if (i == (timer_localtime()->tm_wday + 6 + dayOffset) % 7)
-            color = WDC_ACTIVE; // current day
-        else
-            color = WDC_INACTIVE; // other days
+            DisplayManager.drawLine(lineStart + x, wdPosY + y, lineEnd + x, wdPosY + y, color);
+        }
+    } else if (SHOW_MINUTEPROGRESS) {
+        const uint8_t spaceStart = (TIME_MODE > 0 ? 10 : 0) + x;
+        const uint8_t spaceWidth = TIME_MODE > 0 ? 22 : 32;
+        const uint8_t secondsPerPixel = TIME_MODE > 0 ? 5 : 3;
+        const uint8_t segments = 4;
+        const uint8_t totalPixels = 60 / secondsPerPixel;
+        const uint8_t pixelsPerSegment = totalPixels / segments;
 
-        DisplayManager.drawLine(lineStart + x, wdPosY + y, lineEnd + x, wdPosY + y, color);
+        uint8_t lineX = spaceStart + spaceWidth / 2 - (totalPixels + segments) / 2;
+        const uint8_t lineEnd = lineX + totalPixels + segments - 1;
+        uint8_t coloredPixels = timer_localtime()->tm_sec / secondsPerPixel;
+        while (coloredPixels >= pixelsPerSegment) {
+            DisplayManager.drawLine(lineX, wdPosY + y, lineX + pixelsPerSegment - 1, wdPosY + y, WDC_ACTIVE);
+            coloredPixels -= pixelsPerSegment;
+            lineX += pixelsPerSegment + 1;
+        }
+        if (coloredPixels > 0) {
+            DisplayManager.drawLine(lineX + coloredPixels, wdPosY + y, lineX + pixelsPerSegment - 1, wdPosY + y, WDC_INACTIVE);
+            DisplayManager.drawLine(lineX, wdPosY + y, lineX + coloredPixels - 1, wdPosY + y, WDC_ACTIVE);
+            lineX += pixelsPerSegment + 1;
+        }
+        while (lineX < lineEnd) {
+            DisplayManager.drawLine(lineX, wdPosY + y, lineX + pixelsPerSegment - 1, wdPosY + y, WDC_INACTIVE);
+            lineX += pixelsPerSegment + 1;
+        }
     }
 }
 
