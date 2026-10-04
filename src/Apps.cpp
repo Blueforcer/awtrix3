@@ -683,19 +683,8 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         else
         {
             String text = replacePlaceholders(ca->text);
-            if (ca->rainbow)
-            {
-                DisplayManager.HSVtext(x + textX + ca->textOffset, 6 + y, text.c_str(), false, ca->textCase);
-            }
-            else if (ca->gradient[0] > -1 && ca->gradient[1] > -1)
-            {
-                DisplayManager.GradientText(x + textX + ca->textOffset, 6 + y, text.c_str(), ca->gradient[0], ca->gradient[1], false, ca->textCase);
-            }
-            else
-            {
-                DisplayManager.setTextColor(TextEffect(ca->color, ca->fade, ca->blink));
-                DisplayManager.printText(x + textX + ca->textOffset, y + 6, text.c_str(), false, ca->textCase);
-            }
+            DisplayManager.renderColoredText(x + textX + ca->textOffset, 6 + y, text.c_str(),
+                ca->rainbow, ca->gradient[0], ca->gradient[1], ca->color, ca->fade, ca->blink, ca->textCase);
         }
     }
     else
@@ -713,19 +702,8 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         }
         else
         {
-            if (ca->rainbow)
-            {
-                DisplayManager.HSVtext(x + ca->scrollposition + ca->textOffset, 6 + y, text.c_str(), false, ca->textCase);
-            }
-            else if (ca->gradient[0] > -1 && ca->gradient[1] > -1)
-            {
-                DisplayManager.GradientText(x + ca->scrollposition + ca->textOffset, 6 + y, text.c_str(), ca->gradient[0], ca->gradient[1], false, ca->textCase);
-            }
-            else
-            {
-                DisplayManager.setTextColor(TextEffect(ca->color, ca->fade, ca->blink));
-                DisplayManager.printText(x + ca->scrollposition + ca->textOffset, 6 + y, text.c_str(), false, ca->textCase);
-            }
+            DisplayManager.renderColoredText(x + ca->scrollposition + ca->textOffset, 6 + y, text.c_str(),
+                ca->rainbow, ca->gradient[0], ca->gradient[1], ca->color, ca->fade, ca->blink, ca->textCase);
         }
     }
 

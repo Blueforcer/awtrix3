@@ -282,20 +282,9 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
         }
         else
         {
-            if (notifications[0].rainbow)
-            {
-                DisplayManager.HSVtext(textX + notifications[0].textOffset, 6, notifications[0].text.c_str(), false, notifications[0].textCase);
-            }
-            else if (notifications[0].gradient[0] > -1 && notifications[0].gradient[1] > -1)
-            {
-                DisplayManager.GradientText(textX + notifications[0].textOffset, 6, notifications[0].text.c_str(), notifications[0].gradient[0], notifications[0].gradient[1], false, notifications[0].textCase);
-            }
-            else
-            {
-                DisplayManager.setTextColor(TextEffect(notifications[0].color, notifications[0].fade, notifications[0].blink));
-
-                DisplayManager.printText(textX + notifications[0].textOffset, 6, notifications[0].text.c_str(), false, notifications[0].textCase);
-            }
+            DisplayManager.renderColoredText(textX + notifications[0].textOffset, 6, notifications[0].text.c_str(),
+                notifications[0].rainbow, notifications[0].gradient[0], notifications[0].gradient[1],
+                notifications[0].color, notifications[0].fade, notifications[0].blink, notifications[0].textCase);
         }
     }
     else
@@ -319,21 +308,9 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
         }
         else
         {
-            if (notifications[0].rainbow)
-            {
-                // Display scrolling text in rainbow color if enabled
-                DisplayManager.HSVtext(notifications[0].scrollposition, 6, notifications[0].text.c_str(), false, notifications[0].textCase);
-            }
-            else if (notifications[0].gradient[0] > -1 && notifications[0].gradient[1] > -1)
-            {
-                DisplayManager.GradientText(notifications[0].scrollposition + notifications[0].textOffset, 6, notifications[0].text.c_str(), notifications[0].gradient[0], notifications[0].gradient[1], false, notifications[0].textCase);
-            }
-            else
-            {
-                // Set text color
-                DisplayManager.setTextColor(TextEffect(notifications[0].color, notifications[0].fade, notifications[0].blink));
-                DisplayManager.printText(notifications[0].scrollposition + notifications[0].textOffset, 6, notifications[0].text.c_str(), false, notifications[0].textCase);
-            }
+            DisplayManager.renderColoredText(notifications[0].scrollposition + notifications[0].textOffset, 6, notifications[0].text.c_str(),
+                notifications[0].rainbow, notifications[0].gradient[0], notifications[0].gradient[1],
+                notifications[0].color, notifications[0].fade, notifications[0].blink, notifications[0].textCase);
         }
     }
 
