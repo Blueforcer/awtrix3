@@ -22,6 +22,7 @@
 #include <HTTPClient.h>
 #include "base64.hpp"
 #include "Games/GameManager.h"
+#include "Indicators.h"
 
 unsigned long lastArtnetStatusTime = 0;
 const int numberOfChannels = 256 * 3;
@@ -1661,9 +1662,9 @@ String DisplayManager_::getStats()
   doc[SignalStrengthKey] = WiFi.RSSI();
   doc[MessagesKey] = RECEIVED_MESSAGES;
   doc[VersionKey] = VERSION;
-  doc[F("indicator1")] = ui->indicator1State;
-  doc[F("indicator2")] = ui->indicator2State;
-  doc[F("indicator3")] = ui->indicator3State;
+  doc[F("indicator1")] = getIndicatorState(1);
+  doc[F("indicator2")] = getIndicatorState(2);
+  doc[F("indicator3")] = getIndicatorState(3);
   doc[F("app")] = CURRENT_APP;
   doc[F("uid")] = uniqueID;
   doc[F("matrix")] = !MATRIX_OFF;
@@ -1756,64 +1757,15 @@ void DisplayManager_::setPower(bool state)
   }
 }
 
-void DisplayManager_::setIndicator1Color(uint32_t color)
-{
-  ui->setIndicator1Color(color);
-}
-
-void DisplayManager_::setIndicator1State(bool state)
-{
-  ui->setIndicator1State(state);
-}
-
-void DisplayManager_::setIndicator2Color(uint32_t color)
-{
-  ui->setIndicator2Color(color);
-}
-
-void DisplayManager_::setIndicator2State(bool state)
-{
-  ui->setIndicator2State(state);
-}
-
-void DisplayManager_::setIndicator3Color(uint32_t color)
-{
-  ui->setIndicator3Color(color);
-}
-
-void DisplayManager_::setIndicator3State(bool state)
-{
-  ui->setIndicator3State(state);
-}
-
 bool DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
 {
 
   if (strcmp(json, "") == 0 || strcmp(json, "{}") == 0)
   {
-    switch (indicator)
-    {
-    case 1:
-      ui->setIndicator1State(false);
-      ui->setIndicator1Fade(0);
-      ui->setIndicator1Blink(0);
-      MQTTManager.setIndicatorState(1, ui->indicator1State, ui->indicator1Color);
-      break;
-    case 2:
-      ui->setIndicator2State(false);
-      ui->setIndicator2Fade(0);
-      ui->setIndicator2Blink(0);
-      MQTTManager.setIndicatorState(2, ui->indicator2State, ui->indicator2Color);
-      break;
-    case 3:
-      ui->setIndicator3State(false);
-      ui->setIndicator3Fade(0);
-      ui->setIndicator3Blink(0);
-      MQTTManager.setIndicatorState(3, ui->indicator3State, ui->indicator3Color);
-      break;
-    default:
-      break;
-    }
+    setIndicatorState(indicator, false);
+    setIndicatorFade(indicator, 0);
+    setIndicatorBlink(indicator, 0);
+    MQTTManager.setIndicatorState(indicator, getIndicatorState(indicator), getIndicatorColor(indicator));
     return true;
   }
 
@@ -1830,114 +1782,25 @@ bool DisplayManager_::indicatorParser(uint8_t indicator, const char *json)
 
     if (col > 0)
     {
-      switch (indicator)
-      {
-      case 1:
-        ui->setIndicator1State(true);
-        ui->setIndicator1Color(col);
-        break;
-      case 2:
-        ui->setIndicator2State(true);
-        ui->setIndicator2Color(col);
-        break;
-      case 3:
-        ui->setIndicator3State(true);
-        ui->setIndicator3Color(col);
-        break;
-      default:
-        break;
-      }
+      setIndicatorState(indicator, true);
+      setIndicatorColor(indicator, col);
     }
     else
     {
-      switch (indicator)
-      {
-      case 1:
-        ui->setIndicator1State(false);
-        break;
-      case 2:
-        ui->setIndicator2State(false);
-        break;
-      case 3:
-        ui->setIndicator3State(false);
-        break;
-      default:
-        break;
-      }
+      setIndicatorState(indicator, false);
     }
   }
 
-  if (doc.containsKey("blink"))
-  {
-    switch (indicator)
-    {
-    case 1:
-      ui->setIndicator1Blink(doc["blink"].as<int>());
-      break;
-    case 2:
-      ui->setIndicator2Blink(doc["blink"].as<int>());
-      break;
-    case 3:
-      ui->setIndicator3Blink(doc["blink"].as<int>());
-      break;
-    default:
-      break;
-    }
-  }
-  else
-  {
-    switch (indicator)
-    {
-    case 1:
-      ui->setIndicator1Blink(0);
-      break;
-    case 2:
-      ui->setIndicator2Blink(0);
-      break;
-    case 3:
-      ui->setIndicator3Blink(0);
-      break;
-    default:
-      break;
-    }
-  }
+  setIndicatorBlink(indicator, 
+    doc.containsKey("blink") ? doc["blink"].as<int>() : 0
+  );
 
-  if (doc.containsKey("fade"))
-  {
-    switch (indicator)
-    {
-    case 1:
-      ui->setIndicator1Fade(doc["fade"].as<int>());
-      break;
-    case 2:
-      ui->setIndicator2Fade(doc["fade"].as<int>());
-      break;
-    case 3:
-      ui->setIndicator3Fade(doc["fade"].as<int>());
-      break;
-    default:
-      break;
-    }
-  }
-  else
-  {
-    switch (indicator)
-    {
-    case 1:
-      ui->setIndicator1Fade(0);
-      break;
-    case 2:
-      ui->setIndicator2Fade(0);
-      break;
-    case 3:
-      ui->setIndicator3Fade(0);
-      break;
-    default:
-      break;
-    }
-  }
+  setIndicatorFade(indicator, 
+    doc.containsKey("fade") ? doc["fade"].as<int>() : 0
+  );
+
   doc.clear();
-  MQTTManager.setIndicatorState(indicator, ui->indicator1State, ui->indicator1Color);
+  MQTTManager.setIndicatorState(indicator, getIndicatorState(indicator), getIndicatorColor(indicator));
   return true;
 }
 

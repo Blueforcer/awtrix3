@@ -9,6 +9,7 @@
 #include "PeripheryManager.h"
 #include "UpdateManager.h"
 #include "PowerManager.h"
+#include "Indicators.h"
 
 const uint16_t PORT = 1883;
 
@@ -286,15 +287,15 @@ void onRGBColorCommand(HALight::RGBColor color, HALight *sender)
     }
     else if (sender == Indikator1)
     {
-        DisplayManager.setIndicator1Color((color.red << 16) | (color.green << 8) | color.blue);
+        setIndicatorColor(1, (color.red << 16) | (color.green << 8) | color.blue);
     }
     else if (sender == Indikator2)
     {
-        DisplayManager.setIndicator2Color((color.red << 16) | (color.green << 8) | color.blue);
+        setIndicatorColor(2, (color.red << 16) | (color.green << 8) | color.blue);
     }
     else if (sender == Indikator3)
     {
-        DisplayManager.setIndicator3Color((color.red << 16) | (color.green << 8) | color.blue);
+        setIndicatorColor(3, (color.red << 16) | (color.green << 8) | color.blue);
     }
     sender->setRGBColor(color); // report color back to the Home Assistant
 }
@@ -307,15 +308,15 @@ void onStateCommand(bool state, HALight *sender)
     }
     else if (sender == Indikator1)
     {
-        DisplayManager.setIndicator1State(state);
+        setIndicatorState(1, state);
     }
     else if (sender == Indikator2)
     {
-        DisplayManager.setIndicator2State(state);
+        setIndicatorState(2, state);
     }
     else if (sender == Indikator3)
     {
-        DisplayManager.setIndicator3State(state);
+        setIndicatorState(3, state);
     }
     sender->setState(state);
 }
