@@ -44,6 +44,7 @@ struct CustomApp
     uint64_t lifetime;
     std::vector<uint32_t> colors;
     std::vector<String> fragments;
+    std::vector<int> blinks;
     int textOffset;
     int iconOffset;
     int progress = -1;

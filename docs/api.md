@@ -278,6 +278,8 @@ Here's an example JSON object to draw a red circle, a blue rectangle, and the te
 
 AWTRIX 3 allows you to present text where specific fragments can be colorized. Use an array of fragments with `"t"` representing the text fragment and `"c"` denoting the color's hex value.
 
+Each fragment may also carry an optional `"b"` (Integer, ms): when greater than `0` that fragment blinks at the given interval while the other fragments stay steady. This is the per-fragment counterpart to the app-wide `blinkText`; omitting it (or `0`) falls back to the app-wide `blinkText` value. A typical use is a blinking clock separator, e.g. `[{"t":"12"},{"t":":","b":500},{"t":"34"}]`.
+
 ```json
 {
   "text": [
@@ -287,7 +289,8 @@ AWTRIX 3 allows you to present text where specific fragments can be colorized. U
     },
     {
       "t": "world!",
-      "c": "00FF00"
+      "c": "00FF00",
+      "b": 500
     }
   ],
   "repeat": 2
