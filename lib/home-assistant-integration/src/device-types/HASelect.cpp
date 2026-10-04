@@ -11,6 +11,7 @@ HASelect::HASelect(const char* uniqueId) :
     _icon(nullptr),
     _retain(false),
     _optimistic(false),
+    _jsonAttributes(false),
     _commandCallback(nullptr)
 {
 
@@ -71,6 +72,27 @@ void HASelect::setOptions(const char* options)
     }
 }
 
+void HASelect::resetOptions()
+{
+    if (_options) {
+        // Mirror the destructor's option-array teardown: each option string is heap
+        // allocated only when there is more than one option (see setOptions).
+        const uint8_t optionsNb = _options->getItemsNb();
+        const HASerializerArray::ItemType* options = _options->getItems();
+
+        if (optionsNb > 1) {
+            for (uint8_t i = 0; i < optionsNb; i++) {
+                delete options[i];
+            }
+        }
+
+        delete _options;
+        _options = nullptr;
+    }
+
+    _currentState = -1; // no option selected until the new list is applied
+}
+
 bool HASelect::setState(const int8_t state, const bool force)
 {
     if (!force && _currentState == state) {
@@ -91,7 +113,7 @@ void HASelect::buildSerializer()
         return;
     }
 
-    _serializer = new HASerializer(this, 10); // 10 - max properties nb
+    _serializer = new HASerializer(this, 11); // 11 - max properties nb (incl. json_attr_t)
     _serializer->set(AHATOFSTR(HANameProperty), _name);
     _serializer->set(AHATOFSTR(HAUniqueIdProperty), _uniqueId);
     _serializer->set(AHATOFSTR(HAIconProperty), _icon);
@@ -121,6 +143,10 @@ void HASelect::buildSerializer()
     _serializer->set(HASerializer::WithAvailability);
     _serializer->topic(AHATOFSTR(HAStateTopic));
     _serializer->topic(AHATOFSTR(HACommandTopic));
+
+    if (_jsonAttributes) {
+        _serializer->topic(AHATOFSTR(HAJsonAttributesTopic));
+    }
 }
 
 void HASelect::onMqttConnected()
@@ -174,6 +200,15 @@ bool HASelect::publishState(const int8_t state)
     }
 
     return publishOnDataTopic(AHATOFSTR(HAStateTopic), item, true);
+}
+
+bool HASelect::publishJsonAttributes(const char* json)
+{
+    if (!json) {
+        return false;
+    }
+
+    return publishOnDataTopic(AHATOFSTR(HAJsonAttributesTopic), json, true);
 }
 
 uint8_t HASelect::countOptionsInString(const char* options) const

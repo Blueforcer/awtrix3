@@ -18,6 +18,7 @@ const char HAComponentScene[] PROGMEM = {"scene"};
 const char HAComponentFan[] PROGMEM = {"fan"};
 const char HAComponentLight[] PROGMEM = {"light"};
 const char HAComponentClimate[] PROGMEM = {"climate"};
+const char HAComponentText[] PROGMEM = {"text"};
 
 // decorators
 const char HASerializerSlash[] PROGMEM = {"/"};
@@ -102,6 +103,7 @@ const char HATemperatureCommandTopic[] PROGMEM = {"temp_cmd_t"};
 const char HATemperatureStateTopic[] PROGMEM = {"temp_stat_t"};
 const char HARGBCommandTopic[] PROGMEM = {"rgb_cmd_t"};
 const char HARGBStateTopic[] PROGMEM = {"rgb_stat_t"};
+const char HAJsonAttributesTopic[] PROGMEM = {"json_attr_t"};
 
 // misc
 const char HAOnline[] PROGMEM = {"online"};

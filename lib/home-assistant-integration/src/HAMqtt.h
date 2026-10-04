@@ -228,6 +228,17 @@ public:
     void addDeviceType(HABaseDeviceType *deviceType);
 
     /**
+     * Publishes the discovery configuration (and availability/subscriptions) for a single
+     * already-registered device type. Normally every device type's configuration is
+     * published by onConnectedLogic() on each (re)connect; this lets a device type that
+     * was created after the connection was established publish its configuration without
+     * forcing a full reconnect. No-op if the pointer is null or the broker is disconnected.
+     *
+     * @param deviceType Instance of the device's type to publish.
+     */
+    void publishConfigForDeviceType(HABaseDeviceType *deviceType);
+
+    /**
      * Publishes the MQTT message with given topic and payload.
      * Message won't be published if the connection with the MQTT broker is not established.
      * In this case method returns false.
@@ -324,12 +335,18 @@ public:
      */
     void processMessage(const char *topic, const uint8_t *payload, uint16_t length);
 
-#ifdef ARDUINOHA_TEST
+    /**
+     * Number of device types currently registered. Note ArduinoHA's effective
+     * capacity is one less than the max passed to the constructor (addDeviceType
+     * rejects once _devicesTypesNb + 1 >= _maxDevicesTypesNb). Used by the firmware
+     * to log/guard HA entity registration against the cap.
+     */
     inline uint8_t getDevicesTypesNb() const
     {
         return _devicesTypesNb;
     }
 
+#ifdef ARDUINOHA_TEST
     inline HABaseDeviceType **getDevicesTypes() const
     {
         return _devicesTypes;

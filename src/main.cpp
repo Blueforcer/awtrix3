@@ -35,10 +35,16 @@
 #include "DisplayManager.h"
 #include "PeripheryManager.h"
 #include "MQTTManager.h"
+#ifndef AWTRIX_DISABLE_TIMER
+#include "TimerHaHost.h"
+#endif
 #include "ServerManager.h"
 #include "Globals.h"
 #include "UpdateManager.h"
 #include "timer.h"
+#ifndef AWTRIX_DISABLE_TIMER
+#include "TimerManager.h"
+#endif
 
 TaskHandle_t taskHandle;
 volatile bool StopTask = false;
@@ -69,6 +75,9 @@ void setup()
   PeripheryManager.setup();
   ServerManager.loadSettings();
   DisplayManager.setup();
+#ifndef AWTRIX_DISABLE_TIMER
+  TimerManager.setup();
+#endif
   DisplayManager.HSVtext(9, 6, VERSION, true, 0);
   delay(500);
   xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 0);
@@ -100,6 +109,9 @@ void setup()
       if (MQTT_HOST != "")
       {
         DisplayManager.HSVtext(4, 6, "MQTT...", true, 0);
+#ifndef AWTRIX_DISABLE_TIMER
+        TimerHaHost.reconcile();
+#endif
         MQTTManager.setup();
         MQTTManager.tick();
       }
@@ -119,9 +131,16 @@ void loop()
   timer_tick();
   ServerManager.tick();
   DisplayManager.tick();
+#ifndef AWTRIX_DISABLE_TIMER
+  TimerManager.tick();
+  TimerManager.tickPresence(millis());   // peer presence beacon + registry aging
+#endif
   PeripheryManager.tick();
   if (ServerManager.isConnected)
   {
     MQTTManager.tick();
+#ifndef AWTRIX_DISABLE_TIMER
+    TimerHaHost.refreshTargets(millis());   // dynamic HA Targets select republish
+#endif
   }
 }

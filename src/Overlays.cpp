@@ -24,14 +24,66 @@ void StatusOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
 
 void MenuOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
 {
+    // Marquee state for over-wide menu labels. The position resets to the
+    // left whenever the displayed string changes (navigating to another item, or a
+    // leaf value ticking under the cursor) and on menu (re)entry, so the readable
+    // hold always plays from the start and a label is never caught mid-scroll.
+    // This is frame-stateful device drawing, deliberately kept inline here.
+    static String lastText;
+    static float scrollPos = 0;    // x of the label's left edge while scrolling
+    static int scrollDelay = 0;    // pre-roll hold counter (frames), as notifications
+    static bool wasInMenu = false;
 
     if (!MenuManager.inMenu)
+    {
+        wasInMenu = false;
         return;
-
+    }
 
     matrix->fillScreen(0);
     DisplayManager.setTextColor(0xFFFFFF);
-    DisplayManager.printText(0, 6, utf8ascii(MenuManager.menutext()).c_str(), true, 2);
+
+    String text = utf8ascii(MenuManager.menutext());
+    float textWidth = getTextWidth(text.c_str(), 2);
+
+    // Fits the 32px panel: center it and hold still -- byte-for-byte today's path.
+    if (textWidth <= 32)
+    {
+        lastText = text;
+        wasInMenu = true;
+        DisplayManager.printText(0, 6, text.c_str(), true, 2);
+        return;
+    }
+
+    // Over-wide: marquee. Restart from the left on (re)entry or a label change.
+    if (!wasInMenu || text != lastText)
+    {
+        lastText = text;
+        scrollPos = 0;
+        scrollDelay = 0;
+    }
+    wasInMenu = true;
+
+    // Hold briefly at the left (mirrors the notification overlay's pre-roll gate),
+    // then scroll left at the device's shared scroll speed, reusing movementFactor
+    // for frame-rate independence (the same math three other call sites use). Loops
+    // continuously while the item stays selected.
+    if (scrollDelay > MATRIX_FPS * 1.2)
+    {
+        scrollPos -= movementFactor * ((float)SCROLL_SPEED / 100);
+        if (scrollPos + textWidth <= 0)   // fully off the left edge -> loop from left
+        {
+            scrollPos = 0;
+            scrollDelay = 0;
+        }
+    }
+    else
+    {
+        ++scrollDelay;
+        scrollPos = 0;
+    }
+
+    DisplayManager.printText((int16_t)scrollPos, 6, text.c_str(), false, 2);
 }
 
 void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)

@@ -191,6 +191,14 @@ void HAMqtt::addDeviceType(HABaseDeviceType *deviceType)
     _devicesTypes[_devicesTypesNb++] = deviceType;
 }
 
+void HAMqtt::publishConfigForDeviceType(HABaseDeviceType *deviceType)
+{
+    if (deviceType && isConnected())
+    {
+        deviceType->onMqttConnected();
+    }
+}
+
 bool HAMqtt::publish(const char *topic, const char *payload, bool retained)
 {
     if (!isConnected())

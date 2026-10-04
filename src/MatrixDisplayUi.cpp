@@ -188,7 +188,7 @@ int8_t MatrixDisplayUi::update()
   if (timeBudget <= 0)
   {
     // Implement frame skipping to ensure time budget is kept
-    if (this->setAutoTransition && this->state.lastUpdate != 0)
+    if (this->state.lastUpdate != 0)
       this->state.ticksSinceLastStateSwitch += ceil(-timeBudget / this->updateInterval);
 
     this->state.lastUpdate = appStart;

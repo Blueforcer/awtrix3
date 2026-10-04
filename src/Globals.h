@@ -150,4 +150,25 @@ extern OverlayEffect GLOBAL_OVERLAY;
 extern String HOSTNAME;
 extern int WEB_PORT;
 extern bool BUZ_VOL;
+extern bool SHOW_TIMER;
+extern bool SHOW_TIMER_HA_PREV;
+extern uint32_t TIMER_MAX_DURATION;
+extern uint16_t TIMER_PUBLISH_INTERVAL;
+extern uint16_t TIMER_FINISHED_HOLD;
+extern uint16_t TIMER_REALERT_INTERVAL;
+extern uint16_t TIMER_COUNTDOWN_SECONDS;
+extern String TIMER_ICON_IDLE;
+extern String TIMER_ICON_RUNNING;
+extern String TIMER_ICON_PAUSED;
+extern String TIMER_ICON_FINISHED;
+extern String TIMER_MELODY_TICK;
+extern String TIMER_MELODY_END;
+extern bool TIMER_BAR_ENABLED;
+extern bool TIMER_ICON_ENABLED;
+extern uint32_t TIMER_BAR_COLOR;
+extern uint32_t TIMER_BAR_BG_COLOR;
+extern bool TIMER_SYNC_FOLLOW;
+extern String TIMER_SYNC_TARGETS;
+
+extern uint32_t g_littlefsMountEpoch;
 #endif // Globals_H

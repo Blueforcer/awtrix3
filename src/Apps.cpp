@@ -11,6 +11,12 @@
 #include "MQTTManager.h"
 #include "Overlays.h"
 #include "timer.h"
+#ifndef AWTRIX_DISABLE_TIMER
+#include "TimerManager.h"
+#include "TimerView.h"
+#endif
+#include "Globals.h"
+#include "DisplayManager.h"
 
 const uint8_t bigdigits_mask[12][7] = {
     {132, 48, 48, 48, 48, 48, 132},      // 0
@@ -412,6 +418,139 @@ void BatApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
     DisplayManager.matrixPrint("%");
 }
 #endif
+
+#ifndef AWTRIX_DISABLE_TIMER
+namespace {
+    // Painter-side layout (font-/draw-dependent). The view-model owns the rest
+    // of the timer geometry (text region, progress bar) — see src/TimerView.cpp.
+    constexpr int16_t kTimerTextY               = 6;   // text baseline row
+    constexpr int16_t kTimerScreenH             = 8;   // panel height (bottom row = H-1)
+    constexpr int     kTimerConfigUnderlineStep = 10;  // px between config fields
+}
+
+static void drawTimerIcon(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, TimerState state, GifPlayer *gifPlayer)
+{
+    static String     cachedName    = "\x01";
+    static uint32_t   cachedEpoch   = 0;
+    static File       icon;
+    static bool       isGif         = false;
+    static uint8_t    currentFrame  = 0;
+    static GifPlayer *lastPlayer    = nullptr;
+
+    const String &name = TimerManager.getIconForState(state);
+
+    if (name != cachedName || cachedEpoch != g_littlefsMountEpoch)
+    {
+        cachedEpoch = g_littlefsMountEpoch;
+        cachedName = name;
+        if (icon) icon.close();
+        isGif = false;
+        currentFrame = 0;
+        lastPlayer = nullptr;
+
+        if (name.length() > 0)
+        {
+            const char *extensions[] = {".jpg", ".gif"};
+            for (int i = 0; i < 2; i++)
+            {
+                String filePath = "/ICONS/" + name + extensions[i];
+                if (LittleFS.exists(filePath))
+                {
+                    isGif = (i == 1);
+                    icon  = LittleFS.open(filePath);
+                    break;
+                }
+            }
+        }
+    }
+
+    if (icon)
+    {
+        if (isGif && gifPlayer != nullptr)
+        {
+            if (gifPlayer != lastPlayer)
+            {
+                icon.seek(0);
+                currentFrame = 0;
+                lastPlayer = gifPlayer;
+            }
+            gifPlayer->playGif(x, y, &icon, currentFrame);
+            currentFrame = gifPlayer->getFrame();
+            return;
+        }
+        if (!isGif)
+        {
+            DisplayManager.drawJPG(x, y, icon);
+            return;
+        }
+    }
+
+    // No configured/resolvable icon for this state: fall back to the built-in
+    // colour hourglass bitmap (src/icons.h), the same glyph the on-device menu
+    // uses for the Timer entry. Drawn at logical (x, y) via drawRGBBitmap to
+    // match the JPG path's coordinate convention (jpg_output in DisplayManager).
+    matrix->drawRGBBitmap(x, y, icon_timer, 8, 8);
+}
+
+void TimerApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
+{
+    if (notifyFlag)
+        return;
+
+    CURRENT_APP = "Timer";
+    currentCustomApp = "";
+
+    // What to draw is decided by the display-free view-model; this function is
+    // its painter (font-dependent centering + the actual draws). See TimerView.h.
+    // Capture the live TimerManager state into an explicit snapshot once; this is
+    // the only place that maps manager state into the display-free view input.
+    const TimerSnapshot snap{
+        TimerManager.getState(), TimerManager.getDuration(), TimerManager.getRemaining(),
+        TimerManager.getRunDuration(), TIMER_ICON_ENABLED, millis()};
+    const TimerView view = TimerViewModel::compute(snap);
+
+    // Config and Finished pin the app in the rotation while they're on screen.
+    if (view.screen == TimerView::Screen::Config || view.screen == TimerView::Screen::Finished)
+        state->ticksSinceLastStateSwitch = 0;
+
+    DisplayManager.getInstance().resetTextColor();
+
+    // Icon on every screen except Config (which centers text over the full panel),
+    // and only when icon_enabled is on. view.showIcon folds both conditions in.
+    if (view.showIcon)
+        drawTimerIcon(matrix, x, y, TimerManager.getState(), gifPlayer);
+
+    // Text, centered within the view's region. getTextWidth (font metrics) is
+    // the one display dependency that stays painter-side.
+    int16_t textX = view.textRegionX0;
+    if (view.showText)
+    {
+        textX = view.textRegionX0 + ((view.textRegionW - (int)getTextWidth(view.text, 0)) / 2);
+        DisplayManager.setTextColor(TEXTCOLOR_888);
+        DisplayManager.printText(textX + x, kTimerTextY + y, view.text, false, 0);
+    }
+
+    // Config-mode field underline, offset from the centered text.
+    if (view.showUnderline)
+    {
+        int underlineX = textX + (view.underlineField * kTimerConfigUnderlineStep);
+        matrix->drawFastHLine(underlineX + x, (kTimerScreenH - 1) + y, 8, TEXTCOLOR_888);
+    }
+
+    // Background track behind the bar: the full trough, painted first so
+    // the foreground draws over it. Persists while the bar is active (even when the
+    // foreground has drained to nothing). A black bar_bg_color (the default) is off
+    // pixels, so it is skipped -- the bar then looks as if no track existed.
+    if (view.showBarTrack && TIMER_BAR_ENABLED && TIMER_BAR_BG_COLOR)
+        matrix->drawFastHLine(view.barTrackStartX + x, (kTimerScreenH - 1) + y,
+                              view.barTrackLen, TIMER_BAR_BG_COLOR);
+
+    // Progress bar (right-anchored, drains from the left).
+    if (view.showBar && TIMER_BAR_ENABLED)
+        matrix->drawFastHLine(view.barStartX + x, (kTimerScreenH - 1) + y, view.barLen,
+                              TIMER_BAR_COLOR ? TIMER_BAR_COLOR : TEXTCOLOR_888);
+}
+#endif // AWTRIX_DISABLE_TIMER
 
 String replacePlaceholders(String text)
 {

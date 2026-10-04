@@ -15,6 +15,7 @@
 - Features
   - [Apps](apps.md)
      - [Native Apps](apps.md#native-apps)
+     - [Timer](apps.md#timer)
      - [Custom Apps](apps.md#custom-apps)
   - [Effects](effects.md)
   - [Icons](icons.md)
@@ -33,4 +34,5 @@
      - [Drawing](api.md#drawing-instructions)
      - [Colored textfragmentss](api.md#display-text-in-colored-fragments)
      - [App switching](api.md#switch-to-specific-app)
+     - [Timer Control](api.md#timer-control)
      - [Settings](api.md#change-settings)

@@ -1,5 +1,8 @@
 #include "Globals.h"
 #include "Preferences.h"
+#ifndef AWTRIX_DISABLE_TIMER
+#include "TimerSettings.h"
+#endif
 #include <WiFi.h>
 #include <ArduinoJson.h>
 #include <LittleFS.h>
@@ -206,6 +209,25 @@ void loadDevSettings()
             BUTTON_CALLBACK = doc["button_callback"].as<String>();
         }
 
+        if (doc.containsKey("show_timer"))
+        {
+            SHOW_TIMER = doc["show_timer"].as<bool>();
+        }
+
+#ifndef AWTRIX_DISABLE_TIMER
+        // Timer value-config keys: validated + applied per-key best-effort from the
+        // single TIMER_SETTINGS_DESCS table (ranges live there, once). dev.json is a
+        // boot override layer, so an invalid key is skipped, not atomic-rejected.
+        timerSettingsLoadDevJson(doc.as<JsonObjectConst>());
+#endif
+
+        // Timer state icons stay member-backed (B1); their dev.json shadows
+        // seed the TimerManager members at setup().
+        if (doc.containsKey("timer_icon_idle"))     TIMER_ICON_IDLE     = doc["timer_icon_idle"].as<String>();
+        if (doc.containsKey("timer_icon_running"))  TIMER_ICON_RUNNING  = doc["timer_icon_running"].as<String>();
+        if (doc.containsKey("timer_icon_paused"))   TIMER_ICON_PAUSED   = doc["timer_icon_paused"].as<String>();
+        if (doc.containsKey("timer_icon_finished")) TIMER_ICON_FINISHED = doc["timer_icon_finished"].as<String>();
+
         if (doc.containsKey("color_correction"))
         {
             auto correction = doc["color_correction"];
@@ -283,6 +305,12 @@ void loadSettings()
     SHOW_DATE = Settings.getBool("DAT", false);
     SHOW_TEMP = Settings.getBool("TEMP", true);
     SHOW_HUM = Settings.getBool("HUM", true);
+    SHOW_TIMER = Settings.getBool("TIMER", true);
+    SHOW_TIMER_HA_PREV = Settings.getBool("TIMERPREV", true);
+    Settings.remove("TSTEP");   // removed timer_step feature; clean orphaned NVS key
+#ifndef AWTRIX_DISABLE_TIMER
+    timerSettingsLoadNvs(Settings);   // value-config table keys (TFHOLD..TSYNT); defaults live in TIMER_SETTINGS_DESCS
+#endif
     MATRIX_LAYOUT = Settings.getUInt("MAT", 0);
     SCROLL_SPEED = Settings.getUInt("SSPEED", 100);
 #ifdef ULANZI
@@ -333,6 +361,11 @@ void saveSettings()
     Settings.putBool("DAT", SHOW_DATE);
     Settings.putBool("TEMP", SHOW_TEMP);
     Settings.putBool("HUM", SHOW_HUM);
+    Settings.putBool("TIMER", SHOW_TIMER);
+    Settings.putBool("TIMERPREV", SHOW_TIMER_HA_PREV);
+#ifndef AWTRIX_DISABLE_TIMER
+    timerSettingsSaveNvs(Settings);   // value-config table keys (TFHOLD..TSYNT)
+#endif
     Settings.putUInt("SSPEED", SCROLL_SPEED);
 #ifdef ULANZI
     Settings.putBool("BAT", SHOW_BAT);
@@ -354,6 +387,7 @@ uint16_t MQTT_PORT = 1883;
 String MQTT_USER;
 String MQTT_PASS;
 String MQTT_PREFIX;
+uint32_t g_littlefsMountEpoch = 0;
 bool IO_BROKER = false;
 bool NET_STATIC = false;
 bool SHOW_TIME = true;
@@ -446,6 +480,17 @@ bool MOODLIGHT_MODE;
 long STATS_INTERVAL = 10000;
 bool DEBUG_MODE = true;
 uint8_t MIN_BRIGHTNESS = 2;
+bool SHOW_TIMER = true;
+bool SHOW_TIMER_HA_PREV = true;
+// The 13 table-backed timer settings (max_duration, melodies, bar/sync, etc.) are
+// DEFINED in TimerSettings.cpp beside the descriptor table whose storage pointers
+// reference them. The extern decls stay in Globals.h. These four icon_<state>
+// values are member-backed (owned by TimerManager's setters, not the table), so they
+// stay here.
+String TIMER_ICON_IDLE = "";
+String TIMER_ICON_RUNNING = "";
+String TIMER_ICON_PAUSED = "";
+String TIMER_ICON_FINISHED = "";
 uint8_t MAX_BRIGHTNESS = 160;
 double movementFactor = 0.5;
 int8_t TRANS_EFFECT = 1;
