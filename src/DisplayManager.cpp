@@ -16,7 +16,6 @@
 #include "Overlays.h"
 #include "Dictionary.h"
 #include <set>
-#include "GifPlayer.h"
 #include <ArtnetWifi.h>
 #include <AwtrixFont.h>
 #include <HTTPClient.h>
@@ -42,7 +41,6 @@ int previousDataLength = 0;
 
 #define MATRIX_WIDTH 32
 #define MATRIX_HEIGHT 8
-fs::File gifFile;
 GifPlayer gif;
 
 uint16_t gifX, gifY;
@@ -1208,10 +1206,6 @@ void checkLifetime(uint8_t pos)
     }
   }
 }
-
-uint8_t received_packets = 0;
-bool universe1_complete = false;
-bool universe2_complete = false;
 
 void DisplayManager_::tick()
 {
