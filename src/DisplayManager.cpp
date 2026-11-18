@@ -2842,7 +2842,7 @@ void DisplayManager_::matrixPrint(char c)
 {
   if (c == '\n')
   {
-    cursor_y += AwtrixFont.yAdvance;
+    cursor_y += (uint8_t)pgm_read_byte(&AwtrixFont.yAdvance);
     cursor_x = 0;
     return;
   }
@@ -2853,8 +2853,11 @@ void DisplayManager_::matrixPrint(char c)
   }
 
   c -= (uint8_t)pgm_read_byte(&AwtrixFont.first);
-  GFXglyph *glyph = &AwtrixFont.glyph[c];
-  uint8_t *bitmap = AwtrixFont.bitmap;
+  // Font tables live in flash: copy the glyph out instead of reading its fields directly
+  GFXglyph glyphData;
+  memcpy_P(&glyphData, &AwtrixFontGlyphs[(uint8_t)c], sizeof(GFXglyph));
+  GFXglyph *glyph = &glyphData;
+  const uint8_t *bitmap = AwtrixBitmaps;
   uint16_t bo = glyph->bitmapOffset;
   uint8_t w = glyph->width,
           h = glyph->height;
@@ -2888,11 +2891,10 @@ void DisplayManager_::matrixPrint(const char *str)
     char c = *str++;
     if (c == '\n')
     {
-      cursor_y += AwtrixFont.yAdvance;
+      cursor_y += (uint8_t)pgm_read_byte(&AwtrixFont.yAdvance);
     }
-    else if (c >= AwtrixFont.first && c <= AwtrixFont.last)
+    else if ((uint8_t)c >= pgm_read_word(&AwtrixFont.first) && (uint8_t)c <= pgm_read_word(&AwtrixFont.last))
     {
-      GFXglyph *glyph = &AwtrixFont.glyph[c - AwtrixFont.first];
       matrixPrint(c);
     }
   }

@@ -129,14 +129,14 @@ void addHandler()
     if (fps == "") {
         fps = "30"; 
     }
-    String finalHTML = screenfull_html; 
+    String finalHTML = FPSTR(screenfull_html);
     finalHTML.replace("%%FPS%%", fps);
 
     mws.webserver->send(200, "text/html", finalHTML.c_str()); });
     mws.addHandler("/screen", HTTP_GET, []()
-                   { mws.webserver->send(200, "text/html", screen_html); });
+                   { mws.webserver->send_P(200, "text/html", screen_html); });
     mws.addHandler("/backup", HTTP_GET, []()
-                   { mws.webserver->send(200, "text/html", backup_html); });
+                   { mws.webserver->send_P(200, "text/html", backup_html); });
     mws.addHandler("/api/previousapp", HTTP_POST, []()
                    { DisplayManager.previousApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/notify/dismiss", HTTP_ANY, []()
@@ -256,9 +256,10 @@ void ServerManager_::setup()
         mws.addOption("Timezone", NTP_TZ);
         mws.addHTML("<p>Find your timezone at <a href='https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv' target='_blank' rel='noopener noreferrer'>posix_tz_db</a>.</p>", "tz_link");
         mws.addOptionBox("Icons");
-        mws.addHTML(custom_html, "icon_html");
-        mws.addCSS(custom_css);
-        mws.addJavascript(custom_script);
+        // The snippets are in flash, the web server lib reads plain C strings
+        mws.addHTML(String(FPSTR(custom_html)).c_str(), "icon_html");
+        mws.addCSS(String(FPSTR(custom_css)).c_str());
+        mws.addJavascript(String(FPSTR(custom_script)).c_str());
         mws.addOptionBox("Auth");
         mws.addOption("Auth Username", AUTH_USER);
         mws.addOption("Auth Password", AUTH_PASS);
