@@ -17,16 +17,22 @@
 #include "Dictionary.h"
 #include <set>
 #include "GifPlayer.h"
+#ifndef ESP8266
 #include <ArtnetWifi.h>
+#endif
 #include <AwtrixFont.h>
-#include <HTTPClient.h>
+#include "PlatformCompat.h"
 #include "base64.hpp"
+#ifndef ESP8266
 #include "Games/GameManager.h"
+#endif
 
 unsigned long lastArtnetStatusTime = 0;
 const int numberOfChannels = 256 * 3;
 // Artnet settings
+#ifndef ESP8266
 ArtnetWifi artnet;
+#endif
 const int startUniverse = 0; // CHANGE FOR YOUR SETUP most software this is 1, some software send out artnet first universe as 0.
 
 // Check if we got all universes
@@ -43,7 +49,9 @@ int previousDataLength = 0;
 #define MATRIX_WIDTH 32
 #define MATRIX_HEIGHT 8
 fs::File gifFile;
-GifPlayer gif;
+#ifndef ESP8266
+GifPlayer gif; // not used for drawing (apps/overlays use the players in MatrixDisplayUi)
+#endif
 
 uint16_t gifX, gifY;
 CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
@@ -431,7 +439,7 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json, bool
     return true;
   }
 
-  DynamicJsonDocument doc(8192);
+  DynamicJsonDocument doc(JSON_DOC_LARGE);
   DeserializationError error = deserializeJson(doc, json);
   if (error)
   {
@@ -660,7 +668,11 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
     if (newIconName.length() > 64)
     {
+#ifdef ESP8266
+      customApp.jpegDataSize = 0; // base64 icons not supported on ESP8266
+#else
       customApp.jpegDataSize = decode_base64((const unsigned char *)newIconName.c_str(), customApp.jpegDataBuffer);
+#endif
       customApp.isGif = false;
       customApp.icon.close();
       customApp.iconName = "";
@@ -950,7 +962,11 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
 
     if (iconValue.length() > 64)
     {
+#ifdef ESP8266
+      newNotification.jpegDataSize = 0; // base64 icons not supported on ESP8266
+#else
       newNotification.jpegDataSize = decode_base64((const unsigned char *)iconValue.c_str(), newNotification.jpegDataBuffer);
+#endif
       newNotification.isGif = false;
     }
     else
@@ -959,12 +975,12 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
       if (LittleFS.exists("/ICONS/" + iconValue + ".jpg"))
       {
         newNotification.isGif = false;
-        newNotification.icon = LittleFS.open("/ICONS/" + iconValue + ".jpg");
+        newNotification.icon = LittleFS.open("/ICONS/" + iconValue + ".jpg", "r");
       }
       else if (LittleFS.exists("/ICONS/" + iconValue + ".gif"))
       {
         newNotification.isGif = true;
-        newNotification.icon = LittleFS.open("/ICONS/" + iconValue + ".gif");
+        newNotification.icon = LittleFS.open("/ICONS/" + iconValue + ".gif", "r");
       }
       else
       {
@@ -997,8 +1013,9 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
       }
       else
       {
+        WiFiClient wifiClient;
         HTTPClient http;
-        http.begin("http://" + client + "/api/notify");
+        http.begin(wifiClient, "http://" + client + "/api/notify");
         http.POST(modifiedJson);
         http.end();
       }
@@ -1032,7 +1049,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
 
 void DisplayManager_::loadCustomApps()
 {
-  File root = LittleFS.open("/CUSTOMAPPS");
+  File root = LittleFS.open("/CUSTOMAPPS", "r");
 
   if (!root)
   {
@@ -1135,7 +1152,9 @@ void DisplayManager_::setup()
   {
     FastLED.setTemperature(COLOR_TEMPERATURE);
   }
+#ifndef ESP8266
   gif.setMatrix(matrix);
+#endif
   ui->setAppAnimation(SLIDE_DOWN);
 
   ui->setTargetFPS(MATRIX_FPS);
@@ -1215,13 +1234,16 @@ bool universe2_complete = false;
 
 void DisplayManager_::tick()
 {
+#ifndef ESP8266
   if (GAME_ACTIVE)
   {
     GameManager.tick();
     matrix->show();
     memcpy(ledsCopy, leds, sizeof(leds));
   }
-  else if (AP_MODE)
+  else
+#endif
+  if (AP_MODE)
   {
     HSVtext(2, 6, "AP MODE", true, 1);
   }
@@ -1251,6 +1273,7 @@ void DisplayManager_::tick()
     }
   }
 
+#ifndef ESP8266
   if (!AP_MODE)
   {
     uint16_t ArtnetStatus = artnet.read();
@@ -1264,6 +1287,7 @@ void DisplayManager_::tick()
       ARTNET_MODE = false;
     }
   }
+#endif
 
   if (NEWYEAR)
     DisplayManager.checkNewYear();
@@ -1334,8 +1358,10 @@ void onDmxFrame(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t *d
 
 void DisplayManager_::startArtnet()
 {
+#ifndef ESP8266 // Art-Net is not available on ESP8266
   artnet.begin();
   artnet.setArtDmxCallback(onDmxFrame);
+#endif
 }
 
 void DisplayManager_::clear()
@@ -1649,7 +1675,11 @@ String DisplayManager_::getStats()
 #endif
   doc[LuxKey] = static_cast<int>(CURRENT_LUX);
   doc[LDRRawKey] = LDR_RAW;
+#ifdef ESP8266
+  doc[RamKey] = ESP.getFreeHeap();
+#else
   doc[RamKey] = ESP.getFreeHeap() + ESP.getFreePsram();
+#endif
   doc[BrightnessKey] = BRIGHTNESS;
   if (SENSOR_READING)
   {
@@ -2098,6 +2128,7 @@ void DisplayManager_::setNewSettings(const char *json)
       return;
   }
 
+#ifndef ESP8266
   if (doc.containsKey("GAMEMODE"))
   {
     bool gamemode = doc["GAMEMODE"];
@@ -2111,6 +2142,7 @@ void DisplayManager_::setNewSettings(const char *json)
     GameManager.ChooseGame(game);
     return;
   }
+#endif
 
   TIME_MODE = doc.containsKey("TMODE") ? doc["TMODE"].as<int>() : TIME_MODE;
   TRANS_EFFECT = doc.containsKey("TEFF") ? doc["TEFF"] : TRANS_EFFECT;
@@ -2270,7 +2302,7 @@ void DisplayManager_::setCustomAppColors(uint32_t color)
 
 String DisplayManager_::ledsAsJson()
 {
-  StaticJsonDocument<JSON_ARRAY_SIZE(MATRIX_WIDTH * MATRIX_HEIGHT)> jsonDoc;
+  DynamicJsonDocument jsonDoc(JSON_ARRAY_SIZE(MATRIX_WIDTH * MATRIX_HEIGHT));
   JsonArray jsonColors = jsonDoc.to<JsonArray>();
   for (int y = 0; y < MATRIX_HEIGHT; y++)
   {
@@ -2314,7 +2346,7 @@ CRGB DisplayManager_::getPixelColor(int16_t x, int16_t y)
 
 void DisplayManager_::reorderApps(const String &jsonString)
 {
-  StaticJsonDocument<2048> jsonDocument;
+  DynamicJsonDocument jsonDocument(2048);
   DeserializationError error = deserializeJson(jsonDocument, jsonString);
   if (error)
   {
@@ -2341,7 +2373,7 @@ void DisplayManager_::reorderApps(const String &jsonString)
 
 void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, String &drawInstructions)
 {
-  DynamicJsonDocument doc(8192);
+  DynamicJsonDocument doc(JSON_DOC_LARGE);
   DeserializationError error = deserializeJson(doc, drawInstructions);
 
   if (error)

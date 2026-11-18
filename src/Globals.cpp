@@ -1,6 +1,6 @@
 #include "Globals.h"
 #include "Preferences.h"
-#include <WiFi.h>
+#include "PlatformCompat.h"
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 #include "effects.h"

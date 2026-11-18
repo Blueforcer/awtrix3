@@ -177,11 +177,18 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
     const char *_ssid;
     const char *_pass;
 
+#if defined(ESP8266)
+    struct station_config conf;
+    wifi_station_get_config_default(&conf);
+    _ssid = reinterpret_cast<const char *>(conf.ssid);
+    _pass = reinterpret_cast<const char *>(conf.password);
+#else
     wifi_config_t conf;
     esp_wifi_get_config(WIFI_IF_STA, &conf);
-  
+
     _ssid = reinterpret_cast<const char *>(conf.sta.ssid);
     _pass = reinterpret_cast<const char *>(conf.sta.password);
+#endif
 
     char *my_ssid = new char[33];
     strncpy(my_ssid, _ssid, 32);

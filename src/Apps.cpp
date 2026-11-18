@@ -6,7 +6,7 @@
 #include "Functions.h"
 #include "MenuManager.h"
 #include "PeripheryManager.h"
-#include <WiFi.h>
+#include "PlatformCompat.h"
 #include "effects.h"
 #include "MQTTManager.h"
 #include "Overlays.h"
@@ -127,7 +127,7 @@ void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         {
             if (LittleFS.exists("/bigtime.gif"))
             {
-                BIGTIME_BG_GIF = LittleFS.open("/bigtime.gif");
+                BIGTIME_BG_GIF = LittleFS.open("/bigtime.gif", "r");
                 BIGTIME_BG_ISGIF = true;
             }
         }
@@ -477,7 +477,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             if (LittleFS.exists(filePath))
             {
                 ca->isGif = isGifFlags[i];
-                ca->icon = LittleFS.open(filePath);
+                ca->icon = LittleFS.open(filePath, "r");
                 ca->currentFrame = 0;
                 break;
             }

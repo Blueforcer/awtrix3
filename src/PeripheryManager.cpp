@@ -3,10 +3,12 @@
 #include "Adafruit_BME280.h"
 #include "Adafruit_BMP280.h"
 #include "Adafruit_HTU21DF.h"
+#ifndef ESP8266
 #include "SoftwareSerial.h"
 #include <DFMiniMp3.h>
 #include <MelodyPlayer/melody_player.h>
 #include <MelodyPlayer/melody_factory.h>
+#endif
 #include "Globals.h"
 #include "DisplayManager.h"
 #include "MQTTManager.h"
@@ -17,7 +19,9 @@
 #include <ServerManager.h>
 #include <MedianFilterLib.h>
 #include <MeanFilterLib.h>
+#ifndef ESP8266
 #include <Games/GameManager.h>
+#endif
 const int buzzerPin = 2;       // Buzzer an GPIO2
 const int baudRate = 50;       // Nachrichtenübertragungsrate
 const char *message = "HELLO"; // Die Nachricht, die gesendet werden soll
@@ -76,6 +80,7 @@ Adafruit_SHT31 sht31;
 #define PHOTOCELL_SERIES_RESISTOR 10000
 #endif
 
+#ifndef ESP8266
 class Mp3Notify
 {
 };
@@ -83,6 +88,7 @@ SoftwareSerial mySoftwareSerial(DFPLAYER_RX, DFPLAYER_TX); // RX, TX
 DFMiniMp3<SoftwareSerial, Mp3Notify> dfmp3(mySoftwareSerial);
 
 MelodyPlayer player(BUZZER_PIN, 1, LOW);
+#endif
 
 EasyButton button_left(BUTTON_UP_PIN);
 EasyButton button_right(BUTTON_DOWN_PIN);
@@ -233,6 +239,16 @@ void select_button_double()
     }
 }
 
+#ifdef ESP8266
+// Sound output (buzzer / DFPlayer) is not supported on the ESP8266 build.
+void PeripheryManager_::playBootSound() {}
+void PeripheryManager_::stopSound() {}
+void PeripheryManager_::setVolume(uint8_t vol) {}
+bool PeripheryManager_::parseSound(const char *json) { return false; }
+const char *PeripheryManager_::playRTTTLString(String rtttl) { return nullptr; }
+const char *PeripheryManager_::playFromFile(String file) { return nullptr; }
+bool PeripheryManager_::isPlaying() { return false; }
+#else
 void PeripheryManager_::playBootSound()
 {
     if (DEBUG_MODE)
@@ -374,6 +390,7 @@ bool PeripheryManager_::isPlaying()
         return player.isPlaying();
     }
 }
+#endif
 
 void PeripheryManager_::setup()
 {
@@ -381,6 +398,7 @@ void PeripheryManager_::setup()
         DEBUG_PRINTLN(F("Setup periphery"));
     startTime = millis();
     pinMode(LDR_PIN, INPUT);
+#ifndef ESP8266
     pinMode(RESET_PIN, INPUT);
     if (DFPLAYER_ACTIVE)
     {
@@ -388,10 +406,13 @@ void PeripheryManager_::setup()
         delay(100);
         setVolume(SOUND_VOLUME);
     }
+#endif
     button_left.begin();
     button_right.begin();
     button_select.begin();
+#ifndef ESP8266
     button_reset.begin();
+#endif
 
     if ((ROTATE_SCREEN && !SWAP_BUTTONS) || (!ROTATE_SCREEN && SWAP_BUTTONS))
     {
@@ -440,10 +461,8 @@ void PeripheryManager_::setup()
         TEMP_SENSOR_TYPE = TEMP_SENSOR_TYPE_SHT31;
     }
 
-#ifdef awtrix2_upgrade
+#if defined(awtrix2_upgrade) && !defined(ESP8266)
     dfmp3.begin();
-#else
-
 #endif
     if (!LDR_ON_GROUND)
         photocell.setPhotocellPositionOnGround(false);
@@ -478,7 +497,9 @@ void PeripheryManager_::tick()
         button_right.read();
     }
 
+#ifndef ESP8266
     button_reset.read();
+#endif
 
     unsigned long currentMillis_BatTempHum = millis();
     if (currentMillis_BatTempHum - previousMillis_BatTempHum >= interval_BatTempHum)

@@ -3,7 +3,7 @@
 #include "DisplayManager.h"
 #include "ServerManager.h"
 #include <ArduinoHA.h>
-#include <WiFi.h>
+#include "PlatformCompat.h"
 #include <ArduinoJson.h>
 #include "Dictionary.h"
 #include "PeripheryManager.h"
@@ -379,7 +379,7 @@ void onMqttConnected()
 
     if (DEBUG_MODE)
         DEBUG_PRINTLN(F("MQTT Connected"));
-    const char *topics[] PROGMEM = {
+    const char *topics[] = {
         "/brightness",
         "/notify/dismiss",
         "/notify",

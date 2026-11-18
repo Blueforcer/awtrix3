@@ -43,7 +43,11 @@ const char *menuItems[] PROGMEM = {
     "UPDATE"};
 
 int8_t menuIndex = 0;
+#ifdef ESP8266
+uint8_t menuItemCount = MaxMenu - 4; // no SOUND, VOLUME, UPDATE on ESP8266
+#else
 uint8_t menuItemCount = MaxMenu - 1;
+#endif
 
 const char *timeFormat[] PROGMEM = {
     "%H:%M:%S",

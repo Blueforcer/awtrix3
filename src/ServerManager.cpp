@@ -1,20 +1,18 @@
 #include "ServerManager.h"
 #include "Globals.h"
-#include <WebServer.h>
 #include <esp-fs-webserver.h>
 #include "htmls.h"
-#include <Update.h>
-#include <ESPmDNS.h>
 #include <LittleFS.h>
-#include <WiFi.h>
+#include "PlatformCompat.h"
 #include "DisplayManager.h"
 #include "UpdateManager.h"
 #include "PeripheryManager.h"
 #include "PowerManager.h"
 #include <WiFiUdp.h>
-#include <HTTPClient.h>
+#ifndef ESP8266
+#include <Update.h>
 #include "Games/GameManager.h"
-#include <EEPROM.h>
+#endif
 
 WiFiUDP udp;
 
@@ -26,13 +24,15 @@ char incomingPacket[255];
 char dataBuffer[BUFFER_SIZE];
 int bufferIndex = 0;
 
-// Aktueller verbundener Client
-WiFiClient currentClient = WiFiClient();
-WebServer server(80);
+WebServerClass server(80);
 FSWebServer mws(LittleFS, server);
 
-// Erstelle eine Server-Instanz
+#ifndef ESP8266
+// Aktueller verbundener Client
+WiFiClient currentClient = WiFiClient();
+// Erstelle eine Server-Instanz (game controller input)
 WiFiServer TCPserver(8080);
+#endif
 
 // The getter for the instantiated singleton instance
 ServerManager_ &ServerManager_::getInstance()
@@ -53,9 +53,15 @@ void versionHandler()
 void ServerManager_::erase()
 {
     DisplayManager.HSVtext(0, 6, "RESET", true, 0);
+#ifdef ESP8266
+    struct station_config conf;
+    memset(&conf, 0, sizeof(conf));
+    wifi_station_set_config(&conf);
+#else
     wifi_config_t conf;
     memset(&conf, 0, sizeof(conf)); // Set all the bytes in the structure to 0
     esp_wifi_set_config(WIFI_IF_STA, &conf);
+#endif
     LittleFS.format();
     delay(200);
     formatSettings();
@@ -101,7 +107,7 @@ void addHandler()
                    {
                     if (DisplayManager.moodlight(mws.webserver->arg("plain").c_str()))
                     {
-                        mws.webserver->send(200, F(F("text/plain")), F("OK"));
+                        mws.webserver->send(200, F("text/plain"), F("OK"));
                     }
                     else
                     {
@@ -206,15 +212,24 @@ void addHandler()
 
 void ServerManager_::setup()
 {
+#ifdef ESP8266
+    WiFi.setOutputPower(20.0);
+    WiFi.setSleepMode(WIFI_NONE_SLEEP); // Power Saving deaktivieren
+#else
     esp_wifi_set_max_tx_power(80); // 82 * 0.25 dBm = 20.5 dBm
     esp_wifi_set_ps(WIFI_PS_NONE); // Power Saving deaktivieren
+#endif
     if (!local_IP.fromString(NET_IP) || !gateway.fromString(NET_GW) || !subnet.fromString(NET_SN) || !primaryDNS.fromString(NET_PDNS) || !secondaryDNS.fromString(NET_SDNS))
         NET_STATIC = false;
     if (NET_STATIC)
     {
         WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS);
     }
+#ifdef ESP8266
+    WiFi.hostname(HOSTNAME); // define hostname
+#else
     WiFi.setHostname(HOSTNAME.c_str()); // define hostname
+#endif
     myIP = mws.startWiFi(AP_TIMEOUT * 1000, HOSTNAME.c_str(), "12345678");
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
     if (DEBUG_MODE)
@@ -270,16 +285,23 @@ void ServerManager_::setup()
         MDNS.addServiceTxt("awtrix", "tcp", "type", "awtrix3");
     }
 
+#ifdef ESP8266
+    configTime(NTP_TZ.c_str(), NTP_SERVER.c_str());
+#else
     configTzTime(NTP_TZ.c_str(), NTP_SERVER.c_str());
     tm timeInfo;
     getLocalTime(&timeInfo);
     TCPserver.begin();
     TCPserver.setNoDelay(true);
+#endif
 }
 
 void ServerManager_::tick()
 {
     mws.run();
+#ifdef ESP8266
+    MDNS.update();
+#endif
 
     if (!AP_MODE)
     {
@@ -310,6 +332,7 @@ void ServerManager_::tick()
         }
     }
 
+#ifndef ESP8266
     if (!currentClient || !currentClient.connected()) {
         if (TCPserver.hasClient()) {
             if (currentClient) {
@@ -339,13 +362,16 @@ void ServerManager_::tick()
             }
         }
     }
+#endif
 }
 
 void ServerManager_::sendTCP(String message)
 {
+#ifndef ESP8266
     if (currentClient && currentClient.connected()) {
         currentClient.print(message);
     }
+#endif
 }
 
 void ServerManager_::loadSettings()
@@ -424,8 +450,9 @@ void ServerManager_::sendButton(byte btn, bool state)
     }
     if (!payload.isEmpty())
     {
+        WiFiClient wifiClient;
         HTTPClient http;
-        http.begin(BUTTON_CALLBACK);
+        http.begin(wifiClient, BUTTON_CALLBACK);
         http.addHeader("Content-Type", "application/x-www-form-urlencoded");
         http.POST(payload);
         http.end();

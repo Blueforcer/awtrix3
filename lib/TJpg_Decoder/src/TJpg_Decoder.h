@@ -108,8 +108,10 @@ public:
   uint32_t array_index = 0;
   uint32_t array_size  = 0;
 
+#ifndef ESP8266
   // Must align workspace to a 32 bit boundary
   uint8_t workspace[TJPGD_WORKSPACE_SIZE] __attribute__((aligned(4)));
+#endif
 
   uint8_t jpg_source = 0;
 

@@ -185,6 +185,11 @@ JRESULT TJpg_Decoder::drawFsJpg(int32_t x, int32_t y, fs::File inFile)
 
   jpgFile = inFile;
 
+#ifdef ESP8266
+  // Workspace is taken from the heap only while decoding (malloc is 4-byte aligned)
+  uint8_t *workspace = (uint8_t *)malloc(TJPGD_WORKSPACE_SIZE);
+  if (!workspace) return JDR_MEM1;
+#endif
   jresult = jd_prepare(&jdec, jd_input, workspace, TJPGD_WORKSPACE_SIZE, (unsigned int)0);
 
   // Extract image and render
@@ -192,6 +197,9 @@ JRESULT TJpg_Decoder::drawFsJpg(int32_t x, int32_t y, fs::File inFile)
   {
     jresult = jd_decomp(&jdec, jd_output, jpgScale);
   }
+#ifdef ESP8266
+  free(workspace);
+#endif
   inFile.seek(0);
   return jresult;
 }
@@ -212,12 +220,20 @@ JRESULT TJpg_Decoder::drawJpg(int32_t x, int32_t y, const uint8_t jpeg_data[], u
   jdec.swap = _swap;
 
   // Analyse input data
+#ifdef ESP8266
+  // Workspace is taken from the heap only while decoding (malloc is 4-byte aligned)
+  uint8_t *workspace = (uint8_t *)malloc(TJPGD_WORKSPACE_SIZE);
+  if (!workspace) return JDR_MEM1;
+#endif
   jresult = jd_prepare(&jdec, jd_input, workspace, TJPGD_WORKSPACE_SIZE, 0);
 
   // Extract image and render
   if (jresult == JDR_OK) {
     jresult = jd_decomp(&jdec, jd_output, jpgScale);
   }
+#ifdef ESP8266
+  free(workspace);
+#endif
 
   return jresult;
 }

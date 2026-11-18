@@ -40,10 +40,13 @@
 #include "UpdateManager.h"
 #include "timer.h"
 
+#ifndef ESP8266
 TaskHandle_t taskHandle;
+#endif
 volatile bool StopTask = false;
 bool stopBoot;
 
+#ifndef ESP8266
 void BootAnimation(void *parameter)
 {
   const TickType_t xDelay = 1 / portTICK_PERIOD_MS;
@@ -58,11 +61,15 @@ void BootAnimation(void *parameter)
   }
   vTaskDelete(NULL);
 }
+#endif
 
 void setup()
 {
+#ifndef ESP8266
+  // Buzzer pin on the Ulanzi. On ESP8266 GPIO15 is D8 (right button / boot strap).
   pinMode(15, OUTPUT);
   digitalWrite(15, LOW);
+#endif
   delay(2000);
   Serial.begin(115200);
   loadSettings();
@@ -71,7 +78,12 @@ void setup()
   DisplayManager.setup();
   DisplayManager.HSVtext(9, 6, VERSION, true, 0);
   delay(500);
+#ifdef ESP8266
+  // No second core / RTOS task on ESP8266: show a static boot text while WiFi connects
+  DisplayManager.HSVtext(4, 6, "AWTRIX", true, 0);
+#else
   xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 0);
+#endif
   ServerManager.setup();
   if (ServerManager.isConnected)
   {
@@ -94,6 +106,9 @@ void setup()
     {
       DisplayManager.HSVtext(x, 6, textForDisplay.c_str(), true, 0);
       x -= 0.18;
+#ifdef ESP8266
+      yield(); // keep the software watchdog happy during the long scroll
+#endif
     }
 
     

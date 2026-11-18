@@ -1,6 +1,15 @@
 #ifndef GifPlayer_H
 #define GifPlayer_H
 #include <LittleFS.h>
+
+#ifdef ESP8266
+// Frames are decoded synchronously in one call, so the LZW scratch buffers can be
+// shared by all GifPlayer instances. Saves ~7.5 KB RAM per instance on ESP8266.
+#define GIF_SCRATCH inline static
+#else
+#define GIF_SCRATCH
+#endif
+
 class GifPlayer
 {
 public:
@@ -67,8 +76,8 @@ public:
   int rectHeight;
   int colorCount;
   _RGB gifPalette[256];
-  byte lzwImageData[1280];
-  char tempBuffer[260];
+  GIF_SCRATCH byte lzwImageData[1280];
+  GIF_SCRATCH char tempBuffer[260];
   File file;
   byte imageData[WIDTH * HEIGHT];
   byte imageDataBU[WIDTH * HEIGHT];
@@ -330,9 +339,13 @@ public:
   int fc, oc;
   int bs; // Current buffer size for GIF
   byte *sp;
-  byte stack[LZW_SIZTABLE];
-  byte suffix[LZW_SIZTABLE];
+  GIF_SCRATCH byte stack[LZW_SIZTABLE];
+  GIF_SCRATCH byte suffix[LZW_SIZTABLE];
+#ifdef ESP8266
+  GIF_SCRATCH uint16_t prefix[LZW_SIZTABLE];
+#else
   unsigned int prefix[LZW_SIZTABLE];
+#endif
 
   void lzw_decode_init(int csize, byte *buf)
   {

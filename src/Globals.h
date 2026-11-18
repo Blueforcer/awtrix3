@@ -1,10 +1,13 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 #include <Arduino.h>
+#include <IPAddress.h>
 #include <FastLED.h>
 #include "effects.h"
  
+#ifndef ESP8266
 #define DEBUG
+#endif
 
 #ifdef DEBUG
 #define DEBUG_PRINTLN(x)    \
@@ -26,6 +29,14 @@
 #else
 #define DEBUG_PRINTLN(x)
 #define DEBUG_PRINTF(format, ...)
+#endif
+
+// Capacity for the big JSON documents (custom apps, draw instructions).
+// The ESP8266 has far less heap, so it matches MQTT_MAX_PACKET_SIZE there.
+#ifdef ESP8266
+#define JSON_DOC_LARGE 4096
+#else
+#define JSON_DOC_LARGE 8192
 #endif
 
 void formatSettings();

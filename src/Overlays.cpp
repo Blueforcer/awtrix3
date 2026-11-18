@@ -3,7 +3,7 @@
 #include "Functions.h"
 #include "MenuManager.h"
 #include "PeripheryManager.h"
-#include <WiFi.h>
+#include "PlatformCompat.h"
 #include "effects.h"
 #include "MQTTManager.h"
 
