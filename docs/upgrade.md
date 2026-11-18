@@ -6,4 +6,6 @@ If you own the official AWTRIX 2 mainboard, you can easily replace the ESP8266 W
 
 If you don't have an official mainboard, you can replace your current ESP8266 with an ESP32, such as the WROOM D2 variant or a standard NodeMCU32. Follow the [pinout](https://blueforcer.github.io/awtrix3/#/hardware) for the Ulanzi, and flash the [Ulanzi firmware](https://blueforcer.github.io/awtrix3/#/flasher?id=ulanzi-tc001-and-custom-builds-flasher).
 
+If you'd rather keep the ESP8266, there is an experimental [ESP8266 build](esp8266.md). It runs on the original AWTRIX 2 mainboard without changes, but leaves out sound, online updates and deep sleep, and you have to build it yourself with PlatformIO.
+
 Please note that AWTRIX 3 is a complete redevelopment from scratch, which means the API has changed. Be sure to carefully read the documentation, particularly the section on "apps."

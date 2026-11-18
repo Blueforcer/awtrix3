@@ -15,6 +15,8 @@ if you want to build your own AWTRIX 3, here are the pinout of the Ulanzi clock
 |33/36| 21 (SDA) /22(SCL)  | Temperature and Humidity Sensors (optional)     |
 |37/30| 23(RX)/18(TX) | DFplayer (optional)     |
 
+Building with an ESP8266 (Wemos D1 mini or NodeMCU) instead? It uses a different pinout, see [ESP8266 build](esp8266.md#pinout).
+
 Supported Sensors:
 BME280
 BMP280

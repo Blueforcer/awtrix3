@@ -4,6 +4,7 @@
   - [Flasher](flasher.md)
   - [Upgrade](upgrade.md)
   - [Hardware](hardware.md)
+  - [ESP8266 (experimental)](esp8266.md)
   - [FAQ](faq.md)
   - [Remove AWTRIX](original.md)
     

@@ -72,10 +72,15 @@ A: Please read the options you have specified below
 
 
 #### Option 2: [Awtrix 2.0 Controller Upgrade (with ESP32 D1 Mini)](https://blueforcer.github.io/awtrix3/#/flasher?id=awtrix-20-controller-upgrade-with-esp32-d1-mini)
-- **Firmware Purpose**: This firmware is specifically designed for upgrading an old AWTRIX 2.0. The original AWTRIX 2.0 was built with a Wemos D1 mini (ESP8266), which is not supported by AWTRIX 3.
+- **Firmware Purpose**: This firmware is specifically designed for upgrading an old AWTRIX 2.0. The original AWTRIX 2.0 was built with a Wemos D1 mini (ESP8266), which the regular AWTRIX 3 firmware does not support.
 - **Upgrade Requirements**: To upgrade, the ESP8266 needs to be replaced with an ESP32 D1 Mini. The ESP32 D1 Mini maintains the same form factor, allowing it to replace the older module on the motherboard directly.
 - **Pinout Compatibility**: The ESP32 D1 Mini uses the same pinout as the old AWTRIX 2.0.
 - **Build Information**: For more details about this build, visit: [AWTRIX 2.0 Build Information](https://awtrixdocs.blueforcer.de/#/en-en/awtrix_family?id=parts-list)
+
+#### Option 3: [ESP8266 build (experimental)](esp8266.md)
+- **Firmware Purpose**: Runs AWTRIX 3 on an ESP8266 board with 4 MB of flash, such as the Wemos D1 mini of an AWTRIX 2.0 or a NodeMCU, without swapping in an ESP32.
+- **Limitations**: No sound, online update, deep sleep, games or Art-Net, and smaller payloads. There is no online flasher: you build and upload it with PlatformIO.
+- **Pinout Compatibility**: Uses the AWTRIX 2.0 pinout.
 
 #### Q: Why does the Ulanzi TC001 temperature sensor report a high temperature?
 A: The temperature sensor measures the temperature inside the case, which is not very useful for external temperature readings.

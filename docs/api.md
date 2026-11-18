@@ -68,7 +68,7 @@ Toggle the matrix on or off:
 | ---------------- | ----------------------------- | ------------------------- | ----------- |
 | `[PREFIX]/power` | `http://[IP]/api/power`       | `{"power": true}` or `{"power": false}` | POST        |
 
-Send the board in deep sleep mode (turns off the matrix as well), good for saving battery life:
+Send the board in deep sleep mode (turns off the matrix as well), good for saving battery life. On the [ESP8266 build](esp8266.md) only the matrix turns off:
 
 | MQTT Topic       | HTTP URL                      | Payload/Body              | HTTP Method |
 | ---------------- | ----------------------------- | ------------------------- | ----------- |
@@ -462,7 +462,7 @@ You can adjust each property in the JSON object according to your preferences. I
 
 ## Update
 
-You can initiate the firmware update either through the update button in HA or using the following:
+You can initiate the firmware update either through the update button in HA or using the following (not available on the [ESP8266 build](esp8266.md)):
 
 | MQTT Topic          | HTTP URL                          | Payload/Body | HTTP Header        | HTTP Method |
 |---------------------|-----------------------------------|---------------|--------------------|-------------|

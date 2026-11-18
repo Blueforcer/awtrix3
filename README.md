@@ -52,7 +52,7 @@
   
 **AWTRIX 3 is an open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882?ref=28e02dxl) or as upgrade for the old AWTRIX 2 Mainboard and even self build matrix clock**
 
-**Note: This Firmware is only compatible with ESP32**
+**Note: This Firmware is made for the ESP32.** An experimental, reduced [ESP8266 build](docs/esp8266.md) (Wemos D1 mini, NodeMCU) is available too. It has no sound, online update or deep sleep, and you build it yourself with PlatformIO.
 
 You can get an Ulanzi TC001 [here](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882?ref=28e02dxl) (affiliate link)
 
@@ -115,7 +115,7 @@ https://flows.blueforcer.de/
 - Custom icons without recompiling
 - Easy to use icon system
 - Powerful MQTT and HTTP API
-- RTTTL melody player
+- RTTTL melody player (ESP32 only)
 - Integrated filebrowser
 - No cloud 
 - No telemetry
