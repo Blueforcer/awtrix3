@@ -48,6 +48,7 @@ int previousDataLength = 0;
 
 #define MATRIX_WIDTH 32
 #define MATRIX_HEIGHT 8
+static void showMatrixTest();
 fs::File gifFile;
 #ifndef ESP8266
 GifPlayer gif; // not used for drawing (apps/overlays use the players in MatrixDisplayUi)
@@ -1142,6 +1143,8 @@ void DisplayManager_::setup()
   random16_set_seed(millis());
   FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
   setMatrixLayout(MATRIX_LAYOUT);
+  if (MATRIX_TEST)
+    showMatrixTest();
   matrix->setRotation(ROTATE_SCREEN ? 90 : 0);
   GAMMA = 1.9;
   if (COLOR_CORRECTION)
@@ -1703,6 +1706,58 @@ String DisplayManager_::getStats()
   return jsonString;
 }
 
+#define PANEL_SIZE 16
+
+// Layout 3: a 16x16 panel showing the 32x8 canvas as two stacked halves.
+// Canvas columns 0-15 go on the top 8 rows, columns 16-31 on the bottom 8 rows.
+// Where the data input sits and how the strip runs comes from dev.json.
+static uint16_t remapSplit16x16(uint16_t x, uint16_t y)
+{
+  uint16_t px = x;
+  uint16_t py = y;
+  if (px >= PANEL_SIZE)
+  {
+    px -= PANEL_SIZE;
+    py += MATRIX_HEIGHT;
+  }
+  // Count from the corner with the data input
+  if (MATRIX_START & MATRIX_START_TOP_RIGHT)
+    px = PANEL_SIZE - 1 - px;
+  if (MATRIX_START & MATRIX_START_BOTTOM_LEFT)
+    py = PANEL_SIZE - 1 - py;
+
+  // major: which row (or column) of the strip, minor: position within it
+  uint16_t major = MATRIX_COLUMNS ? px : py;
+  uint16_t minor = MATRIX_COLUMNS ? py : px;
+  if (MATRIX_ZIGZAG && (major & 1))
+    minor = PANEL_SIZE - 1 - minor;
+  return major * PANEL_SIZE + minor;
+}
+
+// Wiring check for a new panel, enabled with "matrix_test": true in dev.json.
+static void showMatrixTest()
+{
+  // Step 1, raw strip order: the first LED (data input) red, the next 15 green.
+  // Shows which corner the input is in and whether the strip runs along rows or columns.
+  FastLED.clear();
+  leds[0] = CRGB(64, 0, 0);
+  for (int i = 1; i < PANEL_SIZE; i++)
+    leds[i] = CRGB(0, 4 * i, 0);
+  FastLED.show();
+  delay(8000);
+
+  // Step 2, through the configured layout: if the dev.json settings are right you see
+  // red top left, green top right, blue bottom left and white bottom right.
+  FastLED.clear();
+  matrix->fillRect(0, 0, 2, 2, matrix->Color(64, 0, 0));                                                      // panel top left
+  matrix->fillRect(PANEL_SIZE - 2, 0, 2, 2, matrix->Color(0, 64, 0));                                         // panel top right
+  matrix->fillRect(PANEL_SIZE, MATRIX_HEIGHT - 2, 2, 2, matrix->Color(0, 0, 64));                             // panel bottom left
+  matrix->fillRect(MATRIX_WIDTH - 2, MATRIX_HEIGHT - 2, 2, 2, matrix->Color(64, 64, 64));                     // panel bottom right
+  matrix->show();
+  delay(8000);
+  FastLED.clear();
+}
+
 void DisplayManager_::setMatrixLayout(int layout)
 {
   delete matrix; // Free memory from the current matrix object
@@ -1719,7 +1774,14 @@ void DisplayManager_::setMatrixLayout(int layout)
   case 2:
     matrix = new FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
     break;
+  case 3:
+    // 16x16 panel, see remapSplit16x16()
+    matrix = new FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+    matrix->setRemapFunction(remapSplit16x16);
+    break;
   default:
+    // Unknown layout: fall back to layout 0 instead of leaving no matrix at all
+    matrix = new FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
     break;
   }
 

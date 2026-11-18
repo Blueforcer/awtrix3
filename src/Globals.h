@@ -114,6 +114,15 @@ extern String BOOT_SOUND;
 extern int TEMP_DECIMAL_PLACES;
 extern uint8_t SOUND_VOLUME;
 extern int MATRIX_LAYOUT;
+// Wiring of a 16x16 panel (matrix layout 3), set in dev.json
+#define MATRIX_START_TOP_LEFT 0
+#define MATRIX_START_TOP_RIGHT 1
+#define MATRIX_START_BOTTOM_LEFT 2
+#define MATRIX_START_BOTTOM_RIGHT 3
+extern uint8_t MATRIX_START;
+extern bool MATRIX_COLUMNS;
+extern bool MATRIX_ZIGZAG;
+extern bool MATRIX_TEST;
 extern bool UPDATE_AVAILABLE;
 extern long RECEIVED_MESSAGES;
 extern uint16_t MIN_BATTERY;

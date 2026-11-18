@@ -86,6 +86,32 @@ void loadDevSettings()
             MATRIX_LAYOUT = doc["matrix"];
         }
 
+        // 16x16 panel wiring (matrix layout 3)
+        if (doc.containsKey("matrix_start"))
+        {
+            String start = doc["matrix_start"].as<String>();
+            start.toLowerCase();
+            MATRIX_START = (start.indexOf("right") >= 0 ? MATRIX_START_TOP_RIGHT : MATRIX_START_TOP_LEFT) |
+                           (start.indexOf("bottom") >= 0 ? MATRIX_START_BOTTOM_LEFT : MATRIX_START_TOP_LEFT);
+        }
+
+        if (doc.containsKey("matrix_wiring"))
+        {
+            String wiring = doc["matrix_wiring"].as<String>();
+            wiring.toLowerCase();
+            MATRIX_COLUMNS = wiring.startsWith("col");
+        }
+
+        if (doc.containsKey("matrix_zigzag"))
+        {
+            MATRIX_ZIGZAG = doc["matrix_zigzag"].as<bool>();
+        }
+
+        if (doc.containsKey("matrix_test"))
+        {
+            MATRIX_TEST = doc["matrix_test"].as<bool>();
+        }
+
         if (doc.containsKey("mirror_screen"))
         {
             MIRROR_DISPLAY = doc["mirror_screen"].as<bool>();
@@ -418,6 +444,10 @@ String BOOT_SOUND = "";
 int TEMP_DECIMAL_PLACES = 0;
 uint8_t SOUND_VOLUME = 30;
 int MATRIX_LAYOUT = 0;
+uint8_t MATRIX_START = MATRIX_START_TOP_LEFT;
+bool MATRIX_COLUMNS = false;
+bool MATRIX_ZIGZAG = true;
+bool MATRIX_TEST = false;
 bool UPDATE_AVAILABLE = false;
 long RECEIVED_MESSAGES;
 CRGB COLOR_CORRECTION;

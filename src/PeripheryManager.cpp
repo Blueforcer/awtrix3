@@ -205,8 +205,8 @@ void select_button_pressed_long()
     if (AP_MODE)
     {
         ++MATRIX_LAYOUT;
-        if (MATRIX_LAYOUT < 0)
-            MATRIX_LAYOUT = 2;
+        if (MATRIX_LAYOUT < 0 || MATRIX_LAYOUT > 3)
+            MATRIX_LAYOUT = 0;
         saveSettings();
         ESP.restart();
     }

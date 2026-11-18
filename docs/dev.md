@@ -15,7 +15,11 @@ The JSON object has the following properties:
 | `hostname` | string | Changes the hostname of your awtrix. This is used for App discovery, mDNS etc. | uniqeID |
 | `ap_timeout` | integer | The timeout in seconds before AWTRIX switches to AP mode if the saved WLAN was not found. | 15 |
 | `bootsound` | string | Uses a custom melodie while booting |  |
-| `matrix` | integer | Changes the matrix layout (0,1 or 2) | `0` |
+| `matrix` | integer | Changes the matrix layout (0, 1, 2, or 3 for a [16x16 panel](hardware.md#16x16-panel)) | `0` |
+| `matrix_start` | string | 16x16 panel only: corner with the data input, `top-left`, `top-right`, `bottom-left` or `bottom-right` | `top-left` |
+| `matrix_wiring` | string | 16x16 panel only: whether the strip runs along `rows` or `columns` | `rows` |
+| `matrix_zigzag` | boolean | 16x16 panel only: `true` if every other row or column runs back the other way (serpentine), `false` if they all run the same way | `true` |
+| `matrix_test` | boolean | Shows a wiring test pattern at boot, see [16x16 panel](hardware.md#16x16-panel) | `false` |
 | `color_correction` | array of int | Sets the colorcorrection of the matrix | `[255,255,255]` |
 | `color_temperature` | array of int | Sets the colortemperature of the matrix | `[255,255,255]` |
 | `rotate_screen` | boolean | Rotates the screen upside down | `false` |
