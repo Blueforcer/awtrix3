@@ -43,6 +43,13 @@
 #ifndef ESP8266
 TaskHandle_t taskHandle;
 #endif
+
+// Build with -D AWTRIX_HEAP_LOG to print free heap during boot and every 2 s.
+#if defined(AWTRIX_HEAP_LOG) && defined(ESP8266)
+#define HEAP_LOG(step) Serial.printf("[heap] %-14s free %5u  max block %5u\n", step, ESP.getFreeHeap(), ESP.getMaxFreeBlockSize())
+#else
+#define HEAP_LOG(step)
+#endif
 volatile bool StopTask = false;
 bool stopBoot;
 
@@ -72,10 +79,14 @@ void setup()
 #endif
   delay(2000);
   Serial.begin(115200);
+  HEAP_LOG("start");
   loadSettings();
+  HEAP_LOG("settings");
   PeripheryManager.setup();
+  HEAP_LOG("periphery");
   ServerManager.loadSettings();
   DisplayManager.setup();
+  HEAP_LOG("display");
   DisplayManager.HSVtext(9, 6, VERSION, true, 0);
   delay(500);
 #ifdef ESP8266
@@ -85,6 +96,7 @@ void setup()
   xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 0);
 #endif
   ServerManager.setup();
+  HEAP_LOG("wifi+server");
   if (ServerManager.isConnected)
   {
     // timer_init();
@@ -127,10 +139,19 @@ void setup()
   }
   delay(200);
   DisplayManager.setBrightness(BRIGHTNESS);
+  HEAP_LOG("setup done");
 }
 
 void loop()
 {
+#if defined(AWTRIX_HEAP_LOG) && defined(ESP8266)
+  static unsigned long lastHeapLog = 0;
+  if (millis() - lastHeapLog > 2000)
+  {
+    lastHeapLog = millis();
+    HEAP_LOG("loop");
+  }
+#endif
   timer_tick();
   ServerManager.tick();
   DisplayManager.tick();

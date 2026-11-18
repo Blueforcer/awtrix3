@@ -32,7 +32,7 @@
 #endif
 
 // Capacity for the big JSON documents (custom apps, draw instructions).
-// The ESP8266 has far less heap, so it matches MQTT_MAX_PACKET_SIZE there.
+// The ESP8266 has far less heap, so it matches the MQTT buffer (AWTRIX_MQTT_BUFFER_SIZE) there.
 #ifdef ESP8266
 #define JSON_DOC_LARGE 4096
 #else

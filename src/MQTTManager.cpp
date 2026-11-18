@@ -537,6 +537,12 @@ void MQTTManager_::sendStats()
 
 void MQTTManager_::setup()
 {
+#ifdef AWTRIX_MQTT_BUFFER_SIZE
+    // The MQTT library is constructed with a small buffer (MQTT_MAX_PACKET_SIZE) so it costs
+    // no RAM while MQTT isn't used; grow it now that a broker is configured.
+    if (!mqtt.setBufferSize(AWTRIX_MQTT_BUFFER_SIZE))
+        Serial.println(F("MQTT: not enough memory for the packet buffer"));
+#endif
 
     if (HA_DISCOVERY)
     {

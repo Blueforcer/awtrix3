@@ -1257,7 +1257,18 @@ void DisplayManager_::tick()
 #endif
   if (AP_MODE)
   {
+#ifdef ESP8266
+    // The ESP8266 drives the LEDs with the CPU (~8 ms per frame): redraw at ~25 fps
+    // instead of every loop, so the web server and WiFi get the time in between.
+    static unsigned long lastApFrame = 0;
+    if (millis() - lastApFrame >= 40)
+    {
+      lastApFrame = millis();
+      HSVtext(2, 6, "AP MODE", true, 1);
+    }
+#else
     HSVtext(2, 6, "AP MODE", true, 1);
+#endif
   }
   else if (ARTNET_MODE)
   {

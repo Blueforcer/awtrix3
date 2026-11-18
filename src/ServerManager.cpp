@@ -272,6 +272,9 @@ void ServerManager_::setup()
     mws.addHandler("/version", HTTP_GET, versionHandler);
     mws.begin(WEB_PORT);
 
+#ifndef ESP8266
+    // No mDNS on ESP8266: the responder parses every mDNS packet on the network and runs
+    // the heap out on busy networks. Discovery still works over UDP (FIND_AWTRIX).
     if (!MDNS.begin(HOSTNAME))
     {
         if (DEBUG_MODE)
@@ -285,6 +288,7 @@ void ServerManager_::setup()
         MDNS.addServiceTxt("awtrix", "tcp", "name", HOSTNAME.c_str());
         MDNS.addServiceTxt("awtrix", "tcp", "type", "awtrix3");
     }
+#endif
 
 #ifdef ESP8266
     configTime(NTP_TZ.c_str(), NTP_SERVER.c_str());
@@ -300,8 +304,21 @@ void ServerManager_::setup()
 void ServerManager_::tick()
 {
     mws.run();
+
 #ifdef ESP8266
-    MDNS.update();
+    // Hotspot mode keeps the station idle (see startWiFi), so if the saved network wasn't
+    // reachable at boot nothing retries it. Restart after 5 minutes to try again, unless
+    // someone is connected to the hotspot (e.g. to change the WiFi settings).
+    if (AP_MODE && millis() > 5UL * 60 * 1000 && WiFi.softAPgetStationNum() == 0)
+    {
+        struct station_config saved;
+        wifi_station_get_config_default(&saved);
+        if (saved.ssid[0] != 0)
+        {
+            Serial.println(F("Saved WiFi not joined at boot, restarting to retry"));
+            ESP.restart();
+        }
+    }
 #endif
 
     if (!AP_MODE)

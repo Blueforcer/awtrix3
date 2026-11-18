@@ -194,6 +194,8 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
     strncpy(my_ssid, _ssid, 32);
     my_ssid[32] = '\0';
     _ssid = my_ssid;
+    if (!strlen(_ssid))
+        Serial.println(F("No saved WiFi"));
 
     if (strlen(_ssid) && strlen(_pass))
     {
@@ -227,7 +229,15 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
     else
         setAPmode("ESP_AP", "123456789");
 
+#if defined(ESP8266)
+    // Keep the station idle in AP mode. A station that keeps trying to connect scans
+    // all channels, and on the ESP8266 that takes the radio away from the access point:
+    // pages to connected clients stall and time out. persistent is off (setAPmode),
+    // so this only clears the current config; the saved credentials stay.
+    WiFi.disconnect(false);
+#else
     WiFi.begin();
+#endif
     ip = WiFi.softAPIP();
     Serial.print(F("\nAP mode.\nServer IP address: "));
     Serial.println(ip);
@@ -317,6 +327,45 @@ void FSWebServer::doWifiConnection()
             persistent = false;
         }
     }
+
+#if defined(ESP8266)
+    // ESP8266: joining a network while the access point and web server run needs more RAM
+    // than is left; the WiFi stack runs out of memory during the scan / WPA handshake and
+    // crashes. So only store the credentials here and restart: startWiFi() joins the
+    // network at boot, with the access point off. ("persistent" can't be honoured: the
+    // credentials have to survive the restart.)
+    if (ssid.length() && pass.length())
+    {
+        struct station_config conf;
+        memset(&conf, 0, sizeof(conf));
+        memcpy(conf.ssid, ssid.c_str(), std::min(ssid.length(), sizeof(conf.ssid)));
+        memcpy(conf.password, pass.c_str(), std::min(pass.length(), sizeof(conf.password)));
+
+        // wifi_station_set_config() stores the config in flash (it doesn't connect from here)
+        struct station_config saved;
+        wifi_station_set_config(&conf);
+        wifi_station_get_config_default(&saved);
+        if (strncmp(reinterpret_cast<const char *>(saved.ssid), ssid.c_str(), sizeof(saved.ssid)) != 0)
+        {
+            WiFi.persistent(true);
+            wifi_station_set_config(&conf);
+            WiFi.persistent(false);
+            wifi_station_get_config_default(&saved);
+        }
+        bool stored = strncmp(reinterpret_cast<const char *>(saved.ssid), ssid.c_str(), sizeof(saved.ssid)) == 0;
+        Serial.printf("Saved WiFi '%s': %s\n", ssid.c_str(), stored ? "ok" : "FAILED");
+        if (!stored)
+        {
+            webserver->send(500, "text/plain", "Could not save the WiFi settings");
+            return;
+        }
+        // The setup page shows: "AWTRIX will restart now. Your new IP is <reply>"
+        webserver->send(200, "text/plain", "shown on the clock after the restart (it now joins " + ssid + ")");
+        delay(1000);
+        ESP.restart();
+        return;
+    }
+#endif
 
     if (WiFi.status() == WL_CONNECTED)
     {
