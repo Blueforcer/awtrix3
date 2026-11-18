@@ -117,6 +117,18 @@ MeanFilter<uint16_t> meanFilterLDR(MEAN_WND);
 
 float brightnessPercent = 0.0;
 
+// A button or the I2C bus on the same pin as the matrix data line would read the LED
+// signal (phantom presses), so they are switched off when the pins collide.
+bool buttonLeftOn = true;
+bool buttonRightOn = true;
+bool buttonSelectOn = true;
+bool i2cOn = true;
+
+static bool readButton(EasyButton &button, bool on)
+{
+    return on && button.read();
+}
+
 PeripheryManager_::PeripheryManager_()
 {
     this->buttonL = &button_left;
@@ -407,9 +419,16 @@ void PeripheryManager_::setup()
         setVolume(SOUND_VOLUME);
     }
 #endif
-    button_left.begin();
-    button_right.begin();
-    button_select.begin();
+    buttonLeftOn = BUTTON_UP_PIN != MATRIX_DATA_PIN;
+    buttonRightOn = BUTTON_DOWN_PIN != MATRIX_DATA_PIN;
+    buttonSelectOn = BUTTON_SELECT_PIN != MATRIX_DATA_PIN;
+    i2cOn = I2C_SDA_PIN != MATRIX_DATA_PIN && I2C_SCL_PIN != MATRIX_DATA_PIN;
+    if (buttonLeftOn)
+        button_left.begin();
+    if (buttonRightOn)
+        button_right.begin();
+    if (buttonSelectOn)
+        button_select.begin();
 #ifndef ESP8266
     button_reset.begin();
 #endif
@@ -434,9 +453,14 @@ void PeripheryManager_::setup()
     button_reset.onPressedFor(5000, reset_button_pressed_long);
 #endif
 
-    Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+    if (i2cOn)
+        Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
 
-    if (bme280.begin(BME280_ADDRESS) || bme280.begin(BME280_ADDRESS_ALTERNATE))
+    if (!i2cOn)
+    {
+        // The matrix data pin is one of the I2C pins: no temperature sensor
+    }
+    else if (bme280.begin(BME280_ADDRESS) || bme280.begin(BME280_ADDRESS_ALTERNATE))
     {
         if (DEBUG_MODE)
             DEBUG_PRINTLN(F("BME280 sensor detected"));
@@ -474,27 +498,27 @@ void PeripheryManager_::tick()
     {
         if (ROTATE_SCREEN)
         {
-            MQTTManager.sendButton(2, button_left.read());
-            ServerManager.sendButton(2, button_left.read());
-            MQTTManager.sendButton(0, button_right.read());
-            ServerManager.sendButton(0, button_right.read());
+            MQTTManager.sendButton(2, readButton(button_left, buttonLeftOn));
+            ServerManager.sendButton(2, readButton(button_left, buttonLeftOn));
+            MQTTManager.sendButton(0, readButton(button_right, buttonRightOn));
+            ServerManager.sendButton(0, readButton(button_right, buttonRightOn));
         }
         else
         {
-            MQTTManager.sendButton(0, button_left.read());
-            MQTTManager.sendButton(2, button_right.read());
-            ServerManager.sendButton(0, button_left.read());
-            ServerManager.sendButton(2, button_right.read());
+            MQTTManager.sendButton(0, readButton(button_left, buttonLeftOn));
+            MQTTManager.sendButton(2, readButton(button_right, buttonRightOn));
+            ServerManager.sendButton(0, readButton(button_left, buttonLeftOn));
+            ServerManager.sendButton(2, readButton(button_right, buttonRightOn));
         }
 
-        MQTTManager.sendButton(1, button_select.read());
-        ServerManager.sendButton(1, button_select.read());
+        MQTTManager.sendButton(1, readButton(button_select, buttonSelectOn));
+        ServerManager.sendButton(1, readButton(button_select, buttonSelectOn));
     }
     else
     {
-        button_left.read();
-        button_select.read();
-        button_right.read();
+        readButton(button_left, buttonLeftOn);
+        readButton(button_select, buttonSelectOn);
+        readButton(button_right, buttonRightOn);
     }
 
 #ifndef ESP8266

@@ -114,6 +114,16 @@ extern String BOOT_SOUND;
 extern int TEMP_DECIMAL_PLACES;
 extern uint8_t SOUND_VOLUME;
 extern int MATRIX_LAYOUT;
+// Matrix data pin. Override at build time with -D MATRIX_PIN=<gpio>; on ESP8266 also
+// at runtime with "matrix_pin" in dev.json (see DisplayManager_::setup()).
+#ifndef MATRIX_PIN
+#ifdef awtrix2_upgrade
+#define MATRIX_PIN D2
+#else
+#define MATRIX_PIN 32
+#endif
+#endif
+extern uint8_t MATRIX_DATA_PIN;
 // Wiring of a 16x16 panel (matrix layout 3), set in dev.json
 #define MATRIX_START_TOP_LEFT 0
 #define MATRIX_START_TOP_RIGHT 1

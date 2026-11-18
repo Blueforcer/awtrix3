@@ -16,6 +16,7 @@ The JSON object has the following properties:
 | `ap_timeout` | integer | The timeout in seconds before AWTRIX switches to AP mode if the saved WLAN was not found. | 15 |
 | `bootsound` | string | Uses a custom melodie while booting |  |
 | `matrix` | integer | Changes the matrix layout (0, 1, 2, or 3 for a [16x16 panel](hardware.md#16x16-panel)) | `0` |
+| `matrix_pin` | integer | ESP8266 build only: GPIO number of the matrix data line, see [Matrix data pin](esp8266.md#matrix-data-pin) | `4` |
 | `matrix_start` | string | 16x16 panel only: corner with the data input, `top-left`, `top-right`, `bottom-left` or `bottom-right` | `top-left` |
 | `matrix_wiring` | string | 16x16 panel only: whether the strip runs along `rows` or `columns` | `rows` |
 | `matrix_zigzag` | boolean | 16x16 panel only: `true` if every other row or column runs back the other way (serpentine), `false` if they all run the same way | `true` |

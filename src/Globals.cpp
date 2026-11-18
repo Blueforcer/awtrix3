@@ -86,6 +86,13 @@ void loadDevSettings()
             MATRIX_LAYOUT = doc["matrix"];
         }
 
+#ifdef ESP8266
+        if (doc.containsKey("matrix_pin"))
+        {
+            MATRIX_DATA_PIN = doc["matrix_pin"].as<uint8_t>();
+        }
+#endif
+
         // 16x16 panel wiring (matrix layout 3)
         if (doc.containsKey("matrix_start"))
         {
@@ -444,6 +451,7 @@ String BOOT_SOUND = "";
 int TEMP_DECIMAL_PLACES = 0;
 uint8_t SOUND_VOLUME = 30;
 int MATRIX_LAYOUT = 0;
+uint8_t MATRIX_DATA_PIN = MATRIX_PIN;
 uint8_t MATRIX_START = MATRIX_START_TOP_LEFT;
 bool MATRIX_COLUMNS = false;
 bool MATRIX_ZIGZAG = true;

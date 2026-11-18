@@ -40,15 +40,15 @@ const int maxUniverses = numberOfChannels / 512 + ((numberOfChannels % 512) ? 1 
 bool universesReceived[maxUniverses];
 bool sendFrame = 1;
 int previousDataLength = 0;
-#ifdef awtrix2_upgrade
-#define MATRIX_PIN D2
-#else
-#define MATRIX_PIN 32
-#endif
+// MATRIX_PIN (the default data pin) is defined in Globals.h
 
 #define MATRIX_WIDTH 32
 #define MATRIX_HEIGHT 8
 static void showMatrixTest();
+
+#ifdef ESP8266
+static bool addMatrixLeds(uint8_t pin);
+#endif
 fs::File gifFile;
 #ifndef ESP8266
 GifPlayer gif; // not used for drawing (apps/overlays use the players in MatrixDisplayUi)
@@ -1141,7 +1141,16 @@ void DisplayManager_::setup()
   TJpgDec.setCallback(jpg_output);
   TJpgDec.setJpgScale(1);
   random16_set_seed(millis());
+#ifdef ESP8266
+  if (!addMatrixLeds(MATRIX_DATA_PIN))
+  {
+    // Not a pin that can drive the matrix: use the default
+    MATRIX_DATA_PIN = MATRIX_PIN;
+    addMatrixLeds(MATRIX_DATA_PIN);
+  }
+#else
   FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
+#endif
   setMatrixLayout(MATRIX_LAYOUT);
   if (MATRIX_TEST)
     showMatrixTest();
@@ -1705,6 +1714,50 @@ String DisplayManager_::getStats()
   serializeJson(doc, jsonString);
   return jsonString;
 }
+
+#ifdef ESP8266
+// FastLED takes the data pin as a template argument, so every pin that can be chosen
+// in dev.json ("matrix_pin") is compiled in here. GPIO numbers (FASTLED_ESP8266_RAW_PIN_ORDER).
+// Left out: GPIO0 and GPIO1 (boot strap / serial TX) and GPIO16 (FastLED can't drive it).
+static bool addMatrixLeds(uint8_t pin)
+{
+  const int count = MATRIX_WIDTH * MATRIX_HEIGHT;
+  switch (pin)
+  {
+  case 2:
+    FastLED.addLeds<NEOPIXEL, 2>(leds, count);
+    return true;
+  case 3:
+    FastLED.addLeds<NEOPIXEL, 3>(leds, count);
+    return true;
+  case 4:
+    FastLED.addLeds<NEOPIXEL, 4>(leds, count);
+    return true;
+  case 5:
+    FastLED.addLeds<NEOPIXEL, 5>(leds, count);
+    return true;
+  case 12:
+    FastLED.addLeds<NEOPIXEL, 12>(leds, count);
+    return true;
+  case 13:
+    FastLED.addLeds<NEOPIXEL, 13>(leds, count);
+    return true;
+  case 14:
+    FastLED.addLeds<NEOPIXEL, 14>(leds, count);
+    return true;
+  case 15:
+    FastLED.addLeds<NEOPIXEL, 15>(leds, count);
+    return true;
+  default:
+    if (pin == MATRIX_PIN)
+    {
+      FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, count);
+      return true;
+    }
+    return false;
+  }
+}
+#endif
 
 #define PANEL_SIZE 16
 
