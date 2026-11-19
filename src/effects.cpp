@@ -1072,6 +1072,7 @@ void Fade(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *setti
     }
 }
 
+#ifndef AWTRIX_16X16 // see numOfEffects in effects.h
 Effect effects[] = {
     {"Fade", Fade, EffectSettings(1, RainbowColors_p, true)},
     {"MovingLine", MovingLine, EffectSettings(1, RainbowColors_p, true)},
@@ -1092,22 +1093,23 @@ Effect effects[] = {
     {"LookingEyes", LookingEyes, EffectSettings()},
     {"TwinklingStars", TwinklingStars, EffectSettings(4, OceanColors_p, true)},
     {"ColorWaves", ColorWaves, EffectSettings(5, RainbowColors_p, true)}};
+#endif
 
 // ######## Helper functions ############
 
 void callEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, u_int8_t index)
 {
-#ifdef AWTRIX_16X16
-    return; // the effects are drawn for 32x8 and aren't available on the 16x16 build
-#endif
+#ifndef AWTRIX_16X16 // no effects on the 16x16 build
     if (index > -1)
     {
         effects[index].func(matrix, x, y, &effects[index].settings);
     }
+#endif
 }
 
 int getEffectIndex(String name)
 {
+#ifndef AWTRIX_16X16 // no effects on the 16x16 build
     for (uint8_t i = 0; i < sizeof(effects) / sizeof(effects[0]); i++)
     {
         if (effects[i].name == name)
@@ -1115,6 +1117,7 @@ int getEffectIndex(String name)
             return i;
         }
     }
+#endif
     return -1;
 }
 
@@ -1196,11 +1199,15 @@ CRGBPalette16 getPalette(const JsonVariant &paletteVariant)
 
 void updateEffectSettings(u_int8_t index, String json)
 {
+#ifdef AWTRIX_16X16
+    return; // no effects on the 16x16 build
+#endif
     if (index != -1)
     {
         DynamicJsonDocument doc(2048);
         deserializeJson(doc, json);
 
+#ifndef AWTRIX_16X16
         if (doc.containsKey("speed"))
         {
             effects[index].settings.speed = doc["speed"];
@@ -1215,6 +1222,7 @@ void updateEffectSettings(u_int8_t index, String json)
         {
             effects[index].settings.blend = doc["blend"].as<bool>();
         }
+#endif
 
         doc.clear();
     }

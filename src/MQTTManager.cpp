@@ -13,7 +13,35 @@
 
 const uint16_t PORT = 1883;
 
+#ifdef ESP8266
+#include <lwip/tcp.h>
+#include <lwip/inet.h>
+#include <include/ClientContext.h>
+
+// A write that doesn't go through (broker gone, WiFi dropped, no memory for a packet) leaves
+// a half-sent MQTT packet, so the connection is dead anyway. The normal close waits for the
+// queued data to be acknowledged, and lwIP keeps those packet buffers while it retries; with
+// a broker that keeps dropping, every reconnect left more of them and the heap ran out.
+// Drop the connection at once instead, which frees its buffers. (From PixelIt; the public
+// WiFiClient::abort() first flushes with the default timeout, so use the context directly.)
+class MqttWiFiClient : public WiFiClient
+{
+public:
+    size_t write(const uint8_t *buf, size_t size) override
+    {
+        size_t written = WiFiClient::write(buf, size);
+        if (written != size && _client)
+        {
+            _client->abort();
+            _client->discard_received();
+        }
+        return written;
+    }
+};
+MqttWiFiClient espClient;
+#else
 WiFiClient espClient;
+#endif
 HADevice device;
 HAMqtt mqtt(espClient, device, 26);
 

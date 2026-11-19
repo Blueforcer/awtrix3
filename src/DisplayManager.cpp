@@ -2864,10 +2864,12 @@ String DisplayManager_::getEffectNames()
 {
   StaticJsonDocument<1024> doc;
   JsonArray array = doc.to<JsonArray>();
+#ifndef AWTRIX_16X16 // no effects on the 16x16 build: an empty list
   for (int i = 0; i < numOfEffects; i++)
   {
     array.add(effects[i].name);
   }
+#endif
   String result;
   serializeJson(array, result);
   doc.clear();

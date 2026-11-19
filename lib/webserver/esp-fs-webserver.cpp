@@ -1,4 +1,7 @@
 #include "esp-fs-webserver.h"
+#if defined(ESP8266) && !defined(AWTRIX_WEBSERVER_BODY_PATCH)
+#error "the web server header isn't the patched copy (scripts/esp8266_webserver_body.py)"
+#endif
 
 FSWebServer::FSWebServer(fs::FS &fs, WebServerClass &server)
 {
