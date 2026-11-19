@@ -42,8 +42,8 @@ bool sendFrame = 1;
 int previousDataLength = 0;
 // MATRIX_PIN (the default data pin) is defined in Globals.h
 
-#define MATRIX_WIDTH 32
-#define MATRIX_HEIGHT 8
+#define MATRIX_WIDTH MATRIX_W   // 32x8, or 16x16 in the AWTRIX_16X16 build (Globals.h)
+#define MATRIX_HEIGHT MATRIX_H
 static void showMatrixTest();
 
 #ifdef ESP8266
@@ -62,7 +62,11 @@ int16_t cursor_x, cursor_y;
 uint32_t textColor;
 
 // NeoMatrix
+#ifdef AWTRIX_16X16
+FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, MATRIX_WIDTH, MATRIX_HEIGHT, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+#else
 FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+#endif
 MatrixDisplayUi *ui = new MatrixDisplayUi(matrix);
 
 DisplayManager_ &DisplayManager_::getInstance()
@@ -123,7 +127,7 @@ void DisplayManager_::drawJPG(int32_t x, int32_t y, const uint8_t jpeg_data[], u
 
 void DisplayManager_::drawBMP(int16_t x, int16_t y, const uint16_t bitmap[], int16_t w, int16_t h)
 {
-  matrix->drawRGBBitmap(y, x, bitmap, w, h);
+  matrix->drawRGBBitmap(x, y, bitmap, w, h);
 }
 
 void DisplayManager_::applyAllSettings()
@@ -175,7 +179,7 @@ void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool cen
   if (centered)
   {
     uint16_t textWidth = getTextWidth(text, textCase);
-    int16_t textX = ((32 - textWidth) / 2);
+    int16_t textX = ((MATRIX_WIDTH - textWidth) / 2);
     setCursor(textX, y);
   }
   else
@@ -1264,7 +1268,14 @@ void DisplayManager_::tick()
     if (millis() - lastApFrame >= 40)
     {
       lastApFrame = millis();
+#ifdef AWTRIX_16X16
+      matrix->clear();
+      HSVtext(4, 6, "AP", false, 1);
+      HSVtext(0, 14, "MODE", false, 1);
+      matrix->show();
+#else
       HSVtext(2, 6, "AP MODE", true, 1);
+#endif
     }
 #else
     HSVtext(2, 6, "AP MODE", true, 1);
@@ -1506,7 +1517,7 @@ bool DisplayManager_::switchToApp(const char *json)
 
 void DisplayManager_::drawProgressBar(int16_t x, int16_t y, int progress, uint32_t pColor, uint32_t pbColor)
 {
-  int available_length = 32 - x;
+  int available_length = MATRIX_WIDTH - x;
   int leds_for_progress = (progress * available_length) / 100;
   drawLine(x, y, x + available_length - 1, y, pbColor);
   if (leds_for_progress > 0)
@@ -1524,11 +1535,11 @@ void DisplayManager_::drawMenuIndicator(int cur, int total, uint32_t color)
     int x = leftMargin + i * (menuItemWidth + pixelSpacing);
     if (i == cur)
     {
-      drawLine(x, 7, x + menuItemWidth - 1, 7, color);
+      drawLine(x, MATRIX_HEIGHT - 1, x + menuItemWidth - 1, MATRIX_HEIGHT - 1, color);
     }
     else
     {
-      drawLine(x, 7, x + menuItemWidth - 1, 7, 0x666666);
+      drawLine(x, MATRIX_HEIGHT - 1, x + menuItemWidth - 1, MATRIX_HEIGHT - 1, 0x666666);
     }
   }
 }
@@ -1775,15 +1786,9 @@ static bool addMatrixLeds(uint8_t pin)
 // Layout 3: a 16x16 panel showing the 32x8 canvas as two stacked halves.
 // Canvas columns 0-15 go on the top 8 rows, columns 16-31 on the bottom 8 rows.
 // Where the data input sits and how the strip runs comes from dev.json.
-static uint16_t remapSplit16x16(uint16_t x, uint16_t y)
+// LED index of pixel (px, py) on a 16x16 panel, following the wiring set in dev.json
+static uint16_t panelIndex(uint16_t px, uint16_t py)
 {
-  uint16_t px = x;
-  uint16_t py = y;
-  if (px >= PANEL_SIZE)
-  {
-    px -= PANEL_SIZE;
-    py += MATRIX_HEIGHT;
-  }
   // Count from the corner with the data input
   if (MATRIX_START & MATRIX_START_TOP_RIGHT)
     px = PANEL_SIZE - 1 - px;
@@ -1797,6 +1802,21 @@ static uint16_t remapSplit16x16(uint16_t x, uint16_t y)
     minor = PANEL_SIZE - 1 - minor;
   return major * PANEL_SIZE + minor;
 }
+
+static uint16_t remapSplit16x16(uint16_t x, uint16_t y)
+{
+  if (x >= PANEL_SIZE)
+    return panelIndex(x - PANEL_SIZE, y + PANEL_SIZE / 2);
+  return panelIndex(x, y);
+}
+
+#ifdef AWTRIX_16X16
+// Native 16x16 build: the canvas is the panel
+static uint16_t remapPanel16x16(uint16_t x, uint16_t y)
+{
+  return panelIndex(x, y);
+}
+#endif
 
 // Wiring check for a new panel, enabled with "matrix_test": true in dev.json.
 static void showMatrixTest()
@@ -1813,10 +1833,15 @@ static void showMatrixTest()
   // Step 2, through the configured layout: if the dev.json settings are right you see
   // red top left, green top right, blue bottom left and white bottom right.
   FastLED.clear();
-  matrix->fillRect(0, 0, 2, 2, matrix->Color(64, 0, 0));                                                      // panel top left
-  matrix->fillRect(PANEL_SIZE - 2, 0, 2, 2, matrix->Color(0, 64, 0));                                         // panel top right
-  matrix->fillRect(PANEL_SIZE, MATRIX_HEIGHT - 2, 2, 2, matrix->Color(0, 0, 64));                             // panel bottom left
-  matrix->fillRect(MATRIX_WIDTH - 2, MATRIX_HEIGHT - 2, 2, 2, matrix->Color(64, 64, 64));                     // panel bottom right
+#ifdef AWTRIX_16X16
+  const int16_t bottomLeftX = 0; // the canvas is the panel
+#else
+  const int16_t bottomLeftX = PANEL_SIZE; // split layout: the right half of the canvas is the bottom half
+#endif
+  matrix->fillRect(0, 0, 2, 2, matrix->Color(64, 0, 0));                                    // panel top left
+  matrix->fillRect(PANEL_SIZE - 2, 0, 2, 2, matrix->Color(0, 64, 0));                       // panel top right
+  matrix->fillRect(bottomLeftX, MATRIX_HEIGHT - 2, 2, 2, matrix->Color(0, 0, 64));          // panel bottom left
+  matrix->fillRect(MATRIX_WIDTH - 2, MATRIX_HEIGHT - 2, 2, 2, matrix->Color(64, 64, 64));   // panel bottom right
   matrix->show();
   delay(8000);
   FastLED.clear();
@@ -1827,6 +1852,11 @@ void DisplayManager_::setMatrixLayout(int layout)
   delete matrix; // Free memory from the current matrix object
   if (DEBUG_MODE)
     DEBUG_PRINTF("Set matrix layout to %i", layout);
+#ifdef AWTRIX_16X16
+  // Native 16x16 build: one layout, the panel wiring comes from dev.json (matrix_start etc.)
+  matrix = new FastLED_NeoMatrix(leds, MATRIX_WIDTH, MATRIX_HEIGHT, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+  matrix->setRemapFunction(remapPanel16x16);
+#else
   switch (layout)
   {
   case 0:
@@ -1848,6 +1878,7 @@ void DisplayManager_::setMatrixLayout(int layout)
     matrix = new FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
     break;
   }
+#endif
 
   delete ui;                        // Free memory from the current ui object
   ui = new MatrixDisplayUi(matrix); // Create a new ui object with the new matrix
@@ -2648,7 +2679,7 @@ bool DisplayManager_::moodlight(const char *json)
   {
     auto c = doc["color"];
     uint32_t color888 = getColorFromJsonVariant(c, TEXTCOLOR_888);
-    drawFilledRect(0, 0, 32, 8, color888);
+    drawFilledRect(0, 0, MATRIX_WIDTH, MATRIX_HEIGHT, color888);
   }
   else
   {

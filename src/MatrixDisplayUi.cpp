@@ -279,9 +279,9 @@ void MatrixDisplayUi::drawIndicators()
     {
       drawColor = indicator1Color;
     }
-    matrix->drawPixel(31, 0, drawColor);
-    matrix->drawPixel(30, 0, drawColor);
-    matrix->drawPixel(31, 1, drawColor);
+    matrix->drawPixel(MATRIX_W - 1, 0, drawColor);
+    matrix->drawPixel(MATRIX_W - 2, 0, drawColor);
+    matrix->drawPixel(MATRIX_W - 1, 1, drawColor);
   }
 
   // Indicator 2
@@ -306,8 +306,8 @@ void MatrixDisplayUi::drawIndicators()
     {
       drawColor = indicator2Color;
     }
-    matrix->drawPixel(31, 3, drawColor);
-    matrix->drawPixel(31, 4, drawColor);
+    matrix->drawPixel(MATRIX_W - 1, MATRIX_H / 2 - 1, drawColor);
+    matrix->drawPixel(MATRIX_W - 1, MATRIX_H / 2, drawColor);
   }
 
   // Indicator 3
@@ -332,9 +332,9 @@ void MatrixDisplayUi::drawIndicators()
     {
       drawColor = indicator3Color;
     }
-    matrix->drawPixel(31, 7, drawColor);
-    matrix->drawPixel(31, 6, drawColor);
-    matrix->drawPixel(30, 7, drawColor);
+    matrix->drawPixel(MATRIX_W - 1, MATRIX_H - 1, drawColor);
+    matrix->drawPixel(MATRIX_W - 1, MATRIX_H - 2, drawColor);
+    matrix->drawPixel(MATRIX_W - 2, MATRIX_H - 1, drawColor);
   }
 }
 
@@ -547,16 +547,16 @@ float distance(int x1, int y1, int x2, int y2)
 void rotate(int &x, int &y, float angle)
 {
   // Move the point to the origin
-  x -= 16;
-  y -= 4;
+  x -= MATRIX_W / 2;
+  y -= MATRIX_H / 2;
 
   // Perform the rotation
   int newX = x * cos(angle) - y * sin(angle);
   int newY = x * sin(angle) + y * cos(angle);
 
   // Move the point back to the actual origin
-  x = newX + 16;
-  y = newY + 4;
+  x = newX + MATRIX_W / 2;
+  y = newY + MATRIX_H / 2;
 }
 
 void MatrixDisplayUi::fadeTransition()
@@ -583,9 +583,9 @@ void MatrixDisplayUi::fadeTransition()
     (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
   }
 
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < MATRIX_W; i++)
   {
-    for (int j = 0; j < 8; j++)
+    for (int j = 0; j < MATRIX_H; j++)
     {
       CRGB color = DisplayManager.getLeds()[this->matrix->XY(i, j)];
       color.fadeToBlackBy(fadeValue);
@@ -602,15 +602,15 @@ void MatrixDisplayUi::slideTransition()
   {
   case SLIDE_UP:
     x = 0;
-    y = -8 * progress;
+    y = -MATRIX_H * progress;
     x1 = 0;
-    y1 = y + 8;
+    y1 = y + MATRIX_H;
     break;
   case SLIDE_DOWN:
     x = 0;
-    y = 8 * progress;
+    y = MATRIX_H * progress;
     x1 = 0;
-    y1 = y - 8;
+    y1 = y - MATRIX_H;
     break;
   }
   // Invert animation if direction is reversed.
@@ -627,17 +627,17 @@ void MatrixDisplayUi::curtainTransition()
 {
   CRGB *leds = DisplayManager.getLeds();
   float progress = (float)this->state.ticksSinceLastStateSwitch / (float)this->ticksPerTransition;
-  int curtainWidth = (int)(16 * progress); // 16 ist die Hälfte der Matrix-Breite
+  int curtainWidth = (int)(MATRIX_W / 2 * progress); // half the matrix width
 
   if (this->state.ticksSinceLastStateSwitch == 1 || this->state.ticksSinceLastStateSwitch == 0)
   {
     // Kopieren Sie die aktuelle App-Ansicht in ledsCopy
     (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
-    for (int i = 0; i < 32; i++)
+    for (int i = 0; i < MATRIX_W; i++)
     {
-      for (int j = 0; j < 8; j++)
+      for (int j = 0; j < MATRIX_H; j++)
       {
-        ledsCopy[i + j * 32] = leds[this->matrix->XY(i, j)];
+        ledsCopy[i + j * MATRIX_W] = leds[this->matrix->XY(i, j)];
       }
     }
   }
@@ -645,13 +645,13 @@ void MatrixDisplayUi::curtainTransition()
   (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
 
   // Anwenden des Vorhang-Effekts basierend auf dem Fortschritt
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < MATRIX_W; i++)
   {
-    for (int j = 0; j < 8; j++)
+    for (int j = 0; j < MATRIX_H; j++)
     {
-      if ((i < (16 - curtainWidth)) || (i >= (16 + curtainWidth)))
+      if ((i < (MATRIX_W / 2 - curtainWidth)) || (i >= (MATRIX_W / 2 + curtainWidth)))
       {
-        leds[this->matrix->XY(i, j)] = ledsCopy[i + j * 32];
+        leds[this->matrix->XY(i, j)] = ledsCopy[i + j * MATRIX_W];
       }
     }
   }
@@ -675,31 +675,31 @@ void MatrixDisplayUi::zoomTransition()
   }
 
   // Copy the data to the temporary array ledsCopy
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < MATRIX_W; i++)
   {
-    for (int j = 0; j < 8; j++)
+    for (int j = 0; j < MATRIX_H; j++)
     {
-      ledsCopy[i + j * 32] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
+      ledsCopy[i + j * MATRIX_W] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
     }
   }
 
   // Scale the data and copy back to the matrix
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < MATRIX_W; i++)
   {
-    for (int j = 0; j < 8; j++)
+    for (int j = 0; j < MATRIX_H; j++)
     {
-      int iScaled = 16 + (i - 16) * scale;
-      int jScaled = 4 + (j - 4) * scale;
+      int iScaled = MATRIX_W / 2 + (i - MATRIX_W / 2) * scale;
+      int jScaled = MATRIX_H / 2 + (j - MATRIX_H / 2) * scale;
 
       if (iScaled < 0)
         iScaled = 0;
-      if (iScaled >= 32)
-        iScaled = 31;
+      if (iScaled >= MATRIX_W)
+        iScaled = MATRIX_W - 1;
       if (jScaled < 0)
         jScaled = 0;
-      if (jScaled >= 8)
-        jScaled = 7;
-      DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[iScaled + jScaled * 32];
+      if (jScaled >= MATRIX_H)
+        jScaled = MATRIX_H - 1;
+      DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[iScaled + jScaled * MATRIX_W];
     }
   }
 }
@@ -722,18 +722,18 @@ void MatrixDisplayUi::rotateTransition()
   }
 
   // Copy the data to the temporary array ledsCopy
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < MATRIX_W; i++)
   {
-    for (int j = 0; j < 8; j++)
+    for (int j = 0; j < MATRIX_H; j++)
     {
-      ledsCopy[i + j * 32] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
+      ledsCopy[i + j * MATRIX_W] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
     }
   }
 
   // Rotate the data and copy back to the matrix
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < MATRIX_W; i++)
   {
-    for (int j = 0; j < 8; j++)
+    for (int j = 0; j < MATRIX_H; j++)
     {
       int iRotated = i;
       int jRotated = j;
@@ -741,14 +741,14 @@ void MatrixDisplayUi::rotateTransition()
 
       if (iRotated < 0)
         iRotated = 0;
-      if (iRotated >= 32)
-        iRotated = 31;
+      if (iRotated >= MATRIX_W)
+        iRotated = MATRIX_W - 1;
       if (jRotated < 0)
         jRotated = 0;
-      if (jRotated >= 8)
-        jRotated = 7;
+      if (jRotated >= MATRIX_H)
+        jRotated = MATRIX_H - 1;
 
-      DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[iRotated + jRotated * 32];
+      DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[iRotated + jRotated * MATRIX_W];
     }
   }
 }
@@ -759,11 +759,11 @@ void MatrixDisplayUi::pixelateTransition()
 
   // Draw the old app and copy to ledsCopy
   (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < MATRIX_W; i++)
   {
-    for (int j = 0; j < 8; j++)
+    for (int j = 0; j < MATRIX_H; j++)
     {
-      ledsCopy[i + j * 32] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
+      ledsCopy[i + j * MATRIX_W] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
     }
   }
 
@@ -772,14 +772,14 @@ void MatrixDisplayUi::pixelateTransition()
   (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
 
   // Apply the random pixel swap transition effect
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < MATRIX_W; i++)
   {
-    for (int j = 0; j < 8; j++)
+    for (int j = 0; j < MATRIX_H; j++)
     {
       // If the random number is greater than the progress, display the pixel from the old app
       if (random(255) > progress * 255)
       {
-        DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[i + j * 32];
+        DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[i + j * MATRIX_W];
       }
       // Otherwise, keep the pixel from the new app
     }
@@ -792,11 +792,11 @@ void MatrixDisplayUi::rippleTransition()
 
   // Draw the old app and copy to ledsCopy
   (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < MATRIX_W; i++)
   {
-    for (int j = 0; j < 8; j++)
+    for (int j = 0; j < MATRIX_H; j++)
     {
-      ledsCopy[i + j * 32] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
+      ledsCopy[i + j * MATRIX_W] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
     }
   }
 
@@ -805,19 +805,19 @@ void MatrixDisplayUi::rippleTransition()
   (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
 
   // Apply the checkerboard transition effect
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < MATRIX_W; i++)
   {
-    for (int j = 0; j < 8; j++)
+    for (int j = 0; j < MATRIX_H; j++)
     {
       // If the sum of i and j is an even number and the progress is less than 0.5, display the pixel from the old app
       if ((i + j) % 2 == 0 && progress < 0.5)
       {
-        DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[i + j * 32];
+        DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[i + j * MATRIX_W];
       }
       // If the sum of i and j is an odd number and the progress is more than 0.5, display the pixel from the old app
       else if ((i + j) % 2 != 0 && progress >= 0.5)
       {
-        DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[i + j * 32];
+        DisplayManager.getLeds()[this->matrix->XY(i, j)] = ledsCopy[i + j * MATRIX_W];
       }
       // Otherwise, keep the pixel from the new app
     }
@@ -865,13 +865,13 @@ void MatrixDisplayUi::reloadTransition()
     (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
 
     // Calculating pixel to be visible based on progress
-    visiblePixel = 32 * (1.0 - (progress * 2));
+    visiblePixel = MATRIX_W * (1.0 - (progress * 2));
     if (visiblePixel < 0)
       visiblePixel = 0;
 
-    for (int i = visiblePixel; i < 32; i++)
+    for (int i = visiblePixel; i < MATRIX_W; i++)
     {
-      for (int j = 0; j < 8; j++)
+      for (int j = 0; j < MATRIX_H; j++)
       {
         // Turning the pixels off to create a fly out effect
         DisplayManager.getLeds()[this->matrix->XY(i, j)] = CRGB::Black;
@@ -884,13 +884,13 @@ void MatrixDisplayUi::reloadTransition()
     (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
 
     // Calculating pixel to be visible based on progress
-    visiblePixel = 32 * ((progress - 0.5) * 2);
-    if (visiblePixel > 32)
-      visiblePixel = 32;
+    visiblePixel = MATRIX_W * ((progress - 0.5) * 2);
+    if (visiblePixel > MATRIX_W)
+      visiblePixel = MATRIX_W;
 
-    for (int i = visiblePixel; i < 32; i++)
+    for (int i = visiblePixel; i < MATRIX_W; i++)
     {
-      for (int j = 0; j < 8; j++)
+      for (int j = 0; j < MATRIX_H; j++)
       {
         // Turning the pixels off to create a fly in effect
         DisplayManager.getLeds()[this->matrix->XY(i, j)] = CRGB::Black;
@@ -907,11 +907,11 @@ void MatrixDisplayUi::crossfadeTransition()
   (this->AppFunctions[this->state.currentApp])(this->matrix, &this->state, 0, 0, &gif1);
 
   // Copy the old app data to ledsCopy array
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < MATRIX_W; i++)
   {
-    for (int j = 0; j < 8; j++)
+    for (int j = 0; j < MATRIX_H; j++)
     {
-      ledsCopy[i + j * 32] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
+      ledsCopy[i + j * MATRIX_W] = DisplayManager.getLeds()[this->matrix->XY(i, j)];
     }
   }
 
@@ -922,11 +922,11 @@ void MatrixDisplayUi::crossfadeTransition()
   (this->AppFunctions[this->getnextAppNumber()])(this->matrix, &this->state, 0, 0, &gif2);
 
   // Linearly interpolate between old and new pixel colors based on the progress
-  for (int i = 0; i < 32; i++)
+  for (int i = 0; i < MATRIX_W; i++)
   {
-    for (int j = 0; j < 8; j++)
+    for (int j = 0; j < MATRIX_H; j++)
     {
-      CRGB pixelOld = ledsCopy[i + j * 32];
+      CRGB pixelOld = ledsCopy[i + j * MATRIX_W];
       CRGB pixelNew = DisplayManager.getLeds()[this->matrix->XY(i, j)];
       DisplayManager.getLeds()[this->matrix->XY(i, j)] = pixelOld.lerp8(pixelNew, progress * 255);
     }

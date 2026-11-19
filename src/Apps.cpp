@@ -1,4 +1,5 @@
 #include "Apps.h"
+#include "Layout.h"
 
 #include <map>
 #include "icons.h"
@@ -102,12 +103,81 @@ const char *getTimeFormat()
     }
 }
 
+#ifdef AWTRIX_16X16
+// ---- Native 16x16 layouts of the built-in apps ------------------------------------
+// Two text lines (baselines 6 and 14), an optional weekday bar on the last row.
+
+// Weekday bar on the bottom row: 7 one-pixel days with one-pixel gaps (columns 1..13)
+static void weekdayBar16(int16_t x, int16_t y)
+{
+    if (!SHOW_WEEKDAY)
+        return;
+    uint8_t dayOffset = START_ON_MONDAY ? 0 : 1;
+    for (int i = 0; i <= 6; i++)
+    {
+        uint32_t color = (i == (timer_localtime()->tm_wday + 6 + dayOffset) % 7) ? WDC_ACTIVE : WDC_INACTIVE;
+        DisplayManager.drawLine(1 + i * 2 + x, MATRIX_H - 1 + y, 1 + i * 2 + x, MATRIX_H - 1 + y, color);
+    }
+}
+
+// Hours on the top half, minutes on the bottom half
+static void TimeApp16(int16_t x, int16_t y)
+{
+    if (TIME_COLOR > 0)
+        DisplayManager.setTextColor(TIME_COLOR);
+    else
+        DisplayManager.getInstance().resetTextColor();
+
+    // 12 or 24 hours, following the configured time format
+    bool twelveHours = TIME_FORMAT.indexOf("%I") >= 0 || TIME_FORMAT.indexOf("%l") >= 0;
+    char hours[4], minutes[4];
+    strftime(hours, sizeof(hours), twelveHours ? "%I" : "%H", timer_localtime());
+    strftime(minutes, sizeof(minutes), "%M", timer_localtime());
+    if (TIME_FORMAT.indexOf("%l") >= 0 && hours[0] == '0')
+        memmove(hours, hours + 1, strlen(hours)); // %l: no leading zero
+
+    DisplayManager.printText(x, 6 + y, hours, true, 2);
+    DisplayManager.printText(x, 14 + y, minutes, true, 2);
+    weekdayBar16(x, y);
+}
+
+// Day of the month on top, short month name below
+static void DateApp16(int16_t x, int16_t y)
+{
+    if (DATE_COLOR > 0)
+        DisplayManager.setTextColor(DATE_COLOR);
+    else
+        DisplayManager.getInstance().resetTextColor();
+    char day[4], month[8];
+    strftime(day, sizeof(day), "%d", timer_localtime());
+    strftime(month, sizeof(month), "%b", timer_localtime());
+    DisplayManager.printText(x, 6 + y, day, true, 2);
+    DisplayManager.printText(x, 14 + y, month, true, 1);
+    weekdayBar16(x, y);
+}
+
+// 8x8 icon centred on top, value centred below
+static void IconValueApp16(int16_t x, int16_t y, const uint16_t *icon, const String &value, uint32_t color)
+{
+    if (color > 0)
+        DisplayManager.setTextColor(color);
+    else
+        DisplayManager.getInstance().resetTextColor();
+    DisplayManager.drawBMP(4 + x, y, icon, 8, 8);
+    DisplayManager.printText(x, 14 + y, value.c_str(), true, 2);
+}
+#endif
+
 void TimeApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, int16_t y, GifPlayer *gifPlayer)
 {
     if (notifyFlag)
         return;
     CURRENT_APP = "Time";
     currentCustomApp = "";
+#ifdef AWTRIX_16X16
+    TimeApp16(x, y);
+    return;
+#endif
     const char *timeformat = getTimeFormat();
     static File BIGTIME_BG_GIF;
     static bool BIGTIME_BG_ISGIF = false;
@@ -309,6 +379,10 @@ void DateApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         return;
     CURRENT_APP = "Date";
     currentCustomApp = "";
+#ifdef AWTRIX_16X16
+    DateApp16(x, y);
+    return;
+#endif
     if (DATE_COLOR > 0)
     {
         DisplayManager.setTextColor(DATE_COLOR);
@@ -342,6 +416,13 @@ void TempApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, 
         return;
     CURRENT_APP = "Temperature";
     currentCustomApp = "";
+#ifdef AWTRIX_16X16
+    {
+        double temp = IS_CELSIUS ? CURRENT_TEMP : (CURRENT_TEMP * 9 / 5) + 32;
+        IconValueApp16(x, y, icon_234, String(temp, TEMP_DECIMAL_PLACES) + utf8ascii("°"), TEMP_COLOR);
+        return;
+    }
+#endif
     if (TEMP_COLOR > 0)
     {
         DisplayManager.setTextColor(TEMP_COLOR);
@@ -376,6 +457,10 @@ void HumApp(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, int16_t x, i
         return;
     CURRENT_APP = "Humidity";
     currentCustomApp = "";
+#ifdef AWTRIX_16X16
+    IconValueApp16(x, y, icon_2075, String((int)CURRENT_HUM) + "%", HUM_COLOR);
+    return;
+#endif
     if (HUM_COLOR > 0)
     {
         DisplayManager.setTextColor(HUM_COLOR);
@@ -456,7 +541,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         }
     }
 
-    DisplayManager.drawFilledRect(x, y, 32, 8, ca->background);
+    DisplayManager.drawFilledRect(x, y, MATRIX_W, MATRIX_H, ca->background);
 
     if (ca->effect > -1)
     {
@@ -485,6 +570,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     }
 
     bool hasIcon = ca->icon || ca->jpegDataSize > 0;
+    const ContentLayout L = contentLayout(hasIcon);
 
     uint16_t textWidth = 0;
     if (!ca->fragments.empty())
@@ -501,7 +587,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         textWidth = getTextWidth(replacedText.c_str(), ca->textCase);
     }
 
-    uint16_t availableWidth = (hasIcon) ? 24 : 32;
+    uint16_t availableWidth = L.textWidth;
 
     bool noScrolling = textWidth <= availableWidth;
     int iconWidth;
@@ -509,7 +595,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     {
         if (hasIcon)
         {
-            if (ca->pushIcon > 0 && !noScrolling)
+            if (ca->pushIcon > 0 && !noScrolling && L.iconBesideText)
             {
                 if (ca->iconPosition < 0 && ca->iconWasPushed == false && ca->scrollposition > 8)
                 {
@@ -528,7 +614,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             }
             if (ca->isGif)
             {
-                iconWidth = gifPlayer->playGif(x + ca->iconPosition + ca->iconOffset, y, &ca->icon, ca->currentFrame);
+                iconWidth = gifPlayer->playGif(x + L.iconX + ca->iconPosition + ca->iconOffset, y + L.iconY, &ca->icon, ca->currentFrame);
                 ca->currentFrame = gifPlayer->getFrame();
             }
             else
@@ -536,14 +622,14 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 iconWidth = 8;
                 if (ca->jpegDataSize > 0)
                 {
-                    DisplayManager.drawJPG(x + ca->iconPosition + ca->iconOffset, y, ca->jpegDataBuffer, ca->jpegDataSize);
+                    DisplayManager.drawJPG(x + L.iconX + ca->iconPosition + ca->iconOffset, y + L.iconY, ca->jpegDataBuffer, ca->jpegDataSize);
                 }
                 else
                 {
-                    DisplayManager.drawJPG(x + ca->iconPosition + ca->iconOffset, y, ca->icon);
+                    DisplayManager.drawJPG(x + L.iconX + ca->iconPosition + ca->iconOffset, y + L.iconY, ca->icon);
                 }
             }
-            if (!noScrolling)
+            if (!noScrolling && L.iconBesideText)
             {
                 if (ca->progress > -1)
                 {
@@ -563,9 +649,10 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 
         if (ca->progress > -1)
         {
-            DisplayManager.drawProgressBar((hasIcon ? 8 : 0), 7 + y, ca->progress, ca->pColor, ca->pbColor);
+            DisplayManager.drawProgressBar(L.barX, L.barY + y, ca->progress, ca->pColor, ca->pbColor);
         }
 
+#ifndef AWTRIX_16X16 // the charts are laid out for 32x8
         if (ca->barSize > 0)
         {
             DisplayManager.drawBarChart(x, y, ca->barData, ca->barSize, hasIcon, ca->color, ca->barBG);
@@ -575,6 +662,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         {
             DisplayManager.drawLineChart(x, y, ca->lineData, ca->lineSize, hasIcon, ca->color);
         }
+#endif
     };
 
     if (ca->topText)
@@ -605,7 +693,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 ca->currentRepeat = 0;
                 DisplayManager.nextApp();
                 ca->scrollDelay = 0;
-                ca->scrollposition = 9 + ca->textOffset;
+                ca->scrollposition = SCROLL_RESTART_X + ca->textOffset;
                 return;
             }
             else if (ca->repeat > 0)
@@ -613,12 +701,12 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 ++ca->currentRepeat;
             }
             ca->scrollDelay = 0;
-            ca->scrollposition = 9 + ca->textOffset;
+            ca->scrollposition = SCROLL_RESTART_X + ca->textOffset;
         }
     }
     if (!noScrolling)
     {
-        if ((ca->scrollDelay > MATRIX_FPS) || ((hasIcon ? ca->textOffset + 9 : ca->textOffset) > 31))
+        if ((ca->scrollDelay > MATRIX_FPS) || ((L.textLeft + ca->textOffset) > MATRIX_W - 1))
         {
             if (state->appState == FIXED && !ca->noScrolling)
             {
@@ -643,7 +731,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
                 }
                 else
                 {
-                    ca->scrollposition = 9 + ca->textOffset;
+                    ca->scrollposition = L.textLeft + ca->textOffset;
                 }
             }
             else
@@ -656,11 +744,11 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
     int16_t textX;
     if (ca->center)
     {
-        textX = hasIcon ? ((24 - textWidth) / 2) + 9 : ((32 - textWidth) / 2);
+        textX = ((L.textWidth - textWidth) / 2) + L.textLeft;
     }
     else
     {
-        textX = hasIcon ? 9 : 0;
+        textX = L.textLeft;
     }
 
     String text = replacePlaceholders(ca->text);
@@ -676,7 +764,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             {
                 String text = replacePlaceholders(ca->fragments[i]);
                 DisplayManager.setTextColor(TextEffect(ca->colors[i], ca->fade, ca->blink));
-                DisplayManager.printText(x + fragmentX, y + 6, text.c_str(), false, ca->textCase);
+                DisplayManager.printText(x + fragmentX, y + L.textY, text.c_str(), false, ca->textCase);
                 fragmentX += getTextWidth(text.c_str(), ca->textCase);
             }
         }
@@ -685,16 +773,16 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             String text = replacePlaceholders(ca->text);
             if (ca->rainbow)
             {
-                DisplayManager.HSVtext(x + textX + ca->textOffset, 6 + y, text.c_str(), false, ca->textCase);
+                DisplayManager.HSVtext(x + textX + ca->textOffset, L.textY + y, text.c_str(), false, ca->textCase);
             }
             else if (ca->gradient[0] > -1 && ca->gradient[1] > -1)
             {
-                DisplayManager.GradientText(x + textX + ca->textOffset, 6 + y, text.c_str(), ca->gradient[0], ca->gradient[1], false, ca->textCase);
+                DisplayManager.GradientText(x + textX + ca->textOffset, L.textY + y, text.c_str(), ca->gradient[0], ca->gradient[1], false, ca->textCase);
             }
             else
             {
                 DisplayManager.setTextColor(TextEffect(ca->color, ca->fade, ca->blink));
-                DisplayManager.printText(x + textX + ca->textOffset, y + 6, text.c_str(), false, ca->textCase);
+                DisplayManager.printText(x + textX + ca->textOffset, y + L.textY, text.c_str(), false, ca->textCase);
             }
         }
     }
@@ -707,7 +795,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
             {
                 String text = replacePlaceholders(ca->fragments[i]);
                 DisplayManager.setTextColor(TextEffect(ca->colors[i], ca->fade, ca->blink));
-                DisplayManager.printText(x + fragmentX, y + 6, text.c_str(), false, ca->textCase);
+                DisplayManager.printText(x + fragmentX, y + L.textY, text.c_str(), false, ca->textCase);
                 fragmentX += getTextWidth(text.c_str(), ca->textCase);
             }
         }
@@ -715,16 +803,16 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
         {
             if (ca->rainbow)
             {
-                DisplayManager.HSVtext(x + ca->scrollposition + ca->textOffset, 6 + y, text.c_str(), false, ca->textCase);
+                DisplayManager.HSVtext(x + ca->scrollposition + ca->textOffset, L.textY + y, text.c_str(), false, ca->textCase);
             }
             else if (ca->gradient[0] > -1 && ca->gradient[1] > -1)
             {
-                DisplayManager.GradientText(x + ca->scrollposition + ca->textOffset, 6 + y, text.c_str(), ca->gradient[0], ca->gradient[1], false, ca->textCase);
+                DisplayManager.GradientText(x + ca->scrollposition + ca->textOffset, L.textY + y, text.c_str(), ca->gradient[0], ca->gradient[1], false, ca->textCase);
             }
             else
             {
                 DisplayManager.setTextColor(TextEffect(ca->color, ca->fade, ca->blink));
-                DisplayManager.printText(x + ca->scrollposition + ca->textOffset, 6 + y, text.c_str(), false, ca->textCase);
+                DisplayManager.printText(x + ca->scrollposition + ca->textOffset, L.textY + y, text.c_str(), false, ca->textCase);
             }
         }
     }
@@ -736,7 +824,7 @@ void ShowCustomApp(String name, FastLED_NeoMatrix *matrix, MatrixDisplayUiState 
 
     if (ca->lifeTimeEnd)
     {
-        DisplayManager.drawRect(x, y, 32 + x, 8 + y, 0x6e0700);
+        DisplayManager.drawRect(x, y, MATRIX_W + x, MATRIX_H + y, 0x6e0700);
     }
 
     if (!ca->overlay == NONE)

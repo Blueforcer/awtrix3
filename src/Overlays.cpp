@@ -1,4 +1,5 @@
 #include "Overlays.h"
+#include "Layout.h"
 #include "MatrixDisplayUi.h"
 #include "Functions.h"
 #include "MenuManager.h"
@@ -31,7 +32,7 @@ void MenuOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlay
 
     matrix->fillScreen(0);
     DisplayManager.setTextColor(0xFFFFFF);
-    DisplayManager.printText(0, 6, utf8ascii(MenuManager.menutext()).c_str(), true, 2);
+    DisplayManager.printText(0, TEXT_Y_CENTER, utf8ascii(MenuManager.menutext()).c_str(), true, 2);
 }
 
 void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPlayer *gifPlayer)
@@ -85,9 +86,10 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
 
     // Check if notification has an icon
     bool hasIcon = notifications[0].icon || notifications[0].jpegDataSize > 0;
+    const ContentLayout L = contentLayout(hasIcon);
 
     // Clear the matrix display
-    DisplayManager.drawFilledRect(0, 0, 32, 8, notifications[0].background);
+    DisplayManager.drawFilledRect(0, 0, MATRIX_W, MATRIX_H, notifications[0].background);
 
     if (notifications[0].effect > -1)
     {
@@ -108,7 +110,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
         textWidth = getTextWidth(notifications[0].text.c_str(), notifications[0].textCase);
     }
 
-    uint16_t availableWidth = hasIcon ? 24 : 32;
+    uint16_t availableWidth = L.textWidth;
 
     // Check if text is scrolling
     bool noScrolling = (textWidth <= availableWidth);
@@ -117,7 +119,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
     {
         if (hasIcon)
         {
-            if (notifications[0].pushIcon > 0 && !noScrolling)
+            if (notifications[0].pushIcon > 0 && !noScrolling && L.iconBesideText)
             {
                 if (notifications[0].iconPosition < 0 && notifications[0].iconWasPushed == false && notifications[0].scrollposition > 8)
                 {
@@ -137,21 +139,21 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
 
             if (notifications[0].isGif)
             {
-                iconWidth = gifPlayer->playGif(notifications[0].iconPosition + notifications[0].iconOffset, 0, &notifications[0].icon);
+                iconWidth = gifPlayer->playGif(L.iconX + notifications[0].iconPosition + notifications[0].iconOffset, L.iconY, &notifications[0].icon);
             }
             else
             {
                 iconWidth = 8;
                 if (notifications[0].jpegDataSize > 0)
                 {
-                    DisplayManager.drawJPG(notifications[0].iconPosition + notifications[0].iconOffset, 0, notifications[0].jpegDataBuffer, notifications[0].jpegDataSize);
+                    DisplayManager.drawJPG(L.iconX + notifications[0].iconPosition + notifications[0].iconOffset, L.iconY, notifications[0].jpegDataBuffer, notifications[0].jpegDataSize);
                 }
                 else
                 {
-                    DisplayManager.drawJPG(notifications[0].iconPosition + notifications[0].iconOffset, 0, notifications[0].icon);
+                    DisplayManager.drawJPG(L.iconX + notifications[0].iconPosition + notifications[0].iconOffset, L.iconY, notifications[0].icon);
                 }
             }
-            if (!noScrolling)
+            if (!noScrolling && L.iconBesideText)
             {
                 if (notifications[0].progress > -1)
                 {
@@ -166,7 +168,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
 
         if (notifications[0].progress > -1)
         {
-            DisplayManager.drawProgressBar((hasIcon ? 8 : 0), 7, notifications[0].progress, notifications[0].pColor, notifications[0].pbColor);
+            DisplayManager.drawProgressBar(L.barX, L.barY, notifications[0].progress, notifications[0].pColor, notifications[0].pbColor);
         }
 
         if (notifications[0].drawInstructions.length() > 0)
@@ -174,6 +176,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
             DisplayManager.processDrawInstructions(0, 0, notifications[0].drawInstructions);
         }
 
+#ifndef AWTRIX_16X16 // the charts are laid out for 32x8
         if (notifications[0].barSize > 0)
         {
             DisplayManager.drawBarChart(0, 0, notifications[0].barData, notifications[0].barSize, hasIcon, notifications[0].color, notifications[0].barBG);
@@ -183,6 +186,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
         {
             DisplayManager.drawLineChart(0, 0, notifications[0].lineData, notifications[0].lineSize, hasIcon, notifications[0].color);
         }
+#endif
     };
 
     if (notifications[0].topText)
@@ -195,7 +199,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
     {
         // Reset scroll position and icon position if needed
         notifications[0].scrollDelay = 0;
-        notifications[0].scrollposition = 9 + notifications[0].textOffset;
+        notifications[0].scrollposition = SCROLL_RESTART_X + notifications[0].textOffset;
 
         if (notifications[0].pushIcon == 2)
         {
@@ -212,7 +216,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
 
     if (!noScrolling)
     {
-        if ((notifications[0].scrollDelay > MATRIX_FPS * 1.2) || ((hasIcon ? notifications[0].textOffset + 9 : notifications[0].textOffset) > 31))
+        if ((notifications[0].scrollDelay > MATRIX_FPS * 1.2) || ((L.textLeft + notifications[0].textOffset) > MATRIX_W - 1))
         {
             if (!notifications[0].noScrolling)
             {
@@ -237,7 +241,7 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
                 }
                 else
                 {
-                    notifications[0].scrollposition = 9 + notifications[0].textOffset;
+                    notifications[0].scrollposition = L.textLeft + notifications[0].textOffset;
                 }
             }
             else
@@ -250,11 +254,11 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
     int16_t textX;
     if (notifications[0].center)
     {
-        textX = hasIcon ? ((24 - textWidth) / 2) + 9 : ((32 - textWidth) / 2);
+        textX = ((L.textWidth - textWidth) / 2) + L.textLeft;
     }
     else
     {
-        textX = hasIcon ? 9 : 0;
+        textX = L.textLeft;
     }
 
     if (noScrolling)
@@ -269,12 +273,12 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
             {
                 if (notifications[0].colors[i] == 0)
                 {
-                    DisplayManager.HSVtext(fragmentX, 6, notifications[0].fragments[i].c_str(), false, notifications[0].textCase);
+                    DisplayManager.HSVtext(fragmentX, L.textY, notifications[0].fragments[i].c_str(), false, notifications[0].textCase);
                 }
                 else
                 {
                     DisplayManager.setTextColor(TextEffect(notifications[0].colors[i], notifications[0].fade, notifications[0].blink));
-                    DisplayManager.printText(fragmentX, 6, notifications[0].fragments[i].c_str(), false, notifications[0].textCase);
+                    DisplayManager.printText(fragmentX, L.textY, notifications[0].fragments[i].c_str(), false, notifications[0].textCase);
                 }
 
                 fragmentX += getTextWidth(notifications[0].fragments[i].c_str(), notifications[0].textCase);
@@ -284,17 +288,17 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
         {
             if (notifications[0].rainbow)
             {
-                DisplayManager.HSVtext(textX + notifications[0].textOffset, 6, notifications[0].text.c_str(), false, notifications[0].textCase);
+                DisplayManager.HSVtext(textX + notifications[0].textOffset, L.textY, notifications[0].text.c_str(), false, notifications[0].textCase);
             }
             else if (notifications[0].gradient[0] > -1 && notifications[0].gradient[1] > -1)
             {
-                DisplayManager.GradientText(textX + notifications[0].textOffset, 6, notifications[0].text.c_str(), notifications[0].gradient[0], notifications[0].gradient[1], false, notifications[0].textCase);
+                DisplayManager.GradientText(textX + notifications[0].textOffset, L.textY, notifications[0].text.c_str(), notifications[0].gradient[0], notifications[0].gradient[1], false, notifications[0].textCase);
             }
             else
             {
                 DisplayManager.setTextColor(TextEffect(notifications[0].color, notifications[0].fade, notifications[0].blink));
 
-                DisplayManager.printText(textX + notifications[0].textOffset, 6, notifications[0].text.c_str(), false, notifications[0].textCase);
+                DisplayManager.printText(textX + notifications[0].textOffset, L.textY, notifications[0].text.c_str(), false, notifications[0].textCase);
             }
         }
     }
@@ -307,12 +311,12 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
             {
                 if (notifications[0].colors[i] == 0)
                 {
-                    DisplayManager.HSVtext(fragmentX, 6, notifications[0].fragments[i].c_str(), false, notifications[0].textCase);
+                    DisplayManager.HSVtext(fragmentX, L.textY, notifications[0].fragments[i].c_str(), false, notifications[0].textCase);
                 }
                 else
                 {
                     DisplayManager.setTextColor(TextEffect(notifications[0].colors[i], notifications[0].fade, notifications[0].blink));
-                    DisplayManager.printText(fragmentX, 6, notifications[0].fragments[i].c_str(), false, notifications[0].textCase);
+                    DisplayManager.printText(fragmentX, L.textY, notifications[0].fragments[i].c_str(), false, notifications[0].textCase);
                 }
                 fragmentX += getTextWidth(notifications[0].fragments[i].c_str(), notifications[0].textCase);
             }
@@ -322,17 +326,17 @@ void NotifyOverlay(FastLED_NeoMatrix *matrix, MatrixDisplayUiState *state, GifPl
             if (notifications[0].rainbow)
             {
                 // Display scrolling text in rainbow color if enabled
-                DisplayManager.HSVtext(notifications[0].scrollposition, 6, notifications[0].text.c_str(), false, notifications[0].textCase);
+                DisplayManager.HSVtext(notifications[0].scrollposition, L.textY, notifications[0].text.c_str(), false, notifications[0].textCase);
             }
             else if (notifications[0].gradient[0] > -1 && notifications[0].gradient[1] > -1)
             {
-                DisplayManager.GradientText(notifications[0].scrollposition + notifications[0].textOffset, 6, notifications[0].text.c_str(), notifications[0].gradient[0], notifications[0].gradient[1], false, notifications[0].textCase);
+                DisplayManager.GradientText(notifications[0].scrollposition + notifications[0].textOffset, L.textY, notifications[0].text.c_str(), notifications[0].gradient[0], notifications[0].gradient[1], false, notifications[0].textCase);
             }
             else
             {
                 // Set text color
                 DisplayManager.setTextColor(TextEffect(notifications[0].color, notifications[0].fade, notifications[0].blink));
-                DisplayManager.printText(notifications[0].scrollposition + notifications[0].textOffset, 6, notifications[0].text.c_str(), false, notifications[0].textCase);
+                DisplayManager.printText(notifications[0].scrollposition + notifications[0].textOffset, L.textY, notifications[0].text.c_str(), false, notifications[0].textCase);
             }
         }
     }

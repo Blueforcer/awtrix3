@@ -87,11 +87,22 @@ void setup()
   ServerManager.loadSettings();
   DisplayManager.setup();
   HEAP_LOG("display");
+#ifdef AWTRIX_16X16
+  DisplayManager.HSVtext(1, 10, VERSION, true, 0);
+#else
   DisplayManager.HSVtext(9, 6, VERSION, true, 0);
+#endif
   delay(500);
 #ifdef ESP8266
   // No second core / RTOS task on ESP8266: show a static boot text while WiFi connects
+#ifdef AWTRIX_16X16
+  DisplayManager.clear();
+  DisplayManager.HSVtext(2, 6, "AWT", false, 0);
+  DisplayManager.HSVtext(2, 14, "RIX", false, 0);
+  DisplayManager.show();
+#else
   DisplayManager.HSVtext(4, 6, "AWTRIX", true, 0);
+#endif
 #else
   xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 0);
 #endif
@@ -116,7 +127,7 @@ void setup()
     int textLength = textForDisplay.length() * 4;
     while (x >= -textLength)
     {
-      DisplayManager.HSVtext(x, 6, textForDisplay.c_str(), true, 0);
+      DisplayManager.HSVtext(x, MATRIX_H / 2 + 2, textForDisplay.c_str(), true, 0);
       x -= 0.18;
 #ifdef ESP8266
       yield(); // keep the software watchdog happy during the long scroll
@@ -126,7 +137,11 @@ void setup()
     
       if (MQTT_HOST != "")
       {
+#ifdef AWTRIX_16X16
+        DisplayManager.HSVtext(0, 10, "MQTT", true, 0);
+#else
         DisplayManager.HSVtext(4, 6, "MQTT...", true, 0);
+#endif
         MQTTManager.setup();
         MQTTManager.tick();
       }

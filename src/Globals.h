@@ -31,6 +31,16 @@
 #define DEBUG_PRINTF(format, ...)
 #endif
 
+// Size of the drawing canvas. The 16x16 build (-D AWTRIX_16X16) draws for a square
+// 16x16 panel; every other build draws for the 32x8 matrix.
+#ifdef AWTRIX_16X16
+#define MATRIX_W 16
+#define MATRIX_H 16
+#else
+#define MATRIX_W 32
+#define MATRIX_H 8
+#endif
+
 // Capacity for the big JSON documents (custom apps, draw instructions).
 // The ESP8266 has far less heap, so it matches the MQTT buffer (AWTRIX_MQTT_BUFFER_SIZE) there.
 #ifdef ESP8266

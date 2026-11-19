@@ -1097,6 +1097,9 @@ Effect effects[] = {
 
 void callEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, u_int8_t index)
 {
+#ifdef AWTRIX_16X16
+    return; // the effects are drawn for 32x8 and aren't available on the 16x16 build
+#endif
     if (index > -1)
     {
         effects[index].func(matrix, x, y, &effects[index].settings);
@@ -1257,6 +1260,9 @@ OverlayEffect getOverlay(String overlay)
 
 void EffectOverlay(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, OverlayEffect effect)
 {
+#ifdef AWTRIX_16X16
+    return; // the overlay effects are drawn for 32x8 and aren't available on the 16x16 build
+#endif
 #ifdef ESP8266
     static EFFECT_GRID(CRGB, leds);
     static EFFECT_GRID(int, colorChanges);

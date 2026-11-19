@@ -40,6 +40,8 @@ Change the matrix layout to 0,1 or 2
 
 A 16x16 WS2812B panel has the same 256 LEDs as the 32x8 matrix, so it works on any build (ESP32 or ESP8266) with matrix layout `3`. The display is split in two: the left half of the normal 32x8 screen shows on the top 8 rows and the right half on the bottom 8 rows. Everything works, but text reads like one line wrapped onto two.
 
+For an ESP8266 there is also a native 16x16 build, with the time as two lines and icons above the text, see [ESP8266 build](esp8266.md#native-16x16-build). It uses the same wiring settings below.
+
 16x16 panels differ in how the LEDs are chained, so tell AWTRIX where the data input is and which way the strip runs. Add these keys to `dev.json` (the values below are the defaults):
 
 ```json
