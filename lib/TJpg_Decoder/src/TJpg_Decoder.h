@@ -49,6 +49,10 @@ typedef bool (*SketchCallback)(int16_t x, int16_t y, uint16_t w, uint16_t h, uin
 class TJpg_Decoder {
 
 private:
+  // Optional fixed workspace (setWorkspace()); without it the workspace is allocated per decode
+  uint8_t *fixedWorkspace = nullptr;
+  size_t fixedWorkspaceSize = 0;
+
 #if defined (TJPGD_LOAD_SD_LIBRARY)
   File jpgSdFile;
 #endif
@@ -58,6 +62,13 @@ private:
 #endif
 
 public:
+  // Decode into this buffer (4-byte aligned, at least TJPGD_WORKSPACE_SIZE) instead of
+  // allocating a workspace for every image
+  void setWorkspace(uint8_t *buffer, size_t size)
+  {
+    fixedWorkspace = buffer;
+    fixedWorkspaceSize = size;
+  }
 
   TJpg_Decoder();
   ~TJpg_Decoder();

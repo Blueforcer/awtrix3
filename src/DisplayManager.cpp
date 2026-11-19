@@ -1,5 +1,24 @@
 #include <DisplayManager.h>
 #include "MatrixDisplayUi.h"
+
+#ifdef ESP8266
+// With MQTT and Home Assistant discovery running, the ESP8266's heap has no free block
+// of 4-6 KB, so fixed-size documents for notifications and custom apps failed to
+// allocate ("ErrorParsingJson"). Start at twice the payload size and grow only when
+// ArduinoJson runs out, up to maxCapacity.
+static DynamicJsonDocument parseJsonFitted(const char *json, size_t maxCapacity, DeserializationError &error)
+{
+  size_t capacity = std::min(maxCapacity, std::max<size_t>(256, strlen(json) * 2 + 128));
+  while (true)
+  {
+    DynamicJsonDocument doc(capacity);
+    error = deserializeJson(doc, json);
+    if (error != DeserializationError::NoMemory || capacity >= maxCapacity)
+      return doc;
+    capacity = std::min(maxCapacity, capacity * 2);
+  }
+}
+#endif
 #include <TJpg_Decoder.h>
 #include "icons.h"
 #include "Globals.h"
@@ -444,8 +463,13 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json, bool
     return true;
   }
 
+#ifdef ESP8266
+  DeserializationError error;
+  DynamicJsonDocument doc = parseJsonFitted(json, JSON_DOC_LARGE, error);
+#else
   DynamicJsonDocument doc(JSON_DOC_LARGE);
   DeserializationError error = deserializeJson(doc, json);
+#endif
   if (error)
   {
     DEBUG_PRINTLN(error.c_str());
@@ -772,8 +796,13 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 bool DisplayManager_::generateNotification(uint8_t source, const char *json)
 {
   // source: 0=MQTT, 1=HTTP
+#ifdef ESP8266
+  DeserializationError error;
+  DynamicJsonDocument doc = parseJsonFitted(json, 6144, error);
+#else
   DynamicJsonDocument doc(6144);
   DeserializationError error = deserializeJson(doc, json);
+#endif
   if (error)
   {
     DEBUG_PRINTLN(error.c_str());
@@ -1143,6 +1172,11 @@ void DisplayManager_::loadNativeApps()
 void DisplayManager_::setup()
 {
   TJpgDec.setCallback(jpg_output);
+#ifdef ESP8266
+  // Decode JPEG icons in the GIF scratch memory (see GifPlayer.h) instead of the heap
+  static_assert(sizeof(decodeScratch) >= TJPGD_WORKSPACE_SIZE, "JPEG workspace too small");
+  TJpgDec.setWorkspace((uint8_t *)&decodeScratch, sizeof(decodeScratch));
+#endif
   TJpgDec.setJpgScale(1);
   random16_set_seed(millis());
 #ifdef ESP8266
@@ -2228,9 +2262,22 @@ void DisplayManager_::gammaCorrection()
 {
   float gamma = logMap(actualBri, 2, 180, 0.535, 2.3, 1.9);
   memcpy(ledsCopy, leds, sizeof(leds));
+
+  // Same result as applyGamma_video() per channel, but its pow() runs only when the gamma
+  // changes (with the brightness): 768 software-float pow() calls cost ~4 ms per frame on ESP8266.
+  static uint8_t gammaTable[256];
+  static float tableGamma = -1;
+  if (gamma != tableGamma)
+  {
+    for (int v = 0; v < 256; v++)
+      gammaTable[v] = applyGamma_video((uint8_t)v, gamma);
+    tableGamma = gamma;
+  }
   for (int i = 0; i < 256; i++)
   {
-    leds[i] = applyGamma_video(leds[i], gamma);
+    leds[i].r = gammaTable[leds[i].r];
+    leds[i].g = gammaTable[leds[i].g];
+    leds[i].b = gammaTable[leds[i].b];
   }
 
   if (MIRROR_DISPLAY)
@@ -2535,6 +2582,34 @@ void DisplayManager_::setCustomAppColors(uint32_t color)
   }
 }
 
+#ifdef ESP8266
+// Same JSON as ledsAsJson(), written in ~200-byte pieces so no big buffer is needed
+void DisplayManager_::writeLedsAsJson(std::function<void(const char *)> write)
+{
+  char chunk[224];
+  size_t len = 0;
+  chunk[len++] = '[';
+  for (int y = 0; y < MATRIX_HEIGHT; y++)
+  {
+    for (int x = 0; x < MATRIX_WIDTH; x++)
+    {
+      int index = matrix->XY(x, y);
+      int color = (ledsCopy[index].r << 16) | (ledsCopy[index].g << 8) | ledsCopy[index].b;
+      len += snprintf(chunk + len, sizeof(chunk) - len, (x || y) ? ",%d" : "%d", color);
+      if (len > sizeof(chunk) - 16)
+      {
+        chunk[len] = '\0';
+        write(chunk);
+        len = 0;
+      }
+    }
+  }
+  chunk[len++] = ']';
+  chunk[len] = '\0';
+  write(chunk);
+}
+#endif
+
 String DisplayManager_::ledsAsJson()
 {
   // Written directly instead of through a JsonDocument (4 KB for 256 values), which
@@ -2612,8 +2687,13 @@ void DisplayManager_::reorderApps(const String &jsonString)
 
 void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, String &drawInstructions)
 {
+#ifdef ESP8266
+  DeserializationError error;
+  DynamicJsonDocument doc = parseJsonFitted(drawInstructions.c_str(), JSON_DOC_LARGE, error);
+#else
   DynamicJsonDocument doc(JSON_DOC_LARGE);
   DeserializationError error = deserializeJson(doc, drawInstructions);
+#endif
 
   if (error)
   {

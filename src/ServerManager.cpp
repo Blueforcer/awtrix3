@@ -180,8 +180,19 @@ void addHandler()
                     } });
     mws.addHandler("/api/stats", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getStats().c_str()); });
+#ifdef ESP8266
+    // Streamed (chunked) so it needs no large free block
+    mws.addHandler("/api/screen", HTTP_GET, []()
+                   {
+                    mws.webserver->setContentLength(CONTENT_LENGTH_UNKNOWN);
+                    mws.webserver->send(200, "application/json", "");
+                    DisplayManager.writeLedsAsJson([](const char *part)
+                                                   { mws.webserver->sendContent(part); });
+                    mws.webserver->sendContent(""); });
+#else
     mws.addHandler("/api/screen", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.ledsAsJson().c_str()); });
+#endif
 #ifdef AWTRIX_16X16
     mws.addHandler("/api/weather", HTTP_POST, []()
                    {

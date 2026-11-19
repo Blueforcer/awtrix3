@@ -73,6 +73,9 @@ public:
     void sendAppLoop();
     void processDrawInstructions(int16_t x, int16_t y, String &drawInstructions);
     String ledsAsJson();
+#ifdef ESP8266
+    void writeLedsAsJson(std::function<void(const char *)> write);
+#endif
     String getAppsWithIcon();
     void startArtnet();
     bool parseCustomPage(const String &name, const char *json, bool preventSave);

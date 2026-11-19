@@ -234,6 +234,9 @@ void MatrixDisplayUi::tick()
     }
   }
 
+#if defined(AWTRIX_HEAP_LOG) && defined(ESP8266)
+  uint32_t tStart = micros();
+#endif
   this->matrix->clear();
 
   if (BackgroundEffect > -1)
@@ -249,8 +252,30 @@ void MatrixDisplayUi::tick()
   {
     EffectOverlay(matrix, 0, 0, GLOBAL_OVERLAY);
   }
+#if defined(AWTRIX_HEAP_LOG) && defined(ESP8266)
+  uint32_t tDrawn = micros();
+#endif
   DisplayManager.gammaCorrection();
+#if defined(AWTRIX_HEAP_LOG) && defined(ESP8266)
+  uint32_t tGamma = micros();
+#endif
   this->matrix->show();
+#if defined(AWTRIX_HEAP_LOG) && defined(ESP8266)
+  // Frame timing: average draw / gamma / LED output per frame, printed every 2 s
+  static uint32_t sumDraw = 0, sumGamma = 0, sumShow = 0, frames = 0, lastPrint = 0;
+  uint32_t tShown = micros();
+  sumDraw += tDrawn - tStart;
+  sumGamma += tGamma - tDrawn;
+  sumShow += tShown - tGamma;
+  frames++;
+  if (millis() - lastPrint >= 2000)
+  {
+    Serial.printf("[frame] %u frames/2s  draw %u us  gamma %u us  show %u us\n", frames,
+                  sumDraw / frames, sumGamma / frames, sumShow / frames);
+    sumDraw = sumGamma = sumShow = frames = 0;
+    lastPrint = millis();
+  }
+#endif
 }
 
 void MatrixDisplayUi::drawIndicators()
