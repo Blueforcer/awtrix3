@@ -259,7 +259,31 @@ void MatrixDisplayUi::tick()
 #if defined(AWTRIX_HEAP_LOG) && defined(ESP8266)
   uint32_t tGamma = micros();
 #endif
+#ifdef ESP8266
+  // A static screen (the clock between minute changes) produced the same frame ~42 times
+  // a second, and sending 256 LEDs keeps the CPU busy ~8 ms per frame. Send a frame only
+  // when it changed (a 32-bit hash of the pixels and the brightness, which is applied
+  // when sending), plus once a second anyway in case a frame was disturbed on its way.
+  static uint32_t lastFrameHash = 0;
+  static unsigned long lastFrameSent = 0;
+  uint32_t frameHash = 2166136261u; // FNV-1a
+  const uint8_t *frameBytes = reinterpret_cast<const uint8_t *>(DisplayManager.getLeds());
+  for (size_t i = 0; i < MATRIX_W * MATRIX_H * sizeof(CRGB); i++)
+  {
+    frameHash ^= frameBytes[i];
+    frameHash *= 16777619u;
+  }
+  frameHash ^= FastLED.getBrightness();
+  frameHash *= 16777619u;
+  if (frameHash != lastFrameHash || millis() - lastFrameSent >= 1000)
+  {
+    this->matrix->show();
+    lastFrameHash = frameHash;
+    lastFrameSent = millis();
+  }
+#else
   this->matrix->show();
+#endif
 #if defined(AWTRIX_HEAP_LOG) && defined(ESP8266)
   // Frame timing: average draw / gamma / LED output per frame, printed every 2 s
   static uint32_t sumDraw = 0, sumGamma = 0, sumShow = 0, frames = 0, lastPrint = 0;
