@@ -1156,6 +1156,11 @@ void DisplayManager_::setup()
   FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
 #endif
   setMatrixLayout(MATRIX_LAYOUT);
+#ifdef ESP8266
+  // Temporal dithering alternates dim colours between two levels on every frame; at the
+  // ESP8266's frame rate that shows as flicker on dim pixels (e.g. weather icons)
+  FastLED.setDither(DISABLE_DITHER);
+#endif
   if (MATRIX_TEST)
     showMatrixTest();
   matrix->setRotation(ROTATE_SCREEN ? 90 : 0);
@@ -1741,14 +1746,87 @@ String DisplayManager_::getStats()
 // FastLED takes the data pin as a template argument, so every pin that can be chosen
 // in dev.json ("matrix_pin") is compiled in here. GPIO numbers (FASTLED_ESP8266_RAW_PIN_ORDER).
 // Left out: GPIO0 and GPIO1 (boot strap / serial TX) and GPIO16 (FastLED can't drive it).
+//
+// GPIO2 is UART1's TX pin, and there the UART generates the signal instead of FastLED's
+// bit-banging. Bit-banging fails once WiFi is connected: the WiFi interrupt pauses it for
+// more than 85 µs several times per frame, FastLED aborts the frame, and the panel only
+// ever gets partial frames (flicker, or a frozen picture). The UART's 128-byte FIFO holds
+// about 320 µs of signal, so interrupts don't disturb it.
+//
+// Encoding: 3.2 Mbaud, so one WS2812 bit (1.25 µs) is 4 UART bit times. With 6N1 and the
+// TX line inverted, one UART byte (start + 6 data + stop = 8 bit times) carries 2 LED
+// bits: the start bit is the first bit's high time and the stop bit the second bit's low.
+class Uart1Ws2812Controller : public CPixelLEDController<GRB>
+{
+public:
+  void init() override
+  {
+    Serial1.begin(3200000, SERIAL_6N1, SERIAL_TX_ONLY, 2, true);
+  }
+
+protected:
+  void showPixels(PixelController<GRB> &pixels) override
+  {
+    // Let the previous frame finish, then hold the line low so the panel latches it
+    while (txFifoCount() > 0)
+      ;
+    delayMicroseconds(300);
+    bool filled = false; // the FIFO had data queued, so running dry means a stall
+    while (pixels.has(1))
+    {
+      uint8_t frame[12];
+      encode(pixels.loadAndScale0(), frame);
+      encode(pixels.loadAndScale1(), frame + 4);
+      encode(pixels.loadAndScale2(), frame + 8);
+      for (uint8_t i = 0; i < sizeof(frame); i++)
+      {
+        uint8_t count;
+        while ((count = txFifoCount()) >= UART_FIFO_SIZE)
+          ; // FIFO full
+        // An interrupt longer than the FIFO (~320 µs) let it run dry: the panel may have
+        // latched mid-frame, and the rest of the frame would land on the first LEDs.
+        // Stop here; the LEDs not reached keep their colours until the next frame.
+        if (filled && count == 0)
+          return;
+        if (count >= 16)
+          filled = true;
+        U1F = frame[i];
+      }
+      pixels.advanceData();
+      pixels.stepDithering();
+    }
+  }
+
+private:
+  static const uint8_t UART_FIFO_SIZE = 128;
+
+  static inline uint8_t txFifoCount()
+  {
+    return (U1S >> USTXC) & 0xff;
+  }
+
+  // Two LED bits (first bit as the high one) per UART byte
+  static void encode(uint8_t value, uint8_t *out)
+  {
+    static const uint8_t bits[4] = {0b110111, 0b000111, 0b110100, 0b000100};
+    out[0] = bits[(value >> 6) & 3];
+    out[1] = bits[(value >> 4) & 3];
+    out[2] = bits[(value >> 2) & 3];
+    out[3] = bits[value & 3];
+  }
+};
+
 static bool addMatrixLeds(uint8_t pin)
 {
   const int count = MATRIX_WIDTH * MATRIX_HEIGHT;
   switch (pin)
   {
   case 2:
-    FastLED.addLeds<NEOPIXEL, 2>(leds, count);
+  {
+    static Uart1Ws2812Controller uartController;
+    FastLED.addLeds(&uartController, leds, count);
     return true;
+  }
   case 3:
     FastLED.addLeds<NEOPIXEL, 3>(leds, count);
     return true;
@@ -2459,19 +2537,23 @@ void DisplayManager_::setCustomAppColors(uint32_t color)
 
 String DisplayManager_::ledsAsJson()
 {
-  DynamicJsonDocument jsonDoc(JSON_ARRAY_SIZE(MATRIX_WIDTH * MATRIX_HEIGHT));
-  JsonArray jsonColors = jsonDoc.to<JsonArray>();
+  // Written directly instead of through a JsonDocument (4 KB for 256 values), which
+  // didn't fit in the ESP8266's heap while MQTT is connected
+  String jsonString;
+  jsonString.reserve(MATRIX_WIDTH * MATRIX_HEIGHT * 9 + 2);
+  jsonString += '[';
   for (int y = 0; y < MATRIX_HEIGHT; y++)
   {
     for (int x = 0; x < MATRIX_WIDTH; x++)
     {
       int index = matrix->XY(x, y);
       int color = (ledsCopy[index].r << 16) | (ledsCopy[index].g << 8) | ledsCopy[index].b;
-      jsonColors.add(color);
+      if (x || y)
+        jsonString += ',';
+      jsonString += color;
     }
   }
-  String jsonString;
-  serializeJson(jsonColors, jsonString);
+  jsonString += ']';
   return jsonString;
 }
 

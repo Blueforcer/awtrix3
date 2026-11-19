@@ -12,6 +12,7 @@
 #include "MQTTManager.h"
 #include "Overlays.h"
 #include "timer.h"
+#include "Weather.h"
 
 const uint8_t bigdigits_mask[12][7] = {
     {132, 48, 48, 48, 48, 48, 132},      // 0
@@ -120,9 +121,14 @@ static void weekdayBar16(int16_t x, int16_t y)
     }
 }
 
-// Hours on the top half, minutes on the bottom half
+// Hours on the top half, minutes on the bottom half. With pushed weather (Weather.h):
+// weather on the top half, hours and minutes side by side on the bottom half.
 static void TimeApp16(int16_t x, int16_t y)
 {
+    bool weather = weatherAvailable();
+    if (weather)
+        drawWeather16(x, y);
+
     if (TIME_COLOR > 0)
         DisplayManager.setTextColor(TIME_COLOR);
     else
@@ -135,6 +141,16 @@ static void TimeApp16(int16_t x, int16_t y)
     strftime(minutes, sizeof(minutes), "%M", timer_localtime());
     if (TIME_FORMAT.indexOf("%l") >= 0 && hours[0] == '0')
         memmove(hours, hours + 1, strlen(hours)); // %l: no leading zero
+
+    if (weather)
+    {
+        // Hours right-aligned in columns 0-6, minutes in columns 9-15
+        int hoursWidth = getTextWidth(hours, 2) - 1;
+        DisplayManager.printText(x + 7 - hoursWidth, 14 + y, hours, false, 2);
+        DisplayManager.printText(x + 9, 14 + y, minutes, false, 2);
+        weekdayBar16(x, y);
+        return;
+    }
 
     DisplayManager.printText(x, 6 + y, hours, true, 2);
     DisplayManager.printText(x, 14 + y, minutes, true, 2);

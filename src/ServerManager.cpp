@@ -13,6 +13,7 @@
 #include <Update.h>
 #include "Games/GameManager.h"
 #endif
+#include "Weather.h"
 
 WiFiUDP udp;
 
@@ -177,6 +178,15 @@ void addHandler()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getStats().c_str()); });
     mws.addHandler("/api/screen", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.ledsAsJson().c_str()); });
+#ifdef AWTRIX_16X16
+    mws.addHandler("/api/weather", HTTP_POST, []()
+                   {
+                    if (weatherParser(mws.webserver->arg("plain").c_str())){
+                        mws.webserver->send(200,F("text/plain"),F("OK"));
+                    }else{
+                        mws.webserver->send(500,F("text/plain"),F("ErrorParsingJson"));
+                    } });
+#endif
     mws.addHandler("/api/indicator1", HTTP_POST, []()
                    { 
                     if (DisplayManager.indicatorParser(1,mws.webserver->arg("plain").c_str())){

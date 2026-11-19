@@ -343,8 +343,12 @@ public:
 #endif
 
 private:
-    /// Interval between MQTT reconnects (milliseconds).
-    static const uint16_t ReconnectInterval = 5000;
+    /// Interval between MQTT reconnects (milliseconds): starts at ReconnectInterval and
+    /// doubles after every failed attempt up to MaxReconnectInterval, so an unreachable
+    /// broker doesn't keep the main loop blocked in connect().
+    static const uint32_t ReconnectInterval = 5000;
+    static const uint32_t MaxReconnectInterval = 60000;
+    uint32_t _reconnectInterval = ReconnectInterval;
 
     /// Living instance of the HAMqtt class. It can be nullptr.
     static HAMqtt *_instance;

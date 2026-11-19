@@ -279,7 +279,7 @@ void HAMqtt::processMessage(const char *topic, const uint8_t *payload, uint16_t 
 void HAMqtt::connectToServer()
 {
     if (_lastConnectionAttemptAt > 0 &&
-        (millis() - _lastConnectionAttemptAt) < ReconnectInterval)
+        (millis() - _lastConnectionAttemptAt) < _reconnectInterval)
     {
         return;
     }
@@ -298,6 +298,7 @@ void HAMqtt::connectToServer()
 
     if (isConnected())
     {
+        _reconnectInterval = ReconnectInterval;
         ARDUINOHA_DEBUG_PRINTLN(F("AHA: connected"))
         if (_connectedCallback)
         {
@@ -308,6 +309,7 @@ void HAMqtt::connectToServer()
     }
     else
     {
+        _reconnectInterval = _reconnectInterval * 2 > MaxReconnectInterval ? MaxReconnectInterval : _reconnectInterval * 2;
         ARDUINOHA_DEBUG_PRINTLN(F("AHA: failed to connect"))
     }
 }

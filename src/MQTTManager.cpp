@@ -9,6 +9,7 @@
 #include "PeripheryManager.h"
 #include "UpdateManager.h"
 #include "PowerManager.h"
+#include "Weather.h"
 
 const uint16_t PORT = 1883;
 
@@ -174,6 +175,14 @@ void processMqttMessage(const String &strTopic, const String &payloadCopy)
         DisplayManager.indicatorParser(3, payloadCopy.c_str());
         return;
     }
+
+#ifdef AWTRIX_16X16
+    if (strTopic.equals(MQTT_PREFIX + "/weather"))
+    {
+        weatherParser(payloadCopy.c_str());
+        return;
+    }
+#endif
 
     if (strTopic.equals(MQTT_PREFIX + "/moodlight"))
     {
@@ -403,7 +412,11 @@ void onMqttConnected()
         "/sound",
         "/rtttl",
         "/sendscreen",
-        "/r2d2"};
+        "/r2d2",
+#ifdef AWTRIX_16X16
+        "/weather",
+#endif
+    };
     for (const char *topic : topics)
     {
         if (DEBUG_MODE)
@@ -542,6 +555,14 @@ void MQTTManager_::sendStats()
 
 void MQTTManager_::setup()
 {
+#ifdef ESP8266
+    // connect() blocks the main loop until the broker answers or this timeout (default
+    // 5 s) runs out; an unreachable broker froze the display and starved the web server
+    espClient.setTimeout(1500);
+    // Wait for each write to be acknowledged: otherwise the burst of Home Assistant
+    // discovery messages queues up in the TCP stack and took the heap down to ~1.6 KB
+    espClient.setSync(true);
+#endif
 #ifdef AWTRIX_MQTT_BUFFER_SIZE
     // The MQTT library is constructed with a small buffer (MQTT_MAX_PACKET_SIZE) so it costs
     // no RAM while MQTT isn't used; grow it now that a broker is configured.
