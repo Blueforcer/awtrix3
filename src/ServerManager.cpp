@@ -8,6 +8,7 @@
 #include "UpdateManager.h"
 #include "PeripheryManager.h"
 #include "PowerManager.h"
+#include "MQTTManager.h"
 #include <WiFiUdp.h>
 #ifndef ESP8266
 #include <Update.h>
@@ -313,6 +314,10 @@ void ServerManager_::setup()
     // opening /update first restarts the clock in update mode, without MQTT.
     server.addHook([](const String &method, const String &url, WiFiClient *client, ESP8266WebServer::ContentTypeFunction)
                    {
+                       // File uploads (icons, settings from the web UI): free MQTT's memory
+                       // while the file comes in
+                       if (method == "POST" && url == "/edit")
+                           MQTTManager.pauseForUpload();
                        if (url != "/update" || UPDATE_MODE || MQTT_HOST == "")
                            return ESP8266WebServer::CLIENT_REQUEST_CAN_CONTINUE;
                        uint32_t marker = UPDATE_MODE_MARKER;

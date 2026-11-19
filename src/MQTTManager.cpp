@@ -771,8 +771,34 @@ void MQTTManager_::setup()
     connect();
 }
 
+#ifdef ESP8266
+// Set while a file upload is being received (see pauseForUpload())
+static bool pausedForUpload = false;
+
+// A file upload (icons, settings saved from the web UI) needs heap for the WiFi receive
+// buffers; with MQTT connected there isn't enough and the WiFi stack crashed on uploads of
+// a few KB. Close the connection and shrink its buffer for the duration of the upload.
+// The upload is handled in one go, so the next tick() restores the buffer and loop()
+// reconnects.
+void MQTTManager_::pauseForUpload()
+{
+    if (MQTT_HOST == "" || pausedForUpload)
+        return;
+    pausedForUpload = true;
+    mqtt.disconnect();
+    mqtt.setBufferSize(16);
+}
+#endif
+
 void MQTTManager_::tick()
 {
+#ifdef ESP8266
+    if (pausedForUpload)
+    {
+        pausedForUpload = false;
+        mqtt.setBufferSize(AWTRIX_MQTT_BUFFER_SIZE);
+    }
+#endif
     if (MQTT_HOST != "")
     {
         mqtt.loop();
