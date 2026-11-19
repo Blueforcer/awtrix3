@@ -233,24 +233,27 @@ void drawWeather16(int16_t x, int16_t y)
     else
         DisplayManager.getInstance().resetTextColor();
 
-    // Icon on the left 8 columns, temperature right-aligned in the right 8. The degree
-    // sign is dropped when it doesn't fit; a value that doesn't fit at all (-10 and
-    // below) is centred over the whole width without the icon.
-    char text[8];
-    snprintf(text, sizeof(text), "%d\xB0", weatherTemp);
-    int width = getTextWidth(text, 2) - 1; // without the trailing gap
-    if (width > 8)
-    {
-        snprintf(text, sizeof(text), "%d", weatherTemp);
-        width = getTextWidth(text, 2) - 1;
-    }
+    // Icon on the left 8 columns, temperature right-aligned in the right 8; the degree
+    // sign is dropped there when it doesn't fit. A value that doesn't fit next to the icon
+    // at all (-10 and below), or any value without an icon, is centred over the whole
+    // width instead, and keeps its degree sign whenever that fits.
+    char withDegree[8], withoutDegree[8];
+    snprintf(withDegree, sizeof(withDegree), "%d\xB0", weatherTemp);
+    snprintf(withoutDegree, sizeof(withoutDegree), "%d", weatherTemp);
+    int widthWithDegree = getTextWidth(withDegree, 2) - 1; // without the trailing gap
+    int widthWithoutDegree = getTextWidth(withoutDegree, 2) - 1;
 
-    if (weatherIcon == W_NONE || width > 8)
+    if (weatherIcon != W_NONE && widthWithoutDegree <= 8)
     {
-        DisplayManager.printText(x + (MATRIX_W - width) / 2, 6 + y, text, false, 2);
+        bool degreeFits = widthWithDegree <= 8;
+        drawWeatherIcon(x, y, weatherIcon);
+        DisplayManager.printText(x + MATRIX_W - (degreeFits ? widthWithDegree : widthWithoutDegree), 6 + y,
+                                 degreeFits ? withDegree : withoutDegree, false, 2);
         return;
     }
-    drawWeatherIcon(x, y, weatherIcon);
-    DisplayManager.printText(x + MATRIX_W - width, 6 + y, text, false, 2);
+
+    bool degreeFits = widthWithDegree <= MATRIX_W;
+    int width = degreeFits ? widthWithDegree : widthWithoutDegree;
+    DisplayManager.printText(x + (MATRIX_W - width) / 2, 6 + y, degreeFits ? withDegree : withoutDegree, false, 2);
 }
 #endif
