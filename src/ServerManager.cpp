@@ -17,6 +17,10 @@
 
 WiFiUDP udp;
 
+#ifdef ESP8266
+#define UPDATE_MODE_MARKER 0x55504454 // "UPDT"
+#endif
+
 unsigned int localUdpPort = 4210;
 char incomingPacket[255];
 
@@ -223,6 +227,16 @@ void addHandler()
 void ServerManager_::setup()
 {
 #ifdef ESP8266
+    // Update mode: requested by opening /update while MQTT is configured (see the hook
+    // below). The marker lives in RTC memory, so it survives the restart but not a power cut.
+    uint32_t marker = 0;
+    if (ESP.rtcUserMemoryRead(0, &marker, sizeof(marker)) && marker == UPDATE_MODE_MARKER)
+    {
+        marker = 0;
+        ESP.rtcUserMemoryWrite(0, &marker, sizeof(marker));
+        UPDATE_MODE = true;
+        Serial.println(F("Update mode: MQTT stays off until the next restart"));
+    }
     WiFi.setOutputPower(20.0);
     WiFi.setSleepMode(WIFI_NONE_SLEEP); // Power Saving deaktivieren
 #else
@@ -282,6 +296,25 @@ void ServerManager_::setup()
     mws.addHandler("/version", HTTP_GET, versionHandler);
     mws.begin(WEB_PORT);
 
+#ifdef ESP8266
+    // A firmware update needs ~8 KB of heap (4 KB update buffer, upload buffer, network
+    // buffers). With MQTT and Home Assistant discovery running only ~5 KB are free, so
+    // opening /update first restarts the clock in update mode, without MQTT.
+    server.addHook([](const String &method, const String &url, WiFiClient *client, ESP8266WebServer::ContentTypeFunction)
+                   {
+                       if (url != "/update" || UPDATE_MODE || MQTT_HOST == "")
+                           return ESP8266WebServer::CLIENT_REQUEST_CAN_CONTINUE;
+                       uint32_t marker = UPDATE_MODE_MARKER;
+                       ESP.rtcUserMemoryWrite(0, &marker, sizeof(marker));
+                       client->print(F("HTTP/1.1 503 Service Unavailable\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n"
+                                       "<p>AWTRIX restarts without MQTT so the update fits in memory. "
+                                       "Reload this page in 30 seconds.</p>"));
+                       client->flush();
+                       delay(200);
+                       ESP.restart();
+                       return ESP8266WebServer::CLIENT_REQUEST_IS_HANDLED; });
+#endif
+
 #ifndef ESP8266
     // No mDNS on ESP8266: the responder parses every mDNS packet on the network and runs
     // the heap out on busy networks. Discovery still works over UDP (FIND_AWTRIX).
@@ -314,6 +347,14 @@ void ServerManager_::setup()
 void ServerManager_::tick()
 {
     mws.run();
+
+#ifdef ESP8266
+    if (UPDATE_MODE && millis() > 10UL * 60 * 1000)
+    {
+        Serial.println(F("Update mode: no update within 10 minutes, restarting with MQTT"));
+        ESP.restart();
+    }
+#endif
 
 #ifdef ESP8266
     // Hotspot mode keeps the station idle (see startWiFi), so if the saved network wasn't

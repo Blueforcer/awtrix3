@@ -135,7 +135,7 @@ void setup()
     }
 
     
-      if (MQTT_HOST != "")
+      if (MQTT_HOST != "" && !UPDATE_MODE)
       {
 #ifdef AWTRIX_16X16
         DisplayManager.HSVtext(0, 10, "MQTT", true, 0);

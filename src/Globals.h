@@ -190,4 +190,5 @@ extern OverlayEffect GLOBAL_OVERLAY;
 extern String HOSTNAME;
 extern int WEB_PORT;
 extern bool BUZ_VOL;
+extern bool UPDATE_MODE; // ESP8266: booted without MQTT so a firmware update fits in memory
 #endif // Globals_H
