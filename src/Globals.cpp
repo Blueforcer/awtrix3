@@ -496,7 +496,13 @@ bool LDR_ON_GROUND = false;
 float LDR_GAMMA = 3.0;
 float LDR_FACTOR = 1.0;
 bool GAME_ACTIVE = false;
+#ifdef ESP8266
+// The ESP8266's first join attempt sometimes ends in a WPA handshake timeout after ~14 s;
+// the WiFi stack's own retry then joins a few seconds later. 15 s was too short for that.
+uint32_t AP_TIMEOUT = 30;
+#else
 uint32_t AP_TIMEOUT = 15;
+#endif
 int WEB_PORT = 80;
 OverlayEffect GLOBAL_OVERLAY = NONE;
 String HOSTNAME = "";

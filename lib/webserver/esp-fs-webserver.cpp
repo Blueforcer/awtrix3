@@ -199,6 +199,19 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
 
     if (strlen(_ssid) && strlen(_pass))
     {
+#if defined(ESP8266)
+        // Log why a join attempt fails (reason codes: 201 AP not found, 202 auth failed,
+        // 203 assoc failed, 204 handshake timeout, 2 auth expired, 15 4-way handshake timeout)
+        static WiFiEventHandler onDisconnect = WiFi.onStationModeDisconnected(
+            [](const WiFiEventStationModeDisconnected &e)
+            { Serial.printf("\n[wifi] %lu ms: disconnected, reason %d\n", millis(), e.reason); });
+        static WiFiEventHandler onConnect = WiFi.onStationModeConnected(
+            [](const WiFiEventStationModeConnected &e)
+            { Serial.printf("\n[wifi] %lu ms: associated, channel %d\n", millis(), e.channel); });
+        static WiFiEventHandler onGotIp = WiFi.onStationModeGotIP(
+            [](const WiFiEventStationModeGotIP &e)
+            { Serial.printf("\n[wifi] %lu ms: got IP %s\n", millis(), e.ip.toString().c_str()); });
+#endif
         WiFi.begin(_ssid, _pass, 0, 0, true);
         Serial.print(F("Connecting to "));
         Serial.println(_ssid);
@@ -210,6 +223,7 @@ IPAddress FSWebServer::startWiFi(uint32_t timeout, const char *apSSID, const cha
             Serial.print(".");
             if (WiFi.status() == WL_CONNECTED)
             {
+                Serial.printf("\n[wifi] joined after %lu ms\n", millis() - startTime);
                 ip = WiFi.localIP();
                 WiFi.persistent(true);
                 delete[] my_ssid;

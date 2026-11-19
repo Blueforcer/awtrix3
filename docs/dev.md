@@ -13,7 +13,7 @@ The JSON object has the following properties:
 | Key | Type | Description | Default |
 | --- | ---- | ----------- | ------- |
 | `hostname` | string | Changes the hostname of your awtrix. This is used for App discovery, mDNS etc. | uniqeID |
-| `ap_timeout` | integer | The timeout in seconds before AWTRIX switches to AP mode if the saved WLAN was not found. | 15 |
+| `ap_timeout` | integer | The timeout in seconds before AWTRIX switches to AP mode if the saved WLAN was not found. | 15 (30 on ESP8266) |
 | `bootsound` | string | Uses a custom melodie while booting |  |
 | `matrix` | integer | Changes the matrix layout (0, 1, 2, or 3 for a [16x16 panel](hardware.md#16x16-panel)) | `0` |
 | `matrix_pin` | integer | ESP8266 build only: GPIO number of the matrix data line, see [Matrix data pin](esp8266.md#matrix-data-pin) | `4` |
