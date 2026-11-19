@@ -490,6 +490,11 @@ void connect()
 
 void MQTTManager_::sendStats()
 {
+    // Both the Home Assistant entities and the stats topic need an MQTT connection; without
+    // one the stats were built and thrown away every STATS_INTERVAL. On ESP8266 that work
+    // caused a visible flicker of the matrix at exactly that interval.
+    if (!mqtt.isConnected())
+        return;
 
     if (HA_DISCOVERY && mqtt.isConnected())
     {
@@ -755,7 +760,13 @@ void MQTTManager_::tick()
     if ((currentMillis_Stats - previousMillis_Stats >= STATS_INTERVAL) && (SENSORS_STABLE))
     {
         previousMillis_Stats = currentMillis_Stats;
+#if defined(AWTRIX_HEAP_LOG) && defined(ESP8266)
+        unsigned long statsStart = micros();
         sendStats();
+        Serial.printf("[stats] sendStats took %lu us\n", micros() - statsStart);
+#else
+        sendStats();
+#endif
     }
 }
 

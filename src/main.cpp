@@ -146,10 +146,17 @@ void loop()
 {
 #if defined(AWTRIX_HEAP_LOG) && defined(ESP8266)
   static unsigned long lastHeapLog = 0;
+  static unsigned long lastLoop = 0, maxLoopUs = 0;
+  unsigned long nowUs = micros();
+  if (lastLoop && nowUs - lastLoop > maxLoopUs)
+    maxLoopUs = nowUs - lastLoop;
+  lastLoop = nowUs;
   if (millis() - lastHeapLog > 2000)
   {
     lastHeapLog = millis();
     HEAP_LOG("loop");
+    Serial.printf("[loop] longest pass %lu us\n", maxLoopUs);
+    maxLoopUs = 0;
   }
 #endif
   timer_tick();
