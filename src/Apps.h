@@ -4,6 +4,7 @@
 #include <map>
 #include "MatrixDisplayUi.h"
 #include "effects.h"
+#include "DrawCommands.h"
 
 #ifndef JPG_ICON_BUFFER_SIZE
 #ifdef ESP8266
@@ -20,7 +21,11 @@ struct CustomApp
     bool hasCustomColor = false;
     uint8_t currentFrame = 0;
     String iconName;
+#ifdef ESP8266
+    DrawCommands drawInstructions;
+#else
     String drawInstructions;
+#endif
     float scrollposition = 0;
     int16_t scrollDelay = 0;
     byte lifetimeMode = 0;

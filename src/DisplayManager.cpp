@@ -646,11 +646,19 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
   if (doc.containsKey("draw"))
   {
+#ifdef ESP8266
+    compileDrawInstructions(doc["draw"], customApp.drawInstructions);
+#else
     customApp.drawInstructions = doc["draw"].as<String>();
+#endif
   }
   else
   {
+#ifdef ESP8266
+    customApp.drawInstructions.bytes = String();
+#else
     customApp.drawInstructions = "";
+#endif
   }
 
   if (doc.containsKey("effect"))
@@ -846,11 +854,19 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
 
   if (doc.containsKey("draw"))
   {
+#ifdef ESP8266
+    compileDrawInstructions(doc["draw"], newNotification.drawInstructions);
+#else
     newNotification.drawInstructions = doc["draw"].as<String>();
+#endif
   }
   else
   {
+#ifdef ESP8266
+    newNotification.drawInstructions.bytes = String();
+#else
     newNotification.drawInstructions = "";
+#endif
   }
 
   if (doc.containsKey("effect"))
@@ -2809,6 +2825,242 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
   }
   doc.clear();
 }
+
+#ifdef ESP8266
+// Compact draw commands (see DrawCommands.h). Each command is an opcode byte followed by
+// its parameters; coordinates are int16, colours a flag byte (0: the default text colour,
+// 1: followed by a uint32). The parameters are read the same way the JSON was read on
+// every frame before, so missing or wrong values give the same result as before.
+namespace
+{
+  enum DrawOp : uint8_t
+  {
+    OpPixel = 1,
+    OpLine,
+    OpRect,
+    OpFilledRect,
+    OpCircle,
+    OpFilledCircle,
+    OpText,
+    OpBitmap
+  };
+
+  // Bigger bitmaps are skipped (the JSON path allocated w*h*4 bytes on every frame)
+  const int32_t DRAW_MAX_BITMAP_PIXELS = 1024;
+
+  // Counts the bytes when out is null, appends them to out otherwise
+  struct DrawWriter
+  {
+    String *out = nullptr;
+    size_t size = 0;
+    bool ok = true;
+    void put(const void *data, size_t len)
+    {
+      if (out)
+        ok = out->concat(static_cast<const char *>(data), len) && ok;
+      size += len;
+    }
+    void u8(uint8_t v) { put(&v, 1); }
+    void i16(int v)
+    {
+      int16_t s = v;
+      put(&s, 2);
+    }
+    void f32(double v)
+    {
+      float f = v;
+      put(&f, 4);
+    }
+    void u32(uint32_t v) { put(&v, 4); }
+    void color(JsonVariant v)
+    {
+      // getColorFromJsonVariant() only reads strings and arrays; anything else gives the default
+      if (v.is<String>() || v.is<JsonArray>())
+      {
+        u8(1);
+        u32(getColorFromJsonVariant(v, 0));
+      }
+      else
+      {
+        u8(0);
+      }
+    }
+  };
+
+  struct DrawReader
+  {
+    const uint8_t *p;
+    template <typename T>
+    T get()
+    {
+      T v;
+      memcpy(&v, p, sizeof(T));
+      p += sizeof(T);
+      return v;
+    }
+    int16_t i16() { return get<int16_t>(); }
+    uint32_t color() { return *p++ ? get<uint32_t>() : TEXTCOLOR_888; }
+  };
+
+  void writeDrawCommands(JsonArray instructions, DrawWriter &w)
+  {
+    for (JsonObject instruction : instructions)
+    {
+      for (JsonPair kvp : instruction)
+      {
+        const char *command = kvp.key().c_str();
+        JsonArray params = kvp.value().as<JsonArray>();
+        if (!strcmp(command, "dp"))
+        {
+          w.u8(OpPixel);
+          w.i16(params[0].as<int>());
+          w.i16(params[1].as<int>());
+          w.color(params[2]);
+        }
+        else if (!strcmp(command, "dl") || !strcmp(command, "dr") || !strcmp(command, "df"))
+        {
+          w.u8(command[1] == 'l' ? OpLine : command[1] == 'r' ? OpRect : OpFilledRect);
+          for (int i = 0; i < 4; i++)
+            w.i16(params[i].as<int>());
+          w.color(params[4]);
+        }
+        else if (!strcmp(command, "dc"))
+        {
+          w.u8(OpCircle);
+          for (int i = 0; i < 3; i++)
+            w.i16(params[i].as<int>());
+          w.color(params[3]);
+        }
+        else if (!strcmp(command, "dfc"))
+        {
+          w.u8(OpFilledCircle);
+          for (int i = 0; i < 3; i++)
+            w.f32(params[i].as<double>());
+          w.color(params[3]);
+        }
+        else if (!strcmp(command, "dt"))
+        {
+          String text = utf8ascii(params[2].as<String>());
+          w.u8(OpText);
+          w.i16(params[0].as<int>());
+          w.i16(params[1].as<int>());
+          w.color(params[3]);
+          w.put(text.c_str(), text.length() + 1); // with the terminating zero
+        }
+        else if (!strcmp(command, "db"))
+        {
+          int width = params[2].as<int>();
+          int height = params[3].as<int>();
+          if (width <= 0 || height <= 0 || (int32_t)width * height > DRAW_MAX_BITMAP_PIXELS)
+            continue;
+          w.u8(OpBitmap);
+          w.i16(params[0].as<int>());
+          w.i16(params[1].as<int>());
+          w.i16(width);
+          w.i16(height);
+          // as before: the colours are numbers; missing ones are black, extra ones ignored
+          JsonArray colors = params[4].as<JsonArray>();
+          JsonArray::iterator it = colors.begin();
+          for (int i = 0; i < width * height; i++)
+          {
+            uint32_t c = 0;
+            if (it != colors.end())
+            {
+              c = it->as<uint32_t>();
+              ++it;
+            }
+            w.u32(c);
+          }
+        }
+      }
+    }
+  }
+}
+
+void DisplayManager_::compileDrawInstructions(JsonVariant draw, DrawCommands &out)
+{
+  out.bytes = String();
+  JsonArray instructions = draw.as<JsonArray>();
+  if (instructions.isNull())
+    return;
+  DrawWriter counter;
+  writeDrawCommands(instructions, counter);
+  // one allocation of the exact size, then append
+  if (counter.size == 0 || !out.bytes.reserve(counter.size))
+    return; // nothing to draw, or out of memory: nothing is drawn
+  DrawWriter writer;
+  writer.out = &out.bytes;
+  writeDrawCommands(instructions, writer);
+  if (!writer.ok || out.bytes.length() != counter.size)
+    out.bytes = String();
+}
+
+void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, const DrawCommands &commands)
+{
+  DrawReader r{reinterpret_cast<const uint8_t *>(commands.bytes.c_str())};
+  const uint8_t *end = r.p + commands.bytes.length();
+  while (r.p < end)
+  {
+    uint8_t op = *r.p++;
+    switch (op)
+    {
+    case OpPixel:
+    {
+      int16_t x = r.i16(), y = r.i16();
+      matrix->drawPixel(x + xOffset, y + yOffset, r.color());
+      break;
+    }
+    case OpLine:
+    case OpRect:
+    case OpFilledRect:
+    {
+      int16_t a = r.i16(), b = r.i16(), c = r.i16(), d = r.i16();
+      uint32_t color = r.color();
+      if (op == OpLine)
+        drawLine(a + xOffset, b + yOffset, c + xOffset, d + yOffset, color);
+      else if (op == OpRect)
+        drawRect(a + xOffset, b + yOffset, c, d, color);
+      else
+        drawFilledRect(a + xOffset, b + yOffset, c, d, color);
+      break;
+    }
+    case OpCircle:
+    {
+      int16_t x = r.i16(), y = r.i16(), rad = r.i16();
+      drawCircle(x + xOffset, y + yOffset, rad, r.color());
+      break;
+    }
+    case OpFilledCircle:
+    {
+      float x = r.get<float>(), y = r.get<float>(), rad = r.get<float>();
+      fillCircle(x + xOffset, y + yOffset, rad, r.color());
+      break;
+    }
+    case OpText:
+    {
+      int16_t x = r.i16(), y = r.i16();
+      uint32_t color = r.color();
+      const char *text = reinterpret_cast<const char *>(r.p);
+      r.p += strlen(text) + 1;
+      setTextColor(color);
+      setCursor(x + xOffset, y + yOffset + 5);
+      matrixPrint(text);
+      break;
+    }
+    case OpBitmap:
+    {
+      int16_t x = r.i16(), y = r.i16(), width = r.i16(), height = r.i16();
+      for (int row = 0; row < height; ++row)
+        for (int col = 0; col < width; ++col)
+          matrix->drawPixel(x + col + xOffset, y + row + yOffset, r.get<uint32_t>());
+      break;
+    }
+    default:
+      return; // can't happen: the list is written by compileDrawInstructions()
+    }
+  }
+}
+#endif
 
 bool DisplayManager_::moodlight(const char *json)
 {
