@@ -52,7 +52,12 @@
   
 **AWTRIX 3 is an open‑source custom firmware for the [Ulanzi Smart Pixel clock TC001](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882?ref=28e02dxl) or as upgrade for the old AWTRIX 2 Mainboard and even self build matrix clock**
 
-**Note: This Firmware is made for the ESP32.** An experimental, reduced [ESP8266 build](docs/esp8266.md) (Wemos D1 mini, NodeMCU) is available too. It has no sound, online update or deep sleep, and you build it yourself with PlatformIO.
+**Note: This Firmware is made for the ESP32.** An experimental, reduced [ESP8266 build](docs/esp8266.md) is available too, as ready-to-flash files on the [releases page](https://github.com/ricjohn/awtrix3/releases) or built yourself with PlatformIO. It has no sound, games, online update or deep sleep.
+
+ESP8266 requirements:
+- ESP8266 with 4 MB flash (Wemos D1 mini, NodeMCU, ESP8266 WLED controller)
+- WS2812B matrix, 32x8 or 16x16, on its own 5 V supply
+- Matrix data on GPIO2 (D4) recommended, with `"matrix_pin": 2` in `dev.json`. Other pins flicker while WiFi is busy; only GPIO2 gets the flicker-free UART1 output
 
 You can get an Ulanzi TC001 [here](https://www.ulanzi.com/products/ulanzi-pixel-smart-clock-2882?ref=28e02dxl) (affiliate link)
 
