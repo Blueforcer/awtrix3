@@ -39,8 +39,15 @@ void PowerManager_::sleepParser(const char *json)
 
 void PowerManager_::sleep(uint64_t seconds)
 {
+#ifdef ESP8266
+  // Deep sleep is not supported on the ESP8266 build: timer wake-up needs GPIO16 (D0)
+  // wired to RST, but D0 is used by the left button on AWTRIX 2 hardware.
+  if (DEBUG_MODE)
+    DEBUG_PRINTLN(F("Deep sleep not supported on ESP8266"));
+#else
   esp_sleep_enable_ext0_wakeup(WAKEUP_PIN, 0);
   esp_sleep_enable_timer_wakeup(seconds * uS_TO_S_FACTOR);
   Serial.print("Going to sleep...\n");
   esp_deep_sleep_start();
+#endif
 }

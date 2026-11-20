@@ -4,6 +4,16 @@
 #include <map>
 #include "MatrixDisplayUi.h"
 #include "effects.h"
+#include "DrawCommands.h"
+
+#ifndef JPG_ICON_BUFFER_SIZE
+#ifdef ESP8266
+// Inline base64 JPG icons are disabled on ESP8266: a 1 KB buffer per app/notification does not fit in RAM.
+#define JPG_ICON_BUFFER_SIZE 1
+#else
+#define JPG_ICON_BUFFER_SIZE 1000
+#endif
+#endif
 
 struct CustomApp
 {
@@ -11,7 +21,11 @@ struct CustomApp
     bool hasCustomColor = false;
     uint8_t currentFrame = 0;
     String iconName;
+#ifdef ESP8266
+    DrawCommands drawInstructions;
+#else
     String drawInstructions;
+#endif
     float scrollposition = 0;
     int16_t scrollDelay = 0;
     byte lifetimeMode = 0;
@@ -54,7 +68,7 @@ struct CustomApp
     bool topText = true;
     bool noScrolling = true;
     bool lifeTimeEnd = false;
-    uint8_t jpegDataBuffer[1000];
+    uint8_t jpegDataBuffer[JPG_ICON_BUFFER_SIZE];
     unsigned int jpegDataSize = 0;
 };
 

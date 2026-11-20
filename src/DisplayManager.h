@@ -5,6 +5,7 @@
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 #include <vector>
+#include "DrawCommands.h"
 #include <FastLED_NeoMatrix.h>
 
 
@@ -72,7 +73,14 @@ public:
     void showSleepAnimation();
     void sendAppLoop();
     void processDrawInstructions(int16_t x, int16_t y, String &drawInstructions);
+#ifdef ESP8266
+    void compileDrawInstructions(JsonVariant draw, DrawCommands &out);
+    void processDrawInstructions(int16_t x, int16_t y, const DrawCommands &commands);
+#endif
     String ledsAsJson();
+#ifdef ESP8266
+    void writeLedsAsJson(std::function<void(const char *)> write);
+#endif
     String getAppsWithIcon();
     void startArtnet();
     bool parseCustomPage(const String &name, const char *json, bool preventSave);

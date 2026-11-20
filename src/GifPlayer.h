@@ -1,6 +1,29 @@
 #ifndef GifPlayer_H
 #define GifPlayer_H
 #include <LittleFS.h>
+
+#ifdef ESP8266
+// Frames are decoded synchronously in one call, so the LZW scratch buffers can be
+// shared by all GifPlayer instances. Saves ~7.5 KB RAM per instance on ESP8266.
+// JPEG icons are decoded synchronously too and never during a GIF decode, so the JPEG
+// decoder borrows the same memory as its workspace (TJpgDec.setWorkspace()) instead of
+// allocating 3.5 KB per decode, which a fragmented heap often can't provide.
+struct GifScratchBuffers
+{
+  uint8_t lzwImageData[1280];
+  char tempBuffer[260];
+  uint8_t stack[1024];   // LZW_SIZTABLE
+  uint8_t suffix[1024];  // LZW_SIZTABLE
+  uint16_t prefix[1024]; // LZW_SIZTABLE
+};
+union DecodeScratch
+{
+  GifScratchBuffers gif;
+  uint32_t align; // the JPEG decoder needs a 4-byte aligned workspace
+};
+inline DecodeScratch decodeScratch;
+#endif
+
 class GifPlayer
 {
 public:
@@ -67,8 +90,13 @@ public:
   int rectHeight;
   int colorCount;
   _RGB gifPalette[256];
+#ifdef ESP8266
+  inline static byte (&lzwImageData)[1280] = decodeScratch.gif.lzwImageData;
+  inline static char (&tempBuffer)[260] = decodeScratch.gif.tempBuffer;
+#else
   byte lzwImageData[1280];
   char tempBuffer[260];
+#endif
   File file;
   byte imageData[WIDTH * HEIGHT];
   byte imageDataBU[WIDTH * HEIGHT];
@@ -330,9 +358,16 @@ public:
   int fc, oc;
   int bs; // Current buffer size for GIF
   byte *sp;
+#ifdef ESP8266
+  static_assert(LZW_SIZTABLE == 1024, "GifScratchBuffers is sized for LZW_SIZTABLE 1024");
+  inline static byte (&stack)[LZW_SIZTABLE] = decodeScratch.gif.stack;
+  inline static byte (&suffix)[LZW_SIZTABLE] = decodeScratch.gif.suffix;
+  inline static uint16_t (&prefix)[LZW_SIZTABLE] = decodeScratch.gif.prefix;
+#else
   byte stack[LZW_SIZTABLE];
   byte suffix[LZW_SIZTABLE];
   unsigned int prefix[LZW_SIZTABLE];
+#endif
 
   void lzw_decode_init(int csize, byte *buf)
   {

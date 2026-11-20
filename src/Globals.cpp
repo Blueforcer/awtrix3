@@ -1,6 +1,6 @@
 #include "Globals.h"
 #include "Preferences.h"
-#include <WiFi.h>
+#include "PlatformCompat.h"
 #include <ArduinoJson.h>
 #include <LittleFS.h>
 #include "effects.h"
@@ -84,6 +84,39 @@ void loadDevSettings()
         if (doc.containsKey("matrix"))
         {
             MATRIX_LAYOUT = doc["matrix"];
+        }
+
+#ifdef ESP8266
+        if (doc.containsKey("matrix_pin"))
+        {
+            MATRIX_DATA_PIN = doc["matrix_pin"].as<uint8_t>();
+        }
+#endif
+
+        // 16x16 panel wiring (matrix layout 3)
+        if (doc.containsKey("matrix_start"))
+        {
+            String start = doc["matrix_start"].as<String>();
+            start.toLowerCase();
+            MATRIX_START = (start.indexOf("right") >= 0 ? MATRIX_START_TOP_RIGHT : MATRIX_START_TOP_LEFT) |
+                           (start.indexOf("bottom") >= 0 ? MATRIX_START_BOTTOM_LEFT : MATRIX_START_TOP_LEFT);
+        }
+
+        if (doc.containsKey("matrix_wiring"))
+        {
+            String wiring = doc["matrix_wiring"].as<String>();
+            wiring.toLowerCase();
+            MATRIX_COLUMNS = wiring.startsWith("col");
+        }
+
+        if (doc.containsKey("matrix_zigzag"))
+        {
+            MATRIX_ZIGZAG = doc["matrix_zigzag"].as<bool>();
+        }
+
+        if (doc.containsKey("matrix_test"))
+        {
+            MATRIX_TEST = doc["matrix_test"].as<bool>();
         }
 
         if (doc.containsKey("mirror_screen"))
@@ -418,6 +451,11 @@ String BOOT_SOUND = "";
 int TEMP_DECIMAL_PLACES = 0;
 uint8_t SOUND_VOLUME = 30;
 int MATRIX_LAYOUT = 0;
+uint8_t MATRIX_DATA_PIN = MATRIX_PIN;
+uint8_t MATRIX_START = MATRIX_START_TOP_LEFT;
+bool MATRIX_COLUMNS = false;
+bool MATRIX_ZIGZAG = true;
+bool MATRIX_TEST = false;
 bool UPDATE_AVAILABLE = false;
 long RECEIVED_MESSAGES;
 CRGB COLOR_CORRECTION;
@@ -458,8 +496,15 @@ bool LDR_ON_GROUND = false;
 float LDR_GAMMA = 3.0;
 float LDR_FACTOR = 1.0;
 bool GAME_ACTIVE = false;
+#ifdef ESP8266
+// The ESP8266's first join attempt sometimes ends in a WPA handshake timeout after ~14 s;
+// the WiFi stack's own retry then joins a few seconds later. 15 s was too short for that.
+uint32_t AP_TIMEOUT = 30;
+#else
 uint32_t AP_TIMEOUT = 15;
+#endif
 int WEB_PORT = 80;
 OverlayEffect GLOBAL_OVERLAY = NONE;
 String HOSTNAME = "";
 bool BUZ_VOL = false;
+bool UPDATE_MODE = false;

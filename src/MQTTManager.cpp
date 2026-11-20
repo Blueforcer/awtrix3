@@ -3,16 +3,45 @@
 #include "DisplayManager.h"
 #include "ServerManager.h"
 #include <ArduinoHA.h>
-#include <WiFi.h>
+#include "PlatformCompat.h"
 #include <ArduinoJson.h>
 #include "Dictionary.h"
 #include "PeripheryManager.h"
 #include "UpdateManager.h"
 #include "PowerManager.h"
+#include "Weather.h"
 
 const uint16_t PORT = 1883;
 
+#ifdef ESP8266
+#include <lwip/tcp.h>
+#include <lwip/inet.h>
+#include <include/ClientContext.h>
+
+// A write that doesn't go through (broker gone, WiFi dropped, no memory for a packet) leaves
+// a half-sent MQTT packet, so the connection is dead anyway. The normal close waits for the
+// queued data to be acknowledged, and lwIP keeps those packet buffers while it retries; with
+// a broker that keeps dropping, every reconnect left more of them and the heap ran out.
+// Drop the connection at once instead, which frees its buffers. (From PixelIt; the public
+// WiFiClient::abort() first flushes with the default timeout, so use the context directly.)
+class MqttWiFiClient : public WiFiClient
+{
+public:
+    size_t write(const uint8_t *buf, size_t size) override
+    {
+        size_t written = WiFiClient::write(buf, size);
+        if (written != size && _client)
+        {
+            _client->abort();
+            _client->discard_received();
+        }
+        return written;
+    }
+};
+MqttWiFiClient espClient;
+#else
 WiFiClient espClient;
+#endif
 HADevice device;
 HAMqtt mqtt(espClient, device, 26);
 
@@ -174,6 +203,14 @@ void processMqttMessage(const String &strTopic, const String &payloadCopy)
         DisplayManager.indicatorParser(3, payloadCopy.c_str());
         return;
     }
+
+#ifdef AWTRIX_16X16
+    if (strTopic.equals(MQTT_PREFIX + "/weather"))
+    {
+        weatherParser(payloadCopy.c_str());
+        return;
+    }
+#endif
 
     if (strTopic.equals(MQTT_PREFIX + "/moodlight"))
     {
@@ -379,7 +416,7 @@ void onMqttConnected()
 
     if (DEBUG_MODE)
         DEBUG_PRINTLN(F("MQTT Connected"));
-    const char *topics[] PROGMEM = {
+    const char *topics[] = {
         "/brightness",
         "/notify/dismiss",
         "/notify",
@@ -403,7 +440,11 @@ void onMqttConnected()
         "/sound",
         "/rtttl",
         "/sendscreen",
-        "/r2d2"};
+        "/r2d2",
+#ifdef AWTRIX_16X16
+        "/weather",
+#endif
+    };
     for (const char *topic : topics)
     {
         if (DEBUG_MODE)
@@ -490,6 +531,11 @@ void connect()
 
 void MQTTManager_::sendStats()
 {
+    // Both the Home Assistant entities and the stats topic need an MQTT connection; without
+    // one the stats were built and thrown away every STATS_INTERVAL. On ESP8266 that work
+    // caused a visible flicker of the matrix at exactly that interval.
+    if (!mqtt.isConnected())
+        return;
 
     if (HA_DISCOVERY && mqtt.isConnected())
     {
@@ -537,6 +583,20 @@ void MQTTManager_::sendStats()
 
 void MQTTManager_::setup()
 {
+#ifdef ESP8266
+    // connect() blocks the main loop until the broker answers or this timeout (default
+    // 5 s) runs out; an unreachable broker froze the display and starved the web server
+    espClient.setTimeout(1500);
+    // Wait for each write to be acknowledged: otherwise the burst of Home Assistant
+    // discovery messages queues up in the TCP stack and took the heap down to ~1.6 KB
+    espClient.setSync(true);
+#endif
+#ifdef AWTRIX_MQTT_BUFFER_SIZE
+    // The MQTT library is constructed with a small buffer (MQTT_MAX_PACKET_SIZE) so it costs
+    // no RAM while MQTT isn't used; grow it now that a broker is configured.
+    if (!mqtt.setBufferSize(AWTRIX_MQTT_BUFFER_SIZE))
+        Serial.println(F("MQTT: not enough memory for the packet buffer"));
+#endif
 
     if (HA_DISCOVERY)
     {
@@ -739,8 +799,34 @@ void MQTTManager_::setup()
     connect();
 }
 
+#ifdef ESP8266
+// Set while a file upload is being received (see pauseForUpload())
+static bool pausedForUpload = false;
+
+// A file upload (icons, settings saved from the web UI) needs heap for the WiFi receive
+// buffers; with MQTT connected there isn't enough and the WiFi stack crashed on uploads of
+// a few KB. Close the connection and shrink its buffer for the duration of the upload.
+// The upload is handled in one go, so the next tick() restores the buffer and loop()
+// reconnects.
+void MQTTManager_::pauseForUpload()
+{
+    if (MQTT_HOST == "" || pausedForUpload)
+        return;
+    pausedForUpload = true;
+    mqtt.disconnect();
+    mqtt.setBufferSize(16);
+}
+#endif
+
 void MQTTManager_::tick()
 {
+#ifdef ESP8266
+    if (pausedForUpload)
+    {
+        pausedForUpload = false;
+        mqtt.setBufferSize(AWTRIX_MQTT_BUFFER_SIZE);
+    }
+#endif
     if (MQTT_HOST != "")
     {
         mqtt.loop();
@@ -749,7 +835,13 @@ void MQTTManager_::tick()
     if ((currentMillis_Stats - previousMillis_Stats >= STATS_INTERVAL) && (SENSORS_STABLE))
     {
         previousMillis_Stats = currentMillis_Stats;
+#if defined(AWTRIX_HEAP_LOG) && defined(ESP8266)
+        unsigned long statsStart = micros();
         sendStats();
+        Serial.printf("[stats] sendStats took %lu us\n", micros() - statsStart);
+#else
+        sendStats();
+#endif
     }
 }
 

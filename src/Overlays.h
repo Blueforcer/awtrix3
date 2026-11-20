@@ -3,13 +3,27 @@
 
 #include "MatrixDisplayUi.h"
 #include "effects.h"
+#include "DrawCommands.h"
+
+#ifndef JPG_ICON_BUFFER_SIZE
+#ifdef ESP8266
+// Inline base64 JPG icons are disabled on ESP8266: a 1 KB buffer per app/notification does not fit in RAM.
+#define JPG_ICON_BUFFER_SIZE 1
+#else
+#define JPG_ICON_BUFFER_SIZE 1000
+#endif
+#endif
 
 uint32_t TextEffect(uint32_t color, uint32_t fade, uint32_t blink);
 
 struct Notification
 {
     bool center;
+#ifdef ESP8266
+    DrawCommands drawInstructions;
+#else
     String drawInstructions;
+#endif
     float scrollposition = 34;
     int16_t scrollDelay = 0;
     String text;
@@ -51,7 +65,7 @@ struct Notification
     String rtttl;
     OverlayEffect overlay;
     int gradient[2] = {0};
-    uint8_t jpegDataBuffer[1000];
+    uint8_t jpegDataBuffer[JPG_ICON_BUFFER_SIZE];
     unsigned int jpegDataSize = 0;
 };
 

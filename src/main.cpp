@@ -40,10 +40,20 @@
 #include "UpdateManager.h"
 #include "timer.h"
 
+#ifndef ESP8266
 TaskHandle_t taskHandle;
+#endif
+
+// Build with -D AWTRIX_HEAP_LOG to print free heap during boot and every 2 s.
+#if defined(AWTRIX_HEAP_LOG) && defined(ESP8266)
+#define HEAP_LOG(step) Serial.printf("[heap] %-14s free %5u  max block %5u\n", step, ESP.getFreeHeap(), ESP.getMaxFreeBlockSize())
+#else
+#define HEAP_LOG(step)
+#endif
 volatile bool StopTask = false;
 bool stopBoot;
 
+#ifndef ESP8266
 void BootAnimation(void *parameter)
 {
   const TickType_t xDelay = 1 / portTICK_PERIOD_MS;
@@ -58,21 +68,46 @@ void BootAnimation(void *parameter)
   }
   vTaskDelete(NULL);
 }
+#endif
 
 void setup()
 {
+#ifndef ESP8266
+  // Buzzer pin on the Ulanzi. On ESP8266 GPIO15 is D8 (right button / boot strap).
   pinMode(15, OUTPUT);
   digitalWrite(15, LOW);
+#endif
   delay(2000);
   Serial.begin(115200);
+  HEAP_LOG("start");
   loadSettings();
+  HEAP_LOG("settings");
   PeripheryManager.setup();
+  HEAP_LOG("periphery");
   ServerManager.loadSettings();
   DisplayManager.setup();
+  HEAP_LOG("display");
+#ifdef AWTRIX_16X16
+  DisplayManager.HSVtext(1, 10, VERSION, true, 0);
+#else
   DisplayManager.HSVtext(9, 6, VERSION, true, 0);
+#endif
   delay(500);
+#ifdef ESP8266
+  // No second core / RTOS task on ESP8266: show a static boot text while WiFi connects
+#ifdef AWTRIX_16X16
+  DisplayManager.clear();
+  DisplayManager.HSVtext(2, 6, "AWT", false, 0);
+  DisplayManager.HSVtext(2, 14, "RIX", false, 0);
+  DisplayManager.show();
+#else
+  DisplayManager.HSVtext(4, 6, "AWTRIX", true, 0);
+#endif
+#else
   xTaskCreatePinnedToCore(BootAnimation, "Task", 10000, NULL, 1, &taskHandle, 0);
+#endif
   ServerManager.setup();
+  HEAP_LOG("wifi+server");
   if (ServerManager.isConnected)
   {
     // timer_init();
@@ -92,14 +127,21 @@ void setup()
     int textLength = textForDisplay.length() * 4;
     while (x >= -textLength)
     {
-      DisplayManager.HSVtext(x, 6, textForDisplay.c_str(), true, 0);
+      DisplayManager.HSVtext(x, MATRIX_H / 2 + 2, textForDisplay.c_str(), true, 0);
       x -= 0.18;
+#ifdef ESP8266
+      yield(); // keep the software watchdog happy during the long scroll
+#endif
     }
 
     
-      if (MQTT_HOST != "")
+      if (MQTT_HOST != "" && !UPDATE_MODE)
       {
+#ifdef AWTRIX_16X16
+        DisplayManager.HSVtext(0, 10, "MQTT", true, 0);
+#else
         DisplayManager.HSVtext(4, 6, "MQTT...", true, 0);
+#endif
         MQTTManager.setup();
         MQTTManager.tick();
       }
@@ -112,10 +154,26 @@ void setup()
   }
   delay(200);
   DisplayManager.setBrightness(BRIGHTNESS);
+  HEAP_LOG("setup done");
 }
 
 void loop()
 {
+#if defined(AWTRIX_HEAP_LOG) && defined(ESP8266)
+  static unsigned long lastHeapLog = 0;
+  static unsigned long lastLoop = 0, maxLoopUs = 0;
+  unsigned long nowUs = micros();
+  if (lastLoop && nowUs - lastLoop > maxLoopUs)
+    maxLoopUs = nowUs - lastLoop;
+  lastLoop = nowUs;
+  if (millis() - lastHeapLog > 2000)
+  {
+    lastHeapLog = millis();
+    HEAP_LOG("loop");
+    Serial.printf("[loop] longest pass %lu us\n", maxLoopUs);
+    maxLoopUs = 0;
+  }
+#endif
   timer_tick();
   ServerManager.tick();
   DisplayManager.tick();

@@ -36,8 +36,14 @@ enum OverlayEffect
 
 
 
+#ifdef AWTRIX_16X16
+// The effects are drawn for 32x8 and aren't available on the 16x16 build. Leaving the
+// table out lets the linker drop the effects and their data (~2.5 KB RAM).
+const int numOfEffects = 0;
+#else
 const int numOfEffects = 19;
 extern Effect effects[];
+#endif
 void callEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, u_int8_t index);
 int getEffectIndex(String name);
 void updateEffectSettings(u_int8_t index, String json);

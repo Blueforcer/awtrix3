@@ -1,7 +1,27 @@
 #include "effects.h"
 
 const CRGBPalette16 palette = RainbowColors_p;
-CRGB tempLeds[32][8];
+
+#ifdef ESP8266
+// On ESP8266 the per-pixel effect buffers live on the heap and are only allocated the
+// first time an effect needs them, so they cost no RAM while effects are not in use.
+template <typename T>
+static bool lazyGrid(T (*&grid)[8])
+{
+    if (!grid)
+        grid = (T(*)[8])calloc(32, sizeof(*grid));
+    return grid != nullptr;
+}
+#define EFFECT_GRID(type, name) type (*name)[8] = nullptr
+#define EFFECT_GRID_READY(name) \
+    if (!lazyGrid(name))        \
+    return
+#else
+#define EFFECT_GRID(type, name) type name[32][8]
+#define EFFECT_GRID_READY(name)
+#endif
+
+EFFECT_GRID(CRGB, tempLeds);
 
 void Pacifica(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
@@ -86,7 +106,8 @@ void Matrix(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *set
     static uint8_t intensity = 8; // Adjust to manage the frequency of new "drops"
 
     // Create a static matrix to hold the state of each pixel
-    static CRGB ledState[32][8];
+    static EFFECT_GRID(CRGB, ledState);
+    EFFECT_GRID_READY(ledState);
 
     uint8_t baseSpeed = 180;                            // Base value for speed calculation
     uint8_t speed = baseSpeed - (settings->speed * 15); // Adjust speed based on settings
@@ -214,10 +235,11 @@ struct Particle
     float brightness;
 };
 
-Particle stars[32][8]; // Create a buffer to store the state of the LEDs
+EFFECT_GRID(Particle, stars); // Create a buffer to store the state of the LEDs
 
 void TwinklingStars(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
+    EFFECT_GRID_READY(stars);
     static uint32_t lastUpdate = 0;
 
     // Fade all LEDs each frame
@@ -654,6 +676,7 @@ Ripple ripple;
 
 void RippleEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
+    EFFECT_GRID_READY(tempLeds);
     // If ripple has finished, spawn a new one at a random location
     if (ripple.life > RIPPLE_SIZE)
     {
@@ -752,6 +775,7 @@ void CheckerboardEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectS
 
 void RadarEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *settings)
 {
+    EFFECT_GRID_READY(tempLeds);
     static float beamAngle = 0;
     // Fade the previous state of the leds
     for (uint16_t i = 0; i < 32; i++)
@@ -1048,6 +1072,7 @@ void Fade(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, EffectSettings *setti
     }
 }
 
+#ifndef AWTRIX_16X16 // see numOfEffects in effects.h
 Effect effects[] = {
     {"Fade", Fade, EffectSettings(1, RainbowColors_p, true)},
     {"MovingLine", MovingLine, EffectSettings(1, RainbowColors_p, true)},
@@ -1068,19 +1093,23 @@ Effect effects[] = {
     {"LookingEyes", LookingEyes, EffectSettings()},
     {"TwinklingStars", TwinklingStars, EffectSettings(4, OceanColors_p, true)},
     {"ColorWaves", ColorWaves, EffectSettings(5, RainbowColors_p, true)}};
+#endif
 
 // ######## Helper functions ############
 
 void callEffect(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, u_int8_t index)
 {
+#ifndef AWTRIX_16X16 // no effects on the 16x16 build
     if (index > -1)
     {
         effects[index].func(matrix, x, y, &effects[index].settings);
     }
+#endif
 }
 
 int getEffectIndex(String name)
 {
+#ifndef AWTRIX_16X16 // no effects on the 16x16 build
     for (uint8_t i = 0; i < sizeof(effects) / sizeof(effects[0]); i++)
     {
         if (effects[i].name == name)
@@ -1088,6 +1117,7 @@ int getEffectIndex(String name)
             return i;
         }
     }
+#endif
     return -1;
 }
 
@@ -1169,11 +1199,15 @@ CRGBPalette16 getPalette(const JsonVariant &paletteVariant)
 
 void updateEffectSettings(u_int8_t index, String json)
 {
+#ifdef AWTRIX_16X16
+    return; // no effects on the 16x16 build
+#endif
     if (index != -1)
     {
-        StaticJsonDocument<2048> doc;
+        DynamicJsonDocument doc(2048);
         deserializeJson(doc, json);
 
+#ifndef AWTRIX_16X16
         if (doc.containsKey("speed"))
         {
             effects[index].settings.speed = doc["speed"];
@@ -1188,6 +1222,7 @@ void updateEffectSettings(u_int8_t index, String json)
         {
             effects[index].settings.blend = doc["blend"].as<bool>();
         }
+#endif
 
         doc.clear();
     }
@@ -1233,11 +1268,23 @@ OverlayEffect getOverlay(String overlay)
 
 void EffectOverlay(FastLED_NeoMatrix *matrix, int16_t x, int16_t y, OverlayEffect effect)
 {
+#ifdef AWTRIX_16X16
+    return; // the overlay effects are drawn for 32x8 and aren't available on the 16x16 build
+#endif
+#ifdef ESP8266
+    static EFFECT_GRID(CRGB, leds);
+    static EFFECT_GRID(int, colorChanges);
+    static EFFECT_GRID(unsigned long, lastUpdate);
+    EFFECT_GRID_READY(leds);
+    EFFECT_GRID_READY(colorChanges);
+    EFFECT_GRID_READY(lastUpdate);
+#else
     static CRGB leds[32][8] = {CRGB::Black}; // Initialize all LEDs to black
     static int colorChanges[32][8] = {0};
+    static unsigned long lastUpdate[32][8] = {0}; // Store the last update time for each LED
+#endif
     static bool lightning = false;                // Track whether lightning is happening
     static unsigned long lastLightningMillis = 0; // Store last time lightning happened
-    static unsigned long lastUpdate[32][8] = {0}; // Store the last update time for each LED
     static int lightningDuration = 50;            // Duration of lightning flash in milliseconds
     static int updateFrame = 0;                   // Counter to control the update rate of the display
     static int windFrame = 0;                     // Additional variable for wind logic during storms

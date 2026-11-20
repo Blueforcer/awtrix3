@@ -1,10 +1,13 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 #include <Arduino.h>
+#include <IPAddress.h>
 #include <FastLED.h>
 #include "effects.h"
  
+#ifndef ESP8266
 #define DEBUG
+#endif
 
 #ifdef DEBUG
 #define DEBUG_PRINTLN(x)    \
@@ -26,6 +29,24 @@
 #else
 #define DEBUG_PRINTLN(x)
 #define DEBUG_PRINTF(format, ...)
+#endif
+
+// Size of the drawing canvas. The 16x16 build (-D AWTRIX_16X16) draws for a square
+// 16x16 panel; every other build draws for the 32x8 matrix.
+#ifdef AWTRIX_16X16
+#define MATRIX_W 16
+#define MATRIX_H 16
+#else
+#define MATRIX_W 32
+#define MATRIX_H 8
+#endif
+
+// Capacity for the big JSON documents (custom apps, draw instructions).
+// The ESP8266 has far less heap, so it matches the MQTT buffer (AWTRIX_MQTT_BUFFER_SIZE) there.
+#ifdef ESP8266
+#define JSON_DOC_LARGE 4096
+#else
+#define JSON_DOC_LARGE 8192
 #endif
 
 void formatSettings();
@@ -103,6 +124,25 @@ extern String BOOT_SOUND;
 extern int TEMP_DECIMAL_PLACES;
 extern uint8_t SOUND_VOLUME;
 extern int MATRIX_LAYOUT;
+// Matrix data pin. Override at build time with -D MATRIX_PIN=<gpio>; on ESP8266 also
+// at runtime with "matrix_pin" in dev.json (see DisplayManager_::setup()).
+#ifndef MATRIX_PIN
+#ifdef awtrix2_upgrade
+#define MATRIX_PIN D2
+#else
+#define MATRIX_PIN 32
+#endif
+#endif
+extern uint8_t MATRIX_DATA_PIN;
+// Wiring of a 16x16 panel (matrix layout 3), set in dev.json
+#define MATRIX_START_TOP_LEFT 0
+#define MATRIX_START_TOP_RIGHT 1
+#define MATRIX_START_BOTTOM_LEFT 2
+#define MATRIX_START_BOTTOM_RIGHT 3
+extern uint8_t MATRIX_START;
+extern bool MATRIX_COLUMNS;
+extern bool MATRIX_ZIGZAG;
+extern bool MATRIX_TEST;
 extern bool UPDATE_AVAILABLE;
 extern long RECEIVED_MESSAGES;
 extern uint16_t MIN_BATTERY;
@@ -150,4 +190,5 @@ extern OverlayEffect GLOBAL_OVERLAY;
 extern String HOSTNAME;
 extern int WEB_PORT;
 extern bool BUZ_VOL;
+extern bool UPDATE_MODE; // ESP8266: booted without MQTT so a firmware update fits in memory
 #endif // Globals_H

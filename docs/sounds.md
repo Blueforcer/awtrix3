@@ -2,6 +2,8 @@
 
 You can play sound with the integrated passive buzzer in the Ulanzi Clock or you can use a DFPlayer to play mp3 with your custom build.
 
+?> Sound is not available on the [ESP8266 build](esp8266.md).
+
 ## Buzzer
 With the Buzzer you can play monophone RTTTL melodies in two ways:
   

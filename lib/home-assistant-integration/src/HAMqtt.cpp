@@ -181,6 +181,11 @@ bool HAMqtt::isConnected() const
     return _mqtt->connected();
 }
 
+bool HAMqtt::setBufferSize(uint16_t size)
+{
+    return _mqtt->setBufferSize(size);
+}
+
 void HAMqtt::addDeviceType(HABaseDeviceType *deviceType)
 {
     if (_devicesTypesNb + 1 >= _maxDevicesTypesNb)
@@ -274,7 +279,7 @@ void HAMqtt::processMessage(const char *topic, const uint8_t *payload, uint16_t 
 void HAMqtt::connectToServer()
 {
     if (_lastConnectionAttemptAt > 0 &&
-        (millis() - _lastConnectionAttemptAt) < ReconnectInterval)
+        (millis() - _lastConnectionAttemptAt) < _reconnectInterval)
     {
         return;
     }
@@ -293,6 +298,7 @@ void HAMqtt::connectToServer()
 
     if (isConnected())
     {
+        _reconnectInterval = ReconnectInterval;
         ARDUINOHA_DEBUG_PRINTLN(F("AHA: connected"))
         if (_connectedCallback)
         {
@@ -303,6 +309,7 @@ void HAMqtt::connectToServer()
     }
     else
     {
+        _reconnectInterval = _reconnectInterval * 2 > MaxReconnectInterval ? MaxReconnectInterval : _reconnectInterval * 2;
         ARDUINOHA_DEBUG_PRINTLN(F("AHA: failed to connect"))
     }
 }

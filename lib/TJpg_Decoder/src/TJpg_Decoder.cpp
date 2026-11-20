@@ -13,6 +13,29 @@ https://github.com/Bodmer/TJpg_Decoder
 // Create a class instance to be used by the sketch (defined as extern in header)
 TJpg_Decoder TJpgDec;
 
+#ifdef ESP8266
+// Bytes to give the decoder: up to TJPGD_WORKSPACE_SIZE, otherwise the largest free block
+// minus a small reserve for the WiFi stack; 0 when that is too small to be worth trying.
+static size_t jpgWorkspaceSize()
+{
+  size_t maxBlock = ESP.getMaxFreeBlockSize();
+  size_t size = maxBlock > 256 ? maxBlock - 256 : 0;
+  if (size > TJPGD_WORKSPACE_SIZE)
+    size = TJPGD_WORKSPACE_SIZE;
+  return size >= 1024 ? size : 0;
+}
+
+#ifdef AWTRIX_HEAP_LOG
+// How much of the workspace a decode really used (printed every 50th decode)
+static void logJpgPool(JRESULT result, size_t poolSize, size_t left)
+{
+  static uint32_t decodes = 0;
+  if (result != JDR_OK || ++decodes % 50 == 1)
+    Serial.printf("[jpg] result %d, workspace %u, used %u\n", result, poolSize, poolSize - left);
+}
+#endif
+#endif
+
 /***************************************************************************************
 ** Function name:           TJpg_Decoder
 ** Description:             Constructor
@@ -185,13 +208,36 @@ JRESULT TJpg_Decoder::drawFsJpg(int32_t x, int32_t y, fs::File inFile)
 
   jpgFile = inFile;
 
-  jresult = jd_prepare(&jdec, jd_input, workspace, TJPGD_WORKSPACE_SIZE, (unsigned int)0);
+#ifdef ESP8266
+  // The fixed workspace if one was set (setWorkspace()), otherwise taken from the heap
+  // only while decoding: TJPGD_WORKSPACE_SIZE is a worst case, so take what is free and
+  // let jd_prepare() decide whether it is enough. malloc is 4-byte aligned.
+  uint8_t *workspace = fixedWorkspace;
+  size_t poolSize = fixedWorkspaceSize;
+  if (!workspace)
+  {
+    poolSize = jpgWorkspaceSize();
+    if (!poolSize) return JDR_MEM1;
+    workspace = (uint8_t *)malloc(poolSize);
+    if (!workspace) return JDR_MEM1;
+  }
+#else
+  const size_t poolSize = TJPGD_WORKSPACE_SIZE; // the member array "workspace"
+#endif
+  jresult = jd_prepare(&jdec, jd_input, workspace, poolSize, (unsigned int)0);
 
   // Extract image and render
   if (jresult == JDR_OK)
   {
     jresult = jd_decomp(&jdec, jd_output, jpgScale);
   }
+#ifdef ESP8266
+#ifdef AWTRIX_HEAP_LOG
+  logJpgPool(jresult, poolSize, jdec.sz_pool);
+#endif
+  if (workspace != fixedWorkspace)
+    free(workspace);
+#endif
   inFile.seek(0);
   return jresult;
 }
@@ -212,12 +258,35 @@ JRESULT TJpg_Decoder::drawJpg(int32_t x, int32_t y, const uint8_t jpeg_data[], u
   jdec.swap = _swap;
 
   // Analyse input data
-  jresult = jd_prepare(&jdec, jd_input, workspace, TJPGD_WORKSPACE_SIZE, 0);
+#ifdef ESP8266
+  // The fixed workspace if one was set (setWorkspace()), otherwise taken from the heap
+  // only while decoding: TJPGD_WORKSPACE_SIZE is a worst case, so take what is free and
+  // let jd_prepare() decide whether it is enough. malloc is 4-byte aligned.
+  uint8_t *workspace = fixedWorkspace;
+  size_t poolSize = fixedWorkspaceSize;
+  if (!workspace)
+  {
+    poolSize = jpgWorkspaceSize();
+    if (!poolSize) return JDR_MEM1;
+    workspace = (uint8_t *)malloc(poolSize);
+    if (!workspace) return JDR_MEM1;
+  }
+#else
+  const size_t poolSize = TJPGD_WORKSPACE_SIZE; // the member array "workspace"
+#endif
+  jresult = jd_prepare(&jdec, jd_input, workspace, poolSize, 0);
 
   // Extract image and render
   if (jresult == JDR_OK) {
     jresult = jd_decomp(&jdec, jd_output, jpgScale);
   }
+#ifdef ESP8266
+#ifdef AWTRIX_HEAP_LOG
+  logJpgPool(jresult, poolSize, jdec.sz_pool);
+#endif
+  if (workspace != fixedWorkspace)
+    free(workspace);
+#endif
 
   return jresult;
 }

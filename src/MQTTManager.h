@@ -26,6 +26,9 @@ public:
     bool subscribe(const char* topic);
     bool isConnected();
     String getValueForTopic(const String &topic);
+#ifdef ESP8266
+    void pauseForUpload();
+#endif
 
 };
 extern MQTTManager_ &MQTTManager;

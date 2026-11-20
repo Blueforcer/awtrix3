@@ -2,6 +2,7 @@
 #define ServerManager_h
 
 #include <Arduino.h>
+#include <IPAddress.h>
 
 class ServerManager_
 {

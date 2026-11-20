@@ -1,22 +1,29 @@
 #include "ServerManager.h"
 #include "Globals.h"
-#include <WebServer.h>
 #include <esp-fs-webserver.h>
 #include "htmls.h"
-#include <Update.h>
-#include <ESPmDNS.h>
 #include <LittleFS.h>
-#include <WiFi.h>
+#include "PlatformCompat.h"
 #include "DisplayManager.h"
 #include "UpdateManager.h"
 #include "PeripheryManager.h"
 #include "PowerManager.h"
+#include "MQTTManager.h"
 #include <WiFiUdp.h>
-#include <HTTPClient.h>
+#if defined(ESP8266) && !defined(AWTRIX_WEBSERVER_BODY_PATCH)
+#error "the web server header isn't the patched copy (scripts/esp8266_webserver_body.py)"
+#endif
+#ifndef ESP8266
+#include <Update.h>
 #include "Games/GameManager.h"
-#include <EEPROM.h>
+#endif
+#include "Weather.h"
 
 WiFiUDP udp;
+
+#ifdef ESP8266
+#define UPDATE_MODE_MARKER 0x55504454 // "UPDT"
+#endif
 
 unsigned int localUdpPort = 4210;
 char incomingPacket[255];
@@ -26,13 +33,15 @@ char incomingPacket[255];
 char dataBuffer[BUFFER_SIZE];
 int bufferIndex = 0;
 
-// Aktueller verbundener Client
-WiFiClient currentClient = WiFiClient();
-WebServer server(80);
+WebServerClass server(80);
 FSWebServer mws(LittleFS, server);
 
-// Erstelle eine Server-Instanz
+#ifndef ESP8266
+// Aktueller verbundener Client
+WiFiClient currentClient = WiFiClient();
+// Erstelle eine Server-Instanz (game controller input)
 WiFiServer TCPserver(8080);
+#endif
 
 // The getter for the instantiated singleton instance
 ServerManager_ &ServerManager_::getInstance()
@@ -53,9 +62,15 @@ void versionHandler()
 void ServerManager_::erase()
 {
     DisplayManager.HSVtext(0, 6, "RESET", true, 0);
+#ifdef ESP8266
+    struct station_config conf;
+    memset(&conf, 0, sizeof(conf));
+    wifi_station_set_config(&conf);
+#else
     wifi_config_t conf;
     memset(&conf, 0, sizeof(conf)); // Set all the bytes in the structure to 0
     esp_wifi_set_config(WIFI_IF_STA, &conf);
+#endif
     LittleFS.format();
     delay(200);
     formatSettings();
@@ -101,7 +116,7 @@ void addHandler()
                    {
                     if (DisplayManager.moodlight(mws.webserver->arg("plain").c_str()))
                     {
-                        mws.webserver->send(200, F(F("text/plain")), F("OK"));
+                        mws.webserver->send(200, F("text/plain"), F("OK"));
                     }
                     else
                     {
@@ -123,14 +138,14 @@ void addHandler()
     if (fps == "") {
         fps = "30"; 
     }
-    String finalHTML = screenfull_html; 
+    String finalHTML = FPSTR(screenfull_html);
     finalHTML.replace("%%FPS%%", fps);
 
     mws.webserver->send(200, "text/html", finalHTML.c_str()); });
     mws.addHandler("/screen", HTTP_GET, []()
-                   { mws.webserver->send(200, "text/html", screen_html); });
+                   { mws.webserver->send_P(200, "text/html", screen_html); });
     mws.addHandler("/backup", HTTP_GET, []()
-                   { mws.webserver->send(200, "text/html", backup_html); });
+                   { mws.webserver->send_P(200, "text/html", backup_html); });
     mws.addHandler("/api/previousapp", HTTP_POST, []()
                    { DisplayManager.previousApp(); mws.webserver->send(200,F("text/plain"),F("OK")); });
     mws.addHandler("/api/notify/dismiss", HTTP_ANY, []()
@@ -169,8 +184,28 @@ void addHandler()
                     } });
     mws.addHandler("/api/stats", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.getStats().c_str()); });
+#ifdef ESP8266
+    // Streamed (chunked) so it needs no large free block
+    mws.addHandler("/api/screen", HTTP_GET, []()
+                   {
+                    mws.webserver->setContentLength(CONTENT_LENGTH_UNKNOWN);
+                    mws.webserver->send(200, "application/json", "");
+                    DisplayManager.writeLedsAsJson([](const char *part)
+                                                   { mws.webserver->sendContent(part); });
+                    mws.webserver->sendContent(""); });
+#else
     mws.addHandler("/api/screen", HTTP_GET, []()
                    { mws.webserver->send_P(200, "application/json", DisplayManager.ledsAsJson().c_str()); });
+#endif
+#ifdef AWTRIX_16X16
+    mws.addHandler("/api/weather", HTTP_POST, []()
+                   {
+                    if (weatherParser(mws.webserver->arg("plain").c_str())){
+                        mws.webserver->send(200,F("text/plain"),F("OK"));
+                    }else{
+                        mws.webserver->send(500,F("text/plain"),F("ErrorParsingJson"));
+                    } });
+#endif
     mws.addHandler("/api/indicator1", HTTP_POST, []()
                    { 
                     if (DisplayManager.indicatorParser(1,mws.webserver->arg("plain").c_str())){
@@ -206,15 +241,34 @@ void addHandler()
 
 void ServerManager_::setup()
 {
+#ifdef ESP8266
+    // Update mode: requested by opening /update while MQTT is configured (see the hook
+    // below). The marker lives in RTC memory, so it survives the restart but not a power cut.
+    uint32_t marker = 0;
+    if (ESP.rtcUserMemoryRead(0, &marker, sizeof(marker)) && marker == UPDATE_MODE_MARKER)
+    {
+        marker = 0;
+        ESP.rtcUserMemoryWrite(0, &marker, sizeof(marker));
+        UPDATE_MODE = true;
+        Serial.println(F("Update mode: MQTT stays off until the next restart"));
+    }
+    WiFi.setOutputPower(20.0);
+    WiFi.setSleepMode(WIFI_NONE_SLEEP); // Power Saving deaktivieren
+#else
     esp_wifi_set_max_tx_power(80); // 82 * 0.25 dBm = 20.5 dBm
     esp_wifi_set_ps(WIFI_PS_NONE); // Power Saving deaktivieren
+#endif
     if (!local_IP.fromString(NET_IP) || !gateway.fromString(NET_GW) || !subnet.fromString(NET_SN) || !primaryDNS.fromString(NET_PDNS) || !secondaryDNS.fromString(NET_SDNS))
         NET_STATIC = false;
     if (NET_STATIC)
     {
         WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS);
     }
+#ifdef ESP8266
+    WiFi.hostname(HOSTNAME); // define hostname
+#else
     WiFi.setHostname(HOSTNAME.c_str()); // define hostname
+#endif
     myIP = mws.startWiFi(AP_TIMEOUT * 1000, HOSTNAME.c_str(), "12345678");
     isConnected = !(myIP == IPAddress(192, 168, 4, 1));
     if (DEBUG_MODE)
@@ -241,9 +295,10 @@ void ServerManager_::setup()
         mws.addOption("Timezone", NTP_TZ);
         mws.addHTML("<p>Find your timezone at <a href='https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv' target='_blank' rel='noopener noreferrer'>posix_tz_db</a>.</p>", "tz_link");
         mws.addOptionBox("Icons");
-        mws.addHTML(custom_html, "icon_html");
-        mws.addCSS(custom_css);
-        mws.addJavascript(custom_script);
+        // The snippets are in flash, the web server lib reads plain C strings
+        mws.addHTML(String(FPSTR(custom_html)).c_str(), "icon_html");
+        mws.addCSS(String(FPSTR(custom_css)).c_str());
+        mws.addJavascript(String(FPSTR(custom_script)).c_str());
         mws.addOptionBox("Auth");
         mws.addOption("Auth Username", AUTH_USER);
         mws.addOption("Auth Password", AUTH_PASS);
@@ -256,6 +311,32 @@ void ServerManager_::setup()
     mws.addHandler("/version", HTTP_GET, versionHandler);
     mws.begin(WEB_PORT);
 
+#ifdef ESP8266
+    // A firmware update needs ~8 KB of heap (4 KB update buffer, upload buffer, network
+    // buffers). With MQTT and Home Assistant discovery running only ~5 KB are free, so
+    // opening /update first restarts the clock in update mode, without MQTT.
+    server.addHook([](const String &method, const String &url, WiFiClient *client, ESP8266WebServer::ContentTypeFunction)
+                   {
+                       // File uploads (icons, settings from the web UI): free MQTT's memory
+                       // while the file comes in
+                       if (method == "POST" && url == "/edit")
+                           MQTTManager.pauseForUpload();
+                       if (url != "/update" || UPDATE_MODE || MQTT_HOST == "")
+                           return ESP8266WebServer::CLIENT_REQUEST_CAN_CONTINUE;
+                       uint32_t marker = UPDATE_MODE_MARKER;
+                       ESP.rtcUserMemoryWrite(0, &marker, sizeof(marker));
+                       client->print(F("HTTP/1.1 503 Service Unavailable\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n"
+                                       "<p>AWTRIX restarts without MQTT so the update fits in memory. "
+                                       "Reload this page in 30 seconds.</p>"));
+                       client->flush();
+                       delay(200);
+                       ESP.restart();
+                       return ESP8266WebServer::CLIENT_REQUEST_IS_HANDLED; });
+#endif
+
+#ifndef ESP8266
+    // No mDNS on ESP8266: the responder parses every mDNS packet on the network and runs
+    // the heap out on busy networks. Discovery still works over UDP (FIND_AWTRIX).
     if (!MDNS.begin(HOSTNAME))
     {
         if (DEBUG_MODE)
@@ -269,17 +350,46 @@ void ServerManager_::setup()
         MDNS.addServiceTxt("awtrix", "tcp", "name", HOSTNAME.c_str());
         MDNS.addServiceTxt("awtrix", "tcp", "type", "awtrix3");
     }
+#endif
 
+#ifdef ESP8266
+    configTime(NTP_TZ.c_str(), NTP_SERVER.c_str());
+#else
     configTzTime(NTP_TZ.c_str(), NTP_SERVER.c_str());
     tm timeInfo;
     getLocalTime(&timeInfo);
     TCPserver.begin();
     TCPserver.setNoDelay(true);
+#endif
 }
 
 void ServerManager_::tick()
 {
     mws.run();
+
+#ifdef ESP8266
+    if (UPDATE_MODE && millis() > 10UL * 60 * 1000)
+    {
+        Serial.println(F("Update mode: no update within 10 minutes, restarting with MQTT"));
+        ESP.restart();
+    }
+#endif
+
+#ifdef ESP8266
+    // Hotspot mode keeps the station idle (see startWiFi), so if the saved network wasn't
+    // reachable at boot nothing retries it. Restart after 5 minutes to try again, unless
+    // someone is connected to the hotspot (e.g. to change the WiFi settings).
+    if (AP_MODE && millis() > 5UL * 60 * 1000 && WiFi.softAPgetStationNum() == 0)
+    {
+        struct station_config saved;
+        wifi_station_get_config_default(&saved);
+        if (saved.ssid[0] != 0)
+        {
+            Serial.println(F("Saved WiFi not joined at boot, restarting to retry"));
+            ESP.restart();
+        }
+    }
+#endif
 
     if (!AP_MODE)
     {
@@ -310,6 +420,7 @@ void ServerManager_::tick()
         }
     }
 
+#ifndef ESP8266
     if (!currentClient || !currentClient.connected()) {
         if (TCPserver.hasClient()) {
             if (currentClient) {
@@ -339,13 +450,16 @@ void ServerManager_::tick()
             }
         }
     }
+#endif
 }
 
 void ServerManager_::sendTCP(String message)
 {
+#ifndef ESP8266
     if (currentClient && currentClient.connected()) {
         currentClient.print(message);
     }
+#endif
 }
 
 void ServerManager_::loadSettings()
@@ -424,8 +538,9 @@ void ServerManager_::sendButton(byte btn, bool state)
     }
     if (!payload.isEmpty())
     {
+        WiFiClient wifiClient;
         HTTPClient http;
-        http.begin(BUTTON_CALLBACK);
+        http.begin(wifiClient, BUTTON_CALLBACK);
         http.addHeader("Content-Type", "application/x-www-form-urlencoded");
         http.POST(payload);
         http.end();

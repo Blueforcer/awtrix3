@@ -1,5 +1,24 @@
 #include <DisplayManager.h>
 #include "MatrixDisplayUi.h"
+
+#ifdef ESP8266
+// With MQTT and Home Assistant discovery running, the ESP8266's heap has no free block
+// of 4-6 KB, so fixed-size documents for notifications and custom apps failed to
+// allocate ("ErrorParsingJson"). Start at twice the payload size and grow only when
+// ArduinoJson runs out, up to maxCapacity.
+static DynamicJsonDocument parseJsonFitted(const char *json, size_t maxCapacity, DeserializationError &error)
+{
+  size_t capacity = std::min(maxCapacity, std::max<size_t>(256, strlen(json) * 2 + 128));
+  while (true)
+  {
+    DynamicJsonDocument doc(capacity);
+    error = deserializeJson(doc, json);
+    if (error != DeserializationError::NoMemory || capacity >= maxCapacity)
+      return doc;
+    capacity = std::min(maxCapacity, capacity * 2);
+  }
+}
+#endif
 #include <TJpg_Decoder.h>
 #include "icons.h"
 #include "Globals.h"
@@ -17,16 +36,22 @@
 #include "Dictionary.h"
 #include <set>
 #include "GifPlayer.h"
+#ifndef ESP8266
 #include <ArtnetWifi.h>
+#endif
 #include <AwtrixFont.h>
-#include <HTTPClient.h>
+#include "PlatformCompat.h"
 #include "base64.hpp"
+#ifndef ESP8266
 #include "Games/GameManager.h"
+#endif
 
 unsigned long lastArtnetStatusTime = 0;
 const int numberOfChannels = 256 * 3;
 // Artnet settings
+#ifndef ESP8266
 ArtnetWifi artnet;
+#endif
 const int startUniverse = 0; // CHANGE FOR YOUR SETUP most software this is 1, some software send out artnet first universe as 0.
 
 // Check if we got all universes
@@ -34,16 +59,19 @@ const int maxUniverses = numberOfChannels / 512 + ((numberOfChannels % 512) ? 1 
 bool universesReceived[maxUniverses];
 bool sendFrame = 1;
 int previousDataLength = 0;
-#ifdef awtrix2_upgrade
-#define MATRIX_PIN D2
-#else
-#define MATRIX_PIN 32
-#endif
+// MATRIX_PIN (the default data pin) is defined in Globals.h
 
-#define MATRIX_WIDTH 32
-#define MATRIX_HEIGHT 8
+#define MATRIX_WIDTH MATRIX_W   // 32x8, or 16x16 in the AWTRIX_16X16 build (Globals.h)
+#define MATRIX_HEIGHT MATRIX_H
+static void showMatrixTest();
+
+#ifdef ESP8266
+static bool addMatrixLeds(uint8_t pin);
+#endif
 fs::File gifFile;
-GifPlayer gif;
+#ifndef ESP8266
+GifPlayer gif; // not used for drawing (apps/overlays use the players in MatrixDisplayUi)
+#endif
 
 uint16_t gifX, gifY;
 CRGB leds[MATRIX_WIDTH * MATRIX_HEIGHT];
@@ -53,7 +81,11 @@ int16_t cursor_x, cursor_y;
 uint32_t textColor;
 
 // NeoMatrix
+#ifdef AWTRIX_16X16
+FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, MATRIX_WIDTH, MATRIX_HEIGHT, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+#else
 FastLED_NeoMatrix *matrix = new FastLED_NeoMatrix(leds, 8, 8, 4, 1, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+#endif
 MatrixDisplayUi *ui = new MatrixDisplayUi(matrix);
 
 DisplayManager_ &DisplayManager_::getInstance()
@@ -114,7 +146,7 @@ void DisplayManager_::drawJPG(int32_t x, int32_t y, const uint8_t jpeg_data[], u
 
 void DisplayManager_::drawBMP(int16_t x, int16_t y, const uint16_t bitmap[], int16_t w, int16_t h)
 {
-  matrix->drawRGBBitmap(y, x, bitmap, w, h);
+  matrix->drawRGBBitmap(x, y, bitmap, w, h);
 }
 
 void DisplayManager_::applyAllSettings()
@@ -166,7 +198,7 @@ void DisplayManager_::printText(int16_t x, int16_t y, const char *text, bool cen
   if (centered)
   {
     uint16_t textWidth = getTextWidth(text, textCase);
-    int16_t textX = ((32 - textWidth) / 2);
+    int16_t textX = ((MATRIX_WIDTH - textWidth) / 2);
     setCursor(textX, y);
   }
   else
@@ -431,8 +463,13 @@ bool DisplayManager_::parseCustomPage(const String &name, const char *json, bool
     return true;
   }
 
-  DynamicJsonDocument doc(8192);
+#ifdef ESP8266
+  DeserializationError error;
+  DynamicJsonDocument doc = parseJsonFitted(json, JSON_DOC_LARGE, error);
+#else
+  DynamicJsonDocument doc(JSON_DOC_LARGE);
   DeserializationError error = deserializeJson(doc, json);
+#endif
   if (error)
   {
     DEBUG_PRINTLN(error.c_str());
@@ -609,11 +646,19 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
   if (doc.containsKey("draw"))
   {
+#ifdef ESP8266
+    compileDrawInstructions(doc["draw"], customApp.drawInstructions);
+#else
     customApp.drawInstructions = doc["draw"].as<String>();
+#endif
   }
   else
   {
+#ifdef ESP8266
+    customApp.drawInstructions.bytes = String();
+#else
     customApp.drawInstructions = "";
+#endif
   }
 
   if (doc.containsKey("effect"))
@@ -660,7 +705,11 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 
     if (newIconName.length() > 64)
     {
+#ifdef ESP8266
+      customApp.jpegDataSize = 0; // base64 icons not supported on ESP8266
+#else
       customApp.jpegDataSize = decode_base64((const unsigned char *)newIconName.c_str(), customApp.jpegDataBuffer);
+#endif
       customApp.isGif = false;
       customApp.icon.close();
       customApp.iconName = "";
@@ -755,8 +804,13 @@ bool DisplayManager_::generateCustomPage(const String &name, JsonObject doc, boo
 bool DisplayManager_::generateNotification(uint8_t source, const char *json)
 {
   // source: 0=MQTT, 1=HTTP
+#ifdef ESP8266
+  DeserializationError error;
+  DynamicJsonDocument doc = parseJsonFitted(json, 6144, error);
+#else
   DynamicJsonDocument doc(6144);
   DeserializationError error = deserializeJson(doc, json);
+#endif
   if (error)
   {
     DEBUG_PRINTLN(error.c_str());
@@ -800,11 +854,19 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
 
   if (doc.containsKey("draw"))
   {
+#ifdef ESP8266
+    compileDrawInstructions(doc["draw"], newNotification.drawInstructions);
+#else
     newNotification.drawInstructions = doc["draw"].as<String>();
+#endif
   }
   else
   {
+#ifdef ESP8266
+    newNotification.drawInstructions.bytes = String();
+#else
     newNotification.drawInstructions = "";
+#endif
   }
 
   if (doc.containsKey("effect"))
@@ -950,7 +1012,11 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
 
     if (iconValue.length() > 64)
     {
+#ifdef ESP8266
+      newNotification.jpegDataSize = 0; // base64 icons not supported on ESP8266
+#else
       newNotification.jpegDataSize = decode_base64((const unsigned char *)iconValue.c_str(), newNotification.jpegDataBuffer);
+#endif
       newNotification.isGif = false;
     }
     else
@@ -959,12 +1025,12 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
       if (LittleFS.exists("/ICONS/" + iconValue + ".jpg"))
       {
         newNotification.isGif = false;
-        newNotification.icon = LittleFS.open("/ICONS/" + iconValue + ".jpg");
+        newNotification.icon = LittleFS.open("/ICONS/" + iconValue + ".jpg", "r");
       }
       else if (LittleFS.exists("/ICONS/" + iconValue + ".gif"))
       {
         newNotification.isGif = true;
-        newNotification.icon = LittleFS.open("/ICONS/" + iconValue + ".gif");
+        newNotification.icon = LittleFS.open("/ICONS/" + iconValue + ".gif", "r");
       }
       else
       {
@@ -997,8 +1063,9 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
       }
       else
       {
+        WiFiClient wifiClient;
         HTTPClient http;
-        http.begin("http://" + client + "/api/notify");
+        http.begin(wifiClient, "http://" + client + "/api/notify");
         http.POST(modifiedJson);
         http.end();
       }
@@ -1032,7 +1099,7 @@ bool DisplayManager_::generateNotification(uint8_t source, const char *json)
 
 void DisplayManager_::loadCustomApps()
 {
-  File root = LittleFS.open("/CUSTOMAPPS");
+  File root = LittleFS.open("/CUSTOMAPPS", "r");
 
   if (!root)
   {
@@ -1121,10 +1188,31 @@ void DisplayManager_::loadNativeApps()
 void DisplayManager_::setup()
 {
   TJpgDec.setCallback(jpg_output);
+#ifdef ESP8266
+  // Decode JPEG icons in the GIF scratch memory (see GifPlayer.h) instead of the heap
+  static_assert(sizeof(decodeScratch) >= TJPGD_WORKSPACE_SIZE, "JPEG workspace too small");
+  TJpgDec.setWorkspace((uint8_t *)&decodeScratch, sizeof(decodeScratch));
+#endif
   TJpgDec.setJpgScale(1);
   random16_set_seed(millis());
+#ifdef ESP8266
+  if (!addMatrixLeds(MATRIX_DATA_PIN))
+  {
+    // Not a pin that can drive the matrix: use the default
+    MATRIX_DATA_PIN = MATRIX_PIN;
+    addMatrixLeds(MATRIX_DATA_PIN);
+  }
+#else
   FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, MATRIX_WIDTH * MATRIX_HEIGHT);
+#endif
   setMatrixLayout(MATRIX_LAYOUT);
+#ifdef ESP8266
+  // Temporal dithering alternates dim colours between two levels on every frame; at the
+  // ESP8266's frame rate that shows as flicker on dim pixels (e.g. weather icons)
+  FastLED.setDither(DISABLE_DITHER);
+#endif
+  if (MATRIX_TEST)
+    showMatrixTest();
   matrix->setRotation(ROTATE_SCREEN ? 90 : 0);
   GAMMA = 1.9;
   if (COLOR_CORRECTION)
@@ -1135,7 +1223,9 @@ void DisplayManager_::setup()
   {
     FastLED.setTemperature(COLOR_TEMPERATURE);
   }
+#ifndef ESP8266
   gif.setMatrix(matrix);
+#endif
   ui->setAppAnimation(SLIDE_DOWN);
 
   ui->setTargetFPS(MATRIX_FPS);
@@ -1215,15 +1305,36 @@ bool universe2_complete = false;
 
 void DisplayManager_::tick()
 {
+#ifndef ESP8266
   if (GAME_ACTIVE)
   {
     GameManager.tick();
     matrix->show();
     memcpy(ledsCopy, leds, sizeof(leds));
   }
-  else if (AP_MODE)
+  else
+#endif
+  if (AP_MODE)
   {
+#ifdef ESP8266
+    // The ESP8266 drives the LEDs with the CPU (~8 ms per frame): redraw at ~25 fps
+    // instead of every loop, so the web server and WiFi get the time in between.
+    static unsigned long lastApFrame = 0;
+    if (millis() - lastApFrame >= 40)
+    {
+      lastApFrame = millis();
+#ifdef AWTRIX_16X16
+      matrix->clear();
+      HSVtext(4, 6, "AP", false, 1);
+      HSVtext(0, 14, "MODE", false, 1);
+      matrix->show();
+#else
+      HSVtext(2, 6, "AP MODE", true, 1);
+#endif
+    }
+#else
     HSVtext(2, 6, "AP MODE", true, 1);
+#endif
   }
   else if (ARTNET_MODE)
   {
@@ -1251,6 +1362,7 @@ void DisplayManager_::tick()
     }
   }
 
+#ifndef ESP8266
   if (!AP_MODE)
   {
     uint16_t ArtnetStatus = artnet.read();
@@ -1264,6 +1376,7 @@ void DisplayManager_::tick()
       ARTNET_MODE = false;
     }
   }
+#endif
 
   if (NEWYEAR)
     DisplayManager.checkNewYear();
@@ -1334,8 +1447,10 @@ void onDmxFrame(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t *d
 
 void DisplayManager_::startArtnet()
 {
+#ifndef ESP8266 // Art-Net is not available on ESP8266
   artnet.begin();
   artnet.setArtDmxCallback(onDmxFrame);
+#endif
 }
 
 void DisplayManager_::clear()
@@ -1457,7 +1572,7 @@ bool DisplayManager_::switchToApp(const char *json)
 
 void DisplayManager_::drawProgressBar(int16_t x, int16_t y, int progress, uint32_t pColor, uint32_t pbColor)
 {
-  int available_length = 32 - x;
+  int available_length = MATRIX_WIDTH - x;
   int leds_for_progress = (progress * available_length) / 100;
   drawLine(x, y, x + available_length - 1, y, pbColor);
   if (leds_for_progress > 0)
@@ -1475,11 +1590,11 @@ void DisplayManager_::drawMenuIndicator(int cur, int total, uint32_t color)
     int x = leftMargin + i * (menuItemWidth + pixelSpacing);
     if (i == cur)
     {
-      drawLine(x, 7, x + menuItemWidth - 1, 7, color);
+      drawLine(x, MATRIX_HEIGHT - 1, x + menuItemWidth - 1, MATRIX_HEIGHT - 1, color);
     }
     else
     {
-      drawLine(x, 7, x + menuItemWidth - 1, 7, 0x666666);
+      drawLine(x, MATRIX_HEIGHT - 1, x + menuItemWidth - 1, MATRIX_HEIGHT - 1, 0x666666);
     }
   }
 }
@@ -1649,7 +1764,11 @@ String DisplayManager_::getStats()
 #endif
   doc[LuxKey] = static_cast<int>(CURRENT_LUX);
   doc[LDRRawKey] = LDR_RAW;
+#ifdef ESP8266
+  doc[RamKey] = ESP.getFreeHeap();
+#else
   doc[RamKey] = ESP.getFreeHeap() + ESP.getFreePsram();
+#endif
   doc[BrightnessKey] = BRIGHTNESS;
   if (SENSOR_READING)
   {
@@ -1673,11 +1792,199 @@ String DisplayManager_::getStats()
   return jsonString;
 }
 
+#ifdef ESP8266
+// FastLED takes the data pin as a template argument, so every pin that can be chosen
+// in dev.json ("matrix_pin") is compiled in here. GPIO numbers (FASTLED_ESP8266_RAW_PIN_ORDER).
+// Left out: GPIO0 and GPIO1 (boot strap / serial TX) and GPIO16 (FastLED can't drive it).
+//
+// GPIO2 is UART1's TX pin, and there the UART generates the signal instead of FastLED's
+// bit-banging. Bit-banging fails once WiFi is connected: the WiFi interrupt pauses it for
+// more than 85 µs several times per frame, FastLED aborts the frame, and the panel only
+// ever gets partial frames (flicker, or a frozen picture). The UART's 128-byte FIFO holds
+// about 320 µs of signal, so interrupts don't disturb it.
+//
+// Encoding: 3.2 Mbaud, so one WS2812 bit (1.25 µs) is 4 UART bit times. With 6N1 and the
+// TX line inverted, one UART byte (start + 6 data + stop = 8 bit times) carries 2 LED
+// bits: the start bit is the first bit's high time and the stop bit the second bit's low.
+class Uart1Ws2812Controller : public CPixelLEDController<GRB>
+{
+public:
+  void init() override
+  {
+    Serial1.begin(3200000, SERIAL_6N1, SERIAL_TX_ONLY, 2, true);
+  }
+
+protected:
+  void showPixels(PixelController<GRB> &pixels) override
+  {
+    // Let the previous frame finish, then hold the line low so the panel latches it
+    while (txFifoCount() > 0)
+      ;
+    delayMicroseconds(300);
+    bool filled = false; // the FIFO had data queued, so running dry means a stall
+    while (pixels.has(1))
+    {
+      uint8_t frame[12];
+      encode(pixels.loadAndScale0(), frame);
+      encode(pixels.loadAndScale1(), frame + 4);
+      encode(pixels.loadAndScale2(), frame + 8);
+      for (uint8_t i = 0; i < sizeof(frame); i++)
+      {
+        uint8_t count;
+        while ((count = txFifoCount()) >= UART_FIFO_SIZE)
+          ; // FIFO full
+        // An interrupt longer than the FIFO (~320 µs) let it run dry: the panel may have
+        // latched mid-frame, and the rest of the frame would land on the first LEDs.
+        // Stop here; the LEDs not reached keep their colours until the next frame.
+        if (filled && count == 0)
+          return;
+        if (count >= 16)
+          filled = true;
+        U1F = frame[i];
+      }
+      pixels.advanceData();
+      pixels.stepDithering();
+    }
+  }
+
+private:
+  static const uint8_t UART_FIFO_SIZE = 128;
+
+  static inline uint8_t txFifoCount()
+  {
+    return (U1S >> USTXC) & 0xff;
+  }
+
+  // Two LED bits (first bit as the high one) per UART byte
+  static void encode(uint8_t value, uint8_t *out)
+  {
+    static const uint8_t bits[4] = {0b110111, 0b000111, 0b110100, 0b000100};
+    out[0] = bits[(value >> 6) & 3];
+    out[1] = bits[(value >> 4) & 3];
+    out[2] = bits[(value >> 2) & 3];
+    out[3] = bits[value & 3];
+  }
+};
+
+static bool addMatrixLeds(uint8_t pin)
+{
+  const int count = MATRIX_WIDTH * MATRIX_HEIGHT;
+  switch (pin)
+  {
+  case 2:
+  {
+    static Uart1Ws2812Controller uartController;
+    FastLED.addLeds(&uartController, leds, count);
+    return true;
+  }
+  case 3:
+    FastLED.addLeds<NEOPIXEL, 3>(leds, count);
+    return true;
+  case 4:
+    FastLED.addLeds<NEOPIXEL, 4>(leds, count);
+    return true;
+  case 5:
+    FastLED.addLeds<NEOPIXEL, 5>(leds, count);
+    return true;
+  case 12:
+    FastLED.addLeds<NEOPIXEL, 12>(leds, count);
+    return true;
+  case 13:
+    FastLED.addLeds<NEOPIXEL, 13>(leds, count);
+    return true;
+  case 14:
+    FastLED.addLeds<NEOPIXEL, 14>(leds, count);
+    return true;
+  case 15:
+    FastLED.addLeds<NEOPIXEL, 15>(leds, count);
+    return true;
+  default:
+    if (pin == MATRIX_PIN)
+    {
+      FastLED.addLeds<NEOPIXEL, MATRIX_PIN>(leds, count);
+      return true;
+    }
+    return false;
+  }
+}
+#endif
+
+#define PANEL_SIZE 16
+
+// Layout 3: a 16x16 panel showing the 32x8 canvas as two stacked halves.
+// Canvas columns 0-15 go on the top 8 rows, columns 16-31 on the bottom 8 rows.
+// Where the data input sits and how the strip runs comes from dev.json.
+// LED index of pixel (px, py) on a 16x16 panel, following the wiring set in dev.json
+static uint16_t panelIndex(uint16_t px, uint16_t py)
+{
+  // Count from the corner with the data input
+  if (MATRIX_START & MATRIX_START_TOP_RIGHT)
+    px = PANEL_SIZE - 1 - px;
+  if (MATRIX_START & MATRIX_START_BOTTOM_LEFT)
+    py = PANEL_SIZE - 1 - py;
+
+  // major: which row (or column) of the strip, minor: position within it
+  uint16_t major = MATRIX_COLUMNS ? px : py;
+  uint16_t minor = MATRIX_COLUMNS ? py : px;
+  if (MATRIX_ZIGZAG && (major & 1))
+    minor = PANEL_SIZE - 1 - minor;
+  return major * PANEL_SIZE + minor;
+}
+
+static uint16_t remapSplit16x16(uint16_t x, uint16_t y)
+{
+  if (x >= PANEL_SIZE)
+    return panelIndex(x - PANEL_SIZE, y + PANEL_SIZE / 2);
+  return panelIndex(x, y);
+}
+
+#ifdef AWTRIX_16X16
+// Native 16x16 build: the canvas is the panel
+static uint16_t remapPanel16x16(uint16_t x, uint16_t y)
+{
+  return panelIndex(x, y);
+}
+#endif
+
+// Wiring check for a new panel, enabled with "matrix_test": true in dev.json.
+static void showMatrixTest()
+{
+  // Step 1, raw strip order: the first LED (data input) red, the next 15 green.
+  // Shows which corner the input is in and whether the strip runs along rows or columns.
+  FastLED.clear();
+  leds[0] = CRGB(64, 0, 0);
+  for (int i = 1; i < PANEL_SIZE; i++)
+    leds[i] = CRGB(0, 4 * i, 0);
+  FastLED.show();
+  delay(8000);
+
+  // Step 2, through the configured layout: if the dev.json settings are right you see
+  // red top left, green top right, blue bottom left and white bottom right.
+  FastLED.clear();
+#ifdef AWTRIX_16X16
+  const int16_t bottomLeftX = 0; // the canvas is the panel
+#else
+  const int16_t bottomLeftX = PANEL_SIZE; // split layout: the right half of the canvas is the bottom half
+#endif
+  matrix->fillRect(0, 0, 2, 2, matrix->Color(64, 0, 0));                                    // panel top left
+  matrix->fillRect(PANEL_SIZE - 2, 0, 2, 2, matrix->Color(0, 64, 0));                       // panel top right
+  matrix->fillRect(bottomLeftX, MATRIX_HEIGHT - 2, 2, 2, matrix->Color(0, 0, 64));          // panel bottom left
+  matrix->fillRect(MATRIX_WIDTH - 2, MATRIX_HEIGHT - 2, 2, 2, matrix->Color(64, 64, 64));   // panel bottom right
+  matrix->show();
+  delay(8000);
+  FastLED.clear();
+}
+
 void DisplayManager_::setMatrixLayout(int layout)
 {
   delete matrix; // Free memory from the current matrix object
   if (DEBUG_MODE)
     DEBUG_PRINTF("Set matrix layout to %i", layout);
+#ifdef AWTRIX_16X16
+  // Native 16x16 build: one layout, the panel wiring comes from dev.json (matrix_start etc.)
+  matrix = new FastLED_NeoMatrix(leds, MATRIX_WIDTH, MATRIX_HEIGHT, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+  matrix->setRemapFunction(remapPanel16x16);
+#else
   switch (layout)
   {
   case 0:
@@ -1689,9 +1996,17 @@ void DisplayManager_::setMatrixLayout(int layout)
   case 2:
     matrix = new FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
     break;
+  case 3:
+    // 16x16 panel, see remapSplit16x16()
+    matrix = new FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE);
+    matrix->setRemapFunction(remapSplit16x16);
+    break;
   default:
+    // Unknown layout: fall back to layout 0 instead of leaving no matrix at all
+    matrix = new FastLED_NeoMatrix(leds, 32, 8, NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG);
     break;
   }
+#endif
 
   delete ui;                        // Free memory from the current ui object
   ui = new MatrixDisplayUi(matrix); // Create a new ui object with the new matrix
@@ -1963,9 +2278,22 @@ void DisplayManager_::gammaCorrection()
 {
   float gamma = logMap(actualBri, 2, 180, 0.535, 2.3, 1.9);
   memcpy(ledsCopy, leds, sizeof(leds));
+
+  // Same result as applyGamma_video() per channel, but its pow() runs only when the gamma
+  // changes (with the brightness): 768 software-float pow() calls cost ~4 ms per frame on ESP8266.
+  static uint8_t gammaTable[256];
+  static float tableGamma = -1;
+  if (gamma != tableGamma)
+  {
+    for (int v = 0; v < 256; v++)
+      gammaTable[v] = applyGamma_video((uint8_t)v, gamma);
+    tableGamma = gamma;
+  }
   for (int i = 0; i < 256; i++)
   {
-    leds[i] = applyGamma_video(leds[i], gamma);
+    leds[i].r = gammaTable[leds[i].r];
+    leds[i].g = gammaTable[leds[i].g];
+    leds[i].b = gammaTable[leds[i].b];
   }
 
   if (MIRROR_DISPLAY)
@@ -2098,6 +2426,7 @@ void DisplayManager_::setNewSettings(const char *json)
       return;
   }
 
+#ifndef ESP8266
   if (doc.containsKey("GAMEMODE"))
   {
     bool gamemode = doc["GAMEMODE"];
@@ -2111,6 +2440,7 @@ void DisplayManager_::setNewSettings(const char *json)
     GameManager.ChooseGame(game);
     return;
   }
+#endif
 
   TIME_MODE = doc.containsKey("TMODE") ? doc["TMODE"].as<int>() : TIME_MODE;
   TRANS_EFFECT = doc.containsKey("TEFF") ? doc["TEFF"] : TRANS_EFFECT;
@@ -2268,21 +2598,53 @@ void DisplayManager_::setCustomAppColors(uint32_t color)
   }
 }
 
-String DisplayManager_::ledsAsJson()
+#ifdef ESP8266
+// Same JSON as ledsAsJson(), written in ~200-byte pieces so no big buffer is needed
+void DisplayManager_::writeLedsAsJson(std::function<void(const char *)> write)
 {
-  StaticJsonDocument<JSON_ARRAY_SIZE(MATRIX_WIDTH * MATRIX_HEIGHT)> jsonDoc;
-  JsonArray jsonColors = jsonDoc.to<JsonArray>();
+  char chunk[224];
+  size_t len = 0;
+  chunk[len++] = '[';
   for (int y = 0; y < MATRIX_HEIGHT; y++)
   {
     for (int x = 0; x < MATRIX_WIDTH; x++)
     {
       int index = matrix->XY(x, y);
       int color = (ledsCopy[index].r << 16) | (ledsCopy[index].g << 8) | ledsCopy[index].b;
-      jsonColors.add(color);
+      len += snprintf(chunk + len, sizeof(chunk) - len, (x || y) ? ",%d" : "%d", color);
+      if (len > sizeof(chunk) - 16)
+      {
+        chunk[len] = '\0';
+        write(chunk);
+        len = 0;
+      }
     }
   }
+  chunk[len++] = ']';
+  chunk[len] = '\0';
+  write(chunk);
+}
+#endif
+
+String DisplayManager_::ledsAsJson()
+{
+  // Written directly instead of through a JsonDocument (4 KB for 256 values), which
+  // didn't fit in the ESP8266's heap while MQTT is connected
   String jsonString;
-  serializeJson(jsonColors, jsonString);
+  jsonString.reserve(MATRIX_WIDTH * MATRIX_HEIGHT * 9 + 2);
+  jsonString += '[';
+  for (int y = 0; y < MATRIX_HEIGHT; y++)
+  {
+    for (int x = 0; x < MATRIX_WIDTH; x++)
+    {
+      int index = matrix->XY(x, y);
+      int color = (ledsCopy[index].r << 16) | (ledsCopy[index].g << 8) | ledsCopy[index].b;
+      if (x || y)
+        jsonString += ',';
+      jsonString += color;
+    }
+  }
+  jsonString += ']';
   return jsonString;
 }
 
@@ -2314,7 +2676,7 @@ CRGB DisplayManager_::getPixelColor(int16_t x, int16_t y)
 
 void DisplayManager_::reorderApps(const String &jsonString)
 {
-  StaticJsonDocument<2048> jsonDocument;
+  DynamicJsonDocument jsonDocument(2048);
   DeserializationError error = deserializeJson(jsonDocument, jsonString);
   if (error)
   {
@@ -2341,8 +2703,13 @@ void DisplayManager_::reorderApps(const String &jsonString)
 
 void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, String &drawInstructions)
 {
-  DynamicJsonDocument doc(8192);
+#ifdef ESP8266
+  DeserializationError error;
+  DynamicJsonDocument doc = parseJsonFitted(drawInstructions.c_str(), JSON_DOC_LARGE, error);
+#else
+  DynamicJsonDocument doc(JSON_DOC_LARGE);
   DeserializationError error = deserializeJson(doc, drawInstructions);
+#endif
 
   if (error)
   {
@@ -2459,6 +2826,242 @@ void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, 
   doc.clear();
 }
 
+#ifdef ESP8266
+// Compact draw commands (see DrawCommands.h). Each command is an opcode byte followed by
+// its parameters; coordinates are int16, colours a flag byte (0: the default text colour,
+// 1: followed by a uint32). The parameters are read the same way the JSON was read on
+// every frame before, so missing or wrong values give the same result as before.
+namespace
+{
+  enum DrawOp : uint8_t
+  {
+    OpPixel = 1,
+    OpLine,
+    OpRect,
+    OpFilledRect,
+    OpCircle,
+    OpFilledCircle,
+    OpText,
+    OpBitmap
+  };
+
+  // Bigger bitmaps are skipped (the JSON path allocated w*h*4 bytes on every frame)
+  const int32_t DRAW_MAX_BITMAP_PIXELS = 1024;
+
+  // Counts the bytes when out is null, appends them to out otherwise
+  struct DrawWriter
+  {
+    String *out = nullptr;
+    size_t size = 0;
+    bool ok = true;
+    void put(const void *data, size_t len)
+    {
+      if (out)
+        ok = out->concat(static_cast<const char *>(data), len) && ok;
+      size += len;
+    }
+    void u8(uint8_t v) { put(&v, 1); }
+    void i16(int v)
+    {
+      int16_t s = v;
+      put(&s, 2);
+    }
+    void f32(double v)
+    {
+      float f = v;
+      put(&f, 4);
+    }
+    void u32(uint32_t v) { put(&v, 4); }
+    void color(JsonVariant v)
+    {
+      // getColorFromJsonVariant() only reads strings and arrays; anything else gives the default
+      if (v.is<String>() || v.is<JsonArray>())
+      {
+        u8(1);
+        u32(getColorFromJsonVariant(v, 0));
+      }
+      else
+      {
+        u8(0);
+      }
+    }
+  };
+
+  struct DrawReader
+  {
+    const uint8_t *p;
+    template <typename T>
+    T get()
+    {
+      T v;
+      memcpy(&v, p, sizeof(T));
+      p += sizeof(T);
+      return v;
+    }
+    int16_t i16() { return get<int16_t>(); }
+    uint32_t color() { return *p++ ? get<uint32_t>() : TEXTCOLOR_888; }
+  };
+
+  void writeDrawCommands(JsonArray instructions, DrawWriter &w)
+  {
+    for (JsonObject instruction : instructions)
+    {
+      for (JsonPair kvp : instruction)
+      {
+        const char *command = kvp.key().c_str();
+        JsonArray params = kvp.value().as<JsonArray>();
+        if (!strcmp(command, "dp"))
+        {
+          w.u8(OpPixel);
+          w.i16(params[0].as<int>());
+          w.i16(params[1].as<int>());
+          w.color(params[2]);
+        }
+        else if (!strcmp(command, "dl") || !strcmp(command, "dr") || !strcmp(command, "df"))
+        {
+          w.u8(command[1] == 'l' ? OpLine : command[1] == 'r' ? OpRect : OpFilledRect);
+          for (int i = 0; i < 4; i++)
+            w.i16(params[i].as<int>());
+          w.color(params[4]);
+        }
+        else if (!strcmp(command, "dc"))
+        {
+          w.u8(OpCircle);
+          for (int i = 0; i < 3; i++)
+            w.i16(params[i].as<int>());
+          w.color(params[3]);
+        }
+        else if (!strcmp(command, "dfc"))
+        {
+          w.u8(OpFilledCircle);
+          for (int i = 0; i < 3; i++)
+            w.f32(params[i].as<double>());
+          w.color(params[3]);
+        }
+        else if (!strcmp(command, "dt"))
+        {
+          String text = utf8ascii(params[2].as<String>());
+          w.u8(OpText);
+          w.i16(params[0].as<int>());
+          w.i16(params[1].as<int>());
+          w.color(params[3]);
+          w.put(text.c_str(), text.length() + 1); // with the terminating zero
+        }
+        else if (!strcmp(command, "db"))
+        {
+          int width = params[2].as<int>();
+          int height = params[3].as<int>();
+          if (width <= 0 || height <= 0 || (int32_t)width * height > DRAW_MAX_BITMAP_PIXELS)
+            continue;
+          w.u8(OpBitmap);
+          w.i16(params[0].as<int>());
+          w.i16(params[1].as<int>());
+          w.i16(width);
+          w.i16(height);
+          // as before: the colours are numbers; missing ones are black, extra ones ignored
+          JsonArray colors = params[4].as<JsonArray>();
+          JsonArray::iterator it = colors.begin();
+          for (int i = 0; i < width * height; i++)
+          {
+            uint32_t c = 0;
+            if (it != colors.end())
+            {
+              c = it->as<uint32_t>();
+              ++it;
+            }
+            w.u32(c);
+          }
+        }
+      }
+    }
+  }
+}
+
+void DisplayManager_::compileDrawInstructions(JsonVariant draw, DrawCommands &out)
+{
+  out.bytes = String();
+  JsonArray instructions = draw.as<JsonArray>();
+  if (instructions.isNull())
+    return;
+  DrawWriter counter;
+  writeDrawCommands(instructions, counter);
+  // one allocation of the exact size, then append
+  if (counter.size == 0 || !out.bytes.reserve(counter.size))
+    return; // nothing to draw, or out of memory: nothing is drawn
+  DrawWriter writer;
+  writer.out = &out.bytes;
+  writeDrawCommands(instructions, writer);
+  if (!writer.ok || out.bytes.length() != counter.size)
+    out.bytes = String();
+}
+
+void DisplayManager_::processDrawInstructions(int16_t xOffset, int16_t yOffset, const DrawCommands &commands)
+{
+  DrawReader r{reinterpret_cast<const uint8_t *>(commands.bytes.c_str())};
+  const uint8_t *end = r.p + commands.bytes.length();
+  while (r.p < end)
+  {
+    uint8_t op = *r.p++;
+    switch (op)
+    {
+    case OpPixel:
+    {
+      int16_t x = r.i16(), y = r.i16();
+      matrix->drawPixel(x + xOffset, y + yOffset, r.color());
+      break;
+    }
+    case OpLine:
+    case OpRect:
+    case OpFilledRect:
+    {
+      int16_t a = r.i16(), b = r.i16(), c = r.i16(), d = r.i16();
+      uint32_t color = r.color();
+      if (op == OpLine)
+        drawLine(a + xOffset, b + yOffset, c + xOffset, d + yOffset, color);
+      else if (op == OpRect)
+        drawRect(a + xOffset, b + yOffset, c, d, color);
+      else
+        drawFilledRect(a + xOffset, b + yOffset, c, d, color);
+      break;
+    }
+    case OpCircle:
+    {
+      int16_t x = r.i16(), y = r.i16(), rad = r.i16();
+      drawCircle(x + xOffset, y + yOffset, rad, r.color());
+      break;
+    }
+    case OpFilledCircle:
+    {
+      float x = r.get<float>(), y = r.get<float>(), rad = r.get<float>();
+      fillCircle(x + xOffset, y + yOffset, rad, r.color());
+      break;
+    }
+    case OpText:
+    {
+      int16_t x = r.i16(), y = r.i16();
+      uint32_t color = r.color();
+      const char *text = reinterpret_cast<const char *>(r.p);
+      r.p += strlen(text) + 1;
+      setTextColor(color);
+      setCursor(x + xOffset, y + yOffset + 5);
+      matrixPrint(text);
+      break;
+    }
+    case OpBitmap:
+    {
+      int16_t x = r.i16(), y = r.i16(), width = r.i16(), height = r.i16();
+      for (int row = 0; row < height; ++row)
+        for (int col = 0; col < width; ++col)
+          matrix->drawPixel(x + col + xOffset, y + row + yOffset, r.get<uint32_t>());
+      break;
+    }
+    default:
+      return; // can't happen: the list is written by compileDrawInstructions()
+    }
+  }
+}
+#endif
+
 bool DisplayManager_::moodlight(const char *json)
 {
   if (strcmp(json, "") == 0)
@@ -2490,7 +3093,7 @@ bool DisplayManager_::moodlight(const char *json)
   {
     auto c = doc["color"];
     uint32_t color888 = getColorFromJsonVariant(c, TEXTCOLOR_888);
-    drawFilledRect(0, 0, 32, 8, color888);
+    drawFilledRect(0, 0, MATRIX_WIDTH, MATRIX_HEIGHT, color888);
   }
   else
   {
@@ -2513,10 +3116,12 @@ String DisplayManager_::getEffectNames()
 {
   StaticJsonDocument<1024> doc;
   JsonArray array = doc.to<JsonArray>();
+#ifndef AWTRIX_16X16 // no effects on the 16x16 build: an empty list
   for (int i = 0; i < numOfEffects; i++)
   {
     array.add(effects[i].name);
   }
+#endif
   String result;
   serializeJson(array, result);
   doc.clear();
@@ -2695,7 +3300,7 @@ void DisplayManager_::matrixPrint(char c)
 {
   if (c == '\n')
   {
-    cursor_y += AwtrixFont.yAdvance;
+    cursor_y += (uint8_t)pgm_read_byte(&AwtrixFont.yAdvance);
     cursor_x = 0;
     return;
   }
@@ -2706,8 +3311,11 @@ void DisplayManager_::matrixPrint(char c)
   }
 
   c -= (uint8_t)pgm_read_byte(&AwtrixFont.first);
-  GFXglyph *glyph = &AwtrixFont.glyph[c];
-  uint8_t *bitmap = AwtrixFont.bitmap;
+  // Font tables live in flash: copy the glyph out instead of reading its fields directly
+  GFXglyph glyphData;
+  memcpy_P(&glyphData, &AwtrixFontGlyphs[(uint8_t)c], sizeof(GFXglyph));
+  GFXglyph *glyph = &glyphData;
+  const uint8_t *bitmap = AwtrixBitmaps;
   uint16_t bo = glyph->bitmapOffset;
   uint8_t w = glyph->width,
           h = glyph->height;
@@ -2741,11 +3349,10 @@ void DisplayManager_::matrixPrint(const char *str)
     char c = *str++;
     if (c == '\n')
     {
-      cursor_y += AwtrixFont.yAdvance;
+      cursor_y += (uint8_t)pgm_read_byte(&AwtrixFont.yAdvance);
     }
-    else if (c >= AwtrixFont.first && c <= AwtrixFont.last)
+    else if ((uint8_t)c >= pgm_read_word(&AwtrixFont.first) && (uint8_t)c <= pgm_read_word(&AwtrixFont.last))
     {
-      GFXglyph *glyph = &AwtrixFont.glyph[c - AwtrixFont.first];
       matrixPrint(c);
     }
   }

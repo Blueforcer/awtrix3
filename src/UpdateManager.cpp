@@ -1,12 +1,14 @@
 #include <UpdateManager.h>
+#include "DisplayManager.h"
+#include "Globals.h"
+#ifndef ESP8266
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
 #include <WiFiClientSecure.h>
 #include "cert.h"
-#include "DisplayManager.h"
 #include <Ticker.h>
-#include "Globals.h"
+#endif
 
 #define URL_fw_Version "https://raw.githubusercontent.com/Blueforcer/awtrix3/main/version"
 
@@ -25,6 +27,28 @@ UpdateManager_ &UpdateManager_::getInstance()
 
 // Initialize the global shared instance
 UpdateManager_ &UpdateManager = UpdateManager.getInstance();
+
+#ifdef ESP8266
+// Online update over HTTPS is not available on ESP8266 (the TLS stack needs more RAM
+// than is left). Flash new firmware through the web interface (/update) instead.
+void UpdateManager_::updateFirmware() {}
+
+bool UpdateManager_::checkUpdate(bool withScreen)
+{
+    UPDATE_AVAILABLE = false;
+    if (withScreen)
+    {
+        DisplayManager.clear();
+        DisplayManager.resetTextColor();
+        DisplayManager.printText(0, 6, "NO OTA", true, true);
+        DisplayManager.show();
+        delay(1000);
+    }
+    return false;
+}
+
+void UpdateManager_::setup() {}
+#else
 
 void update_started()
 {
@@ -167,3 +191,4 @@ void UpdateManager_::setup()
 {
    
 }
+#endif
